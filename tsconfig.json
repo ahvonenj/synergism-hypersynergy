@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"strict": true,
+		"outDir": "./build",
+		"rootDir": "./src/mod"
+	},
+	"include": ["src/mod/**/*.ts"],
+	"exclude": ["node_modules"]
+}

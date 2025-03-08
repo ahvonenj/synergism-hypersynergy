@@ -1,0 +1,1 @@
+http-server ./build/ --mimetypes ./mimes.types --cors

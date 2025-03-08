@@ -1,0 +1,17 @@
+{
+  "name": "synergism-hypersynergy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js",
+    "dev": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.2"
+  }
+}
