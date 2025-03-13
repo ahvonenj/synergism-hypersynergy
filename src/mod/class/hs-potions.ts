@@ -1,8 +1,7 @@
 import { HSLogger } from "./hs-logger";
+import { HSModule } from "./hs-module";
 
-export class HSPotions {
-	#context = "HSPotions";
-
+export class HSPotions extends HSModule {
 	#offeringPotion : HTMLElement | null;
 	#obtainiumPotion : HTMLElement | null;
 
@@ -11,17 +10,24 @@ export class HSPotions {
 	#offeringPotionObserver : MutationObserver;
 	#obtainiumPotionObserver : MutationObserver;
 
-	constructor() {
+	constructor(moduleName: string, context: string) {
+		super(moduleName, context);
+
 		this.#offeringPotion = document.getElementById("offeringPotionHide");
 		this.#obtainiumPotion = document.getElementById("obtainiumPotionHide");
 		this.#config = { attributes: false, childList: true, subtree: true };
 
-		this.#offeringPotionObserver = new MutationObserver(this.#offeringMutationTrigger);
-		this.#obtainiumPotionObserver = new MutationObserver(this.#obtainiumMutationTrigger);
+		this.#offeringPotionObserver = new MutationObserver((mutations, observer) => {
+			this.#offeringMutationTrigger(mutations, observer);
+		});
+
+		this.#obtainiumPotionObserver = new MutationObserver((mutations, observer) => {
+			this.#obtainiumMutationTrigger(mutations, observer);
+		});
 	}
 
 	init() {
-		HSLogger.log("Initialising HSPotions module", this.#context);
+		HSLogger.log("Initialising HSPotions module", this.context);
 		this.observe();
 	}
 
@@ -38,7 +44,7 @@ export class HSPotions {
 			const buyOfferingPotionButton = document.getElementById("buyofferingpotion");
 
 			if(!useOfferingPotionButton || !buyOfferingPotionButton) {
-				HSLogger.warn("Could not find native buttons for use/buy offering potions", this.#context);
+				HSLogger.warn("Could not find native buttons for use/buy offering potions", this.context);
 				return;
 			}
 	
@@ -72,6 +78,9 @@ export class HSPotions {
 	
 				buyOfferingPotionButton.parentNode?.insertBefore(clone2, buyOfferingPotionButton.nextSibling);
 			}
+
+			this.#offeringPotionObserver.disconnect();
+			HSLogger.log("Offering potion multi buy / consume buttons injected", this.context);
 		}
 	};
 
@@ -83,7 +92,7 @@ export class HSPotions {
 			const buyObtainiumPotionButton = document.getElementById("buyobtainiumpotion");
 
 			if(!useObtainiumPotionButton || !buyObtainiumPotionButton) {
-				HSLogger.warn("Could not find native buttons for use/buy obtainium potions", this.#context);
+				HSLogger.warn("Could not find native buttons for use/buy obtainium potions", this.context);
 				return;
 			}
 	
@@ -117,6 +126,9 @@ export class HSPotions {
 	
 				buyObtainiumPotionButton.parentNode?.insertBefore(clone2, buyObtainiumPotionButton.nextSibling);
 			}
+
+			this.#obtainiumPotionObserver.disconnect();
+			HSLogger.log("Obtainium potion multi buy / consume buttons injected", this.context);
 		}
 	};
 }
