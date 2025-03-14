@@ -1,3 +1,6 @@
 node_modules
 build
 snippets
+quarks_save_*.txt
+converted_save_*.txt
+Synergism-*.txt
