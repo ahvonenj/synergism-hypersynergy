@@ -35,7 +35,7 @@ export class HSCodes extends HSModule {
 				const originalText = this.#codeBoxLabel.innerText;
 				this.#codeBoxLabel.innerHTML = `${originalText} [HSCodes] treats you with additional codes for convenience <span style="${this.#codeSpanStyle}">:unsmith:</span> and <span style="${this.#codeSpanStyle}">:antismith:</span>`;
 
-				HSLogger.log("Injected bonus codes", this.context);
+				HSLogger.log("Added :antismith: and :unsmith: to code redeem panel", this.context);
 			} finally {
 				if(this.#codeBoxLabel)
 					this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel as Node, this.#config);

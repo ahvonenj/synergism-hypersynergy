@@ -6,12 +6,14 @@ import { HSPotions } from "./hs-potions";
 import { HSCodes } from "./hs-codes";
 import { HSHepteracts } from "./hs-hepteracts";
 import { HSTalismans } from "./hs-talismans";
+import { HSUI } from "./hs-ui";
 
 export class HSModuleManager {
 	#context;
 	#modules : HSModule[] = [];
 
-	#moduleClasses: Record<string, any> = {
+	#moduleClasses: Record<string, new (name: string, context: string) => HSModule> = {
+        "HSUI": HSUI,
         "HSPotions": HSPotions,
         "HSCodes": HSCodes, 
         "HSHepteracts": HSHepteracts,
@@ -39,7 +41,13 @@ export class HSModuleManager {
 		}
 	}
 
-	getModules() {
+	getModules(): HSModule[] {
 		return this.#modules;
+	}
+
+	getModule<T extends HSModule = HSModule>(moduleName: string): T | undefined {
+		return this.#modules.find((mod) => {
+			return mod.getName() === moduleName;
+		}) as T | undefined;
 	}
 }

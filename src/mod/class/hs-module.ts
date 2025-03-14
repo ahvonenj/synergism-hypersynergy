@@ -12,4 +12,8 @@ export abstract class HSModule {
 	}
 
 	abstract init() : void;
+
+	getName() : string {
+		return this.moduleName;
+	}
 }

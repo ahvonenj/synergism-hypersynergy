@@ -1,10 +1,7 @@
 import { HSModuleDefinition } from "../types/hs-types";
-import { HSCodes } from "./hs-codes";
-import { HSHepteracts } from "./hs-hepteracts";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
 import { HSModuleManager } from "./hs-module-manager";
-import { HSPotions } from "./hs-potions";
+import { HSUI } from "./hs-ui";
 
 export class Hypersynergism {
 	#context = 'HSMain';
@@ -25,8 +22,19 @@ export class Hypersynergism {
 
 	async init() {
 		HSLogger.log("Initialising Hypersynergism modules", this.#context);
+
 		this.#moduleManager.getModules().forEach(async (mod) => {
 			await mod.init();
+
+			if(mod.getName() === "HSUI") {
+				const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
+				
+				if(hsui) {
+					HSLogger.integrateToUI(hsui);
+				}
+			}
 		});
+
+		
 	}
 }

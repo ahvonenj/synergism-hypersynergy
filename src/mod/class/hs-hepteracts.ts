@@ -59,6 +59,6 @@ export class HSHepteracts extends HSModule {
 			}
 		});
 
-		HSLogger.log("Hepteract images serve as 'quick expand and max' buttons now", this.context);
+		HSLogger.log("Hepteract images now serve as 'quick expand and max' buttons", this.context);
 	}
 }
