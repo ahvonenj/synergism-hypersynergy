@@ -1,5 +1,7 @@
 import { HSLogger } from "./hs-logger";
 
+// Abstract HSModule class
+// Meant to be extended from
 export abstract class HSModule {
 	protected moduleName : string;
 	protected context : string;

@@ -30,12 +30,15 @@ const enabledModules: HSModuleDefinition[] = [
 	}
 ]
 
+// Essentially the "main" entrypoint
 const hypersynergism = new Hypersynergism(enabledModules);
 
+// For the loader
 declare global {
 	interface Window {
 		hypersynergism: Hypersynergism;
 	}
 }
 
+// For the loader
 window.hypersynergism = hypersynergism;
