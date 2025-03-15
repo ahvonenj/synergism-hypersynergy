@@ -1,4 +1,5 @@
 import { Hypersynergism } from "./class/hypersynergism";
+import { HSModuleDefinition } from "./types/hs-types";
 
 /*
 	WHEN ADDING NEW MODULES / CLASSES:
@@ -6,7 +7,7 @@ import { Hypersynergism } from "./class/hypersynergism";
 	- Add (explicit) import in hs-module-manager.ts
 	- Add a class mapping to #moduleClasses in hs-module-manager.ts
 */
-const enabledModules = [
+const enabledModules: HSModuleDefinition[] = [
 	{
 		className: 'HSUI',
 		context: 'HSUI'
