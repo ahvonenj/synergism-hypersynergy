@@ -1,6 +1,9 @@
 # Hypersynergism
 
-A QoL mod for [Synergism](https://synergism.cc/) game.
+A QoL mod for the [Synergism](https://synergism.cc/) game.  
+Game's Github: https://github.com/Pseudo-Corp/SynergismOfficial
+
+![](https://synergism.cc/Pictures/Default/icon.gif)
 
 # About the mod
 
@@ -10,23 +13,33 @@ A QoL mod for [Synergism](https://synergism.cc/) game.
 
 Adds the codes `:unsmith:` and `:antismith:` right into the promotion code redeem modal. You can click the codes to automatically select them from quick copying and pasting into the code box.
 
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/codes.png?raw=true)
+
 **Talisman fragment BUY ALL button enhanced**
 
 Changes the behavior of the BUY ALL button for talisman fragments like so that when the BUY ALL button is pressed, max fragments are automatically bought in order starting from the blue fragments. In other words, the first click of the BUY ALL button buys BLUE fragments, second click buys PURPLE fragments, ..., after buying RED fragments the next fragments that will be bought are YELLOW fragments and so on.
 
 If the BUY ALL button hasn't been clicked for 3 seconds, the "buy loop" will automatically reset back to blue fragments. This is to ensure that most resources will be spent on blue fragments after e.g. idling for a while.
 
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/frags.png?raw=true)
+
 **Potion buttons**
 
 Adds `BUY 10x` and `CONSUME 10x` buttons for both potions.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/potions.png?raw=true)
 
 **Quick expand + max for hepteracts**
 
 Adds a new click behavior to the hepteract images / icons. When a hepteract image / icon is clicked, the hepteract in question will be automatically expanded and maxed. This can be more or less "spam clicked" to quickly expand and max each hepteract.
 
+**![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hepteracts.png?raw=true)**
+
 ## Mod panel
 
 The mods adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/panel.png?raw=true)
 
 # Using the mod
 
@@ -59,6 +72,8 @@ package.json contains two scripts `build` and `dev`. Either one can be used by r
 ### Running the mod
 
 To run the mod in the browser, I have included a `loader.js` in the `src/loader` folder. The current idea is to make a new bookmark and simply paste all of the code in `loader.js` into it.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/loader_bookmark.png?raw=true)
 
 **Serving the mod**
 
