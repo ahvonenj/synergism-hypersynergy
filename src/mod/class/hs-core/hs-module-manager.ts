@@ -2,10 +2,10 @@ import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 
 // Explicit imports required because I don't know better...
-import { HSPotions } from "./hs-potions"; 
-import { HSCodes } from "./hs-codes";
-import { HSHepteracts } from "./hs-hepteracts";
-import { HSTalismans } from "./hs-talismans";
+import { HSPotions } from "../hs-modules/hs-potions"; 
+import { HSCodes } from "../hs-modules/hs-codes";
+import { HSHepteracts } from "../hs-modules/hs-hepteracts";
+import { HSTalismans } from "../hs-modules/hs-talismans";
 import { HSUI } from "./hs-ui";
 
 export class HSModuleManager {

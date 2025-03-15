@@ -1,6 +1,6 @@
-import { ELogType } from "../types/hs-types";
+import { ELogType } from "../../types/hs-types";
 import { HSUI } from "./hs-ui";
-import { HSUtils } from "./hs-utils";
+import { HSUtils } from "../hs-utils/hs-utils";
 
 export class HSLogger {
 
@@ -18,20 +18,20 @@ export class HSLogger {
 		}
 	}
 
-	static #logToUi(msg: string, context: string = "HSMain", logType: ELogType = ELogType.log) {
+	static #logToUi(msg: string, context: string = "HSMain", logType: ELogType = ELogType.LOG) {
 		if(this.#integratedToUI) {
 			let level = "";
 
 			switch(logType) {
-				case ELogType.log:
+				case ELogType.LOG:
 					level = "";
 					break;
 
-				case ELogType.warn:
+				case ELogType.WARN:
 					level = "WARN ";
 				break;
 
-				case ELogType.error:
+				case ELogType.ERROR:
 					level = "ERROR ";
 				break;
 
@@ -47,16 +47,16 @@ export class HSLogger {
 	
 	static log(msg: string, context: string = "HSMain") {
 		console.log(`[${context}]: ${msg}`);
-		this.#logToUi(msg, context, ELogType.log);
+		this.#logToUi(msg, context, ELogType.LOG);
 	}
 
 	static warn(msg: string, context: string = "HSMain") {
 		console.warn(`[${context}]: ${msg}`);
-		this.#logToUi(msg, context, ELogType.warn);
+		this.#logToUi(msg, context, ELogType.WARN);
 	}
 
 	static error(msg: string, context: string = "HSMain") {
 		console.error(`[${context}]: ${msg}`);
-		this.#logToUi(msg, context, ELogType.error);
+		this.#logToUi(msg, context, ELogType.ERROR);
 	}
 }

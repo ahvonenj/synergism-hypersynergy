@@ -1,13 +1,17 @@
-import { HSElementHooker } from "./hs-elementhooker";
-import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
-import { HSUtils } from "./hs-utils";
+import { ETalismanFragmentIndex } from "../../types/hs-types";
+import { HSElementHooker } from "../hs-core/hs-elementhooker";
+import { HSLogger } from "../hs-core/hs-logger";
+import { HSModule } from "../hs-core/hs-module";
+import { HSUtils } from "../hs-utils/hs-utils";
 
 export class HSTalismans extends HSModule {
 	#talismanBuyButtons : HTMLButtonElement[] = []; 
 	#buyAllButton? : Element;
 
-	#currentButtonIndex = 0;
+	#currentButtonIndex = ETalismanFragmentIndex.BLUE;
+
+	#indexResetTimeout: number | null = null;
+	#indexResetTimeoutTime = 3000;
 
 	constructor(moduleName: string, context: string) {
 		super(moduleName, context);
@@ -29,6 +33,9 @@ export class HSTalismans extends HSModule {
 		this.#buyAllButton = await HSElementHooker.HookElement('#buyTalismanAll') as HTMLButtonElement;
 
 		this.#buyAllButton.addEventListener('click', (e) => {
+			if(self.#indexResetTimeout)
+				clearTimeout(self.#indexResetTimeout);
+
 			if(self.#talismanBuyButtons.length === 0) return;
 			
 			self.#talismanBuyButtons[self.#currentButtonIndex].click();
@@ -37,7 +44,11 @@ export class HSTalismans extends HSModule {
 			if(self.#currentButtonIndex > self.#talismanBuyButtons.length - 1) {
 				self.#currentButtonIndex = 0;
 			}
-		})
+
+			self.#indexResetTimeout = setTimeout(() => {
+				self.#currentButtonIndex = ETalismanFragmentIndex.BLUE;
+			}, self.#indexResetTimeoutTime);
+		});
 
 		HSLogger.log("Talisman BUY ALL button is now more functional", this.context);
 	}

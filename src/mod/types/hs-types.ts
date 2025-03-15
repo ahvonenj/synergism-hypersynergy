@@ -5,7 +5,17 @@ export type HSModuleDefinition = {
 }
 
 export enum ELogType {
-	log = 1,
-	warn = 2,
-	error = 3
+	LOG = 1,
+	WARN = 2,
+	ERROR = 3
+}
+
+export enum ETalismanFragmentIndex {
+	YELLOW = 0,
+	WHITE = 1,
+	GREEN = 2,
+	BLUE = 3,
+	PURPLE = 4,
+	ORANGE = 5,
+	RED = 6
 }

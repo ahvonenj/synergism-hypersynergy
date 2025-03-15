@@ -1,7 +1,7 @@
-import { HSElementHooker } from "./hs-elementhooker";
-import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
-import { HSUtils } from "./hs-utils";
+import { HSElementHooker } from "../hs-core/hs-elementhooker";
+import { HSLogger } from "../hs-core/hs-logger";
+import { HSModule } from "../hs-core/hs-module";
+import { HSUtils } from "../hs-utils/hs-utils";
 
 export class HSHepteracts extends HSModule {
 	#heptGrid? : Element;

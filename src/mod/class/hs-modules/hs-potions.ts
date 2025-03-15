@@ -1,5 +1,5 @@
-import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
+import { HSLogger } from "../hs-core/hs-logger";
+import { HSModule } from "../hs-core/hs-module";
 
 export class HSPotions extends HSModule {
 	#offeringPotion : HTMLElement | null;

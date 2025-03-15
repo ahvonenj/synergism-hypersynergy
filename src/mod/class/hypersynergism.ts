@@ -1,7 +1,7 @@
 import { HSModuleDefinition } from "../types/hs-types";
-import { HSLogger } from "./hs-logger";
-import { HSModuleManager } from "./hs-module-manager";
-import { HSUI } from "./hs-ui";
+import { HSLogger } from "./hs-core/hs-logger";
+import { HSModuleManager } from "./hs-core/hs-module-manager";
+import { HSUI } from "./hs-core/hs-ui";
 
 export class Hypersynergism {
 	#context = 'HSMain';
@@ -28,7 +28,7 @@ export class Hypersynergism {
 
 			if(mod.getName() === "HSUI") {
 				const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
-				
+
 				if(hsui) {
 					HSLogger.integrateToUI(hsui);
 				}
