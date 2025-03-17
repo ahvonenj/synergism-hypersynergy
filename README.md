@@ -73,6 +73,8 @@ javascript:(function(){
 
 Now just load up the game (or refresh the page if it's already running) and click on the bookmark **after** you've clicked away the "Since you were away" box.
 
+With the bookmark you will always use the latest version of the mod, so no need to worry about that either.
+
 # Technical stuff
 
 ## Modular, expandable and written in TypeScript
