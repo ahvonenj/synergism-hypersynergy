@@ -1,5 +1,5 @@
 javascript:(function(){
-	const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@main/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
+	const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
 	const script = document.createElement('script');
 	script.src = scriptSrc;
 
