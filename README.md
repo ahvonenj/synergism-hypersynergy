@@ -5,6 +5,8 @@ Game's Github: https://github.com/Pseudo-Corp/SynergismOfficial
 
 ![](https://synergism.cc/Pictures/Default/icon.gif)
 
+**[CLICK TO SKIP TO USAGE INSTRUCTIONS](#using-the-mod)**
+
 # About the mod
 
 ## Features
@@ -43,7 +45,33 @@ The mods adds a new button to the top right corner of the window, which opens th
 
 # Using the mod
 
-If someone is interested in starting to use the mod right now, currently the only way to do that is by following the "Setting up the mod for development" guide below. I promise it's honestly not that difficult especially if you have Node.js installed already and / or have ever run any Node.js project or used VSCode.
+Using the mod is simple. Just create a new bookmark and name it as you wish. For the URL, copy and paste the following:
+
+```JavaScript
+javascript:(function(){
+	const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
+	const script = document.createElement('script');
+	script.src = scriptSrc;
+
+	script.onload = function() {
+		console.log('[HSMain] Script loaded successfully!');
+		window.hypersynergism.init();
+	};
+
+	script.onerror = function() {
+		console.error('[HSMain] Failed to load the mod!');
+	};
+
+	document.head.appendChild(script);
+})();
+```
+
+**Example:**
+
+![image](https://github.com/user-attachments/assets/23c63ad6-83e1-4d05-9c6d-8c4494be2692)  
+*(The url in the image is for my local build, so pay no mind to that part)*
+
+Now just load up the game (or refresh the page if it's already running) and click on the bookmark **after** you've clicked away the "Since you were away" box.
 
 # Technical stuff
 
