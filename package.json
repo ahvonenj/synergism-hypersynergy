@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js",
+	"release": "esbuild src/mod/index.ts --bundle --outfile=release/mod/hypersynergism_release.js",
     "dev": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js --watch"
   },
   "keywords": [],
