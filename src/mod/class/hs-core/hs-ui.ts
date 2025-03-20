@@ -307,6 +307,10 @@ export class HSUI extends HSModule {
 							overflow-x: hidden;
 							overflow-y: auto;
 						}
+
+						.hs-modal-img {
+							image-rendering: auto;
+						}
 						`;
 
 	uiReady = false;
