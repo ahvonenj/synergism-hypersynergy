@@ -39,9 +39,16 @@ Adds a new click behavior to the hepteract images / icons. When a hepteract imag
 
 ### Mod panel
 
-The mods adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
+The mod adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/panel.png?raw=true)
+
+### In-game corruptions / runs reference sheet
+
+You can open a reference sheet in-game to quickly look up recommended corruption setups for your runs.  
+*(Original sheet by Discord user awWhy, Updated with new corruption orders and names by myself)*
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/ref_sheet.png?raw=true)
 
 # Using the mod
 
