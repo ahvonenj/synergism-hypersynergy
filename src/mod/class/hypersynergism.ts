@@ -2,6 +2,8 @@ import { HSModuleDefinition } from "../types/hs-types";
 import { HSLogger } from "./hs-core/hs-logger";
 import { HSModuleManager } from "./hs-core/hs-module-manager";
 import { HSUI } from "./hs-core/hs-ui";
+import { HSUIC } from "./hs-core/hs-ui-components";
+import corruption_ref_b64 from "../resource/corruption_ref.txt";
 
 export class Hypersynergism {
 	// Class context, mainly for HSLogger
@@ -47,6 +49,20 @@ export class Hypersynergism {
 			}
 		});
 
-		
+		this.#buildUIPanelContents();
+	}
+
+	#buildUIPanelContents() {
+		const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
+
+		if(hsui) {
+			hsui.replaceTabContents(2, HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }));
+
+			document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
+				hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
+			});
+
+			hsui.renameTab(2, 'Tools');
+		}
 	}
 }

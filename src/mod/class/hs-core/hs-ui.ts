@@ -1,5 +1,8 @@
+import { EModalPosition, HSPanelTabDefinition, HSUICModalOptions, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/hs-ui-types";
+import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
+import { HSUIC } from "./hs-ui-components";
 
 export class HSUI extends HSModule {
 	#staticPanelHtml = `<div id="hs-panel">
@@ -177,6 +180,7 @@ export class HSUI extends HSModule {
 							background-color: #18171c;
 							border-top: 1px solid white;
 							display: none;
+							padding: 10px;
 						}
 
 						.hs-panel-body-open {
@@ -210,7 +214,99 @@ export class HSUI extends HSModule {
 							cursor: pointer;
 							transform: scale(1.05);
 						}
-						
+
+						.hs-panel-btn {
+							border: 2px solid white;
+							min-height: 30px;
+							color: white;
+							transition: background-color 0.15s, border-color 0.15s;
+							cursor: pointer;
+							background-color: #101828;
+							width: 130px;
+							height: 30px;
+							line-height: 30px;
+							text-align: center;
+						}
+
+						.hs-panel-btn:hover {
+							background-color: #005;
+						}
+
+						.hs-modal {
+							width: auto;
+							height: auto;
+							position: absolute;
+							z-index: 7000;
+
+							top: -9001px;
+							left: -9001px;
+							
+							background-color: #1c1b22;
+							border: 1px solid white;
+							border-radius: 3px;
+
+							-webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+							-moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+							box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+							
+							font-family: -apple-system,
+								BlinkMacSystemFont,
+								"Segoe UI",
+								Roboto,
+								Oxygen,
+								Ubuntu,
+								Cantarell,
+								"Open Sans",
+								"Helvetica Neue",
+								sans-serif;
+
+							opacity: 0.97;
+						}
+
+						.hs-modal-head {
+							width: 100%;
+							height: 45px;
+							line-height: calc(45px - (5px * 2));
+							font-size: 14pt;
+							color: white;
+							background-color: #353439;
+							display: flex;
+						}
+
+						.hs-modal-head-left {
+							padding: 5px 10px 5px 10px;
+							flex-grow: 1;
+						}
+
+						.hs-modal-head-right {
+							width: 36px;
+							height: 36px;
+							margin: 4px;
+							border: 1px solid white;
+							flex-grow: 0;
+							line-height: 35px;
+							text-align: center;
+							font-size: 14pt;
+							font-weight: bold;
+						}
+
+						.hs-modal-head-right:hover {
+							background-color: maroon;
+							cursor: pointer;
+						}
+
+						.hs-modal-body {
+							width: 100%;
+							height: calc(100% - 45px);
+							max-height: 60vh;
+							max-width: 40vw;
+							background-color: #18171c;
+							border-top: 1px solid white;
+							padding: 10px;
+							box-sizing: border-box;
+							overflow-x: hidden;
+							overflow-y: auto;
+						}
 						`;
 
 	uiReady = false;
@@ -220,6 +316,29 @@ export class HSUI extends HSModule {
 	#uiPanelOpenBtn?: HTMLDivElement;
 
 	#loggerElement?: HTMLTextAreaElement;
+
+	#tabs : HSPanelTabDefinition[] = [
+		{
+			tabId: 1,
+			tabBodySel: '.hs-panel-body-1',
+			tabSel: '#hs-panel-tab-1'
+		},
+		{
+			tabId: 2,
+			tabBodySel: '.hs-panel-body-2',
+			tabSel: '#hs-panel-tab-2'
+		},
+		{
+			tabId: 3,
+			tabBodySel: '.hs-panel-body-3',
+			tabSel: '#hs-panel-tab-3'
+		},
+		{
+			tabId: 4,
+			tabBodySel: '.hs-panel-body-4',
+			tabSel: '#hs-panel-tab-4'
+		}
+	];
 
 	constructor(moduleName: string, context: string) {
 		super(moduleName, context);
@@ -340,5 +459,178 @@ export class HSUI extends HSModule {
 
 	getLogElement() : HTMLTextAreaElement | null {
 		return this.#loggerElement ? this.#loggerElement : null;
+	}
+
+	replaceTabContents(tabId: number, htmlContent: string) {
+		const tab = this.#tabs.find(t => {
+			return t.tabId === tabId;
+		});
+
+		if(!tab) {
+			HSLogger.warn('Could not find tab to replace contents', this.context);
+			return;
+		}
+
+		const tabBody = document.querySelector(tab.tabBodySel) as HTMLDivElement;
+
+		if(tabBody) {
+			tabBody.innerHTML = htmlContent;
+			HSLogger.log(`Replaced tab ${tab.tabId} content`, this.context);
+		}
+	}
+
+	injectStyle(styleString: string) {
+		if(styleString) {
+			const styleElement = document.createElement('style');
+			styleElement.textContent = styleString;
+			document.head.appendChild(styleElement);
+
+			HSLogger.log(`Injected new css`, this.context);
+		}
+	}
+
+	renameTab(tabId: number, newName: string) {
+		const tab = this.#tabs.find(t => {
+			return t.tabId === tabId;
+		});
+
+		if(!tab) {
+			HSLogger.warn('Could not find tab to rename', this.context);
+			return;
+		}
+
+		const tabEl = document.querySelector(tab.tabSel) as HTMLDivElement;
+
+		if(tabEl) {
+			tabEl.innerHTML = newName;
+		}
+	}
+
+	#resolveCoordinates(coordinates: HSUIDOMCoordinates = EModalPosition.CENTER, relativeTo?: HTMLElement): HSUIXY {
+		let position = { x: 0, y: 0 };
+
+		const windowCenterX = window.innerWidth / 2;
+		const windowCenterY = window.innerHeight / 2;
+
+		if(!relativeTo) {
+			if(Number.isInteger(coordinates)) {
+				switch(coordinates) {
+					case EModalPosition.CENTER:
+						position = { x: windowCenterX, y: windowCenterY };
+						break;
+					case EModalPosition.RIGHT:
+						position = { x: window.innerWidth - 25, y: windowCenterY };
+						break;
+					case EModalPosition.LEFT:
+						position = { x: 25, y: windowCenterY };
+						break;
+					default:
+						position = { x: windowCenterX, y: windowCenterY };
+						break;
+				}
+			} else {
+				position = coordinates as HSUIXY;
+			}
+
+			return position;
+		}
+
+		const elementRect = relativeTo.getBoundingClientRect();
+		console.log(elementRect)
+
+		if(Number.isInteger(coordinates)) {
+			switch(coordinates) {
+				case EModalPosition.CENTER:
+					position = { 
+						x: windowCenterX - elementRect.width / 2, 
+						y: windowCenterY - elementRect.height / 2
+					};
+					break;
+				case EModalPosition.RIGHT:
+					position = { 
+						x: window.innerWidth - 25 - elementRect.width, 
+						y: windowCenterY - elementRect.height / 2
+					};
+					break;
+				case EModalPosition.LEFT:
+					position = { 
+						x: 25 + elementRect.width, 
+						y: windowCenterY - elementRect.height / 2
+					};
+					break;
+				default:
+					position = { 
+						x: windowCenterX - elementRect.width / 2, 
+						y: windowCenterY - elementRect.height / 2
+					};
+					break;
+			}
+		} else {
+			position = coordinates as HSUIXY;
+		}
+
+		return position;
+	}
+
+	async Modal(modalOptions: HSUIModalOptions) {
+		const uuid = `hs-dom-${HSUtils.uuidv4()}`;
+		const html = HSUIC._modal({
+			...modalOptions,
+			id: uuid
+		});	
+
+		// Create temp div, inject UI panel HTML and append the contents to body
+		const div = document.createElement('div');
+		div.innerHTML = html;
+
+		while (div.firstChild) {
+			document.body.appendChild(div.firstChild);
+		};
+
+		const modal = document.querySelector(`#${uuid}`) as HTMLDivElement;
+		const modalHead = document.querySelector(`#${uuid} > .hs-modal-head`) as HTMLDivElement;
+
+		if(modalOptions.needsToLoad && modalOptions.needsToLoad === true) {
+			const images = document.querySelectorAll(`#${uuid} > .hs-modal-body img`);
+
+			const imagePromises = (Array.from(images) as HTMLImageElement[]).map(img => {
+				return new Promise<void>((resolve, reject) => {
+					if (img.complete) {
+						resolve();
+					} else {
+						img.addEventListener('load', () => resolve());
+						img.addEventListener('error', () => {
+							resolve();
+						});
+					}
+				});
+			});
+
+			Promise.all(imagePromises).then(() => {
+				const coords = this.#resolveCoordinates(modalOptions.position, modal);
+				modal.style.left = `${coords.x}px`;
+				modal.style.top = `${coords.y}px`;
+			});
+		} else {
+			const coords = this.#resolveCoordinates(modalOptions.position, modal);
+			modal.style.left = `${coords.x}px`;
+			modal.style.top = `${coords.y}px`;
+		}
+
+		this.#makeDraggable(modal, modalHead);
+
+		if(modal) {
+			modal.addEventListener('click', function(e) {
+				const dClose = (e.target as HTMLDivElement).dataset.close;
+
+				if(dClose) {
+					const targetModal = document.querySelector(`#${dClose}`) as HTMLDivElement;
+
+					if(targetModal) {
+						targetModal.parentElement?.removeChild(targetModal);
+					}
+				}
+			})
+		}
 	}
 }
