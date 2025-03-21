@@ -52,13 +52,13 @@ You can open a reference sheet in-game to quickly look up recommended corruption
 
 ### In-game hepteract ratios
 
-Ratios between hepteracts are displayed in-game. The ratios are:
+Ratios between hepteracts are displayed in-game. 
 
-- Hyper to Chronos
-- Challenge to Chronos
-- Acc Boost to Acc
-- Acc Mult to Acc
-- Acc to Chronos
+The ratios are calculated assuming CHR / ACC is 1, so for example:
+
+- CHR/HYP/CHL: 1 / 25.00 / 50.00 - You have 25x (more) CHR relative to HYP and 50x (more) CHR relative to CHL
+- ACC/BST/MLT: 1 / 10.00 / 15.00 - You have 10x (more) ACC relative to BST and 15x (more) ACC relative to MLT
+- CHR/ACC: 1 / 120.00 - You have 120x (more) CHR relative to ACC
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hept_ratios.png?raw=true)
 
