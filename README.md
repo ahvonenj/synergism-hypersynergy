@@ -50,6 +50,18 @@ You can open a reference sheet in-game to quickly look up recommended corruption
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/ref_sheet.png?raw=true)
 
+### In-game hepteract ratios
+
+Ratios between hepteracts are displayed in-game. The ratios are:
+
+- Hyper to Chronos
+- Challenge to Chronos
+- Acc Boost to Acc
+- Acc Mult to Acc
+- Acc to Chronos
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hept_ratios.png?raw=true)
+
 # Using the mod
 
 Using the mod is simple. Just create a new bookmark and name it as you wish. For the URL, copy and paste the following:
