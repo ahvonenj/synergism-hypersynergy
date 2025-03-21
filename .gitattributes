@@ -1,6 +1,6 @@
-hypersynergism.js linguist-vendored=false
-build/** linguist-vendored=false
-release/** linguist-vendored=false
-other_scripts/** linguist-vendored=false
-save_utils/** linguist-vendored=false
-snippets/** linguist-vendored=false
+hypersynergism.js linguist-generated
+build/** linguist-generated
+release/** linguist-generated
+other_scripts/** linguist-generated
+save_utils/** linguist-generated
+snippets/** linguist-generated
