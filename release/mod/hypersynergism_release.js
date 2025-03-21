@@ -4,6 +4,9 @@
   var HSLogger = class {
     static #integratedToUI = false;
     static #logElement;
+    static {
+      this.logLevel = 1 /* ALL */;
+    }
     // Integrates the logger to the mod's UI panel's Log tab
     static integrateToUI(hsui) {
       const logElement = hsui.getLogElement();
@@ -36,15 +39,30 @@
         this.#logElement.scrollTop = this.#logElement.scrollHeight;
       }
     }
-    static log(msg, context = "HSMain") {
+    static #shouldLog(logType, isImportant) {
+      if (this.logLevel === 1 /* ALL */ || isImportant) return true;
+      if (this.logLevel === 5 /* NONE */) return false;
+      switch (logType) {
+        case 1 /* LOG */:
+          return this.logLevel === 4 /* INFO */;
+        case 2 /* WARN */:
+          return this.logLevel === 2 /* WARN_AND_ERROR */;
+        case 3 /* ERROR */:
+          return this.logLevel === 2 /* WARN_AND_ERROR */ || this.logLevel === 3 /* ERROR */;
+      }
+    }
+    static log(msg, context = "HSMain", isImportant = false) {
+      if (!this.#shouldLog(1 /* LOG */, isImportant)) return;
       console.log(`[${context}]: ${msg}`);
       this.#logToUi(msg, context, 1 /* LOG */);
     }
-    static warn(msg, context = "HSMain") {
+    static warn(msg, context = "HSMain", isImportant = false) {
+      if (!this.#shouldLog(2 /* WARN */, isImportant)) return;
       console.warn(`[${context}]: ${msg}`);
       this.#logToUi(msg, context, 2 /* WARN */);
     }
-    static error(msg, context = "HSMain") {
+    static error(msg, context = "HSMain", isImportant = false) {
+      if (!this.#shouldLog(3 /* ERROR */, isImportant)) return;
       console.error(`[${context}]: ${msg}`);
       this.#logToUi(msg, context, 3 /* ERROR */);
     }
@@ -205,6 +223,22 @@
     }
   };
 
+  // src/mod/class/hs-utils/hs-utils.ts
+  var HSUtils = class {
+    // Simple promise-based wait/delay utility method
+    static wait(delay) {
+      return new Promise(function(resolve) {
+        setTimeout(resolve, delay);
+      });
+    }
+    static uuidv4() {
+      return "10000000-1000-4000-8000-100000000000".replace(
+        /[018]/g,
+        (c) => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+      );
+    }
+  };
+
   // src/mod/class/hs-core/hs-elementhooker.ts
   var HSElementHooker = class {
     // Class context, mainly for HSLogger
@@ -212,6 +246,7 @@
     // These are probably not needed. Was worried that the intervals might stay running for all eternity
     static #hookTimeout = 50;
     static #enableTimeout = false;
+    static #watchers = /* @__PURE__ */ new Map();
     constructor() {
     }
     // Uses setInterval to "watch" for when an element is found in DOM
@@ -270,109 +305,74 @@
         }, 150);
       });
     }
-  };
-
-  // src/mod/class/hs-utils/hs-utils.ts
-  var HSUtils = class {
-    // Simple promise-based wait/delay utility method
-    static wait(delay) {
-      return new Promise(function(resolve) {
-        setTimeout(resolve, delay);
-      });
-    }
-    static uuidv4() {
-      return "10000000-1000-4000-8000-100000000000".replace(
-        /[018]/g,
-        (c) => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
-      );
-    }
-  };
-
-  // src/mod/class/hs-modules/hs-hepteracts.ts
-  var HSHepteracts = class extends HSModule {
-    #heptGrid;
-    #config;
-    #injected = false;
-    #hepteracts = [
-      "chronosHepteract",
-      "hyperrealismHepteract",
-      "quarkHepteract",
-      "challengeHepteract",
-      "abyssHepteract",
-      "acceleratorHepteract",
-      "acceleratorBoostHepteract",
-      "multiplierHepteract"
-    ];
-    constructor(moduleName, context) {
-      super(moduleName, context);
-      this.#config = { attributes: false, childList: true, subtree: true };
-    }
-    async init() {
-      HSLogger.log("Initialising HSHepteracts module", this.context);
+    static watchElement(element, callback, valueParser) {
       const self = this;
-      this.#heptGrid = await HSElementHooker.HookElement("#heptGrid");
-      this.#heptGrid.childNodes.forEach((node) => {
-        if (node.nodeType === 1) {
-          const htmlNode = node;
-          const id = htmlNode.id;
-          if (self.#hepteracts.includes(id)) {
-            const craftMaxBtn = document.querySelector(`#${id}CraftMax`);
-            const capBtn = document.querySelector(`#${id}Cap`);
-            const heptImg = document.querySelector(`#${id}Image`);
-            if (craftMaxBtn && capBtn && heptImg) {
-              heptImg.addEventListener("click", async () => {
-                capBtn.click();
-                await HSUtils.wait(15);
-                document.getElementById("ok_confirm")?.click();
-                await HSUtils.wait(15);
-                document.getElementById("ok_alert")?.click();
-                await HSUtils.wait(15);
-                craftMaxBtn.click();
-                await HSUtils.wait(15);
-                document.getElementById("ok_confirm")?.click();
-                await HSUtils.wait(15);
-                document.getElementById("ok_alert")?.click();
-              });
+      if (!element) {
+        HSLogger.warn("watchElement - element not found", this.#context);
+        return false;
+      }
+      const uuid = HSUtils.uuidv4();
+      const parser = valueParser ? valueParser : (value) => value;
+      this.#watchers.set(uuid, {
+        element,
+        callback,
+        value: void 0,
+        parser,
+        observer: void 0
+      });
+      const observer = new MutationObserver((mutations) => {
+        const watcher2 = self.#watchers.get(uuid);
+        if (watcher2) {
+          const wParser = watcher2.parser;
+          const wCallback = watcher2.callback;
+          const prevValue = watcher2.value;
+          if (wParser) {
+            const newValue = wParser(element.innerText);
+            if (newValue !== prevValue) {
+              watcher2.value = newValue;
+              wCallback(newValue);
+            } else {
             }
+          } else {
+            HSLogger.warn(`watchElement - error while observing, wParser is null`, this.#context);
           }
+        } else {
+          HSLogger.warn("watchElement - error while observing, could not get watcher", this.#context);
         }
       });
-      HSLogger.log("Hepteract images now serve as 'quick expand and max' buttons", this.context);
-    }
-  };
-
-  // src/mod/class/hs-modules/hs-talismans.ts
-  var HSTalismans = class extends HSModule {
-    #talismanBuyButtons = [];
-    #buyAllButton;
-    #currentButtonIndex = 3 /* BLUE */;
-    #indexResetTimeout = null;
-    #indexResetTimeoutTime = 3e3;
-    constructor(moduleName, context) {
-      super(moduleName, context);
-    }
-    async init() {
-      const self = this;
-      HSLogger.log("Initialising HSTalismans module", this.context);
-      this.#buyAllButton = await HSElementHooker.HookElement("#buyTalismanAll");
-      this.#talismanBuyButtons = await HSElementHooker.HookElements(".fragmentBtn");
-      const buyAllClone = this.#buyAllButton.cloneNode(true);
-      this.#buyAllButton.replaceWith(buyAllClone);
-      this.#buyAllButton = await HSElementHooker.HookElement("#buyTalismanAll");
-      this.#buyAllButton.addEventListener("click", (e) => {
-        if (self.#indexResetTimeout)
-          clearTimeout(self.#indexResetTimeout);
-        if (self.#talismanBuyButtons.length === 0) return;
-        self.#talismanBuyButtons[self.#currentButtonIndex].click();
-        self.#currentButtonIndex++;
-        if (self.#currentButtonIndex > self.#talismanBuyButtons.length - 1) {
-          self.#currentButtonIndex = 0;
-        }
-        self.#indexResetTimeout = setTimeout(() => {
-          self.#currentButtonIndex = 3 /* BLUE */;
-        }, self.#indexResetTimeoutTime);
+      const watcher = self.#watchers.get(uuid);
+      if (watcher) {
+        watcher.observer = observer;
+      } else {
+        HSLogger.warn("watchElement - error while setting up observer, could not get watcher", this.#context);
+      }
+      observer.observe(element, {
+        characterData: true,
+        childList: true,
+        subtree: true
       });
-      HSLogger.log("Talisman BUY ALL button is now more functional", this.context);
+      return uuid;
+    }
+    static stopWatching(id) {
+      const watcher = this.#watchers.get(id);
+      if (watcher) {
+        if (watcher.observer) {
+          watcher.observer.disconnect();
+        } else {
+          HSLogger.warn(`Watcher found, but it's observer is null`, this.#context);
+        }
+        this.#watchers.delete(id);
+        return true;
+      }
+      HSLogger.warn(`No watcher found for uuid: ${id}`);
+      return false;
+    }
+    static stopWatchers() {
+      HSLogger.log(`Stopping all watchers`, this.#context);
+      this.#watchers.forEach(({ observer }) => {
+        if (observer) observer.disconnect();
+      });
+      this.#watchers.clear();
     }
   };
 
@@ -395,14 +395,14 @@
       const comp_html = options.htmlContent ?? "";
       const comp_data = options.data ?? [];
       return `<div class="hs-modal ${comp_class}" id="${options.id}">
-					<div class="hs-modal-head">
-						<div class="hs-modal-head-left"></div>
-						<div class="hs-modal-head-right" data-close="${options.id}">x</div>
-					</div>
-					<div class="hs-modal-body">
-						${comp_html}
-					</div>
-				</div>`;
+                    <div class="hs-modal-head">
+                        <div class="hs-modal-head-left"></div>
+                        <div class="hs-modal-head-right" data-close="${options.id}">x</div>
+                    </div>
+                    <div class="hs-modal-body">
+                        ${comp_html}
+                    </div>
+                </div>`;
     }
     static closeModal(a) {
       console.log(a);
@@ -414,311 +414,311 @@
     constructor(moduleName, context) {
       super(moduleName, context);
       this.#staticPanelHtml = `<div id="hs-panel">
-							<div id="hs-panel-header">
-								<div id="hs-panel-header-left">Hypersynergism v0.1</div>
-								<div id="hs-panel-header-right">X</div>
-							</div>
-							<div id="hs-panel-tabs">
-								<div class="hs-panel-tab hs-tab-selected" id="hs-panel-tab-1" data-panel="1">Log</div>
-								<div class="hs-panel-tab" id="hs-panel-tab-2" data-panel="2">???</div>
-								<div class="hs-panel-tab" id="hs-panel-tab-3" data-panel="3">???</div>
-								<div class="hs-panel-tab" id="hs-panel-tab-4" data-panel="4">???</div>
-							</div>
-							<div class="hs-panel-body hs-panel-body-1 hs-panel-body-open">
-								<textarea id="hs-ui-log"></textarea>
-							</div>
-							<div class="hs-panel-body hs-panel-body-2">Panel 2</div>
-							<div class="hs-panel-body hs-panel-body-3">Panel 3</div>
-							<div class="hs-panel-body hs-panel-body-4">Panel 4</div>
-						</div>`;
+                            <div id="hs-panel-header">
+                                <div id="hs-panel-header-left">Hypersynergism v0.1</div>
+                                <div id="hs-panel-header-right">X</div>
+                            </div>
+                            <div id="hs-panel-tabs">
+                                <div class="hs-panel-tab hs-tab-selected" id="hs-panel-tab-1" data-panel="1">Log</div>
+                                <div class="hs-panel-tab" id="hs-panel-tab-2" data-panel="2">???</div>
+                                <div class="hs-panel-tab" id="hs-panel-tab-3" data-panel="3">???</div>
+                                <div class="hs-panel-tab" id="hs-panel-tab-4" data-panel="4">???</div>
+                            </div>
+                            <div class="hs-panel-body hs-panel-body-1 hs-panel-body-open">
+                                <textarea id="hs-ui-log"></textarea>
+                            </div>
+                            <div class="hs-panel-body hs-panel-body-2">Panel 2</div>
+                            <div class="hs-panel-body hs-panel-body-3">Panel 3</div>
+                            <div class="hs-panel-body hs-panel-body-4">Panel 4</div>
+                        </div>`;
       this.#staticPanelCss = `
-						#hs-panel,
-						#hs-panel-header,
-						#hs-panel-header-left,
-						#hs-panel-header-right,
-						#hs-panel-tabs,
-						.hs-panel-tab,
-						.hs-panel-body {
-							box-sizing: border-box;
-						}
+                        #hs-panel,
+                        #hs-panel-header,
+                        #hs-panel-header-left,
+                        #hs-panel-header-right,
+                        #hs-panel-tabs,
+                        .hs-panel-tab,
+                        .hs-panel-body {
+                            box-sizing: border-box;
+                        }
 
-						.hs-panel-closed {
-							display: none;
-						}
+                        .hs-panel-closed {
+                            display: none;
+                        }
 
-						#hs-panel {
-							width: 400px;
-							height: 400px;
-							position: absolute;
-							top: 100px;
-							left: 100px;
-							z-index: 7000;
-							
-							background-color: #1c1b22;
-							border: 1px solid white;
-							border-radius: 3px;
+                        #hs-panel {
+                            width: 400px;
+                            height: 400px;
+                            position: absolute;
+                            top: 100px;
+                            left: 100px;
+                            z-index: 7000;
+                            
+                            background-color: #1c1b22;
+                            border: 1px solid white;
+                            border-radius: 3px;
 
-							-webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							-moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							
-							font-family: -apple-system,
-								BlinkMacSystemFont,
-								"Segoe UI",
-								Roboto,
-								Oxygen,
-								Ubuntu,
-								Cantarell,
-								"Open Sans",
-								"Helvetica Neue",
-								sans-serif;
+                            -webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            -moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            
+                            font-family: -apple-system,
+                                BlinkMacSystemFont,
+                                "Segoe UI",
+                                Roboto,
+                                Oxygen,
+                                Ubuntu,
+                                Cantarell,
+                                "Open Sans",
+                                "Helvetica Neue",
+                                sans-serif;
 
-							opacity: 0.92;
-						}
+                            opacity: 0.92;
+                        }
 
-						#hs-panel-header {
-							width: 100%;
-							height: 45px;
-							line-height: calc(45px - (5px * 2));
-							font-size: 14pt;
-							color: white;
-							background-color: #353439;
-							display: flex;
-						}
+                        #hs-panel-header {
+                            width: 100%;
+                            height: 45px;
+                            line-height: calc(45px - (5px * 2));
+                            font-size: 14pt;
+                            color: white;
+                            background-color: #353439;
+                            display: flex;
+                        }
 
-						#hs-panel-header-left {
-							padding: 5px 10px 5px 10px;
-							flex-grow: 1;
-						}
+                        #hs-panel-header-left {
+                            padding: 5px 10px 5px 10px;
+                            flex-grow: 1;
+                        }
 
-						#hs-panel-header-right {
-							width: 36px;
-							height: 36px;
-							margin: 4px;
-							border: 1px solid white;
-							flex-grow: 0;
-							line-height: 35px;
-							text-align: center;
-							font-size: 14pt;
-							font-weight: bold;
-						}
+                        #hs-panel-header-right {
+                            width: 36px;
+                            height: 36px;
+                            margin: 4px;
+                            border: 1px solid white;
+                            flex-grow: 0;
+                            line-height: 35px;
+                            text-align: center;
+                            font-size: 14pt;
+                            font-weight: bold;
+                        }
 
-						#hs-panel-header-right:hover {
-							background-color: maroon;
-							cursor: pointer;
-						}
+                        #hs-panel-header-right:hover {
+                            background-color: maroon;
+                            cursor: pointer;
+                        }
 
-						#hs-panel-tabs {
-							width: 100%;
-							height: 40px;
-							padding: 0px 0px 0px 0px;
-							color: white;
-							
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-items: center;
-							align-content: space-between;
-						}
+                        #hs-panel-tabs {
+                            width: 100%;
+                            height: 40px;
+                            padding: 0px 0px 0px 0px;
+                            color: white;
+                            
+                            display: flex;
+                            flex-direction: row;
+                            flex-wrap: nowrap;
+                            justify-content: center;
+                            align-items: center;
+                            align-content: space-between;
+                        }
 
-						.hs-panel-tab {
-							height: 100%;
-							flex-grow: 1;
-							flex-shrink: 1;
-							flex-basis: auto;
-							display: flex;
-							justify-content: center;
-							font-weight: bold;
-							line-height: 40px;
-							margin: 0px 2px 0px 2px;
-							border-radius: 0px;
-							font-size: 13pt;
-						}
+                        .hs-panel-tab {
+                            height: 100%;
+                            flex-grow: 1;
+                            flex-shrink: 1;
+                            flex-basis: auto;
+                            display: flex;
+                            justify-content: center;
+                            font-weight: bold;
+                            line-height: 40px;
+                            margin: 0px 2px 0px 2px;
+                            border-radius: 0px;
+                            font-size: 13pt;
+                        }
 
-						.hs-panel-tab:hover {
-							background-color: #006;
-							cursor: pointer;
-						}
+                        .hs-panel-tab:hover {
+                            background-color: #006;
+                            cursor: pointer;
+                        }
 
-						#hs-panel-tab-1 {
-							border-top: 1px solid orange;
-							border-left: 1px solid orange;
-							border-right: 1px solid orange;
-						}
+                        #hs-panel-tab-1 {
+                            border-top: 1px solid orange;
+                            border-left: 1px solid orange;
+                            border-right: 1px solid orange;
+                        }
 
-						#hs-panel-tab-1.hs-tab-selected {
-							background-color: orange;
-						}
+                        #hs-panel-tab-1.hs-tab-selected {
+                            background-color: orange;
+                        }
 
-						#hs-panel-tab-2 {
-							border-top: 1px solid cyan;
-							border-left: 1px solid cyan;
-							border-right: 1px solid cyan;
-						}
+                        #hs-panel-tab-2 {
+                            border-top: 1px solid cyan;
+                            border-left: 1px solid cyan;
+                            border-right: 1px solid cyan;
+                        }
 
-						#hs-panel-tab-2.hs-tab-selected {
-							background-color: blue;
-						}
+                        #hs-panel-tab-2.hs-tab-selected {
+                            background-color: blue;
+                        }
 
-						#hs-panel-tab-3 {
-							border-top: 1px solid maroon;
-							border-left: 1px solid maroon;
-							border-right: 1px solid maroon;
-						}
+                        #hs-panel-tab-3 {
+                            border-top: 1px solid maroon;
+                            border-left: 1px solid maroon;
+                            border-right: 1px solid maroon;
+                        }
 
-						#hs-panel-tab-3.hs-tab-selected {
-							background-color: maroon;
-						}
+                        #hs-panel-tab-3.hs-tab-selected {
+                            background-color: maroon;
+                        }
 
-						#hs-panel-tab-4 {
-							border-top: 1px solid plum;
-							border-left: 1px solid plum;
-							border-right: 1px solid plum;
-						}
+                        #hs-panel-tab-4 {
+                            border-top: 1px solid plum;
+                            border-left: 1px solid plum;
+                            border-right: 1px solid plum;
+                        }
 
-						#hs-panel-tab-4.hs-tab-selected {
-							background-color: plum;
-						}
+                        #hs-panel-tab-4.hs-tab-selected {
+                            background-color: plum;
+                        }
 
-						.hs-panel-body {
-							width: 100%;
-							height: calc(100% - 45px - 40px);
-							background-color: #18171c;
-							border-top: 1px solid white;
-							display: none;
-							padding: 10px;
-						}
+                        .hs-panel-body {
+                            width: 100%;
+                            height: calc(100% - 45px - 40px);
+                            background-color: #18171c;
+                            border-top: 1px solid white;
+                            display: none;
+                            padding: 10px;
+                        }
 
-						.hs-panel-body-open {
-							display: block;
-						}
+                        .hs-panel-body-open {
+                            display: block;
+                        }
 
-						#hs-ui-log {
-							width: 100%;
-							height: 100%;
-							resize: none;
-							padding: 5px;
-							box-sizing: border-box;
-							
-							background-color: #18171c;
-							color: white;
-						}
-						
-						#hs-panel-control {
-							position: absolute;
-							top: 10px;
-							right: 10px;
-							width: 35px;
-							height: 35px;
-							background-image: url(https://synergism.cc/Pictures/Default/OcteractCorruptions.png);
-							background-repeat: no-repeat;
-							background-size: contain;
-							transform-origin: 50% 50%;
-						}
+                        #hs-ui-log {
+                            width: 100%;
+                            height: 100%;
+                            resize: none;
+                            padding: 5px;
+                            box-sizing: border-box;
+                            
+                            background-color: #18171c;
+                            color: white;
+                        }
+                        
+                        #hs-panel-control {
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            width: 35px;
+                            height: 35px;
+                            background-image: url(https://synergism.cc/Pictures/Default/OcteractCorruptions.png);
+                            background-repeat: no-repeat;
+                            background-size: contain;
+                            transform-origin: 50% 50%;
+                        }
 
-						#hs-panel-control:hover {
-							cursor: pointer;
-							transform: scale(1.05);
-						}
+                        #hs-panel-control:hover {
+                            cursor: pointer;
+                            transform: scale(1.05);
+                        }
 
-						.hs-panel-btn {
-							border: 2px solid white;
-							min-height: 30px;
-							color: white;
-							transition: background-color 0.15s, border-color 0.15s;
-							cursor: pointer;
-							background-color: #101828;
-							width: 130px;
-							height: 30px;
-							line-height: 30px;
-							text-align: center;
-						}
+                        .hs-panel-btn {
+                            border: 2px solid white;
+                            min-height: 30px;
+                            color: white;
+                            transition: background-color 0.15s, border-color 0.15s;
+                            cursor: pointer;
+                            background-color: #101828;
+                            width: 130px;
+                            height: 30px;
+                            line-height: 30px;
+                            text-align: center;
+                        }
 
-						.hs-panel-btn:hover {
-							background-color: #005;
-						}
+                        .hs-panel-btn:hover {
+                            background-color: #005;
+                        }
 
-						.hs-modal {
-							width: auto;
-							height: auto;
-							position: absolute;
-							z-index: 7000;
+                        .hs-modal {
+                            width: auto;
+                            height: auto;
+                            position: absolute;
+                            z-index: 7000;
 
-							top: -9001px;
-							left: -9001px;
-							
-							background-color: #1c1b22;
-							border: 1px solid white;
-							border-radius: 3px;
+                            top: -9001px;
+                            left: -9001px;
+                            
+                            background-color: #1c1b22;
+                            border: 1px solid white;
+                            border-radius: 3px;
 
-							-webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							-moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
-							
-							font-family: -apple-system,
-								BlinkMacSystemFont,
-								"Segoe UI",
-								Roboto,
-								Oxygen,
-								Ubuntu,
-								Cantarell,
-								"Open Sans",
-								"Helvetica Neue",
-								sans-serif;
+                            -webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            -moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.75);
+                            
+                            font-family: -apple-system,
+                                BlinkMacSystemFont,
+                                "Segoe UI",
+                                Roboto,
+                                Oxygen,
+                                Ubuntu,
+                                Cantarell,
+                                "Open Sans",
+                                "Helvetica Neue",
+                                sans-serif;
 
-							opacity: 0.97;
-						}
+                            opacity: 0.97;
+                        }
 
-						.hs-modal-head {
-							width: 100%;
-							height: 45px;
-							line-height: calc(45px - (5px * 2));
-							font-size: 14pt;
-							color: white;
-							background-color: #353439;
-							display: flex;
-						}
+                        .hs-modal-head {
+                            width: 100%;
+                            height: 45px;
+                            line-height: calc(45px - (5px * 2));
+                            font-size: 14pt;
+                            color: white;
+                            background-color: #353439;
+                            display: flex;
+                        }
 
-						.hs-modal-head-left {
-							padding: 5px 10px 5px 10px;
-							flex-grow: 1;
-						}
+                        .hs-modal-head-left {
+                            padding: 5px 10px 5px 10px;
+                            flex-grow: 1;
+                        }
 
-						.hs-modal-head-right {
-							width: 36px;
-							height: 36px;
-							margin: 4px;
-							border: 1px solid white;
-							flex-grow: 0;
-							line-height: 35px;
-							text-align: center;
-							font-size: 14pt;
-							font-weight: bold;
-						}
+                        .hs-modal-head-right {
+                            width: 36px;
+                            height: 36px;
+                            margin: 4px;
+                            border: 1px solid white;
+                            flex-grow: 0;
+                            line-height: 35px;
+                            text-align: center;
+                            font-size: 14pt;
+                            font-weight: bold;
+                        }
 
-						.hs-modal-head-right:hover {
-							background-color: maroon;
-							cursor: pointer;
-						}
+                        .hs-modal-head-right:hover {
+                            background-color: maroon;
+                            cursor: pointer;
+                        }
 
-						.hs-modal-body {
-							width: 100%;
-							height: calc(100% - 45px);
-							max-height: 60vh;
-							max-width: 40vw;
-							background-color: #18171c;
-							border-top: 1px solid white;
-							padding: 10px;
-							box-sizing: border-box;
-							overflow-x: hidden;
-							overflow-y: auto;
-						}
+                        .hs-modal-body {
+                            width: 100%;
+                            height: calc(100% - 45px);
+                            max-height: 60vh;
+                            max-width: 40vw;
+                            background-color: #18171c;
+                            border-top: 1px solid white;
+                            padding: 10px;
+                            box-sizing: border-box;
+                            overflow-x: hidden;
+                            overflow-y: auto;
+                        }
 
-						.hs-modal-img {
-							image-rendering: auto;
-						}
-						`;
+                        .hs-modal-img {
+                            image-rendering: auto;
+                        }
+                        `;
       this.uiReady = false;
       this.#tabs = [
         {
@@ -843,13 +843,22 @@
         HSLogger.log(`Replaced tab ${tab.tabId} content`, this.context);
       }
     }
-    injectStyle(styleString) {
+    static injectStyle(styleString) {
       if (styleString) {
         const styleElement = document.createElement("style");
         styleElement.textContent = styleString;
         document.head.appendChild(styleElement);
-        HSLogger.log(`Injected new css`, this.context);
+        HSLogger.log(`Injected new CSS`, "HSUI");
       }
+    }
+    static injectHTML(htmlString, injectFunction) {
+      const div = document.createElement("div");
+      div.innerHTML = htmlString;
+      while (div.firstChild) {
+        injectFunction(div.firstChild);
+      }
+      ;
+      HSLogger.log(`Injected new HTML`, "HSUI");
     }
     renameTab(tabId, newName) {
       const tab = this.#tabs.find((t) => {
@@ -973,6 +982,178 @@
           }
         });
       }
+    }
+  };
+
+  // src/mod/class/hs-modules/hs-hepteracts.ts
+  var HSHepteracts = class extends HSModule {
+    #heptGrid;
+    #hepteractBaseNames = [
+      "chronos",
+      "hyperrealism",
+      "challenge",
+      "accelerator",
+      "acceleratorBoost",
+      "multiplier"
+    ];
+    #hepteracts = [];
+    #hepteractMeters = [];
+    #boxCounts = {
+      chronos: 0,
+      hyperrealism: 0,
+      challenge: 0,
+      accelerator: 0,
+      acceleratorBoost: 0,
+      multiplier: 0
+    };
+    #hyperToChronosRatio = 0;
+    #challengeToChronosRatio = 0;
+    #boostToAcceleratorRatio = 0;
+    #multiplierToAcceleratorRatio = 0;
+    #acceleratorToChronosRatio = 0;
+    #ratioElementHtml = `
+		<div id="hs-ratio-container">
+			<div class="hs-ratio" id="hs-ratio-a">CHR/HYP/CHL: 1 / 123 / 123</div>
+			<div class="hs-ratio" id="hs-ratio-b">ACC/BST/MLT: 1 / 123 / 123</div>
+			<div class="hs-ratio" id="hs-ratio-c">CHR/ACC: 1 / 123</div>
+		</div>`;
+    #ratioElementStyle = `
+		#hs-ratio-container {
+			width: 100%;
+			display: grid;
+			justify-items: center;
+			grid-template-columns: repeat(3, 1fr);
+			grid-template-rows: 1fr;
+			grid-column-gap: 0px;
+			grid-row-gap: 0px;
+		}`;
+    #ratioElementA;
+    #ratioElementB;
+    #ratioElementC;
+    constructor(moduleName, context) {
+      super(moduleName, context);
+      this.#hepteracts = this.#hepteractBaseNames.map((h) => {
+        return `${h}Hepteract`;
+      });
+      this.#hepteractMeters = this.#hepteractBaseNames.map((h) => {
+        return `${h}ProgressBarText`;
+      });
+    }
+    async init() {
+      const self = this;
+      HSLogger.log("Initialising HSHepteracts module", this.context);
+      this.#heptGrid = await HSElementHooker.HookElement("#heptGrid");
+      this.#heptGrid.childNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+          const htmlNode = node;
+          const id = htmlNode.id;
+          if (self.#hepteracts.includes(id)) {
+            const craftMaxBtn = document.querySelector(`#${id}CraftMax`);
+            const capBtn = document.querySelector(`#${id}Cap`);
+            const heptImg = document.querySelector(`#${id}Image`);
+            if (craftMaxBtn && capBtn && heptImg) {
+              heptImg.addEventListener("click", async () => {
+                capBtn.click();
+                await HSUtils.wait(15);
+                document.getElementById("ok_confirm")?.click();
+                await HSUtils.wait(15);
+                document.getElementById("ok_alert")?.click();
+                await HSUtils.wait(15);
+                craftMaxBtn.click();
+                await HSUtils.wait(15);
+                document.getElementById("ok_confirm")?.click();
+                await HSUtils.wait(15);
+                document.getElementById("ok_alert")?.click();
+              });
+            }
+          }
+        }
+      });
+      HSLogger.log("Hepteract images now serve as 'quick expand and max' buttons", this.context);
+      HSLogger.log("Setting up hepteract ratio watch", this.context);
+      HSUI.injectStyle(this.#ratioElementStyle);
+      HSUI.injectHTML(this.#ratioElementHtml, (node) => {
+        const heptGridParent = self.#heptGrid?.parentNode;
+        heptGridParent?.insertBefore(node, self.#heptGrid);
+      });
+      this.#ratioElementA = document.querySelector("#hs-ratio-a");
+      this.#ratioElementB = document.querySelector("#hs-ratio-b");
+      this.#ratioElementC = document.querySelector("#hs-ratio-c");
+      this.#hepteractMeters.forEach((meterId) => {
+        const meter = document.querySelector(`#${meterId}`);
+        const boxName = meterId.substring(0, meterId.indexOf("ProgressBar"));
+        if (meter && boxName) {
+          HSElementHooker.watchElement(meter, (value) => {
+            if (boxName in self.#boxCounts) {
+              self.#boxCounts[boxName] = value;
+              if (Object.values(self.#boxCounts).every((v) => v > 0)) {
+                self.#hyperToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.hyperrealism);
+                self.#challengeToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.challenge);
+                self.#boostToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.acceleratorBoost);
+                self.#multiplierToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.multiplier);
+                self.#acceleratorToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
+                if (this.#ratioElementA && this.#ratioElementB && this.#ratioElementC) {
+                  this.#ratioElementA.innerText = `CHR/HYP/CHL: 1 / ${self.#hyperToChronosRatio.toFixed(2)} / ${self.#challengeToChronosRatio.toFixed(2)}`;
+                  this.#ratioElementB.innerText = `ACC/BST/MLT: 1 / ${self.#boostToAcceleratorRatio.toFixed(2)} / ${self.#multiplierToAcceleratorRatio.toFixed(2)}`;
+                  this.#ratioElementC.innerText = `CHR/ACC: 1 / ${self.#acceleratorToChronosRatio.toFixed(2)}`;
+                }
+              }
+            } else {
+              HSLogger.warn(`Key ${boxName} not found in #boxCounts`, self.context);
+            }
+          }, (value) => {
+            if (typeof value === "string") {
+              const split = value.split("/");
+              try {
+                if (split && split[1]) {
+                  return parseFloat(split[1]);
+                }
+              } catch (e) {
+                HSLogger.warn(`Parsing failed for ${split}`, self.context);
+                return "";
+              }
+            }
+            return "";
+          });
+        } else {
+          HSLogger.warn(`Invalid meter or boxName`, self.context);
+        }
+      });
+    }
+  };
+
+  // src/mod/class/hs-modules/hs-talismans.ts
+  var HSTalismans = class extends HSModule {
+    #talismanBuyButtons = [];
+    #buyAllButton;
+    #currentButtonIndex = 3 /* BLUE */;
+    #indexResetTimeout = null;
+    #indexResetTimeoutTime = 3e3;
+    constructor(moduleName, context) {
+      super(moduleName, context);
+    }
+    async init() {
+      const self = this;
+      HSLogger.log("Initialising HSTalismans module", this.context);
+      this.#buyAllButton = await HSElementHooker.HookElement("#buyTalismanAll");
+      this.#talismanBuyButtons = await HSElementHooker.HookElements(".fragmentBtn");
+      const buyAllClone = this.#buyAllButton.cloneNode(true);
+      this.#buyAllButton.replaceWith(buyAllClone);
+      this.#buyAllButton = await HSElementHooker.HookElement("#buyTalismanAll");
+      this.#buyAllButton.addEventListener("click", (e) => {
+        if (self.#indexResetTimeout)
+          clearTimeout(self.#indexResetTimeout);
+        if (self.#talismanBuyButtons.length === 0) return;
+        self.#talismanBuyButtons[self.#currentButtonIndex].click();
+        self.#currentButtonIndex++;
+        if (self.#currentButtonIndex > self.#talismanBuyButtons.length - 1) {
+          self.#currentButtonIndex = 0;
+        }
+        self.#indexResetTimeout = setTimeout(() => {
+          self.#currentButtonIndex = 3 /* BLUE */;
+        }, self.#indexResetTimeoutTime);
+      });
+      HSLogger.log("Talisman BUY ALL button is now more functional", this.context);
     }
   };
 

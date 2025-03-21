@@ -483,15 +483,26 @@ export class HSUI extends HSModule {
         }
     }
 
-    injectStyle(styleString: string) {
+    static injectStyle(styleString: string) {
         if(styleString) {
             const styleElement = document.createElement('style');
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 
-            HSLogger.log(`Injected new css`, this.context);
+            HSLogger.log(`Injected new CSS`, "HSUI");
         }
     }
+
+	static injectHTML(htmlString: string, injectFunction: (node: ChildNode) => void) {
+        const div = document.createElement('div');
+        div.innerHTML = htmlString;
+
+        while (div.firstChild) {
+			injectFunction(div.firstChild);
+        };
+
+		HSLogger.log(`Injected new HTML`, "HSUI");
+	}
 
     renameTab(tabId: number, newName: string) {
         const tab = this.#tabs.find(t => {

@@ -1,3 +1,5 @@
+import { HSElementWatcher } from "../../types/hs-types";
+import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 
 export class HSElementHooker {
@@ -7,6 +9,8 @@ export class HSElementHooker {
     // These are probably not needed. Was worried that the intervals might stay running for all eternity
     static #hookTimeout = 50;
     static #enableTimeout = false;
+
+	static #watchers = new Map<string, HSElementWatcher>();
 
     constructor() {
 
@@ -81,4 +85,99 @@ export class HSElementHooker {
             }, 150)
         });
     }
+
+	static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (value: any) => any) {
+		const self = this;
+
+		if (!element) {
+			HSLogger.warn('watchElement - element not found', this.#context);
+			return false;
+		}
+
+		const uuid = HSUtils.uuidv4();
+		const parser = valueParser ? valueParser : (value: any) => value;
+
+		this.#watchers.set(uuid, { 
+			element: element,
+			callback: callback,
+			value: undefined,
+			parser: parser,
+			observer: undefined
+		});
+
+		const observer = new MutationObserver((mutations) => {
+			const watcher = self.#watchers.get(uuid);
+
+			if(watcher) {
+				const wParser = watcher.parser;
+				const wCallback = watcher.callback;
+				const prevValue = watcher.value;
+
+				if(wParser) {
+					const newValue = wParser(element.innerText);
+
+					if (newValue !== prevValue) {
+						watcher.value = newValue;
+						wCallback(newValue);
+					} else {
+						//HSLogger.warn(`watchElement - observer called, but no changes detected (prev: ${prevValue}, new: ${newValue})`, this.#context);
+					}
+				} else {
+					HSLogger.warn(`watchElement - error while observing, wParser is null`, this.#context);
+				}
+			} else {
+				HSLogger.warn('watchElement - error while observing, could not get watcher', this.#context);
+			}
+		});
+
+		const watcher = self.#watchers.get(uuid);
+
+		if(watcher) {
+			watcher.observer = observer;
+		} else {
+			HSLogger.warn('watchElement - error while setting up observer, could not get watcher', this.#context);
+		}
+
+		observer.observe(element, {
+			characterData: true,
+			childList: true,
+			subtree: true
+		});
+
+		/*if(element.id) {
+			HSLogger.log(`Watcher set on ${element.nodeName} (id: ${element.id}) with uuid ${uuid}`, this.#context);
+		} else {
+			HSLogger.log(`Watcher set on ${element.nodeName} with uuid ${uuid}`, this.#context);
+		}*/
+
+		return uuid;
+	}
+
+	static stopWatching(id: string) {
+		const watcher = this.#watchers.get(id);
+
+		if (watcher) {
+			if(watcher.observer) {
+				watcher.observer.disconnect();
+			} else {
+				HSLogger.warn(`Watcher found, but it's observer is null`, this.#context);
+			}
+			
+			this.#watchers.delete(id);
+			return true;
+		}
+
+		HSLogger.warn(`No watcher found for uuid: ${id}`);
+		return false;
+	}
+
+	static stopWatchers() {
+		HSLogger.log(`Stopping all watchers`, this.#context);
+
+		this.#watchers.forEach(({ observer }) => {
+			if(observer) observer.disconnect();
+		});
+
+		this.#watchers.clear();
+	}
 }

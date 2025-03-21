@@ -12,6 +12,14 @@ export enum ELogType {
     ERROR = 3
 }
 
+export enum ELogLevel {
+	ALL = 1,				// LOG, WARN, ERROR
+	WARN_AND_ERROR = 2,		// Only WARN and ERROR
+	ERROR = 3,				// Only ERROR
+	INFO = 4,				// Only LOGs
+	NONE = 5,				// Nothing
+}
+
 // Talisman fragment enum, by fragment color
 export enum ETalismanFragmentIndex {
     YELLOW = 0,
@@ -21,4 +29,12 @@ export enum ETalismanFragmentIndex {
     PURPLE = 4,
     ORANGE = 5,
     RED = 6
+}
+
+export type HSElementWatcher = {
+	element: HTMLElement;
+	callback: (value: any) => any;
+	value: any;
+	parser: (value: any) => any;
+	observer?: MutationObserver;
 }
