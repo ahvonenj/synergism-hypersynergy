@@ -4,15 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js",
-	"release": "esbuild src/mod/index.ts --bundle --outfile=release/mod/hypersynergism_release.js",
-    "dev": "esbuild src/mod/index.ts --bundle --outfile=build/hypersynergism.js --watch"
+    "build": "node esbuild.config.js build",
+    "release": "node esbuild.config.js release",
+    "dev": "node esbuild.config.js dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "esbuild": "^0.25.0",
+    "esbuild-plugin-inline-import": "^1.1.0",
     "typescript": "^5.8.2"
   }
 }

@@ -3,6 +3,7 @@ export type HSModuleDefinition = {
     className: string;
     context?: string;
     moduleName?: string;
+    loadOrder?: number;
 }
 
 // Used by HSLogger, log levels

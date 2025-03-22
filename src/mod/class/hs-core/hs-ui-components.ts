@@ -1,4 +1,4 @@
-import { HSUICButtonOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
+import { HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
 
 export class HSUIC {
     static dataString(data: HTMLData[]) {
@@ -11,14 +11,63 @@ export class HSUIC {
         return str;
     }
 
-    static Button(options: HSUICButtonOptions) {
+    static #resolveInputType(inputType: HSInputType) : string {
+        switch(inputType) {
+            case HSInputType.CHECK:
+                return "checkbox";
+            case HSInputType.COLOR:
+                return "color";
+            case HSInputType.NUMBER:
+                return "number";
+            case HSInputType.TEXT:
+                return "text";
+        }
+    }
+
+    static #resolveInputClass(inputType: HSInputType) : string {
+        switch(inputType) {
+            case HSInputType.CHECK:
+                return "hs-panel-input-checkbox";
+            case HSInputType.COLOR:
+                return "hs-panel-input-color";
+            case HSInputType.NUMBER:
+                return "hs-panel-input-number";
+            case HSInputType.TEXT:
+                return "hs-panel-input-text";
+        }
+    }
+
+    static Button(options: HSUICButtonOptions) : string {
         const comp_class = options.class ?? '';
         const comp_text = options.text ?? 'Button';
 
         return `<div class="hs-panel-btn ${comp_class}" id="${options.id}">${comp_text}</div>`;
     }
 
-    static _modal(options: HSUICModalOptions) {
+    static Input(options: HSUICInputOptions) : string {
+        const comp_class = options.class ?? '';
+        const comp_type = this.#resolveInputType(options.type);
+        const comp_input_class = this.#resolveInputClass(options.type);
+
+        return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${options.id}"></input>`;
+    }
+
+    static Div(options: HSUICDivOptions) : string {
+        const comp_class = options.class ?? '';
+        let comp_html = '';
+
+        if(options.html) {
+            if(Array.isArray(options.html)) {
+                comp_html = options.html.join('\n');
+            } else {
+                comp_html = options.html;
+            }
+        } 
+
+        return `<div class="hs-panel-div ${comp_class}" ${options.id ? `id="${options.id}"` : ''}>${comp_html}</div>`;
+    }
+
+    static _modal(options: HSUICModalOptions) : string {
         const comp_class = options.class ?? '';
         const comp_html = options.htmlContent ?? '';
         const comp_data = options.data ?? [];

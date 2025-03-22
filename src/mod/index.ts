@@ -10,23 +10,33 @@ import { HSModuleDefinition } from "./types/hs-types";
 const enabledModules: HSModuleDefinition[] = [
     {
         className: 'HSUI',
-        context: 'HSUI'
+        context: 'HSUI',
+        loadOrder: 1,
+    },
+    {
+        className: 'HSSettings',
+        context: 'HSSettings',
+        loadOrder: 2,
     },
     {
         className: 'HSPotions',
-        context: 'HSPotions'
+        context: 'HSPotions',
+        loadOrder: 3,
     },
     {
         className: 'HSCodes',
-        context: 'HSCodes'
+        context: 'HSCodes',
+        loadOrder: 4,
     },
     {
         className: 'HSHepteracts',
-        context: 'HSHepteracts'
+        context: 'HSHepteracts',
+        loadOrder: 5,
     },
     {
         className: 'HSTalismans',
-        context: 'HSTalismans'
+        context: 'HSTalismans',
+        loadOrder: 6,
     }
 ]
 

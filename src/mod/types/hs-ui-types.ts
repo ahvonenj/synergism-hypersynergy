@@ -19,6 +19,15 @@ export interface HTMLData {
     value: string;
 }
 
+export enum HSInputType {
+    CHECK = 1,
+    COLOR = 2,
+    NUMBER = 3,
+    TEXT = 4,
+}
+
+type HSOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
 interface HSUICOptions {
     id: string;
     class?: string;
@@ -29,9 +38,15 @@ export interface HSUICButtonOptions extends HSUICOptions {
     text?: string;
 }
 
-export interface HSUIModalOptions {
-    id?: string;
-    class?: string;
+export interface HSUICInputOptions extends HSUICOptions {
+    type: HSInputType;
+}
+
+export interface HSUICDivOptions extends HSOptional<HSUICOptions, 'id'> {
+    html?: string | string[];
+}
+
+export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
     htmlContent?: string;
     position?: HSUIDOMCoordinates;
     needsToLoad?: boolean;
