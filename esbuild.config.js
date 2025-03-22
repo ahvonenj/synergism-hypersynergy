@@ -7,7 +7,7 @@ const baseOptions = {
     outfile: 'out.js',
     plugins: [
         inlineImport({
-            filter: /\.(css|txt)$/
+            filter: /^inline:/
         })
     ],
     legalComments: 'none',

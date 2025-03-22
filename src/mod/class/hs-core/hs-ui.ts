@@ -3,7 +3,7 @@ import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSUIC } from "./hs-ui-components";
-import css from "../../resource/css/hs-panel.css";
+import css from "inline:../../resource/css/hs-panel.css";
 
 export class HSUI extends HSModule {
     #staticPanelHtml = `<div id="hs-panel">
