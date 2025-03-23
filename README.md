@@ -67,23 +67,30 @@ The ratios are calculated assuming CHR / ACC is 1, so for example:
 Using the mod is simple. Just create a new bookmark and name it as you wish. For the URL, copy and paste the following:
 
 ```JavaScript
-javascript:(function(){
-	const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
-	const script = document.createElement('script');
-	script.src = scriptSrc;
+javascript:(function() {
+    if(hypersynergism in window) {
+        alert('Hypersynergism is already loaded on the page, please refresh if you want to reload the mod');
+        return;
+    };
+    
+    const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
+    const script = document.createElement('script');
+    script.src = scriptSrc;
 
-	script.onload = function() {
-		console.log('[HSMain] Script loaded successfully!');
-		window.hypersynergism.init();
-	};
+    script.onload = function() {
+        console.log('[HSMain] Script loaded successfully!');
+        window.hypersynergism.init();
+    };
 
-	script.onerror = function() {
-		console.error('[HSMain] Failed to load the mod!');
-	};
+    script.onerror = function() {
+        console.error('[HSMain] Failed to load the mod!');
+    };
 
-	document.head.appendChild(script);
+    document.head.appendChild(script);
 })();
 ```
+
+Alertnatively the same loader code can be found in [here](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/release/loader/loader.js).
 
 **Example:**
 
@@ -152,6 +159,125 @@ At this point we should have:
 - Started the `http-server` by using `start-dev-server.bat` or with the command ```http-server ./build/ --mimetypes ./mimes.types --cors``` to serve the mod's code
 
 If everything is looking good, you should now be able to go play the game at https://synergism.cc/ and simply click the bookmark to load and start the mod. You know you have succeeded if a new icon appears on the top right corner of the game (the mod's panel might also show up which can be closed).
+
+# Modules
+
+## HSElementHooker
+
+This module is intended to offer an easy way to basically `await` for `document.querySelector` to guarantee that the queried element is found in DOM. The same class also exposes a method called `watchElement`, which allows one to setup a more permanent (MutationObserver based) watch on an element in the DOM for value changes. The HSHepteracts module uses it to watch for changes in the hepteract meter values to update hepteract ratios whenever the user expands their hepteracts:
+
+```TypeScript
+HSElementHooker.watchElement(meter, (value) => {
+    if(boxName in self.#boxCounts) {
+        (self.#boxCounts as any)[boxName] = value;
+        
+        if(Object.values(self.#boxCounts).every(v => v > 0)) {
+            self.#hyperToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.hyperrealism);
+            self.#challengeToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.challenge);
+            self.#boostToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.acceleratorBoost);
+            self.#multiplierToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.multiplier);
+            self.#acceleratorToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
+
+            if(this.#ratioElementA && this.#ratioElementB && this.#ratioElementC) {
+                this.#ratioElementA.innerText = `CHR/HYP/CHL: 1 / ${self.#hyperToChronosRatio.toFixed(2)} / ${self.#challengeToChronosRatio.toFixed(2)}`;
+                this.#ratioElementB.innerText = `ACC/BST/MLT: 1 / ${self.#boostToAcceleratorRatio.toFixed(2)} / ${self.#multiplierToAcceleratorRatio.toFixed(2)}`;
+                this.#ratioElementC.innerText = `CHR/ACC: 1 / ${self.#acceleratorToChronosRatio.toFixed(2)}`;
+            }
+        }
+    } else {
+        HSLogger.warn(`Key ${boxName} not found in #boxCounts`, self.context);
+    }
+}, (value) => {
+    if(typeof value === 'string') {
+        const split = value.split('/');
+
+        try {
+            if(split && split[1]) {
+                return parseFloat(split[1]);
+            }
+        } catch (e) {
+            HSLogger.warn(`Parsing failed for ${split}`, self.context);
+            return '';
+        }
+    }
+    return '';
+});
+```
+
+The first callback `watchElement` takes is the callback for when the value changes. Optionally a second callback can be supplied which is a parser function for the element's value. The value is first parsed according to the supplied parser function and the parsed value is then passed to the value change callback.
+
+## HSLogger
+
+This is your basic static class for logging things. It supports `log`, `warn` and `error` and includes a log level setting to suppress certain type of logs. It logs both to the console as well as the console found in the mod's panel.
+
+## Module Manager
+
+This one shouldn't need too much changing (well it doesn't support disabling modules yet). The Module Manager is responsible for enabling different modules within the mod itself. It also keeps track of all the enabled modules and allows for querying the instance of some specific module. I've mostly used it for getting the reference to the HSUI module's instance:
+
+```JavaScript
+const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
+```
+
+## HSSettings
+
+As of 22.2.2025 I've made an initial implementation for this module with typings. The idea is that this module would keep track of all of the settings of the mod and hopefully support saving and loading them as well in the future.
+
+## HSUI
+
+The HSUI module should probably be called HSPanel these days. It mostly contains code related to the mod's panel, but there are also a couple of methods that could come in handy.
+
+### Modals
+
+The `Modal` method within HSUI can be used to open new modals. This is currently used e.g. to display the corruption reference sheet:
+
+```JavaScript
+hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
+```
+
+The method takes an optional option `needsToLoad` which should be set to true if the opened modal needs to spend time loading something such as an image. Here it is true because the corruption reference sheet is displayed as base64 encoded image and we need to wait for the image to load before we can get the true width and height of the modal to properly open the modal at the center of the screen.
+
+### injectStyle and injectHTML methods
+
+HSUI exposes two static methods `injectStyle` and `injectHTML` for arbitrary CSS and HTML injections in to the page. The `ibjectHTML` function takes an optional second argument `injectFunction` if there is a need to control how exactly the html should be added to the page. HSHepteracts module uses this to inject it's hepteract ratio display like so:
+
+```TypeScript
+HSUI.injectHTML(this.#ratioElementHtml, (node) => {
+    const heptGridParent = self.#heptGrid?.parentNode;
+    heptGridParent?.insertBefore(node, self.#heptGrid as Node);
+});
+```
+
+## UI component system (hs-ui-components [HSUIC] module)
+
+The mod implements a minimal "in house" UI component system (HSUIC). This means that for example, creating all of the contents for the mod's panel's Tab 3 looks like this:
+
+```JavaScript
+// BUILD TAB 3
+hsui.replaceTabContents(3, 
+	HSUIC.Div({ 
+	    class: 'hs-panel-setting-block', 
+	    html: [
+		HSUIC.Div({ class: 'hs-panel-setting-block-text', html: 'Expand cost protection' }),
+		HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: 'hs-setting-expand-cost-protection-value', type: HSInputType.NUMBER }),
+		HSUIC.Button({ class: 'hs-panel-setting-block-btn', id: 'hs-setting-expand-cost-protection-btn' }),
+	    ]
+	})
+);
+```
+
+Resulting in an HTML output like this:
+
+```html
+<div class="hs-panel-div hs-panel-setting-block">
+	<div class="hs-panel-div hs-panel-setting-block-text">Expand cost protection</div>
+	<input type="number" class="hs-panel-input-number hs-panel-setting-block-num-input" id="hs-setting-expand-cost-protection-value">
+	<div class="hs-panel-btn hs-panel-setting-block-btn" id="hs-setting-expand-cost-protection-btn">Button</div>
+</div>
+```
+
+Pretty if I say so myself :)
+
+The UI component system is relatively straightforward to expand on by just fiddling around with the `hs-core/hs-ui-components.ts` and `types/hs-ui-types.ts`.
 
 # Extra
 
