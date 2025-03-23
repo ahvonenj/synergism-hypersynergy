@@ -68,11 +68,11 @@ Using the mod is simple. Just create a new bookmark and name it as you wish. For
 
 ```JavaScript
 javascript:(function() {
-    if(hypersynergism in window) {
+    if('hypersynergism' in window) {
         alert('Hypersynergism is already loaded on the page, please refresh if you want to reload the mod');
         return;
     };
-    
+
     const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
     const script = document.createElement('script');
     script.src = scriptSrc;
