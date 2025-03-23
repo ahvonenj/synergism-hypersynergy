@@ -3,6 +3,8 @@ import { HSModule } from "./hs-module";
 
 export class HSSettings extends HSModule {
 
+    CURRENT_VERSION = '1.2.1';
+
     #defaultSettings : HSSettingsDefinition = {
         expandCostProtection: {
             settingName: "expandCostProtection",
