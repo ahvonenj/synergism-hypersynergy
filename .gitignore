@@ -4,3 +4,5 @@ snippets
 quarks_save_*.txt
 converted_save_*.txt
 Synergism-*.txt
+cdn_cache_purge.bat
+cdn_cache_purge.ps1
