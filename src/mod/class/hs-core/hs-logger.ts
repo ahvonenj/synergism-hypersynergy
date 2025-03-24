@@ -23,6 +23,9 @@ export class HSLogger {
     // If the logger is integrated to the UI, we can use this method to log everything to the textarea in the Log tab in the mod's panel
     static #logToUi(msg: string, context: string = "HSMain", logType: ELogType = ELogType.LOG) {
         if(this.#integratedToUI) {
+            const logLine = document.createElement('div');
+            logLine.classList.add('hs-ui-log-line');
+
             let level = "";
 
             switch(logType) {
@@ -32,10 +35,12 @@ export class HSLogger {
 
                 case ELogType.WARN:
                     level = "WARN ";
+                    logLine.classList.add('hs-ui-log-line-warn');
                 break;
 
                 case ELogType.ERROR:
                     level = "ERROR ";
+                    logLine.classList.add('hs-ui-log-line-error');
                 break;
 
                 default:
@@ -43,7 +48,9 @@ export class HSLogger {
                 break;
             }
 
-            this.#logElement.value += `${level}[${context}]: ${msg}\n`;
+            logLine.innerHTML = `${level}[${context}]: ${msg}\n`;
+            
+            this.#logElement.appendChild(logLine);
             this.#logElement.scrollTop = this.#logElement.scrollHeight;
         }
     }

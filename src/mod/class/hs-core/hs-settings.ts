@@ -15,6 +15,9 @@ export class HSSettings extends HSModule {
     static #settingsParsed = false;
     static #settingsSynced = false;
 
+    static #settingEnabledString = "✓";
+    static #settingDisabledString = "✗";
+
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
 
@@ -44,23 +47,44 @@ export class HSSettings extends HSModule {
         for (const [key, setting] of HSUtils.typedObjectEntries(HSSettings.#defaultSettings)) {
             HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
 
-            if(setting.settingControl) {
-                const controlType = setting.settingControl.controlType;
+            const controlSettings = setting.settingControl;
+
+            if(controlSettings) {
+                const controlType = controlSettings.controlType;
+                const controlOptions = controlSettings.controlOptions;
 
                 // Switch control doesn't need value input, thus handled separately
                 if(controlType !== "switch") {
-                    const valueElement = document.querySelector(setting.settingControl.controlSelector) as HTMLInputElement;
+                    const valueElement = document.querySelector(controlSettings.controlSelector) as HTMLInputElement;
 
                     if(valueElement) {
+                        if(controlType === "number" && controlOptions) {
+                            if('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
+                            if('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
+                            if('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
+                        } else if(controlType === "text" && controlOptions) {
+                            if('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
+                        }
+
+                        valueElement.value = setting.settingValue.toString();
+
                         valueElement.addEventListener('change', function(e) {
                             HSSettings.#handleSettingChange(e, key);
                         });
                     }
 
-                    if(setting.settingControl.controlEnabledSelector) {
-                        const toggleElement = document.querySelector(setting.settingControl.controlEnabledSelector) as HTMLButtonElement;
+                    if(controlSettings.controlEnabledSelector) {
+                        const toggleElement = document.querySelector(controlSettings.controlEnabledSelector) as HTMLDivElement;
 
                         if(toggleElement) {
+                            if(setting.enabled) {
+                                toggleElement.innerText = HSSettings.#settingEnabledString;
+                                toggleElement.classList.remove('hs-disabled');
+                            } else {
+                                toggleElement.innerText = HSSettings.#settingDisabledString;
+                                toggleElement.classList.add('hs-disabled');
+                            }
+
                             toggleElement.addEventListener('click', function(e) {
                                 HSSettings.#handleSettingToggle(e, key);
                             });
@@ -91,9 +115,18 @@ export class HSSettings extends HSModule {
         const setting = HSSettings.#settings[settingKey];
         const oldState = setting.enabled;
         const newState = !oldState;
+        const targetElement = (e.target as HTMLDivElement);
 
         HSLogger.log(`Setting toggle caught for ${settingKey}: ${oldState} -> ${newState}`, HSSettings.#staticContext);
 
+        if(newState) {
+            targetElement.innerText = HSSettings.#settingEnabledString;
+            targetElement.classList.remove('hs-disabled');
+        } else {
+            targetElement.innerText = HSSettings.#settingDisabledString;
+            targetElement.classList.add('hs-disabled');
+        }
+        
         HSSettings.#settings[settingKey].enabled = newState;
     }
 
@@ -103,5 +136,14 @@ export class HSSettings extends HSModule {
 
     static setSetting<K extends keyof HSSettingsDefinition>(key: K, setting: HSSettingsDefinition[K]): void {
         this.#settings[key] = setting;
+    }
+
+    static dumpToConsole() {
+        console.log('------------------ HYPERSYNERGISM CURRENT SETTINGS DUMP START ------------------');
+        if(this.#settings) 
+            console.log(this.#settings);
+        else
+            console.log('NO SETTINGS FOUND (wtf)');
+        console.log('------------------ HYPERSYNERGISM CURRENT SETTINGS DUMP END ------------------');
     }
 }

@@ -6,7 +6,12 @@
         "settingControl": {
             "controlSelector": "#hs-setting-expand-cost-protection-value",
             "controlType": "number",
-            "controlEnabledSelector": "#hs-setting-expand-cost-protection-btn"
+            "controlEnabledSelector": "#hs-setting-expand-cost-protection-btn",
+            "controlOptions": {
+                "min": 0,
+                "max": 1,
+                "step": 0.1
+            }
         }
     }
 }

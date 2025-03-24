@@ -38,10 +38,21 @@ export class Hypersynergism {
             // BUILD TAB 2
 
             // Add corruption reference modal button
-            hsui.replaceTabContents(2, HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }));
+            hsui.replaceTabContents(2, 
+                HSUIC.Div({ 
+                    html: [
+                        HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
+                        HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
+                    ]
+                })
+            );
 
             document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
                 hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
+            });
+
+            document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
+                HSSettings.dumpToConsole();
             });
 
             // BUILD TAB 3
