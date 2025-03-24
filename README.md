@@ -37,6 +37,10 @@ Adds a new click behavior to the hepteract images / icons. When a hepteract imag
 
 **![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hepteracts.png?raw=true)**
 
+**Hepteract expand cost protection**
+
+Quick expand comes with cost protection setting which will prevent you from quick expanding your hepteracts if the cost would exceed a configurable limit. It is enabled by default at set to 50% of your current hepteracts.
+
 ### Mod panel
 
 The mod adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
