@@ -86,7 +86,7 @@ export class HSElementHooker {
         });
     }
 
-    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (value: any) => any) {
+    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (watchedElement: HTMLElement) => any) {
         const self = this;
 
         if (!element) {
@@ -95,13 +95,13 @@ export class HSElementHooker {
         }
 
         const uuid = HSUtils.uuidv4();
-        const parser = valueParser ? valueParser : (value: any) => value;
+        const parser = valueParser;
 
         this.#watchers.set(uuid, { 
             element: element,
             callback: callback,
             value: undefined,
-            parser: parser,
+            parser: valueParser ? valueParser : (element) => element.innerText,
             observer: undefined
         });
 
@@ -114,7 +114,7 @@ export class HSElementHooker {
                 const prevValue = watcher.value;
 
                 if(wParser) {
-                    const newValue = wParser(element.innerText);
+                    const newValue = wParser(element);
 
                     if (newValue !== prevValue) {
                         watcher.value = newValue;

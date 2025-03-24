@@ -1,6 +1,7 @@
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
+import { HSSettings } from "../hs-core/hs-settings";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
@@ -24,9 +25,20 @@ export class HSHepteracts extends HSModule {
         chronos: 0,
         hyperrealism: 0,
         challenge: 0,
+        abyss: 0,
         accelerator: 0,
         acceleratorBoost: 0,
         multiplier: 0
+    };
+
+    #hepteractCosts = {
+        chronos: 10000,
+        hyperrealism: 10000,
+        challenge: 50000,
+        abyss: 1.00e8,
+        accelerator: 100000,
+        acceleratorBoost: 200000,
+        multiplier: 300000
     };
 
     #hyperToChronosRatio = 0;
@@ -53,9 +65,12 @@ export class HSHepteracts extends HSModule {
             grid-row-gap: 0px;
         }`;
 
-    #ratioElementA? : HTMLElement;
-    #ratioElementB? : HTMLElement;
-    #ratioElementC? : HTMLElement;
+    #ratioElementA?: HTMLElement;
+    #ratioElementB?: HTMLElement;
+    #ratioElementC?: HTMLElement;
+
+    #ownedHepteractsElement?: HTMLElement;
+    #ownedHepteracts?: number;
 
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
@@ -64,7 +79,7 @@ export class HSHepteracts extends HSModule {
             return `${h}Hepteract`;
         });
 
-        this.#hepteractMeters = this.#hepteractBaseNames.filter(h => h !== 'abyss').map(h => {
+        this.#hepteractMeters = this.#hepteractBaseNames.map(h => {
             return `${h}ProgressBarText`;
         });
     }
@@ -88,6 +103,28 @@ export class HSHepteracts extends HSModule {
                     
                     if(craftMaxBtn && capBtn && heptImg) {
                         heptImg.addEventListener('click', async () => {
+                            
+                            const boxId = id.substring(0, id.indexOf('Hepteract'));
+
+                            if(boxId in self.#boxCounts && boxId in self.#hepteractCosts && self.#ownedHepteracts) {
+                                const currentMax = (self.#boxCounts as any)[boxId];
+                                const cubeCost = (self.#hepteractCosts as any)[boxId];
+                                const buyCost = currentMax * 2 * cubeCost;
+                                const percentOwned = buyCost / self.#ownedHepteracts;
+
+                                console.log(`${boxId} - BUY COST: ${buyCost}, PERCENT OF OWNED: ${percentOwned}`);
+                                const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection');
+                                console.log(expandCostProtectionSetting.settingValue);
+                            
+                                if(expandCostProtectionSetting.enabled) {
+                                    if(percentOwned >= expandCostProtectionSetting.settingValue) {
+                                        HSLogger.log(`Buying ${boxId} would cost ${percentOwned} of current hepts which is >= ${expandCostProtectionSetting.settingValue} (cost protection)`);
+                                        return;
+                                    }
+                                }
+                            }
+                                
+
                             capBtn.click();
                             await HSUtils.wait(15);
                             document.getElementById("ok_confirm")?.click();
@@ -144,7 +181,9 @@ export class HSHepteracts extends HSModule {
                     } else {
                         HSLogger.warn(`Key ${boxName} not found in #boxCounts`, self.context);
                     }
-                }, (value) => {
+                }, (element) => {
+                    const value = element.innerText;
+
                     if(typeof value === 'string') {
                         const split = value.split('/');
 
@@ -162,6 +201,21 @@ export class HSHepteracts extends HSModule {
             } else {
                 HSLogger.warn(`Invalid meter or boxName`, self.context);
             }
+        });
+
+        this.#ownedHepteractsElement = await HSElementHooker.HookElement('#hepteractQuantity') as HTMLElement;
+
+        HSElementHooker.watchElement(this.#ownedHepteractsElement, (value) => {
+            try {
+                const hepts = parseFloat(value);
+                self.#ownedHepteracts = hepts;
+            } catch (e) {
+                console.log(e)
+            }
+        }, (element) => {
+            const subElement = element.querySelector('span');
+            const value = subElement?.innerText;
+            return value;
         });
     }
 }

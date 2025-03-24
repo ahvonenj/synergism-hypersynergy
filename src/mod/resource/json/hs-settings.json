@@ -1,0 +1,12 @@
+{
+    "expandCostProtection": {
+        "settingName": "expandCostProtection",
+        "enabled": true,
+        "settingValue": 0.5,
+        "settingControl": {
+            "controlSelector": "#hs-setting-expand-cost-protection-value",
+            "controlType": "number",
+            "controlEnabledSelector": "#hs-setting-expand-cost-protection-btn"
+        }
+    }
+}

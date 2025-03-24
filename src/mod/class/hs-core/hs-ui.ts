@@ -3,29 +3,12 @@ import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSUIC } from "./hs-ui-components";
-import css from "inline:../../resource/css/hs-panel.css";
+import panelCSS from "inline:../../resource/css/hs-panel.css";
+import panelHTML from "inline:../../resource/html/hs-panel.html";
 
 export class HSUI extends HSModule {
-    #staticPanelHtml = `<div id="hs-panel">
-                            <div id="hs-panel-header">
-                                <div id="hs-panel-header-left">Hypersynergism v0.1</div>
-                                <div id="hs-panel-header-right">X</div>
-                            </div>
-                            <div id="hs-panel-tabs">
-                                <div class="hs-panel-tab hs-tab-selected" id="hs-panel-tab-1" data-panel="1">Log</div>
-                                <div class="hs-panel-tab" id="hs-panel-tab-2" data-panel="2">???</div>
-                                <div class="hs-panel-tab" id="hs-panel-tab-3" data-panel="3">???</div>
-                                <div class="hs-panel-tab" id="hs-panel-tab-4" data-panel="4">???</div>
-                            </div>
-                            <div class="hs-panel-body hs-panel-body-1 hs-panel-body-open">
-                                <textarea id="hs-ui-log"></textarea>
-                            </div>
-                            <div class="hs-panel-body hs-panel-body-2">Panel 2</div>
-                            <div class="hs-panel-body hs-panel-body-3">Panel 3</div>
-                            <div class="hs-panel-body hs-panel-body-4">Panel 4</div>
-                        </div>`;
-
-    #staticPanelCss = '';
+    #staticPanelHtml: string;
+    #staticPanelCss: string;
 
     uiReady = false;
 
@@ -60,7 +43,8 @@ export class HSUI extends HSModule {
 
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
-        this.#staticPanelCss = css;
+        this.#staticPanelCss = panelCSS;
+        this.#staticPanelHtml = panelHTML;
     }
 
     init() {

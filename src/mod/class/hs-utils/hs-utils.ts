@@ -13,4 +13,8 @@ export class HSUtils {
             (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
         );
     }
+
+    static typedObjectEntries<T extends object>(obj: T): [keyof T, T[keyof T]][] {
+        return Object.entries(obj) as [keyof T, T[keyof T]][];
+    }
 }

@@ -39,7 +39,7 @@ export class HSUIC {
 
     static Button(options: HSUICButtonOptions) : string {
         const comp_class = options.class ?? '';
-        const comp_text = options.text ?? 'Button';
+        const comp_text = options.text ?? '';
 
         return `<div class="hs-panel-btn ${comp_class}" id="${options.id}">${comp_text}</div>`;
     }
