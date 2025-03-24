@@ -46,6 +46,14 @@ export interface HSUICDivOptions extends HSOptional<HSUICOptions, 'id'> {
     html?: string | string[];
 }
 
+export interface HSUICGridOptions extends HSOptional<HSUICOptions, 'id'> {
+    html?: string | string[];
+    rowTemplate: string;
+    colTemplate: string;
+    rowGap?: string;
+    colGap?: string;
+}
+
 export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
     htmlContent?: string;
     position?: HSUIDOMCoordinates;

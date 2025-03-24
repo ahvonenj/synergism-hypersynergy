@@ -39,11 +39,15 @@ export class Hypersynergism {
 
             // Add corruption reference modal button
             hsui.replaceTabContents(2, 
-                HSUIC.Div({ 
+                HSUIC.Grid({ 
                     html: [
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
-                    ]
+                    ],
+                    colTemplate: 'repeat(2, 1fr)',
+                    rowTemplate: '1fr',
+                    colGap: '5px',
+                    rowGap: '5px'
                 })
             );
 

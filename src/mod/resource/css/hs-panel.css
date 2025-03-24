@@ -179,6 +179,10 @@
     font-size: 10pt;
 }
 
+.hs-ui-log-line-info {
+    color: aqua;
+}
+
 .hs-ui-log-line-warn {
     color: red;
 }

@@ -37,8 +37,6 @@ export class HSModuleManager {
             return a.loadOrder - b.loadOrder;
         });
 
-        console.log(this.#modules);
-
         this.#modules.forEach(def => {
             this.addModule(def.className, def.context || def.className, def.moduleName || def.className);
         });
@@ -57,7 +55,7 @@ export class HSModuleManager {
             this.#enabledModules.push(module);
         } catch (error) {
             HSLogger.warn(`Failed to add module ${className}:`, this.#context);
-            console.log(error)
+            console.log(error);
             return null;
         }
     }

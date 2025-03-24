@@ -110,15 +110,13 @@ export class HSHepteracts extends HSModule {
                                 const currentMax = (self.#boxCounts as any)[boxId];
                                 const cubeCost = (self.#hepteractCosts as any)[boxId];
                                 const buyCost = currentMax * 2 * cubeCost;
-                                const percentOwned = buyCost / self.#ownedHepteracts;
+                                const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
 
-                                console.log(`${boxId} - BUY COST: ${buyCost}, PERCENT OF OWNED: ${percentOwned}`);
                                 const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection');
-                                console.log(expandCostProtectionSetting.settingValue);
                             
                                 if(expandCostProtectionSetting.enabled) {
                                     if(percentOwned >= expandCostProtectionSetting.settingValue) {
-                                        HSLogger.log(`Buying ${boxId} would cost ${percentOwned} of current hepts which is >= ${expandCostProtectionSetting.settingValue} (cost protection)`);
+                                        HSLogger.info(`Buying ${boxId} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${expandCostProtectionSetting.settingValue} (cost protection)`, this.context);
                                         return;
                                     }
                                 }

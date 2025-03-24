@@ -8,6 +8,8 @@ export class HSLogger {
     static #logElement : HTMLTextAreaElement;
     static logLevel : ELogLevel = ELogLevel.ALL;
 
+    static #lastLogHash = -1;
+
     // Integrates the logger to the mod's UI panel's Log tab
     static integrateToUI(hsui: HSUI) {
         const logElement = hsui.getLogElement();
@@ -31,7 +33,12 @@ export class HSLogger {
             switch(logType) {
                 case ELogType.LOG:
                     level = "";
-                    break;
+                break;
+                
+                case ELogType.INFO:
+                    logLine.classList.add('hs-ui-log-line-info');
+                    level = "";
+                break;
 
                 case ELogType.WARN:
                     level = "WARN ";
@@ -49,9 +56,33 @@ export class HSLogger {
             }
 
             logLine.innerHTML = `${level}[${context}]: ${msg}\n`;
+
+            const logHash = HSUtils.hashCode(`${level}${context}${msg}`);
             
-            this.#logElement.appendChild(logLine);
-            this.#logElement.scrollTop = this.#logElement.scrollHeight;
+            if(this.#lastLogHash !== logHash) {
+                this.#logElement.appendChild(logLine);
+                this.#logElement.scrollTop = this.#logElement.scrollHeight;
+            } else {
+                const lastLogLine = this.#logElement.querySelector('div:last-child') as HTMLDivElement;
+
+                if(lastLogLine) {
+                    try {
+                        const match = lastLogLine.innerHTML.match(/\(x(\d+)\)/);
+
+                        if(match) {
+                            const full = match[0];
+                            const n = parseInt(match[1], 10);
+                            lastLogLine.innerHTML = lastLogLine.innerHTML.replace(full, `(x${n + 1})`);
+                        } else {
+                            lastLogLine.innerHTML += ` (x2)`;
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+            }
+
+            this.#lastLogHash = logHash;
         }
     }
 
@@ -61,11 +92,13 @@ export class HSLogger {
 
         switch(logType) {
             case ELogType.LOG:
-                return (this.logLevel === ELogLevel.INFO);
+                return (this.logLevel === ELogLevel.LOG || this.logLevel === ELogLevel.EXPLOG);
             case ELogType.WARN:
-                return (this.logLevel === ELogLevel.WARN_AND_ERROR);
+                return (this.logLevel === ELogLevel.WARN_AND_ERROR || this.logLevel === ELogLevel.WARN);
             case ELogType.ERROR:
                 return (this.logLevel === ELogLevel.WARN_AND_ERROR || this.logLevel === ELogLevel.ERROR);
+            case ELogType.INFO:
+                return (this.logLevel === ELogLevel.INFO || this.logLevel === ELogLevel.EXPLOG);
         }
     }
     
@@ -73,6 +106,12 @@ export class HSLogger {
         if(!this.#shouldLog(ELogType.LOG, isImportant)) return;
         console.log(`[${context}]: ${msg}`);
         this.#logToUi(msg, context, ELogType.LOG);
+    }
+
+    static info(msg: string, context: string = "HSMain", isImportant: boolean = false) {
+        if(!this.#shouldLog(ELogType.INFO, isImportant)) return;
+        console.log(`[${context}]: ${msg}`);
+        this.#logToUi(msg, context, ELogType.INFO);
     }
 
     static warn(msg: string, context: string = "HSMain", isImportant: boolean = false) {

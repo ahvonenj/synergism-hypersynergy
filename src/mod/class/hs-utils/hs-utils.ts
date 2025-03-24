@@ -14,6 +14,28 @@ export class HSUtils {
         );
     }
 
+    static domid() : string {
+        return "hs-rnd-00000000000".replace(/[018]/g, c =>
+            (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+        );
+    }
+
+    static hashCode(str: string): number {
+        let hash = 0;
+        let i; 
+        let chr;
+
+        if (str.length === 0) return hash;
+
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0;
+        }
+
+        return hash;
+    }
+
     static typedObjectEntries<T extends object>(obj: T): [keyof T, T[keyof T]][] {
         return Object.entries(obj) as [keyof T, T[keyof T]][];
     }

@@ -1,4 +1,6 @@
-import { HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
+import { HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
+import { HSUtils } from "../hs-utils/hs-utils";
+import { HSUI } from "./hs-ui";
 
 export class HSUIC {
     static dataString(data: HTMLData[]) {
@@ -67,6 +69,30 @@ export class HSUIC {
         return `<div class="hs-panel-div ${comp_class}" ${options.id ? `id="${options.id}"` : ''}>${comp_html}</div>`;
     }
 
+    static Grid(options: HSUICGridOptions) : string {
+        const comp_class = options.class ?? '';
+        const id = options.id ?? HSUtils.domid();
+        let comp_html = '';
+
+        if(options.html) {
+            if(Array.isArray(options.html)) {
+                comp_html = options.html.join('\n');
+            } else {
+                comp_html = options.html;
+            }
+        }
+
+        HSUI.injectStyle(`#${id} {
+            display: grid;
+            grid-template-columns: ${options.colTemplate};
+            grid-template-rows: ${options.rowTemplate};
+            grid-column-gap: ${options.colGap};
+            grid-row-gap: ${options.rowGap};
+        }`)
+
+        return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
+    }
+
     static _modal(options: HSUICModalOptions) : string {
         const comp_class = options.class ?? '';
         const comp_html = options.htmlContent ?? '';
@@ -81,9 +107,5 @@ export class HSUIC {
                         ${comp_html}
                     </div>
                 </div>`;
-    }
-
-    static closeModal(a: any) {
-        console.log(a)
     }
 }

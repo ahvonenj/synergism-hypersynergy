@@ -105,6 +105,15 @@ export class HSUI extends HSModule {
 
                     if(targetPanel) {
                         targetPanel.classList.add('hs-panel-body-open');
+
+                        // Log panel (auto scroll to bottom when log tab selected)
+                        if(panelId === "1") {
+                            const logElem = targetPanel.querySelector('#hs-ui-log') as HTMLDivElement;
+
+                            if(logElem) {
+                                logElem.scrollTop = logElem.scrollHeight;
+                            }
+                        }
                     }
                 }
             });
