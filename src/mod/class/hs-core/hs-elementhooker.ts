@@ -9,6 +9,8 @@ export class HSElementHooker {
     // These are probably not needed. Was worried that the intervals might stay running for all eternity
     static #hookTimeout = 50;
     static #enableTimeout = false;
+    
+    static #hookThrottlingMS = 200; // Max 5 times / second
 
     static #watchers = new Map<string, HSElementWatcher>();
 
@@ -86,7 +88,7 @@ export class HSElementHooker {
         });
     }
 
-    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (watchedElement: HTMLElement) => any) {
+    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (watchedElement: HTMLElement) => any, greedy = false) {
         const self = this;
 
         if (!element) {
@@ -95,20 +97,24 @@ export class HSElementHooker {
         }
 
         const uuid = HSUtils.uuidv4();
-        const parser = valueParser;
 
         this.#watchers.set(uuid, { 
             element: element,
             callback: callback,
             value: undefined,
             parser: valueParser ? valueParser : (element) => element.innerText,
-            observer: undefined
+            observer: undefined,
+            lastCall: undefined
         });
 
         const observer = new MutationObserver((mutations) => {
             const watcher = self.#watchers.get(uuid);
 
             if(watcher) {
+                if(watcher.lastCall && (performance.now() - watcher.lastCall) < self.#hookThrottlingMS) {
+                    return;
+                }
+
                 const wParser = watcher.parser;
                 const wCallback = watcher.callback;
                 const prevValue = watcher.value;
@@ -116,7 +122,7 @@ export class HSElementHooker {
                 if(wParser) {
                     const newValue = wParser(element);
 
-                    if (newValue !== prevValue) {
+                    if (newValue !== prevValue || greedy) {
                         watcher.value = newValue;
                         wCallback(newValue);
                     } else {
@@ -125,6 +131,8 @@ export class HSElementHooker {
                 } else {
                     HSLogger.warn(`watchElement - error while observing, wParser is null`, this.#context);
                 }
+
+                watcher.lastCall = performance.now();
             } else {
                 HSLogger.warn('watchElement - error while observing, could not get watcher', this.#context);
             }

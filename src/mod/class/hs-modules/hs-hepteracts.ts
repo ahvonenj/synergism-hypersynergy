@@ -72,6 +72,9 @@ export class HSHepteracts extends HSModule {
     #ownedHepteractsElement?: HTMLElement;
     #ownedHepteracts?: number;
 
+    #expandPending = false;
+    #watchUpdatePending = false;
+
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
 
@@ -103,6 +106,14 @@ export class HSHepteracts extends HSModule {
                     
                     if(craftMaxBtn && capBtn && heptImg) {
                         heptImg.addEventListener('click', async () => {
+                            if(self.#expandPending || self.#watchUpdatePending) {
+                                HSLogger.warn(`Quick expand cancelled, another expand was still pending (exp ${self.#expandPending}, wtch: ${self.#watchUpdatePending})`, self.context);
+                                self.#expandPending = false;
+                                return;
+                            }
+
+                            self.#expandPending = true;
+                            self.#watchUpdatePending = true;
                             
                             const boxId = id.substring(0, id.indexOf('Hepteract'));
 
@@ -117,11 +128,12 @@ export class HSHepteracts extends HSModule {
                                 if(expandCostProtectionSetting.enabled) {
                                     if(percentOwned >= expandCostProtectionSetting.settingValue) {
                                         HSLogger.info(`Buying ${boxId} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${expandCostProtectionSetting.settingValue} (cost protection)`, this.context);
+                                        self.#watchUpdatePending = false;
+                                        self.#expandPending = false;
                                         return;
                                     }
                                 }
                             }
-                                
 
                             capBtn.click();
                             await HSUtils.wait(15);
@@ -134,6 +146,8 @@ export class HSHepteracts extends HSModule {
                             document.getElementById("ok_confirm")?.click();
                             await HSUtils.wait(15);
                             document.getElementById("ok_alert")?.click();
+
+                            self.#expandPending = false;
                         });
                     }
                 }
@@ -208,12 +222,14 @@ export class HSHepteracts extends HSModule {
                 const hepts = parseFloat(value);
                 self.#ownedHepteracts = hepts;
             } catch (e) {
-                console.log(e)
+                console.log(e);
             }
+
+            self.#watchUpdatePending = false;
         }, (element) => {
             const subElement = element.querySelector('span');
             const value = subElement?.innerText;
             return value;
-        });
+        }, true);
     }
 }

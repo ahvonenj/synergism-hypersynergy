@@ -42,4 +42,5 @@ export type HSElementWatcher = {
     value: any;
     parser: (value: any) => any;
     observer?: MutationObserver;
+    lastCall?: number;
 }
