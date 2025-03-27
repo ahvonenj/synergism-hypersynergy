@@ -13,6 +13,7 @@ export class HSUI extends HSModule {
     uiReady = false;
 
     #uiPanel? : HTMLDivElement;
+    #uiPanelTitle?: HTMLDivElement;
     #uiPanelCloseBtn? : HTMLDivElement;
     #uiPanelOpenBtn?: HTMLDivElement;
 
@@ -67,9 +68,10 @@ export class HSUI extends HSModule {
 
         // Find the UI elements in DOM and store the refs
         this.#uiPanel = document.querySelector('#hs-panel') as HTMLDivElement;
-        this.#uiPanelCloseBtn = document.querySelector('#hs-panel-header-right') as HTMLDivElement;
+        this.#uiPanelTitle = document.querySelector('#hs-panel-version') as HTMLDivElement;
+        this.#uiPanelCloseBtn = document.querySelector('.hs-panel-header-right') as HTMLDivElement;
         this.#loggerElement = document.querySelector('#hs-ui-log') as HTMLTextAreaElement;
-        const panelHandle = document.querySelector('#hs-panel-header') as HTMLDivElement;
+        const panelHandle = document.querySelector('.hs-panel-header') as HTMLDivElement;
 
         // Make the HS UI panel draggable
         this.#makeDraggable(this.#uiPanel, panelHandle);
@@ -188,6 +190,14 @@ export class HSUI extends HSModule {
         if(tabBody) {
             tabBody.innerHTML = htmlContent;
             HSLogger.log(`Replaced tab ${tab.tabId} content`, this.context);
+        }
+    }
+
+    updateTitle(newTitle: string) {
+        if(this.#uiPanelTitle) {
+            this.#uiPanelTitle.innerText = newTitle;
+        } else {
+            HSLogger.warn(`Could not update panel title`, this.context);
         }
     }
 

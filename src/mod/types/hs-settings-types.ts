@@ -9,18 +9,29 @@ export interface HSSettingControlOptions {
     placeholder?: string;
 }
 
+export type HSSettingsControlType = "text" | "number" | "switch";
+
+export type HSSettingActionParams = {
+    contextName?: string,
+    value?: any,
+    disable?: boolean
+}
+
 export interface HSSettingControl {
-    controlSelector: string;
-    controlType: "text" | "number" | "switch";
-    controlEnabledSelector?: string;
+    controlId: string;
+    controlType: HSSettingsControlType;
+    controlEnabledId?: string;
     controlOptions?: HSSettingControlOptions;
 }
 
 interface HSSettingBase<T> {
     enabled: boolean;
     settingName: string;
+    settingDescription: string;
     settingValue: T;
+    defaultValue?: T;
     settingControl?: HSSettingControl;
+    settingAction?: string;
 }
 
 export interface ExpandCostProtectionSetting extends HSSettingBase<number> {

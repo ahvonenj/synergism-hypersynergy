@@ -10,7 +10,7 @@ export class HSElementHooker {
     static #hookTimeout = 50;
     static #enableTimeout = false;
     
-    static #hookThrottlingMS = 200; // Max 5 times / second
+    static #hookThrottlingMS = 100; // Max 10 times / second
 
     static #watchers = new Map<string, HSElementWatcher>();
 

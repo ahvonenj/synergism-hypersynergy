@@ -185,9 +185,9 @@ export class HSHepteracts extends HSModule {
                             self.#acceleratorToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
 
                             if(this.#ratioElementA && this.#ratioElementB && this.#ratioElementC) {
-                                this.#ratioElementA.innerText = `CHR/HYP/CHL: 1 / ${self.#hyperToChronosRatio.toFixed(2)} / ${self.#challengeToChronosRatio.toFixed(2)}`;
-                                this.#ratioElementB.innerText = `ACC/BST/MLT: 1 / ${self.#boostToAcceleratorRatio.toFixed(2)} / ${self.#multiplierToAcceleratorRatio.toFixed(2)}`;
-                                this.#ratioElementC.innerText = `CHR/ACC: 1 / ${self.#acceleratorToChronosRatio.toFixed(2)}`;
+                                this.#ratioElementA.innerText = `CHR/HYP/CHL: 1 / ${HSUtils.N(self.#hyperToChronosRatio)} / ${HSUtils.N(self.#challengeToChronosRatio)}`;
+                                this.#ratioElementB.innerText = `ACC/BST/MLT: 1 / ${HSUtils.N(self.#boostToAcceleratorRatio)} / ${HSUtils.N(self.#multiplierToAcceleratorRatio)}`;
+                                this.#ratioElementC.innerText = `CHR/ACC: 1 / ${HSUtils.N(self.#acceleratorToChronosRatio)}`;
                             }
                         }
                     } else {

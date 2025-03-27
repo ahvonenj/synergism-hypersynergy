@@ -35,8 +35,10 @@ export class Hypersynergism {
         const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
 
         if(hsui) {
-            // BUILD TAB 2
+            // Update panel title with current version
+            hsui.updateTitle(`Hypersynergism v${HSSettings.CURRENT_VERSION}`);
 
+            // BUILD TAB 2
             // Add corruption reference modal button
             hsui.replaceTabContents(2, 
                 HSUIC.Grid({ 
@@ -60,16 +62,11 @@ export class Hypersynergism {
             });
 
             // BUILD TAB 3
-            hsui.replaceTabContents(3, 
-                HSUIC.Div({ 
-                    class: 'hs-panel-setting-block',
-                    html: [
-                        HSUIC.Div({ class: 'hs-panel-setting-block-text', html: 'Expand cost protection' }),
-                        HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: 'hs-setting-expand-cost-protection-value', type: HSInputType.NUMBER }),
-                        HSUIC.Button({ class: 'hs-panel-setting-block-btn', id: 'hs-setting-expand-cost-protection-btn', text: "" }),
-                    ]
-                })
-            );
+            const settingsTabContents = HSSettings.autoBuildSettingsUI();
+
+            if(settingsTabContents.didBuild) {
+                hsui.replaceTabContents(3, settingsTabContents.htmlString);
+            }
 
             // Rename tabs
             hsui.renameTab(2, 'Tools');

@@ -1,16 +1,35 @@
 {
     "expandCostProtection": {
         "settingName": "expandCostProtection",
+        "settingDescription": "Hept. expand cost protection",
         "enabled": true,
         "settingValue": 0.5,
         "settingControl": {
-            "controlSelector": "#hs-setting-expand-cost-protection-value",
+            "controlId": "hs-setting-expand-cost-protection-value",
             "controlType": "number",
-            "controlEnabledSelector": "#hs-setting-expand-cost-protection-btn",
+            "controlEnabledId": "hs-setting-expand-cost-protection-btn",
             "controlOptions": {
                 "min": 0,
                 "max": 1,
                 "step": 0.1
+            }
+        }
+    },
+
+    "syncNotificationOpacity": {
+        "settingName": "syncNotificationOpacity",
+        "settingDescription": "Notification opacity",
+        "enabled": true,
+        "settingValue": 0.6,
+        "settingAction": "syncNotificationOpacity",
+        "settingControl": {
+            "controlId": "hs-setting-notification-opacity-value",
+            "controlType": "number",
+            "controlEnabledId": "hs-setting-notification-opacity-btn",
+            "controlOptions": {
+                "min": 0,
+                "max": 1,
+                "step": 0.05
             }
         }
     }

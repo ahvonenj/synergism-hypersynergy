@@ -39,4 +39,27 @@ export class HSUtils {
     static typedObjectEntries<T extends object>(obj: T): [keyof T, T[keyof T]][] {
         return Object.entries(obj) as [keyof T, T[keyof T]][];
     }
+
+    static N(num: string | number) {
+        let tempNum = 0;
+        let numString = '';
+
+        try {
+            if(typeof num === "string")
+                tempNum = parseFloat(num);
+            else
+                tempNum = num;
+
+            if(tempNum > 1_000_000) {
+                numString = tempNum.toExponential(2).replace('+', '');
+            } else {
+                numString = tempNum.toFixed(2);
+            }
+        } catch (e) {
+            console.error(`[HS]: HSUtil.N FAILED FOR ${num}`);
+            return numString;
+        }
+
+        return numString;
+    }
 }
