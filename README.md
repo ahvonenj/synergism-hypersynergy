@@ -45,7 +45,7 @@ Quick expand comes with cost protection setting which will prevent you from quic
 
 The mod adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
 
-![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/panel.png?raw=true)
+
 
 ### In-game corruptions / runs reference sheet
 
@@ -65,6 +65,13 @@ The ratios are calculated assuming CHR / ACC is 1, so for example:
 - CHR/ACC: 1 / 120.00 - You have 120x (more) CHR relative to ACC
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hept_ratios.png?raw=true)
+
+### Game notification opacity control
+
+Adjust the game notification opacity through the mod's panel.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/settings.png?raw=true)
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/opacity_control.png?raw=true)
 
 # Using the mod
 
