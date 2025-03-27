@@ -45,7 +45,7 @@ Quick expand comes with cost protection setting which will prevent you from quic
 
 The mod adds a new button to the top right corner of the window, which opens the mod panel when clicked. Currently the panel contains only a "Log" tabs, but more features such as different mod settings and toggles might be added in the future.
 
-
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/panel.png)
 
 ### In-game corruptions / runs reference sheet
 
@@ -72,6 +72,12 @@ Adjust the game notification opacity through the mod's panel.
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/settings.png?raw=true)
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/opacity_control.png?raw=true)
+
+### Mod log
+
+The mod logs all of the relevant info into a built-in log view, which can be viewed from the mod's panel. All log messages are contextualized, so you'll know which mod's module is saying what. Here for example, the HSHepteracts module is informing about the quick expand cost protection being triggered, which has resulted in cancellation of hepteract quick expand action to prevent expanding a hepteract which can't be afforded to max after expansion.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/log.png?raw=true)
 
 # Using the mod
 
