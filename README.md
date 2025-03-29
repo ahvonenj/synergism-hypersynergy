@@ -58,11 +58,17 @@ You can open a reference sheet in-game to quickly look up recommended corruption
 
 Ratios between hepteracts are displayed in-game. 
 
-The ratios are calculated assuming CHR / ACC is 1, so for example:
+The ratios are calculated assuming:
 
-- CHR/HYP/CHL: 1 / 25.00 / 50.00 - You have 25x (more) CHR relative to HYP and 50x (more) CHR relative to CHL
-- ACC/BST/MLT: 1 / 10.00 / 15.00 - You have 10x (more) ACC relative to BST and 15x (more) ACC relative to MLT
-- CHR/ACC: 1 / 120.00 - You have 120x (more) CHR relative to ACC
+- CHL is 1 relative to CHR and HYP
+- MLT is 1 relative to ACC and BST
+- ACC is 1 relative to CHR
+
+So for example:
+
+- CHR/HYP/CHL: 25.00 / 50.00 / 1 - You have 25x (more) CHR relative to CHL and 50x (more) HYP relative to CHL
+- ACC/BST/MLT: 10.00 / 15.00 / 1 - You have 10x (more) ACC relative to MLT and 15x (more) BST relative to MLT
+- CHR/ACC: 120.00 / 1 - You have 120x (more) CHR relative to ACC
 
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hept_ratios_sm.png?raw=true)
 
