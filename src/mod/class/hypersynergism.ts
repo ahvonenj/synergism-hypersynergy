@@ -23,7 +23,11 @@ export class Hypersynergism {
 
     constructor(modulesToEnable : HSModuleDefinition[]) {
         // Instantiate the module manager
-        this.#moduleManager = new HSModuleManager('HSModuleManager', modulesToEnable);  
+        this.#moduleManager = new HSModuleManager('HSModuleManager', modulesToEnable);
+    }
+
+    async preprocessModules() {
+        await this.#moduleManager.preprocessModules();
     }
 
     async init() {

@@ -24,7 +24,7 @@ export class HSTalismans extends HSModule {
         super(moduleName, context);
     }
 
-    async init() {
+    async init(): Promise<void> {
         const self = this;
 
         HSLogger.log("Initialising HSTalismans module", this.context);
@@ -58,5 +58,6 @@ export class HSTalismans extends HSModule {
         });
 
         HSLogger.log("Talisman BUY ALL button is now more functional", this.context);
+        this.isInitialized = true;
     }
 }

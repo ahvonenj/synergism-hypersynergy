@@ -67,7 +67,7 @@ export class HSUI extends HSModule {
         this.#staticPanelHtml = panelHTML;
     }
 
-    init() {
+    async init(): Promise<void> {
         HSLogger.log("Initialising HSUI module", this.context);
 
         const self = this;
@@ -169,6 +169,7 @@ export class HSUI extends HSModule {
         document.body.appendChild(this.#uiPanelOpenBtn);
 
         this.uiReady = true;
+        this.isInitialized = true;
     }
 
     // Makes element draggable with mouse

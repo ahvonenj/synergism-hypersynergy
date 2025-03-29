@@ -33,9 +33,10 @@ export class HSPotions extends HSModule {
         });
     }
 
-    init() {
+    async init(): Promise<void> {
         HSLogger.log("Initialising HSPotions module", this.context);
         this.observe();
+        this.isInitialized = true;
     }
 
     observe() {

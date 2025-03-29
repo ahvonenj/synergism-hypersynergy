@@ -31,13 +31,15 @@ export class HSPrototypes extends HSModule {
         super(moduleName, context);
     }
 
-    init(): void {
+    async init(): Promise<void> {
         HSLogger.log(`Extending native prototypes with extra functionality`, this.context);
 
         Element.prototype.delegateEventListener = this.#createDelegateEventListener<Element>();
         Document.prototype.delegateEventListener = this.#createDelegateEventListener<Document>();
 
         Object.typedEntries = this.#typedEntries;
+
+        this.isInitialized = true;
     }
 
     #createDelegateEventListener<T extends Node & ParentNode>(): DelegateEventListener<T> {

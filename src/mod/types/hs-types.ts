@@ -10,6 +10,7 @@ export type HSModuleDefinition = {
     context?: string;
     moduleName?: string;
     loadOrder?: number;
+    initImmediate?: boolean;
 }
 
 // Used by HSLogger, log levels

@@ -47,14 +47,22 @@ export class HSModuleManager {
             if (b.loadOrder === undefined) return -1;
             return a.loadOrder - b.loadOrder;
         });
+    }
 
-        this.#modules.forEach(def => {
-            this.addModule(def.className, def.context || def.className, def.moduleName || def.className);
+    async preprocessModules() {
+        this.#modules.forEach(async def => {
+            const module =  this.addModule(def.className, def.context || def.className, def.moduleName || def.className);
+
+            if(def.initImmediate !== undefined && def.initImmediate === true) {
+                if(module) {
+                    module.init();
+                }
+            }
         });
     }
 
     // Adds module to the manager and instantiates the module's class (looks very unorthodox, but really isn't, I promise)
-    async addModule(className: string, context: string, moduleName?: string) {
+    addModule(className: string, context: string, moduleName?: string) {
         try {
             const ModuleClass = this.#moduleClasses[className];
 
@@ -63,7 +71,8 @@ export class HSModuleManager {
             }
 
             const module = new ModuleClass(moduleName || context, context);
-            this.#enabledModules.push(module);
+            const lastIdx = this.#enabledModules.push(module);
+            return this.#enabledModules[lastIdx - 1];
         } catch (error) {
             HSLogger.warn(`Failed to add module ${className}:`, this.#context);
             console.log(error);
@@ -74,8 +83,8 @@ export class HSModuleManager {
     async initModules() {
         // Go through the modules added to module manager and initialize all of them
         this.#enabledModules.forEach(async (mod) => {
-            // Call each mod's init method
-            await mod.init();
+            if(!mod.isInitialized)
+                await mod.init();
 
             // We want / try to init HSUI module as early as possible so that we can integrate HSLogger to it
             // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console

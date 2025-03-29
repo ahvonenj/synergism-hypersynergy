@@ -102,7 +102,7 @@ export class HSHepteracts extends HSModule {
         });
     }
 
-    async init() {
+    async init(): Promise<void> {
         const self = this;
 
         HSLogger.log("Initialising HSHepteracts module", this.context);
@@ -261,5 +261,7 @@ export class HSHepteracts extends HSModule {
             const value = subElement?.innerText;
             return value;
         }, true);
+
+        this.isInitialized = true;
     }
 }

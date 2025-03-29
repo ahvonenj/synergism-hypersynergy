@@ -26,9 +26,10 @@ export class HSCodes extends HSModule {
         }
     }
 
-    init() {
+    async init(): Promise<void> {
         HSLogger.log("Initialising HSCodes module", this.context);
         this.observe();
+        this.isInitialized = true;
     }
 
     observe() {

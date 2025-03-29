@@ -62,7 +62,9 @@ export class HSSettings extends HSModule {
         }
     }
 
-    init(): void {}
+    async init(): Promise<void> {
+        this.isInitialized = true;
+    }
 
     static syncSettings() {
         HSLogger.log(`Syncing mod settings`, HSSettings.#staticContext);
