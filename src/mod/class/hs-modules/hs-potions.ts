@@ -1,6 +1,13 @@
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 
+/*
+    Class: HSPotions
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism module which adds "Buy 10x" and "Consume 10x" buttons to potions interface.
+    Author: Swiffy
+*/
 export class HSPotions extends HSModule {
     #offeringPotion : HTMLElement | null;
     #obtainiumPotion : HTMLElement | null;

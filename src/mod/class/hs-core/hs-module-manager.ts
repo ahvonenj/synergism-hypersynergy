@@ -11,6 +11,14 @@ import { HSSettings } from "./hs-settings";
 import { HSModuleDefinition } from "../../types/hs-types";
 import { HSPrototypes } from "./hs-prototypes";
 
+/*
+    Class: HSModuleManager
+    IsExplicitHSModule: No
+    Description: 
+        Hypersynergism module manager.
+        Handles enabling and initialization of Hypersynergism's modules
+    Author: Swiffy
+*/
 export class HSModuleManager {
     #context = "HSModuleManager";
     #modules : HSModuleDefinition[] = [];

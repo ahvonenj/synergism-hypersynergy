@@ -4,6 +4,13 @@ import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 import { HSUtils } from "../hs-utils/hs-utils";
 
+/*
+    Class: HSTalismans
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism module which makes the "Buy All"-button in the talisman interface behave better
+    Author: Swiffy
+*/
 export class HSTalismans extends HSModule {
     #talismanBuyButtons : HTMLButtonElement[] = []; 
     #buyAllButton? : Element;

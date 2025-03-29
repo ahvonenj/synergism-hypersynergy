@@ -2,6 +2,14 @@ import { HSElementWatcher } from "../../types/hs-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 
+/*
+    Class: HSElementHooker
+    IsExplicitHSModule: No
+    Description: 
+        Contains static methods to await for element(s) to exist in the DOM
+        or to watch DOM elements and value changes to them
+    Author: Swiffy
+*/
 export class HSElementHooker {
     // Class context, mainly for HSLogger
     static #context = "HSElementHooker";

@@ -2,6 +2,7 @@ import { DelegateEventListener } from "../../types/hs-proto-types";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 
+// Must do these global declarations for TypeScript
 declare global {
     interface Element {
         delegateEventListener : DelegateEventListener<Element>;
@@ -10,8 +11,20 @@ declare global {
     interface Document {
         delegateEventListener : DelegateEventListener<Document>;
     }
+
+    interface ObjectConstructor {
+        typedEntries<T extends object>(obj: T): Array<[keyof T, T[keyof T]]>;
+    }
 }
 
+/*
+    Class: HSPrototypes
+    IsExplicitHSModule: Yes
+    Description: 
+        Prototype extension module for Hypersynergism.
+        All (global) prototype extensions should be implemented here.
+    Author: Swiffy
+*/
 export class HSPrototypes extends HSModule {
     
     constructor(moduleName: string, context: string) {
@@ -20,8 +33,11 @@ export class HSPrototypes extends HSModule {
 
     init(): void {
         HSLogger.log(`Extending native prototypes with extra functionality`, this.context);
+
         Element.prototype.delegateEventListener = this.#createDelegateEventListener<Element>();
         Document.prototype.delegateEventListener = this.#createDelegateEventListener<Document>();
+
+        Object.typedEntries = this.#typedEntries;
     }
 
     #createDelegateEventListener<T extends Node & ParentNode>(): DelegateEventListener<T> {
@@ -48,4 +64,8 @@ export class HSPrototypes extends HSModule {
             return this;
         };
     }
+
+    #typedEntries<T extends object>(obj: T): Array<[keyof T, T[keyof T]]> {
+        return Object.entries(obj) as Array<[keyof T, T[keyof T]]>;
+    };
 }

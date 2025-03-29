@@ -1,6 +1,14 @@
 import { HSSettingActionParams } from "../../types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
 
+/*
+    Class: HSSettingAction
+    IsExplicitHSModule: No
+    Description: 
+        Helper wrapper for HSSettings.
+        Encapsulates SettingActions and their functionality.
+    Author: Swiffy
+*/
 export class HSSettingAction {
     // Record for SettingActions
     // If some setting in hs-settings.json has "settingAction" set, the action should be defined here

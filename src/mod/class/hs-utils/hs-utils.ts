@@ -1,4 +1,16 @@
-// Utils cöass
+/*
+    Class: HSUtils
+    IsExplicitHSModule: No
+    Description: 
+        Static utility module for Hypersynergism.
+        Functionalities include:
+            - wait() method to wait for an arbitrary amount of time
+            - uuidv4() for generating UUIDs
+            - domid() method for generating DOM-compliant unique ids
+            - hashCode() for calculating a unique hash for arbitrary string
+            - N() for pertty printing numbers
+    Author: Swiffy
+*/
 export class HSUtils {
 
     // Simple promise-based wait/delay utility method
@@ -34,11 +46,7 @@ export class HSUtils {
         }
 
         return hash;
-    }
-
-    static typedObjectEntries<T extends object>(obj: T): [keyof T, T[keyof T]][] {
-        return Object.entries(obj) as [keyof T, T[keyof T]][];
-    }
+    }  
 
     static N(num: string | number, precision : number = 2, expDecimals : number = 2) {
         let tempNum = 0;

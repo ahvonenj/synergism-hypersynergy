@@ -2,6 +2,14 @@ import { HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICGridOptions, HSU
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSUI } from "./hs-ui";
 
+/*
+    Class: HSUIC
+    IsExplicitHSModule: No
+    Description: 
+        Hypesynergism UI Component module.
+        Contains static methods for creating different UI components.
+    Author: Swiffy
+*/
 export class HSUIC {
     static dataString(data: HTMLData[]) {
         let str = ``;

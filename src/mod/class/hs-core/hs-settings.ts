@@ -8,6 +8,19 @@ import { HSUIC } from "./hs-ui-components";
 import { HSInputType } from "../../types/hs-ui-types";
 import { HSSettingAction } from "./hs-setting-action";
 
+/*
+    Class: HSSettings
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism's settings module.
+        Responsibilities include:
+            - Parsing settings from JSON
+            (- Saving and loading settings)
+            - Building the settings panel with setting inputs
+            - Binding appropriate events to setting changes and on/off toggles
+            - Keeping internal settings states in sync with DOM
+    Author: Swiffy
+*/
 export class HSSettings extends HSModule {
 
     static CURRENT_VERSION = '2.2.0';
@@ -37,7 +50,7 @@ export class HSSettings extends HSModule {
             const parsedSettings = JSON.parse(settings) as HSSettingsDefinition;
         
             // Set default values for each setting
-            for (const [key, setting] of HSUtils.typedObjectEntries(parsedSettings)) {
+            for (const [key, setting] of Object.typedEntries(parsedSettings)) {
                 parsedSettings[key].defaultValue = setting.settingValue;
             }
 
@@ -60,7 +73,7 @@ export class HSSettings extends HSModule {
         }
 
         // Update the setting UI controls with the configured values in hs-settings.json
-        for (const [key, setting] of HSUtils.typedObjectEntries(HSSettings.#settings)) {
+        for (const [key, setting] of Object.typedEntries(HSSettings.#settings)) {
             HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
 
             const controlSettings = setting.settingControl;
@@ -156,7 +169,7 @@ export class HSSettings extends HSModule {
         const settingsBlocks : string[] = [];
         let didBuild = true;
 
-        for (const [key, setting] of HSUtils.typedObjectEntries(HSSettings.#settings)) {
+        for (const [key, setting] of Object.typedEntries(HSSettings.#settings)) {
             const controls = setting.settingControl;
 
             if(controls) {

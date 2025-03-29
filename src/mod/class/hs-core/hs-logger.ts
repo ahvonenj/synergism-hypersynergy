@@ -2,6 +2,14 @@ import { ELogLevel, ELogType } from "../../types/hs-types";
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
+/*
+    Class: HSLogger
+    IsExplicitHSModule: No
+    Description: 
+        Logging module for Hypersynergism. 
+        Contains methods to log things in both the devtools console and the mod's panel's log
+    Author: Swiffy
+*/
 export class HSLogger {
 
     static #integratedToUI = false;

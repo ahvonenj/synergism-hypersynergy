@@ -5,6 +5,17 @@ import { HSSettings } from "../hs-core/hs-settings";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
+/*
+    Class: HSHepteracts
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism module which implements the following QoL functionalities:
+            - In-game hepteract ratio display
+            - "Quick expand and max" functionality when the user clicks one of the hepteract icons
+            - "Quick expand and max" hepteract cost protection, 
+              which won't let the user quick expand a hepteract if it would cost too much
+    Author: Swiffy
+*/
 export class HSHepteracts extends HSModule {
     #heptGrid? : Element;
 

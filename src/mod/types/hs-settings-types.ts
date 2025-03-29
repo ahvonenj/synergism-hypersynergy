@@ -1,3 +1,9 @@
+/*
+    Type definition collection: HS settings types
+    Description: Collection of types specific to hs-settings module
+    Author: Swiffy
+*/
+
 export interface HSSettingsDefinition {
     expandCostProtection: ExpandCostProtectionSetting;
 }

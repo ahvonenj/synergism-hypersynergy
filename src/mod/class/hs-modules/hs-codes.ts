@@ -1,6 +1,13 @@
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 
+/*
+    Class: HSCodes
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism module aimed to make reusable code input more convenient.
+    Author: Swiffy
+*/
 export class HSCodes extends HSModule {
     #codeBoxLabel : HTMLElement | null;
     #config : MutationObserverInit;

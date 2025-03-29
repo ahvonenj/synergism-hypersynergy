@@ -1,3 +1,9 @@
+/*
+    Type definition collection: HS UI types
+    Description: Collection of types specific to hs-ui and hs-ui-components modules
+    Author: Swiffy
+*/
+
 export enum EModalPosition {
     CENTER = 1,
     RIGHT = 2,

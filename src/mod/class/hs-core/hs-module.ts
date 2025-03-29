@@ -1,7 +1,12 @@
 import { HSLogger } from "./hs-logger";
 
-// Abstract HSModule class
-// Meant to be extended from
+/*
+    Class: HSModule
+    IsExplicitHSModule: No
+    Description: 
+        Abstract class which all (explicit) Hypersynergism modules should extend
+    Author: Swiffy
+*/
 export abstract class HSModule {
     protected moduleName : string;
     protected context : string;

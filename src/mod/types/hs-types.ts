@@ -1,3 +1,9 @@
+/*
+    Type definition collection: HS types
+    Description: Collection of general types for Hypersynergism
+    Author: Swiffy
+*/
+
 // Used when listing and loading modules
 export type HSModuleDefinition = {
     className: string;

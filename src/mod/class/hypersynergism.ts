@@ -7,6 +7,13 @@ import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
 import { HSInputType } from "../types/hs-ui-types";
 import { HSSettings } from "./hs-core/hs-settings";
 
+/*
+    Class: Hypersynergism
+    Description: 
+        Hypersynergism main class.
+        Instantiates the module manager and handles calls to building the mod's panel and working with mod's settings
+    Author: Swiffy
+*/
 export class Hypersynergism {
     // Class context, mainly for HSLogger
     #context = 'HSMain';
