@@ -70,7 +70,7 @@ So for example:
 - ACC/BST/MLT: 10.00 / 15.00 / 1 - You have 10x (more) ACC relative to MLT and 15x (more) BST relative to MLT
 - CHR/ACC: 120.00 / 1 - You have 120x (more) CHR relative to ACC
 
-![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/hept_ratios_sm.png?raw=true)
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/ratios_2_sm.png?raw=true)
 
 ### Game notification opacity control
 
