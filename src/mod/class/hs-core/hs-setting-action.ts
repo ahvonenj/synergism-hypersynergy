@@ -31,6 +31,14 @@ export class HSSettingAction {
                     HSLogger.log(`Set notification opacity to ${value}`, context);
                 }
             }
+        },
+
+        logTimestamp: (params: HSSettingActionParams) => {
+            if(params.disable && params.disable === true) {
+                HSLogger.setTimestampDisplay(false);
+            } else {
+                HSLogger.setTimestampDisplay(true);
+            }
         }
     }
 

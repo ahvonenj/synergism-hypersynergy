@@ -12,15 +12,14 @@ import { HSUtils } from "../hs-utils/hs-utils";
 */
 export class HSLogger {
 
+    static #staticContext = 'HSLogger';
     static #integratedToUI = false;
     static #logElement : HTMLTextAreaElement;
+    
     static logLevel : ELogLevel = ELogLevel.ALL;
-
-    static #staticContext = 'HSLogger';
-
     static #lastLogHash = -1;
-
     static #logSize = 100;
+    static #displayTimestamp : boolean = false;
 
     // Integrates the logger to the mod's UI panel's Log tab
     static integrateToUI(hsui: HSUI) {
@@ -67,7 +66,9 @@ export class HSLogger {
                 break;
             }
 
-            logLine.innerHTML = `${level}[${context}]: ${msg}\n`;
+            const hiddenTS = this.#displayTimestamp ? "" : "hs-log-ts-hidden";
+
+            logLine.innerHTML = `${level} [<span class="hs-log-ctx">${context}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${msg}\n`;
 
             // We hash the current logged thing to uniquely identify it
             // and compare it to the hash of what was last logged.
@@ -157,6 +158,32 @@ export class HSLogger {
         if(this.#integratedToUI) {
             this.#logElement.innerHTML = '';
             HSLogger.log(`Log cleared`, this.#staticContext);
+        }
+    }
+
+    static setTimestampDisplay(display: boolean) {
+        HSLogger.log(`Log timestamps set to ${display}`, this.#staticContext);
+        
+        if(display) {
+            this.#displayTimestamp = true;
+        } else {
+            this.#displayTimestamp = false;
+        }
+
+        const logLines = this.#logElement.querySelectorAll('.hs-ui-log-line') as NodeListOf<HTMLDivElement>;
+
+        if(logLines) {
+            for (const logLine of Array.from(logLines)) {
+                const tsSpan = logLine.querySelector('.hs-log-ts') as HTMLSpanElement;
+
+                if(tsSpan) {
+                    if(display) {
+                        tsSpan.classList.remove('hs-log-ts-hidden');
+                    } else {
+                        tsSpan.classList.add('hs-log-ts-hidden');
+                    }
+                }
+            }
         }
     }
 }

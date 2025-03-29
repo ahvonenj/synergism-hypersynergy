@@ -203,6 +203,18 @@
     color: yellow;
 }
 
+.hs-log-ts-hidden {
+    display: none;
+}
+
+.hs-log-ctx {
+
+}
+
+.hs-log-ts {
+
+}
+
 #hs-ui-log-controls {
     width: 100%;
     height: 35px;
@@ -362,6 +374,10 @@
     grid-column: 2 / 3;
     height: 30px;
     box-sizing: border-box;
+}
+
+.hs-panel-settings-block-btn-standalone {
+    grid-column: 1 / 1;
 }
 
 .hs-disabled {

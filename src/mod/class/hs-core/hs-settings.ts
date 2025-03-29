@@ -125,33 +125,28 @@ export class HSSettings extends HSModule {
                             });
                         }
                     }
+                } else {
+                    if(controlSettings.controlEnabledId) {
+                        const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
 
-                    // Some settings need to be able to call a function when the setting value is changed
-                    // This is done with "settingActions"
-                    if(setting.settingAction) {
-                        const action = HSSettings.#settingAction.getAction(setting.settingAction);
-            
-                        if(action && action instanceof Function) {
+                        if(toggleElement) {
                             if(setting.enabled) {
-                                // Call the settingAction when the setting is enabled
-                                action({
-                                    contextName: HSSettings.#staticContext,
-                                    value: setting.settingValue,
-                                    disable: false
-                                });
+                                toggleElement.innerText = HSSettings.#settingEnabledString;
+                                toggleElement.classList.remove('hs-disabled');
                             } else {
-                                // Call the settingAction when the setting is disabled, passing disable=true
-                                action({
-                                    contextName: HSSettings.#staticContext,
-                                    value: setting.settingValue,
-                                    disable: true
-                                });
+                                toggleElement.innerText = HSSettings.#settingDisabledString;
+                                toggleElement.classList.add('hs-disabled');
                             }
+
+                            // Handle toggling the setting on/off
+                            toggleElement.addEventListener('click', function(e) {
+                                HSSettings.#handleSettingToggle(e, key);
+                            });
                         }
                     }
-                } else {
-                    // Switch setting handling - not implemented
                 }
+
+                this.#handleSettingAction(setting, "state", setting.enabled);
             }
         }
 
@@ -178,7 +173,13 @@ export class HSSettings extends HSModule {
                 let components : string[] = [];
 
                 if(controls.controlType === "switch") {
-                    // Not implemented
+                    components = [
+                        HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription }),
+                    ]
+
+                    if(controls.controlEnabledId) {
+                        components.push(HSUIC.Button({ class: 'hs-panel-setting-block-btn hs-panel-settings-block-btn-standalone', id: controls.controlEnabledId, text: "" }))
+                    }
                 } else {
                     const convertedType = controls.controlType === "number" ? HSInputType.NUMBER : controls.controlType === "text" ? HSInputType.TEXT : null;
 
@@ -232,17 +233,7 @@ export class HSSettings extends HSModule {
         }
 
         // If the setting has some action bound to it, call it when the setting's value is changed
-        if(setting.settingAction) {
-            const action = HSSettings.#settingAction.getAction(setting.settingAction);
-
-            if(action && action instanceof Function) {
-                action({
-                    contextName: HSSettings.#staticContext,
-                    value: newValue,
-                    disable: false
-                });
-            }
-        }
+        this.#handleSettingAction(setting, "value");
     }
 
     static #handleSettingToggle<K extends keyof HSSettingsDefinition>(e: Event, settingKey: K) {
@@ -262,23 +253,39 @@ export class HSSettings extends HSModule {
         }
         
         HSSettings.#settings[settingKey].enabled = newState;
+        this.#handleSettingAction(setting, "state", newState);
+    }
 
+    static #handleSettingAction<K extends keyof HSSettingsDefinition>(setting: HSSettingsDefinition[K], changeType: "value" | "state", newState?: boolean) {
         // If the setting has some settingAction bound to it, call it when the setting is toggled on/off
         if(setting.settingAction) {
             const action = HSSettings.#settingAction.getAction(setting.settingAction);
 
             if(action && action instanceof Function) {
-                if(newState) {
-                    action({
-                        contextName: HSSettings.#staticContext,
-                        value: setting.settingValue,
-                        disable: false
-                    });
+                if(changeType === "state") {
+                    if(newState === undefined) {
+                        HSLogger.warn(`Failed to handle setting state change, newState was undefined`, this.#staticContext);
+                        return;
+                    }
+
+                    if(newState) {
+                        action({
+                            contextName: HSSettings.#staticContext,
+                            value: setting.settingValue ?? null,
+                            disable: false
+                        });
+                    } else {
+                        action({
+                            contextName: HSSettings.#staticContext,
+                            value: setting.defaultValue ?? null,
+                            disable: true
+                        });
+                    }
                 } else {
                     action({
                         contextName: HSSettings.#staticContext,
-                        value: setting.defaultValue,
-                        disable: true
+                        value: setting.settingValue ?? null,
+                        disable: false
                     });
                 }
             }
