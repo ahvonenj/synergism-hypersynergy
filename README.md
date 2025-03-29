@@ -117,3 +117,9 @@ Alertnatively the same loader code can be found in [here](https://github.com/ahv
 Now just load up the game (or refresh the page if it's already running) and click on the bookmark **after** you've clicked away the "Since you were away" box.
 
 With the bookmark you will always use the latest version of the mod, so no need to worry about that either.
+
+# For developers
+
+Developer documentation can be found in the wiki: https://github.com/ahvonenj/synergism-hypersynergy/wiki
+
+In addition, the source code should be relatively well commented.
