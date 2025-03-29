@@ -4,8 +4,9 @@ import { HSModuleDefinition } from "./types/hs-types";
 /*
     WHEN ADDING NEW MODULES / CLASSES:
 
-    - Add (explicit) import in hs-module-manager.ts
     - Add a class mapping to #moduleClasses in hs-module-manager.ts
+    - Adding the mapping should make your IDE import the module class, but if it doesn't,
+      you need to do that as well
 */
 const enabledModules: HSModuleDefinition[] = [
     {
@@ -19,24 +20,25 @@ const enabledModules: HSModuleDefinition[] = [
         loadOrder: 2,
     },
     {
+        className: 'HSPrototypes',
+        context: 'HSPrototypes',
+        loadOrder: 3,
+    },
+    {
         className: 'HSPotions',
         context: 'HSPotions',
-        loadOrder: 3,
     },
     {
         className: 'HSCodes',
         context: 'HSCodes',
-        loadOrder: 4,
     },
     {
         className: 'HSHepteracts',
         context: 'HSHepteracts',
-        loadOrder: 5,
     },
     {
         className: 'HSTalismans',
         context: 'HSTalismans',
-        loadOrder: 6,
     }
 ]
 

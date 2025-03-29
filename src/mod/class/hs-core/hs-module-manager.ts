@@ -9,6 +9,7 @@ import { HSTalismans } from "../hs-modules/hs-talismans";
 import { HSUI } from "./hs-ui";
 import { HSSettings } from "./hs-settings";
 import { HSModuleDefinition } from "../../types/hs-types";
+import { HSPrototypes } from "./hs-prototypes";
 
 export class HSModuleManager {
     #context = "HSModuleManager";
@@ -22,7 +23,8 @@ export class HSModuleManager {
         "HSCodes": HSCodes, 
         "HSHepteracts": HSHepteracts,
         "HSTalismans": HSTalismans,
-        "HSSettings": HSSettings
+        "HSSettings": HSSettings,
+        "HSPrototypes": HSPrototypes,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {
@@ -31,6 +33,7 @@ export class HSModuleManager {
 
         HSLogger.log("Enabling Hypersynergism modules", this.#context);
 
+        // Sort by load order, pushing modules without load order to the bottom
         this.#modules.sort((a, b) => {
             if (a.loadOrder === undefined) return 1;
             if (b.loadOrder === undefined) return -1;

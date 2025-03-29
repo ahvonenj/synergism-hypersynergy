@@ -39,6 +39,7 @@ export class HSUIC {
         }
     }
 
+    // Button Component
     static Button(options: HSUICButtonOptions) : string {
         const comp_class = options.class ?? '';
         const comp_text = options.text ?? '';
@@ -46,6 +47,7 @@ export class HSUIC {
         return `<div class="hs-panel-btn ${comp_class}" id="${options.id}">${comp_text}</div>`;
     }
 
+    // Input Component
     static Input(options: HSUICInputOptions) : string {
         const comp_class = options.class ?? '';
         const comp_type = this.#resolveInputType(options.type);
@@ -54,6 +56,7 @@ export class HSUIC {
         return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${options.id}"></input>`;
     }
 
+    // Div Component
     static Div(options: HSUICDivOptions) : string {
         const comp_class = options.class ?? '';
         let comp_html = '';
@@ -69,6 +72,7 @@ export class HSUIC {
         return `<div class="hs-panel-div ${comp_class}" ${options.id ? `id="${options.id}"` : ''}>${comp_html}</div>`;
     }
 
+    // Grid Component
     static Grid(options: HSUICGridOptions) : string {
         const comp_class = options.class ?? '';
         const id = options.id ?? HSUtils.domid();
@@ -93,6 +97,7 @@ export class HSUIC {
         return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
     }
 
+    // Pseudo-private method, do not use
     static _modal(options: HSUICModalOptions) : string {
         const comp_class = options.class ?? '';
         const comp_html = options.htmlContent ?? '';

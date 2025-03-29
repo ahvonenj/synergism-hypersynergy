@@ -38,7 +38,7 @@ export class Hypersynergism {
             // Update panel title with current version
             hsui.updateTitle(`Hypersynergism v${HSSettings.CURRENT_VERSION}`);
 
-            // BUILD TAB 2
+            // BUILD TOOLS TAB
             // Add corruption reference modal button
             hsui.replaceTabContents(2, 
                 HSUIC.Grid({ 
@@ -53,15 +53,17 @@ export class Hypersynergism {
                 })
             );
 
+            // Bind corruption reference button to open a modal
             document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
                 hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
             });
 
+            // Bind dump button to dump settings
             document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
                 HSSettings.dumpToConsole();
             });
 
-            // BUILD TAB 3
+            // BUILD SETTINGS TAB
             const settingsTabContents = HSSettings.autoBuildSettingsUI();
 
             if(settingsTabContents.didBuild) {

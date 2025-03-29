@@ -29,13 +29,26 @@ export class HSCodes extends HSModule {
     }
 
     #codeBoxLabelTrigger(mutations: MutationRecord[], observer: MutationObserver) {
+        const self = this;
+
         if(this.#codeBoxLabel && this.#codeBoxLabel.innerText.includes("synergism2021")) {
             try {
                 this.#codeBoxLabelObserver?.disconnect();
                 const originalText = this.#codeBoxLabel.innerText;
-                this.#codeBoxLabel.innerHTML = `${originalText} [HSCodes] treats you with additional codes for convenience <span style="${this.#codeSpanStyle}">:unsmith:</span> and <span style="${this.#codeSpanStyle}">:antismith:</span>`;
+                this.#codeBoxLabel.innerHTML = `<div id="hs-hijack-codes-wrapper">
+                    [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently:</br>
+                    <span style="${this.#codeSpanStyle}" data-code="synergism2021">synergism2021</span></br>
+                    <span style="${this.#codeSpanStyle}" data-code="Khafra">Khafra</span></br>
+                    <span style="${this.#codeSpanStyle}" data-code=":unsmith:">:unsmith:</span></br>
+                    <span style="${this.#codeSpanStyle}" data-code=":antismith:">:antismith:</span>
+                </div>`;
 
-                HSLogger.log("Added :antismith: and :unsmith: to code redeem panel", this.context);
+                document.delegateEventListener('click', '#hs-hijack-codes-wrapper > span', function(e) {
+                    const code = this.dataset.code;
+                    HSLogger.log(`Code: ${code}`, self.context);
+                });
+
+                HSLogger.log("Hijacked code redeem panel", this.context);
             } finally {
                 if(this.#codeBoxLabel)
                     this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel as Node, this.#config);

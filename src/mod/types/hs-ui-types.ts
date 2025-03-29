@@ -12,6 +12,7 @@ export type HSPanelTabDefinition = {
     tabId: number;
     tabBodySel: string;
     tabSel: string;
+    panelDisplayType: "flex" | "block";
 }
 
 export interface HTMLData {

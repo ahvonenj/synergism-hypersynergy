@@ -41,11 +41,11 @@ export class HSHepteracts extends HSModule {
         multiplier: 300000
     };
 
-    #hyperToChronosRatio = 0;
-    #challengeToChronosRatio = 0;
-    #boostToAcceleratorRatio = 0;
-    #multiplierToAcceleratorRatio = 0;
-    #acceleratorToChronosRatio = 0;
+    #hyperToChallengeRatio = 0;
+    #chronosToChallengeRatio = 0;
+    #boostToMultiplierRatio = 0;
+    #acceleratorToMultiplierRatio = 0;
+    #chronosToAcceleratorRatio = 0;
 
     #ratioElementHtml = `
         <div id="hs-ratio-container">
@@ -72,6 +72,10 @@ export class HSHepteracts extends HSModule {
     #ownedHepteractsElement?: HTMLElement;
     #ownedHepteracts?: number;
 
+    // Quick expand is expected to be spam clicked
+    // We need to make sure that hepteract expansion + max goes through
+    // and owned hepteracts value is updated before quick expand can be done again
+    // Otherwise the hepteract quick expand cost protection might not trigger right
     #expandPending = false;
     #watchUpdatePending = false;
 
@@ -135,6 +139,20 @@ export class HSHepteracts extends HSModule {
                                 }
                             }
 
+                            /* 
+                                Performs a sequence of clicks:
+
+                                - Expand hepteract
+                                - Wait for dialog
+                                - Confirm
+                                - Wait for dialog
+                                - Ok
+                                - Max the hepteract
+                                - Wait for dialog
+                                - Confirm
+                                - Wait for dialog
+                                - Ok
+                            */
                             capBtn.click();
                             await HSUtils.wait(15);
                             document.getElementById("ok_confirm")?.click();
@@ -178,16 +196,16 @@ export class HSHepteracts extends HSModule {
                         (self.#boxCounts as any)[boxName] = value;
                         
                         if(Object.values(self.#boxCounts).every(v => v > 0)) {
-                            self.#hyperToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.hyperrealism);
-                            self.#challengeToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.challenge);
-                            self.#boostToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.acceleratorBoost);
-                            self.#multiplierToAcceleratorRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.multiplier);
-                            self.#acceleratorToChronosRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
+                            self.#chronosToChallengeRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.challenge);
+                            self.#hyperToChallengeRatio = Math.round(self.#boxCounts.hyperrealism / self.#boxCounts.challenge);
+                            self.#acceleratorToMultiplierRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.multiplier);
+                            self.#boostToMultiplierRatio = Math.round(self.#boxCounts.acceleratorBoost / self.#boxCounts.multiplier);
+                            self.#chronosToAcceleratorRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
 
                             if(this.#ratioElementA && this.#ratioElementB && this.#ratioElementC) {
-                                this.#ratioElementA.innerText = `CHR/HYP/CHL: 1 / ${HSUtils.N(self.#hyperToChronosRatio)} / ${HSUtils.N(self.#challengeToChronosRatio)}`;
-                                this.#ratioElementB.innerText = `ACC/BST/MLT: 1 / ${HSUtils.N(self.#boostToAcceleratorRatio)} / ${HSUtils.N(self.#multiplierToAcceleratorRatio)}`;
-                                this.#ratioElementC.innerText = `CHR/ACC: 1 / ${HSUtils.N(self.#acceleratorToChronosRatio)}`;
+                                this.#ratioElementA.innerText = `CHR/HYP/CHL: ${HSUtils.N(self.#chronosToChallengeRatio, 0)} / ${HSUtils.N(self.#hyperToChallengeRatio, 0)} / 1`;
+                                this.#ratioElementB.innerText = `ACC/BST/MLT: ${HSUtils.N(self.#acceleratorToMultiplierRatio, 0)} / ${HSUtils.N(self.#boostToMultiplierRatio, 0)} / 1`;
+                                this.#ratioElementC.innerText = `CHR/ACC: ${HSUtils.N(self.#chronosToAcceleratorRatio, 0)} / 1`;
                             }
                         }
                     } else {
@@ -217,6 +235,7 @@ export class HSHepteracts extends HSModule {
 
         this.#ownedHepteractsElement = await HSElementHooker.HookElement('#hepteractQuantity') as HTMLElement;
 
+        // Sets up a watch to watch for changes in the element which shows owned hepteracts amount
         HSElementHooker.watchElement(this.#ownedHepteractsElement, (value) => {
             try {
                 const hepts = parseFloat(value);

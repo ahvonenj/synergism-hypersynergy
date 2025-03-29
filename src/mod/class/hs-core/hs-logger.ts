@@ -8,7 +8,11 @@ export class HSLogger {
     static #logElement : HTMLTextAreaElement;
     static logLevel : ELogLevel = ELogLevel.ALL;
 
+    static #staticContext = 'HSLogger';
+
     static #lastLogHash = -1;
+
+    static #logSize = 100;
 
     // Integrates the logger to the mod's UI panel's Log tab
     static integrateToUI(hsui: HSUI) {
@@ -57,6 +61,10 @@ export class HSLogger {
 
             logLine.innerHTML = `${level}[${context}]: ${msg}\n`;
 
+            // We hash the current logged thing to uniquely identify it
+            // and compare it to the hash of what was last logged.
+            // If they are the same, instead of logging the same thing,
+            // we add (x2), (x3), ... etc. to the previous log line
             const logHash = HSUtils.hashCode(`${level}${context}${msg}`);
             
             if(this.#lastLogHash !== logHash) {
@@ -79,6 +87,17 @@ export class HSLogger {
                     } catch (e) {
                         console.log(e);
                     }
+                }
+            }
+
+            // Remove oldest log lines if line count exceeds logSize
+            const logLines = this.#logElement.querySelectorAll('.hs-ui-log-line');
+
+            if(logLines && logLines.length > this.#logSize) {
+                const oldestLog = this.#logElement.querySelector('.hs-ui-log-line:first-child') as HTMLDivElement;
+
+                if(oldestLog) {
+                    oldestLog.parentElement?.removeChild(oldestLog);
                 }
             }
 
@@ -124,5 +143,12 @@ export class HSLogger {
         if(!this.#shouldLog(ELogType.ERROR, isImportant)) return;
         console.error(`[${context}]: ${msg}`);
         this.#logToUi(msg, context, ELogType.ERROR);
+    }
+
+    static clear() {
+        if(this.#integratedToUI) {
+            this.#logElement.innerHTML = '';
+            HSLogger.log(`Log cleared`, this.#staticContext);
+        }
     }
 }

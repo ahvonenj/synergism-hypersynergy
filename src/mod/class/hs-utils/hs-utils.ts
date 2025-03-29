@@ -40,7 +40,7 @@ export class HSUtils {
         return Object.entries(obj) as [keyof T, T[keyof T]][];
     }
 
-    static N(num: string | number) {
+    static N(num: string | number, precision : number = 2, expDecimals : number = 2) {
         let tempNum = 0;
         let numString = '';
 
@@ -51,9 +51,9 @@ export class HSUtils {
                 tempNum = num;
 
             if(tempNum > 1_000_000) {
-                numString = tempNum.toExponential(2).replace('+', '');
+                numString = tempNum.toExponential(expDecimals).replace('+', '');
             } else {
-                numString = tempNum.toFixed(2);
+                numString = tempNum.toFixed(precision);
             }
         } catch (e) {
             console.error(`[HS]: HSUtil.N FAILED FOR ${num}`);

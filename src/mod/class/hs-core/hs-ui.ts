@@ -7,6 +7,8 @@ import panelCSS from "inline:../../resource/css/hs-panel.css";
 import panelHTML from "inline:../../resource/html/hs-panel.html";
 
 export class HSUI extends HSModule {
+    static #staticContext = 'HSUI';
+
     #staticPanelHtml: string;
     #staticPanelCss: string;
 
@@ -18,27 +20,32 @@ export class HSUI extends HSModule {
     #uiPanelOpenBtn?: HTMLDivElement;
 
     #loggerElement?: HTMLTextAreaElement;
+    #logClearBtn? : HTMLButtonElement;
 
     #tabs : HSPanelTabDefinition[] = [
         {
             tabId: 1,
             tabBodySel: '.hs-panel-body-1',
-            tabSel: '#hs-panel-tab-1'
+            tabSel: '#hs-panel-tab-1',
+            panelDisplayType: 'flex'
         },
         {
             tabId: 2,
             tabBodySel: '.hs-panel-body-2',
-            tabSel: '#hs-panel-tab-2'
+            tabSel: '#hs-panel-tab-2',
+            panelDisplayType: 'block'
         },
         {
             tabId: 3,
             tabBodySel: '.hs-panel-body-3',
-            tabSel: '#hs-panel-tab-3'
+            tabSel: '#hs-panel-tab-3',
+            panelDisplayType: 'block'
         },
         {
             tabId: 4,
             tabBodySel: '.hs-panel-body-4',
-            tabSel: '#hs-panel-tab-4'
+            tabSel: '#hs-panel-tab-4',
+            panelDisplayType: 'block'
         }
     ];
 
@@ -59,18 +66,14 @@ export class HSUI extends HSModule {
         document.head.appendChild(panelStyleElement);
 
         // Create temp div, inject UI panel HTML and append the contents to body
-        const div = document.createElement('div');
-        div.innerHTML = this.#staticPanelHtml;
-
-        while (div.firstChild) {
-            document.body.appendChild(div.firstChild);
-        }
+        HSUI.injectHTML(this.#staticPanelHtml);
 
         // Find the UI elements in DOM and store the refs
         this.#uiPanel = document.querySelector('#hs-panel') as HTMLDivElement;
         this.#uiPanelTitle = document.querySelector('#hs-panel-version') as HTMLDivElement;
         this.#uiPanelCloseBtn = document.querySelector('.hs-panel-header-right') as HTMLDivElement;
         this.#loggerElement = document.querySelector('#hs-ui-log') as HTMLTextAreaElement;
+        this.#logClearBtn = document.querySelector('#hs-ui-log-clear') as HTMLButtonElement;
         const panelHandle = document.querySelector('.hs-panel-header') as HTMLDivElement;
 
         // Make the HS UI panel draggable
@@ -81,18 +84,29 @@ export class HSUI extends HSModule {
             self.#uiPanel?.classList.add('hs-panel-closed');
         });
 
+        this.#logClearBtn.addEventListener('click', () => {
+            HSLogger.clear();
+        })
+
         // Bind panel controls
         const tabs = document.querySelectorAll('.hs-panel-tab');
 
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
                 const tab = e.target as HTMLDivElement;
-                const panelId = tab.dataset.panel;
+                const tabId = tab.dataset.tab ? parseInt(tab.dataset.tab, 10) : null;
 
                 if(tab.classList.contains('hs-tab-selected'))
                     return;
 
-                if(panelId) {
+                if(tabId) {
+                    const tabConfig = self.#tabs.find((tab) => tab.tabId === tabId);
+
+                    if(!tabConfig) {
+                        HSLogger.error(`Could not find tab config for tabId ${tabId}`, self.context);
+                        return;
+                    }
+
                     tabs.forEach(tab => {
                         tab.classList.remove('hs-tab-selected');
                     });
@@ -100,16 +114,24 @@ export class HSUI extends HSModule {
                     tab.classList.add('hs-tab-selected');
 
                     document.querySelectorAll('.hs-panel-body').forEach(panel => {
-                        panel.classList.remove('hs-panel-body-open');
+                        panel.classList.remove('hs-panel-body-open-flex');
+                        panel.classList.remove('hs-panel-body-open-block');
                     });
 
-                    const targetPanel = document.querySelector(`.hs-panel-body-${panelId}`) as HTMLDivElement;
+                    const targetPanel = document.querySelector(tabConfig.tabBodySel) as HTMLDivElement;
 
                     if(targetPanel) {
-                        targetPanel.classList.add('hs-panel-body-open');
+                        switch(tabConfig.panelDisplayType) {
+                            case "flex":
+                                targetPanel.classList.add('hs-panel-body-open-flex');
+                                break;
+                            case "block":
+                                targetPanel.classList.add('hs-panel-body-open-block');
+                                break;
+                        }
 
                         // Log panel (auto scroll to bottom when log tab selected)
-                        if(panelId === "1") {
+                        if(tabId === 1) {
                             const logElem = targetPanel.querySelector('#hs-ui-log') as HTMLDivElement;
 
                             if(logElem) {
@@ -117,6 +139,8 @@ export class HSUI extends HSModule {
                             }
                         }
                     }
+                } else {
+                    HSLogger.error(`tabId is null`, self.context);
                 }
             });
         });
@@ -135,6 +159,7 @@ export class HSUI extends HSModule {
         this.uiReady = true;
     }
 
+    // Makes element draggable with mouse
     #makeDraggable(element : HTMLElement, dragHandle : HTMLElement) {
         let pos1 = 0;
         let pos2 = 0;
@@ -201,25 +226,32 @@ export class HSUI extends HSModule {
         }
     }
 
+    // Can be used to inject arbitrary CSS into the page
     static injectStyle(styleString: string) {
         if(styleString) {
             const styleElement = document.createElement('style');
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 
-            HSLogger.log(`Injected new CSS`, "HSUI");
+            HSLogger.log(`Injected new CSS`, this.#staticContext);
         }
     }
 
-    static injectHTML(htmlString: string, injectFunction: (node: ChildNode) => void) {
+    // Can be used to inject arbitrary HTML
+    // injectFunction can be supplied to control where the HTML is injected
+    static injectHTML(htmlString: string, injectFunction?: (node: ChildNode) => void) {
         const div = document.createElement('div');
         div.innerHTML = htmlString;
 
         while (div.firstChild) {
-            injectFunction(div.firstChild);
+            if(injectFunction) {
+                injectFunction(div.firstChild);
+            } else {
+                document.body.appendChild(div.firstChild);
+            }
         };
 
-        HSLogger.log(`Injected new HTML`, "HSUI");
+        HSLogger.log(`Injected new HTML`, this.#staticContext);
     }
 
     renameTab(tabId: number, newName: string) {
@@ -239,6 +271,7 @@ export class HSUI extends HSModule {
         }
     }
 
+    // Used by modals to calculate their open position
     #resolveCoordinates(coordinates: HSUIDOMCoordinates = EModalPosition.CENTER, relativeTo?: HTMLElement): HSUIXY {
         let position = { x: 0, y: 0 };
 
@@ -305,6 +338,7 @@ export class HSUI extends HSModule {
         return position;
     }
 
+    // Opens a new modal
     async Modal(modalOptions: HSUIModalOptions) {
         const uuid = `hs-dom-${HSUtils.uuidv4()}`;
         const html = HSUIC._modal({
@@ -313,16 +347,13 @@ export class HSUI extends HSModule {
         });	
 
         // Create temp div, inject UI panel HTML and append the contents to body
-        const div = document.createElement('div');
-        div.innerHTML = html;
-
-        while (div.firstChild) {
-            document.body.appendChild(div.firstChild);
-        };
+        HSUI.injectHTML(html);
 
         const modal = document.querySelector(`#${uuid}`) as HTMLDivElement;
         const modalHead = document.querySelector(`#${uuid} > .hs-modal-head`) as HTMLDivElement;
 
+        // If the modal contains something (images mainly) which take time to load, needsToLoad should be set to true
+        // And this is where we handle / wait for the loading to happen before showing the modal
         if(modalOptions.needsToLoad && modalOptions.needsToLoad === true) {
             const images = document.querySelectorAll(`#${uuid} > .hs-modal-body img`);
 
@@ -339,6 +370,7 @@ export class HSUI extends HSModule {
                 });
             });
 
+            // Wait for images to load and then resolve open coordinates for the modal
             Promise.all(imagePromises).then(() => {
                 const coords = this.#resolveCoordinates(modalOptions.position, modal);
                 modal.style.left = `${coords.x}px`;
@@ -350,9 +382,11 @@ export class HSUI extends HSModule {
             modal.style.top = `${coords.y}px`;
         }
 
+        // Make the modal draggable
         this.#makeDraggable(modal, modalHead);
 
         if(modal) {
+            // Make the modal's close button (X in the top right corner) close the modal
             modal.addEventListener('click', function(e) {
                 const dClose = (e.target as HTMLDivElement).dataset.close;
 

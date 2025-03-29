@@ -10,7 +10,7 @@ import { HSSettingAction } from "./hs-setting-action";
 
 export class HSSettings extends HSModule {
 
-    static CURRENT_VERSION = '2.1.0';
+    static CURRENT_VERSION = '2.2.0';
     static #staticContext = '';
 
     static #defaultSettings : HSSettingsDefinition;
@@ -33,8 +33,10 @@ export class HSSettings extends HSModule {
         HSLogger.log(`Parsing mod settings`, this.context);
 
         try {
+            // Parse the JSON settings
             const parsedSettings = JSON.parse(settings) as HSSettingsDefinition;
         
+            // Set default values for each setting
             for (const [key, setting] of HSUtils.typedObjectEntries(parsedSettings)) {
                 parsedSettings[key].defaultValue = setting.settingValue;
             }
@@ -57,6 +59,7 @@ export class HSSettings extends HSModule {
             return;
         }
 
+        // Update the setting UI controls with the configured values in hs-settings.json
         for (const [key, setting] of HSUtils.typedObjectEntries(HSSettings.#settings)) {
             HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
 
@@ -79,13 +82,16 @@ export class HSSettings extends HSModule {
                             if('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
                         }
 
+                        // Set the input value to the JSON setting value
                         valueElement.value = setting.settingValue.toString();
 
+                        // Listen for changes in the UI input to change the setting value
                         valueElement.addEventListener('change', function(e) {
                             HSSettings.#handleSettingChange(e, key);
                         });
                     }
 
+                    // This sets up the  "✓" / "✗" button next to the setting input
                     if(controlSettings.controlEnabledId) {
                         const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
 
@@ -98,23 +104,28 @@ export class HSSettings extends HSModule {
                                 toggleElement.classList.add('hs-disabled');
                             }
 
+                            // Handle toggling the setting on/off
                             toggleElement.addEventListener('click', function(e) {
                                 HSSettings.#handleSettingToggle(e, key);
                             });
                         }
                     }
 
+                    // Some settings need to be able to call a function when the setting value is changed
+                    // This is done with "settingActions"
                     if(setting.settingAction) {
                         const action = HSSettings.#settingAction.getAction(setting.settingAction);
             
                         if(action && action instanceof Function) {
                             if(setting.enabled) {
+                                // Call the settingAction when the setting is enabled
                                 action({
                                     contextName: HSSettings.#staticContext,
                                     value: setting.settingValue,
                                     disable: false
                                 });
                             } else {
+                                // Call the settingAction when the setting is disabled, passing disable=true
                                 action({
                                     contextName: HSSettings.#staticContext,
                                     value: setting.settingValue,
@@ -124,7 +135,7 @@ export class HSSettings extends HSModule {
                         }
                     }
                 } else {
-                    // Not implemented
+                    // Switch setting handling - not implemented
                 }
             }
         }
@@ -133,6 +144,7 @@ export class HSSettings extends HSModule {
         this.#settingsSynced = true;
     }
 
+    // Builds the settings UI in the mod's panel
     static autoBuildSettingsUI() : { didBuild: boolean, htmlString: string } {
         const self = this;
 
@@ -156,11 +168,13 @@ export class HSSettings extends HSModule {
                     const convertedType = controls.controlType === "number" ? HSInputType.NUMBER : controls.controlType === "text" ? HSInputType.TEXT : null;
 
                     if(convertedType) {
+                        // Create setting header and value input
                         components = [
                             HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription }),
                             HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: controls.controlId, type: convertedType }),
                         ]
 
+                        // Create setting on/off toggle
                         if(controls.controlEnabledId) {
                             components.push(HSUIC.Button({ class: 'hs-panel-setting-block-btn', id: controls.controlEnabledId, text: "" }))
                         }
@@ -171,6 +185,7 @@ export class HSSettings extends HSModule {
                     }
                 }
 
+                // Create setting block which contains the setting header, value input and on/off toggle
                 settingsBlocks.push(HSUIC.Div({ 
                     class: 'hs-panel-setting-block',
                     html: components
@@ -201,6 +216,7 @@ export class HSSettings extends HSModule {
             HSLogger.warn(`Error parsing setting value for ${settingKey}`, HSSettings.#staticContext);
         }
 
+        // If the setting has some action bound to it, call it when the setting's value is changed
         if(setting.settingAction) {
             const action = HSSettings.#settingAction.getAction(setting.settingAction);
 
@@ -232,6 +248,7 @@ export class HSSettings extends HSModule {
         
         HSSettings.#settings[settingKey].enabled = newState;
 
+        // If the setting has some settingAction bound to it, call it when the setting is toggled on/off
         if(setting.settingAction) {
             const action = HSSettings.#settingAction.getAction(setting.settingAction);
 
