@@ -4,25 +4,26 @@ import { HSModule } from "./hs-module";
 
 export class HSMouse extends HSModule {
 
-    #mousePosition: HSMousePosition;
-    #mousePositionDebugElement?: HTMLDivElement;
+    static #staticContext = '';
+
+    static #mousePosition: HSMousePosition;
+    static #mousePositionDebugElement?: HTMLDivElement;
 
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
-
-        this.#mousePosition = { x: 0, y: 0 };
+        HSMouse.#staticContext = context;
     }
 
     async init() {
         const self = this;
         HSLogger.log(`Capturing mouse events`, this.context);
 
-        document.addEventListener('mousemove', self.#updateMousePosition.bind(this));
+        document.addEventListener('mousemove', HSMouse.#updateMousePosition.bind(HSMouse));
 
         this.isInitialized = true;
     }
 
-    #updateMousePosition(e: MouseEvent) {
+    static #updateMousePosition(e: MouseEvent) {
         this.#mousePosition = {
             x: e.clientX,
             y: e.clientY
@@ -31,7 +32,7 @@ export class HSMouse extends HSModule {
         this.#updateDebug();
     }
 
-    #updateDebug() {
+    static #updateDebug() {
         if(!this.#mousePositionDebugElement || this.#mousePositionDebugElement === undefined) {
             const debugElement = document.querySelector('#hs-panel-debug-mousepos') as HTMLDivElement;
 
@@ -44,7 +45,7 @@ export class HSMouse extends HSModule {
         }
     }
 
-    getPosition() : HSMousePosition {
+    static getPosition() : HSMousePosition {
         return this.#mousePosition;
     }
 }
