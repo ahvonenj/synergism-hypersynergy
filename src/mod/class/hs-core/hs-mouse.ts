@@ -43,4 +43,8 @@ export class HSMouse extends HSModule {
             this.#mousePositionDebugElement.innerHTML = `Mouse: (X: ${this.#mousePosition.x}, Y: ${this.#mousePosition.y})`;
         }
     }
+
+    getPosition() : HSMousePosition {
+        return this.#mousePosition;
+    }
 }
