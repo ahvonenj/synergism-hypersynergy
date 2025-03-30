@@ -1,3 +1,5 @@
+import { CSSValue } from "../../types/hs-ui-types";
+
 /*
     Class: HSUtils
     IsExplicitHSModule: No
@@ -80,5 +82,27 @@ export class HSUtils {
         const formattedMinutes = minutes.toString().padStart(2, '0');
 
         return `${formattedHours}:${formattedMinutes}`;
+    }
+
+    static camelToKebab(str: string) {
+        return str
+            .replace(/^([A-Z])/, (match) => match.toLowerCase())
+            .replace(/([A-Z])/g, (match) => '-' + match.toLowerCase());
+    }
+
+    static objectToCSS<T extends Record<string, CSSValue>>(obj: T) : string {
+        let cssString = ``;
+
+        if(obj === undefined || obj === null) {
+            return '';
+        }
+
+        for(const [key, value] of Object.entries(obj)) {
+            if (value !== undefined && value !== null) {
+                cssString += `${this.camelToKebab(key)}: ${value};\n`;
+            }
+        }
+
+        return cssString;
     }
 }

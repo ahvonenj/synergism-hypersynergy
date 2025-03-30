@@ -49,6 +49,10 @@ declare global {
         {
             className: 'HSTalismans',
             context: 'HSTalismans',
+        },
+        {
+            className: 'HSMouse',
+            context: 'HSMouse',
         }
     ];
 

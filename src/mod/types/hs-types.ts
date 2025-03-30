@@ -51,3 +51,8 @@ export type HSElementWatcher = {
     observer?: MutationObserver;
     lastCall?: number;
 }
+
+export type HSMousePosition = {
+    x: number;
+    y: number;
+}

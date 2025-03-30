@@ -1,4 +1,4 @@
-import { HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
+import { CSSKeyValueObject, HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICFlexOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSUI } from "./hs-ui";
 
@@ -51,8 +51,13 @@ export class HSUIC {
     static Button(options: HSUICButtonOptions) : string {
         const comp_class = options.class ?? '';
         const comp_text = options.text ?? '';
+        const id = options.id ?? HSUtils.domid();
 
-        return `<div class="hs-panel-btn ${comp_class}" id="${options.id}">${comp_text}</div>`;
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        return `<div class="hs-panel-btn ${comp_class}" id="${id}">${comp_text}</div>`;
     }
 
     // Input Component
@@ -60,13 +65,19 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const comp_type = this.#resolveInputType(options.type);
         const comp_input_class = this.#resolveInputClass(options.type);
+        const id = options.id ?? HSUtils.domid();
 
-        return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${options.id}"></input>`;
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${id}"></input>`;
     }
 
     // Div Component
     static Div(options: HSUICDivOptions) : string {
         const comp_class = options.class ?? '';
+        const id = options.id ?? HSUtils.domid();
         let comp_html = '';
 
         if(options.html) {
@@ -77,7 +88,11 @@ export class HSUIC {
             }
         } 
 
-        return `<div class="hs-panel-div ${comp_class}" ${options.id ? `id="${options.id}"` : ''}>${comp_html}</div>`;
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        return `<div class="hs-panel-div ${comp_class}" ${id ? `id="${id}"` : ''}>${comp_html}</div>`;
     }
 
     // Grid Component
@@ -96,11 +111,30 @@ export class HSUIC {
 
         HSUI.injectStyle(`#${id} {
             display: grid;
-            grid-template-columns: ${options.colTemplate};
-            grid-template-rows: ${options.rowTemplate};
-            grid-column-gap: ${options.colGap};
-            grid-row-gap: ${options.rowGap};
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`)
+
+        return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
+    }
+
+    // Grid Component
+    static Flex(options: HSUICFlexOptions) : string {
+        const comp_class = options.class ?? '';
+        const id = options.id ?? HSUtils.domid();
+        let comp_html = '';
+
+        if(options.html) {
+            if(Array.isArray(options.html)) {
+                comp_html = options.html.join('\n');
+            } else {
+                comp_html = options.html;
+            }
+        }
+
+        HSUI.injectStyle(`#${id} {
+            display: flex;
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`);
 
         return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
     }
@@ -110,8 +144,13 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const comp_html = options.htmlContent ?? '';
         const comp_data = options.data ?? [];
+        const id = options.id ?? HSUtils.domid()
 
-        return `<div class="hs-modal ${comp_class}" id="${options.id}">
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`);
+
+        return `<div class="hs-modal ${comp_class}" id="${id}">
                     <div class="hs-modal-head">
                         <div class="hs-modal-head-left"></div>
                         <div class="hs-modal-head-right" data-close="${options.id}">x</div>

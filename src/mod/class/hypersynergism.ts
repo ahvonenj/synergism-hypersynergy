@@ -57,10 +57,12 @@ export class Hypersynergism {
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
                     ],
-                    colTemplate: 'repeat(2, 1fr)',
-                    rowTemplate: '1fr',
-                    colGap: '5px',
-                    rowGap: '5px'
+                    styles: {
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gridTemplateRows: '1fr',
+                        columnGap: '5px',
+                        rowGap: '5px'
+                    }
                 })
             );
 
@@ -81,9 +83,25 @@ export class Hypersynergism {
                 hsui.replaceTabContents(3, settingsTabContents.htmlString);
             }
 
+            // BUILD DEBUG TAB
+            hsui.replaceTabContents(4, 
+                HSUIC.Grid({ 
+                    html: [
+                        HSUIC.Div({ id: 'hs-panel-debug-mousepos' }),
+                    ],
+                    styles: {
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gridTemplateRows: '1fr',
+                        columnGap: '5px',
+                        rowGap: '5px'
+                    }
+                })
+            );
+
             // Rename tabs
             hsui.renameTab(2, 'Tools');
             hsui.renameTab(3, 'Settings');
+            hsui.renameTab(4, 'Debug');
         }
     }
 }

@@ -57,7 +57,7 @@ export class HSUI extends HSModule {
             tabId: 4,
             tabBodySel: '.hs-panel-body-4',
             tabSel: '#hs-panel-tab-4',
-            panelDisplayType: 'block'
+            panelDisplayType: 'flex'
         }
     ];
 

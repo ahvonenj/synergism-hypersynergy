@@ -10,6 +10,7 @@ import { HSUI } from "./hs-ui";
 import { HSSettings } from "./hs-settings";
 import { HSModuleDefinition } from "../../types/hs-types";
 import { HSPrototypes } from "./hs-prototypes";
+import { HSMouse } from "./hs-mouse";
 
 /*
     Class: HSModuleManager
@@ -33,6 +34,7 @@ export class HSModuleManager {
         "HSTalismans": HSTalismans,
         "HSSettings": HSSettings,
         "HSPrototypes": HSPrototypes,
+        "HSMouse": HSMouse,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {
