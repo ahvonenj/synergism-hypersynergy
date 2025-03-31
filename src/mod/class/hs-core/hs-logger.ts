@@ -78,7 +78,6 @@ export class HSLogger {
             
             if(this.#lastLogHash !== logHash) {
                 this.#logElement.appendChild(logLine);
-                this.#logElement.scrollTop = this.#logElement.scrollHeight;
             } else {
                 const lastLogLine = this.#logElement.querySelector('div:last-child') as HTMLDivElement;
 
@@ -110,6 +109,7 @@ export class HSLogger {
                 }
             }
 
+            this.#logElement.scrollTop = this.#logElement.scrollHeight;
             this.#lastLogHash = logHash;
         }
     }

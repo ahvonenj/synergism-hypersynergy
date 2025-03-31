@@ -69,7 +69,7 @@ export class HSCodes extends HSModule {
             if(this.#codeBoxLabel && this.#codeBoxLabel.innerText.includes("synergism2021")) {
                 const originalText = this.#codeBoxLabel.innerText;
                 this.#codeBoxLabel.innerHTML = `<div id="hs-hijack-codes-wrapper">
-                    [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently:</br>
+                    [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently (click to select and copy):</br>
                     <span style="${this.#codeSpanStyle}" data-code="synergism2021">synergism2021</span>
                     <span style="${this.#codeSpanStyle}" data-code="Khafra">Khafra</span>
                     <span style="${this.#codeSpanStyle}" data-code=":unsmith:">:unsmith:</span>
@@ -87,7 +87,7 @@ export class HSCodes extends HSModule {
                     }
                 }, true);
 
-                HSLogger.log("Hijacked code redeem panel", this.context);
+                //HSLogger.log("Hijacked code redeem panel", this.context);
             }
         } finally {
             // Need to remember to connect the observer again

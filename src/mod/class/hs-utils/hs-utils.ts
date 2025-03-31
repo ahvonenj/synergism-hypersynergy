@@ -90,6 +90,10 @@ export class HSUtils {
             .replace(/([A-Z])/g, (match) => '-' + match.toLowerCase());
     }
 
+    static kebabToCamel(str: string) {
+        return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    }
+
     static objectToCSS<T extends Record<string, CSSValue>>(obj: T) : string {
         let cssString = ``;
 

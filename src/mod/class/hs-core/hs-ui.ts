@@ -1,5 +1,6 @@
-import { EModalPosition, HSPanelTabDefinition, HSUICModalOptions, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/hs-ui-types";
+import { EPredefinedPosition, HSPanelTabDefinition, HSUICModalOptions, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSUIC } from "./hs-ui-components";
@@ -33,6 +34,8 @@ export class HSUI extends HSModule {
 
     #loggerElement?: HTMLTextAreaElement;
     #logClearBtn? : HTMLButtonElement;
+
+    #modPanelOpen = false;
 
     #tabs : HSPanelTabDefinition[] = [
         {
@@ -92,8 +95,15 @@ export class HSUI extends HSModule {
         this.#makeDraggable(this.#uiPanel, panelHandle);
 
         // Make the HS UI panel closeable
-        this.#uiPanelCloseBtn.addEventListener('click', () => {
-            self.#uiPanel?.classList.add('hs-panel-closed');
+        this.#uiPanelCloseBtn.addEventListener('click', async () => {
+            if(self.#modPanelOpen &&self.#uiPanel) {
+                await self.#uiPanel.transition({
+                    opacity: 0
+                });
+                
+                self.#modPanelOpen = false;
+                self.#uiPanel?.classList.add('hs-panel-closed');
+            }
         });
 
         this.#logClearBtn.addEventListener('click', () => {
@@ -162,8 +172,20 @@ export class HSUI extends HSModule {
         this.#uiPanelOpenBtn.id = "hs-panel-control";
 
         // Open button opens the panel
-        this.#uiPanelOpenBtn.addEventListener('click', () => {
-            self.#uiPanel?.classList.remove('hs-panel-closed');
+        this.#uiPanelOpenBtn.addEventListener('click', async () => {
+            if(!self.#modPanelOpen && self.#uiPanel) {
+                self.#modPanelOpen = true;
+                self.#uiPanel.style.opacity = '0';
+                self.#uiPanel.classList.remove('hs-panel-closed');
+
+                const resetCoords = self.#resolveCoordinates(EPredefinedPosition.CENTER, self.#uiPanel);
+                self.#uiPanel.style.left = `${resetCoords.x}px`;
+                self.#uiPanel.style.top = `${resetCoords.y}px`;
+
+                await self.#uiPanel.transition({
+                    opacity: 0.92
+                });
+            }
         });
 
         document.body.appendChild(this.#uiPanelOpenBtn);
@@ -246,7 +268,7 @@ export class HSUI extends HSModule {
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 
-            HSLogger.log(`Injected new CSS`, this.#staticContext);
+            //HSLogger.log(`Injected new CSS`, this.#staticContext);
         }
     }
 
@@ -264,7 +286,7 @@ export class HSUI extends HSModule {
             }
         };
 
-        HSLogger.log(`Injected new HTML`, this.#staticContext);
+        //HSLogger.log(`Injected new HTML`, this.#staticContext);
     }
 
     renameTab(tabId: number, newName: string) {
@@ -285,62 +307,45 @@ export class HSUI extends HSModule {
     }
 
     // Used by modals to calculate their open position
-    #resolveCoordinates(coordinates: HSUIDOMCoordinates = EModalPosition.CENTER, relativeTo?: HTMLElement): HSUIXY {
+    #resolveCoordinates(coordinates: HSUIDOMCoordinates = EPredefinedPosition.CENTER, relativeTo?: HTMLElement): HSUIXY {
         let position = { x: 0, y: 0 };
 
         const windowCenterX = window.innerWidth / 2;
         const windowCenterY = window.innerHeight / 2;
+        
+        let relativeX = 0;
+        let relativeY = 0;
 
-        if(!relativeTo) {
-            if(Number.isInteger(coordinates)) {
-                switch(coordinates) {
-                    case EModalPosition.CENTER:
-                        position = { x: windowCenterX, y: windowCenterY };
-                        break;
-                    case EModalPosition.RIGHT:
-                        position = { x: window.innerWidth - 25, y: windowCenterY };
-                        break;
-                    case EModalPosition.LEFT:
-                        position = { x: 25, y: windowCenterY };
-                        break;
-                    default:
-                        position = { x: windowCenterX, y: windowCenterY };
-                        break;
-                }
-            } else {
-                position = coordinates as HSUIXY;
-            }
-
-            return position;
+        if(relativeTo) {
+            const elementRect = relativeTo.getBoundingClientRect();
+            relativeX = elementRect.width;
+            relativeY = elementRect.height;
         }
-
-        const elementRect = relativeTo.getBoundingClientRect();
-        console.log(elementRect)
 
         if(Number.isInteger(coordinates)) {
             switch(coordinates) {
-                case EModalPosition.CENTER:
+                case EPredefinedPosition.CENTER:
                     position = { 
-                        x: windowCenterX - elementRect.width / 2, 
-                        y: windowCenterY - elementRect.height / 2
+                        x: windowCenterX - (relativeX / 2), 
+                        y: windowCenterY - (relativeY / 2)
                     };
                     break;
-                case EModalPosition.RIGHT:
+                case EPredefinedPosition.RIGHT:
                     position = { 
-                        x: window.innerWidth - 25 - elementRect.width, 
-                        y: windowCenterY - elementRect.height / 2
+                        x: window.innerWidth - 25 - relativeX, 
+                        y: windowCenterY - (relativeY / 2)
                     };
                     break;
-                case EModalPosition.LEFT:
+                case EPredefinedPosition.LEFT:
                     position = { 
-                        x: 25 + elementRect.width, 
-                        y: windowCenterY - elementRect.height / 2
+                        x: 25 + relativeX, 
+                        y: windowCenterY - (relativeY / 2)
                     };
                     break;
                 default:
                     position = { 
-                        x: windowCenterX - elementRect.width / 2, 
-                        y: windowCenterY - elementRect.height / 2
+                        x: windowCenterX - (relativeX / 2), 
+                        y: windowCenterY - (relativeY / 2)
                     };
                     break;
             }

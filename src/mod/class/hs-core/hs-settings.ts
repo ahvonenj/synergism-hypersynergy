@@ -23,7 +23,7 @@ import { HSSettingAction } from "./hs-setting-action";
 */
 export class HSSettings extends HSModule {
 
-    static CURRENT_VERSION = '2.2.0';
+    static CURRENT_VERSION = '2.3.0';
     static #staticContext = '';
 
     static #defaultSettings : HSSettingsDefinition;
