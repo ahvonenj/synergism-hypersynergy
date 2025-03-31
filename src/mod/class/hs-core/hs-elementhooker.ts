@@ -1,5 +1,6 @@
 import { HSElementWatcher } from "../../types/hs-types";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 
 /*
@@ -17,8 +18,6 @@ export class HSElementHooker {
     // These are probably not needed. Was worried that the intervals might stay running for all eternity
     static #hookTimeout = 50;
     static #enableTimeout = false;
-    
-    static #hookThrottlingMS = 50; // watchElement's MutationObserver can fire max 20 times / second
 
     static #watchers = new Map<string, HSElementWatcher>();
 
@@ -137,7 +136,7 @@ export class HSElementHooker {
 
             if(watcher) {
                 // Throttling
-                if(watcher.lastCall && (performance.now() - watcher.lastCall) < self.#hookThrottlingMS) {
+                if(watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.hookThrottlingMS) {
                     return;
                 }
 

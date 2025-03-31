@@ -1,6 +1,7 @@
 import { ELogLevel, ELogType } from "../../types/hs-types";
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSGlobal } from "./hs-global";
 
 /*
     Class: HSLogger
@@ -16,9 +17,7 @@ export class HSLogger {
     static #integratedToUI = false;
     static #logElement : HTMLTextAreaElement;
     
-    static logLevel : ELogLevel = ELogLevel.ALL;
     static #lastLogHash = -1;
-    static #logSize = 100;
     static #displayTimestamp : boolean = false;
 
     // Integrates the logger to the mod's UI panel's Log tab
@@ -101,7 +100,7 @@ export class HSLogger {
             // Remove oldest log lines if line count exceeds logSize
             const logLines = this.#logElement.querySelectorAll('.hs-ui-log-line');
 
-            if(logLines && logLines.length > this.#logSize) {
+            if(logLines && logLines.length > HSGlobal.HSLogger.logSize) {
                 const oldestLog = this.#logElement.querySelector('.hs-ui-log-line:first-child') as HTMLDivElement;
 
                 if(oldestLog) {
@@ -115,18 +114,20 @@ export class HSLogger {
     }
 
     static #shouldLog(logType: ELogType, isImportant : boolean) : boolean {
-        if(this.logLevel === ELogLevel.ALL || isImportant) return true;
-        if(this.logLevel === ELogLevel.NONE) return false;
+        const currentLogLevel = HSGlobal.HSLogger.logLevel;
+
+        if(currentLogLevel === ELogLevel.ALL || isImportant) return true;
+        if(currentLogLevel === ELogLevel.NONE) return false;
 
         switch(logType) {
             case ELogType.LOG:
-                return (this.logLevel === ELogLevel.LOG || this.logLevel === ELogLevel.EXPLOG);
+                return (currentLogLevel === ELogLevel.LOG || currentLogLevel === ELogLevel.EXPLOG);
             case ELogType.WARN:
-                return (this.logLevel === ELogLevel.WARN_AND_ERROR || this.logLevel === ELogLevel.WARN);
+                return (currentLogLevel === ELogLevel.WARN_AND_ERROR || currentLogLevel === ELogLevel.WARN);
             case ELogType.ERROR:
-                return (this.logLevel === ELogLevel.WARN_AND_ERROR || this.logLevel === ELogLevel.ERROR);
+                return (currentLogLevel === ELogLevel.WARN_AND_ERROR || currentLogLevel === ELogLevel.ERROR);
             case ELogType.INFO:
-                return (this.logLevel === ELogLevel.INFO || this.logLevel === ELogLevel.EXPLOG);
+                return (currentLogLevel === ELogLevel.INFO || currentLogLevel === ELogLevel.EXPLOG);
         }
     }
     

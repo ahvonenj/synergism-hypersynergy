@@ -173,7 +173,7 @@ export class HSPrototypes extends HSModule {
         return function(this: HTMLElement, properties: TransitionProperties, duration?: number, timingFunction: CSSEasingFunction = 'linear'): Promise<void> {
             const element = this;
             const style = element.style;
-            duration = duration ?? HSGlobal.defaultTransitionTiming;
+            duration = duration ?? HSGlobal.HSPrototypes.defaultTransitionTiming;
             
             return new Promise<void>((resolve) => {
 
