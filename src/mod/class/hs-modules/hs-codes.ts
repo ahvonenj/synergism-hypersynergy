@@ -69,7 +69,7 @@ export class HSCodes extends HSModule {
             if(this.#codeBoxLabel && this.#codeBoxLabel.innerText.includes("synergism2021")) {
                 const originalText = this.#codeBoxLabel.innerText;
                 this.#codeBoxLabel.innerHTML = `<div id="hs-hijack-codes-wrapper">
-                    [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently (click to select and copy):</br>
+                    [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently (click code to auto input it):</br>
                     <span style="${this.#codeSpanStyle}" data-code="synergism2021">synergism2021</span>
                     <span style="${this.#codeSpanStyle}" data-code="Khafra">Khafra</span>
                     <span style="${this.#codeSpanStyle}" data-code=":unsmith:">:unsmith:</span>
@@ -78,12 +78,12 @@ export class HSCodes extends HSModule {
 
                 document.delegateEventListener('click', '#hs-hijack-codes-wrapper > span', function(e) {
                     const code = this.dataset.code;
+                    const textInput = document.querySelector('#prompt_text') as HTMLInputElement;
 
-                    if(code && navigator && navigator.clipboard) {
-                        HSLogger.log(`Copied code: ${code} to clipboard`, self.context);
-                        navigator.clipboard.writeText(code);
+                    if(code && textInput) {
+                        textInput.value = code;
                     } else {
-                        HSLogger.warn(`Could not copy code to clipboard, navigator.clipboard undefined`, self.context);
+                        HSLogger.warn(`Could not inject code to code input`, self.context);
                     }
                 }, true);
 

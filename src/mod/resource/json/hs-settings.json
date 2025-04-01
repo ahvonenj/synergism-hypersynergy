@@ -54,7 +54,7 @@
     "reactiveMouseHover": {
         "settingName": "reactiveMouseHover",
         "settingDescription": "Reactive mouse hover (when SHIFT is held)",
-        "settingHelpText": "When enabled, mouse will emit hover events when SHIFT is held. Setting value is event interval in seconds (0.1 = 100ms).",
+        "settingHelpText": "When enabled, mouse will emit hover events at current mouse position when SHIFT is held. Setting value is event interval in seconds (0.1 = 100ms).",
         "settingType": "numeric",
         "enabled": true,
         "settingValue": 0.2,
@@ -75,7 +75,7 @@
     "autoClick": {
         "settingName": "autoClick",
         "settingDescription": "Auto click (when CTRL is held)",
-        "settingHelpText": "When enabled, mouse will click automatically when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
+        "settingHelpText": "When enabled, mouse will click automatically at current mouse position when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
         "settingType": "numeric",
         "enabled": true,
         "settingValue": 0.1,
