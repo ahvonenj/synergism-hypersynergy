@@ -2,6 +2,8 @@
     "expandCostProtection": {
         "settingName": "expandCostProtection",
         "settingDescription": "Hept. expand cost protection",
+        "settingHelpText": "When enabled, makes clicking hepteract icons in the hepteract view (quick expand and max feature) not do anything if it would cost >= settingValue percentage hepteracts",
+        "settingType": "numeric",
         "enabled": true,
         "settingValue": 0.5,
         "settingControl": {
@@ -19,6 +21,8 @@
     "syncNotificationOpacity": {
         "settingName": "syncNotificationOpacity",
         "settingDescription": "Notification opacity",
+        "settingHelpText": "Controls in-game notification opacity. Achievement notifications are one example of in-game notifications.",
+        "settingType": "numeric",
         "enabled": true,
         "settingValue": 0.6,
         "settingAction": "syncNotificationOpacity",
@@ -37,11 +41,55 @@
     "logTimestamp": {
         "settingName": "logTimestamp",
         "settingDescription": "Display timestamps in log",
+        "settingHelpText": "Controls whether timestamps are visible or not in the mod's log view",
+        "settingType": "boolean",
         "enabled": true,
         "settingAction": "logTimestamp",
         "settingControl": {
             "controlType": "switch",
             "controlEnabledId": "hs-setting-display-timestamp-btn"
+        }
+    },
+
+    "reactiveMouseHover": {
+        "settingName": "reactiveMouseHover",
+        "settingDescription": "Reactive mouse hover (when SHIFT is held)",
+        "settingHelpText": "When enabled, mouse will emit hover events when SHIFT is held. Setting value is event interval in seconds (0.1 = 100ms).",
+        "settingType": "numeric",
+        "enabled": true,
+        "settingValue": 0.2,
+        "settingValueMultiplier": 1000,
+        "settingAction": "reactiveMouseHover",
+        "settingControl": {
+            "controlId": "hs-setting-reactive-mouse-hover-value",
+            "controlType": "number",
+            "controlEnabledId": "hs-setting-reactive-mouse-hover-btn",
+            "controlOptions": {
+                "min": 0,
+                "max": 1,
+                "step": 0.05
+            }
+        }
+    },
+
+    "autoClick": {
+        "settingName": "autoClick",
+        "settingDescription": "Auto click (when CTRL is held)",
+        "settingHelpText": "When enabled, mouse will click automatically when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
+        "settingType": "numeric",
+        "enabled": true,
+        "settingValue": 0.1,
+        "settingValueMultiplier": 1000,
+        "settingAction": "autoClick",
+        "settingControl": {
+            "controlId": "hs-setting-auto-click-value",
+            "controlType": "number",
+            "controlEnabledId": "hs-setting-auto-click-btn",
+            "controlOptions": {
+                "min": 0,
+                "max": 1,
+                "step": 0.05
+            }
         }
     }
 }

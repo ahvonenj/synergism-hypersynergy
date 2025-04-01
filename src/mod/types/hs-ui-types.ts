@@ -5,6 +5,7 @@
 */
 
 import { TransitionableCSSProperty, HSUICCSSProperties } from "./hs-css-types";
+import { HSOptional } from "./hs-typescript-functions";
 
 export enum EPredefinedPosition {
     CENTER = 1,
@@ -41,14 +42,14 @@ export type TransitionProperties = {
 
 export type CSSValue = string | number | undefined | null;
 export type CSSKeyValueObject = { [key: string]: CSSValue }
-
-type HSOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type HTMLProps = { [key: string]: string | undefined };
 
 interface HSUICOptions {
     id: string;
     class?: string;
     data?: HTMLData[];
     styles?: HSUICCSSProperties;
+    props?: HTMLProps;
 }
 
 export interface HSUICButtonOptions extends HSUICOptions {

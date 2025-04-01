@@ -108,7 +108,7 @@ export class HSLogger {
                 }
             }
 
-            this.#logElement.scrollTop = this.#logElement.scrollHeight;
+            HSLogger.scrollToBottom();
             this.#lastLogHash = logHash;
         }
     }
@@ -128,6 +128,12 @@ export class HSLogger {
                 return (currentLogLevel === ELogLevel.WARN_AND_ERROR || currentLogLevel === ELogLevel.ERROR);
             case ELogType.INFO:
                 return (currentLogLevel === ELogLevel.INFO || currentLogLevel === ELogLevel.EXPLOG);
+        }
+    }
+
+    static scrollToBottom() {
+        if(this.#integratedToUI && this.#logElement) {
+            this.#logElement.scrollTop = this.#logElement.scrollHeight;
         }
     }
     

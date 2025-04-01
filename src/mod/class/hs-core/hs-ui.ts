@@ -100,7 +100,7 @@ export class HSUI extends HSModule {
                 await self.#uiPanel.transition({
                     opacity: 0
                 });
-                
+
                 self.#modPanelOpen = false;
                 self.#uiPanel?.classList.add('hs-panel-closed');
             }
@@ -153,13 +153,8 @@ export class HSUI extends HSModule {
                         }
 
                         // Log panel (auto scroll to bottom when log tab selected)
-                        if(tabId === 1) {
-                            const logElem = targetPanel.querySelector('#hs-ui-log') as HTMLDivElement;
-
-                            if(logElem) {
-                                logElem.scrollTop = logElem.scrollHeight;
-                            }
-                        }
+                        if(tabId === 1) 
+                            HSLogger.scrollToBottom();
                     }
                 } else {
                     HSLogger.error(`tabId is null`, self.context);
@@ -181,6 +176,8 @@ export class HSUI extends HSModule {
                 const resetCoords = self.#resolveCoordinates(EPredefinedPosition.CENTER, self.#uiPanel);
                 self.#uiPanel.style.left = `${resetCoords.x}px`;
                 self.#uiPanel.style.top = `${resetCoords.y}px`;
+
+                HSLogger.scrollToBottom();
 
                 await self.#uiPanel.transition({
                     opacity: 0.92

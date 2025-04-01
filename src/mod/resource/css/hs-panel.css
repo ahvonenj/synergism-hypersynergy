@@ -154,6 +154,7 @@
     border-top: 1px solid white;
     display: none;
     padding: 5px;
+    overflow-y: auto;
 }
 
 .hs-panel-body-open-flex {
@@ -342,6 +343,10 @@
     image-rendering: auto;
 }
 
+#hs-settings-panel {
+    padding: 15px;
+}
+
 .hs-panel-setting-block {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -354,9 +359,18 @@
     box-sizing: border-box;
 }
 
+#hs-settings-panel > .hs-panel-setting-block:not(:last-child) {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
 .hs-panel-setting-block-text {
     grid-column: 1 / span 2;
     box-sizing: border-box;
+}
+
+.hs-panel-setting-block-text:hover {
+    cursor: help;
 }
 
 .hs-panel-setting-block-num-input {

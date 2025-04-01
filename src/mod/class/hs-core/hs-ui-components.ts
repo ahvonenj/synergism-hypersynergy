@@ -1,4 +1,4 @@
-import { CSSKeyValueObject, HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICFlexOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData } from "../../types/hs-ui-types";
+import { CSSKeyValueObject, HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICFlexOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData, HTMLProps } from "../../types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSUI } from "./hs-ui";
 
@@ -47,17 +47,31 @@ export class HSUIC {
         }
     }
 
+    static #getPropString(props?: HTMLProps) {
+        if(!props) return '';
+
+        let propString = '';
+
+        for(const [key, value] of Object.entries(props)) {
+            if(typeof value !== undefined)
+                propString += ` ${key}="${value}"`;
+        }
+
+        return propString;
+    }
+
     // Button Component
     static Button(options: HSUICButtonOptions) : string {
         const comp_class = options.class ?? '';
         const comp_text = options.text ?? '';
         const id = options.id ?? HSUtils.domid();
+        const propString = this.#getPropString(options.props);
 
         HSUI.injectStyle(`#${id} {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`)
 
-        return `<div class="hs-panel-btn ${comp_class}" id="${id}">${comp_text}</div>`;
+        return `<div class="hs-panel-btn ${comp_class}" id="${id}"${propString}>${comp_text}</div>`;
     }
 
     // Input Component
@@ -66,12 +80,13 @@ export class HSUIC {
         const comp_type = this.#resolveInputType(options.type);
         const comp_input_class = this.#resolveInputClass(options.type);
         const id = options.id ?? HSUtils.domid();
+        const propString = this.#getPropString(options.props);
 
         HSUI.injectStyle(`#${id} {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`)
 
-        return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${id}"></input>`;
+        return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${id}"${propString}></input>`;
     }
 
     // Div Component
@@ -79,6 +94,7 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const id = options.id ?? HSUtils.domid();
         let comp_html = '';
+        const propString = this.#getPropString(options.props);
 
         if(options.html) {
             if(Array.isArray(options.html)) {
@@ -92,7 +108,7 @@ export class HSUIC {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`)
 
-        return `<div class="hs-panel-div ${comp_class}" ${id ? `id="${id}"` : ''}>${comp_html}</div>`;
+        return `<div class="hs-panel-div ${comp_class}" ${id ? `id="${id}"` : ''}${propString}>${comp_html}</div>`;
     }
 
     // Grid Component
@@ -100,6 +116,7 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const id = options.id ?? HSUtils.domid();
         let comp_html = '';
+        const propString = this.#getPropString(options.props);
 
         if(options.html) {
             if(Array.isArray(options.html)) {
@@ -114,7 +131,7 @@ export class HSUIC {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`)
 
-        return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
+        return `<div class="hs-panel-div ${comp_class}" id="${id}"${propString}>${comp_html}</div>`;
     }
 
     // Grid Component
@@ -122,6 +139,7 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const id = options.id ?? HSUtils.domid();
         let comp_html = '';
+        const propString = this.#getPropString(options.props);
 
         if(options.html) {
             if(Array.isArray(options.html)) {
@@ -136,7 +154,7 @@ export class HSUIC {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`);
 
-        return `<div class="hs-panel-div ${comp_class}" id="${id}">${comp_html}</div>`;
+        return `<div class="hs-panel-div ${comp_class}" id="${id}"${propString}>${comp_html}</div>`;
     }
 
     // Pseudo-private method, do not use
@@ -144,13 +162,14 @@ export class HSUIC {
         const comp_class = options.class ?? '';
         const comp_html = options.htmlContent ?? '';
         const comp_data = options.data ?? [];
-        const id = options.id ?? HSUtils.domid()
+        const id = options.id ?? HSUtils.domid();
+        const propString = this.#getPropString(options.props);
 
         HSUI.injectStyle(`#${id} {
             ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
         }`);
 
-        return `<div class="hs-modal ${comp_class}" id="${id}">
+        return `<div class="hs-modal ${comp_class}" id="${id}"${propString}>
                     <div class="hs-modal-head">
                         <div class="hs-modal-head-left"></div>
                         <div class="hs-modal-head-right" data-close="${options.id}">x</div>

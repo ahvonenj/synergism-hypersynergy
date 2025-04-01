@@ -109,4 +109,18 @@ export class HSUtils {
 
         return cssString;
     }
+
+    // This is jQuery's solution to this problem - it is surprisingly difficult
+    // https://github.com/jquery/jquery/blob/76687566f0569dc832f13e901f0d2ce74016cd4d/test/data/jquery-3.7.1.js#L10641
+    static isNumeric(n: any) {
+        return !isNaN(n - parseFloat(n));
+    }
+
+    static isString(n: any) {
+        return (typeof n === 'string' || n instanceof String);
+    }
+
+    static isBoolean(n: any) {
+        return (typeof n == "boolean");
+    }
 }

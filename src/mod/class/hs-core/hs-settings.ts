@@ -1,4 +1,4 @@
-import { HSSettingsControlType, HSSettingsDefinition } from "../../types/hs-settings-types";
+import { HSSettingBase, HSSettingRecord, HSSettingsControlType, HSSettingsDefinition } from "../../types/hs-settings-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
@@ -6,7 +6,8 @@ import settings from "inline:../../resource/json/hs-settings.json";
 import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
 import { HSInputType } from "../../types/hs-ui-types";
-import { HSSettingAction } from "./hs-setting-action";
+import { HSSettingActions } from "./hs-setting-action";
+import { HSBooleanSetting, HSNumericSetting, HSSetting, HSStringSetting } from "./hs-setting";
 
 /*
     Class: HSSettings
@@ -24,8 +25,7 @@ import { HSSettingAction } from "./hs-setting-action";
 export class HSSettings extends HSModule {
     static #staticContext = '';
 
-    static #defaultSettings : HSSettingsDefinition;
-    static #settings : HSSettingsDefinition;
+    static #settings : HSSettingRecord = {} as HSSettingRecord;
 
     static #settingsParsed = false;
     static #settingsSynced = false;
@@ -33,30 +33,68 @@ export class HSSettings extends HSModule {
     static #settingEnabledString = "✓";
     static #settingDisabledString = "✗";
 
-    static #settingAction : HSSettingAction;
+    #settingActions : HSSettingActions;
 
     constructor(moduleName: string, context: string) {
         super(moduleName, context);
 
         HSSettings.#staticContext = this.context;
-        HSSettings.#settingAction = new HSSettingAction();
+        this.#settingActions = new HSSettingActions();
 
         HSLogger.log(`Parsing mod settings`, this.context);
 
         try {
             // Parse the JSON settings
-            const parsedSettings = JSON.parse(settings) as HSSettingsDefinition;
+            const parsedSettings = JSON.parse(settings) as any;
         
             // Set default values for each setting
-            for (const [key, setting] of Object.typedEntries(parsedSettings)) {
-                parsedSettings[key].defaultValue = setting.settingValue;
+            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(parsedSettings)) {
+                
+                if(setting.settingType === 'boolean' || HSUtils.isBoolean(setting.settingValue)) {
+                    (setting as any).settingValue = false;
+                }
+
+                if(!this.#validateSetting(setting)) {
+                    throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
+                }
+
+                const settingActionName = ('settingAction' in setting) ? setting.settingAction : undefined;
+                const settingAction = settingActionName ? this.#settingActions.getAction(settingActionName) : null;
+
+                if(setting.settingType === 'numeric' || HSUtils.isNumeric(setting.settingValue)) {
+
+                    if(!('settingValueMultiplier' in setting as any))
+                        (setting as any).settingValueMultiplier = 1;
+                    
+                    (HSSettings.#settings as any)[key] = new HSNumericSetting(
+                        setting as unknown as HSSettingBase<number>, 
+                        settingAction, 
+                        HSSettings.#settingEnabledString, 
+                        HSSettings.#settingDisabledString
+                    );
+                } else if(setting.settingType === 'string' || HSUtils.isString(setting.settingValue)) {
+                    (HSSettings.#settings as any)[key] = new HSStringSetting(
+                        setting as unknown as HSSettingBase<string>, 
+                        settingAction, 
+                        HSSettings.#settingEnabledString, 
+                        HSSettings.#settingDisabledString
+                    );
+                } else if(setting.settingType === 'boolean' || HSUtils.isBoolean(setting.settingValue)) {
+                    (HSSettings.#settings as any)[key] = new HSBooleanSetting(
+                        setting as unknown as HSSettingBase<boolean>, 
+                        settingAction, 
+                        HSSettings.#settingEnabledString, 
+                        HSSettings.#settingDisabledString
+                    );
+                } else {
+                    throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
+                }
             }
 
-            HSSettings.#defaultSettings = parsedSettings;
-            HSSettings.#settings = HSSettings.#defaultSettings;
             HSSettings.#settingsParsed = true;
         } catch (e) {
             HSLogger.error(`Error parsing mod settings ${e}`, this.context);
+            HSSettings.#settingsParsed = false;
         }
     }
 
@@ -73,10 +111,11 @@ export class HSSettings extends HSModule {
         }
 
         // Update the setting UI controls with the configured values in hs-settings.json
-        for (const [key, setting] of Object.typedEntries(HSSettings.#settings)) {
+        for (const [key, settingObj] of Object.typedEntries(HSSettings.#settings)) {
             HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
-
-            const controlSettings = setting.settingControl;
+            
+            const setting = settingObj.getDefinition();
+            const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
 
             if(controlSettings) {
                 const controlType = controlSettings.controlType;
@@ -100,7 +139,7 @@ export class HSSettings extends HSModule {
 
                         // Listen for changes in the UI input to change the setting value
                         valueElement.addEventListener('change', function(e) {
-                            HSSettings.#handleSettingChange(e, key);
+                            settingObj.handleChange(e);
                         });
                     }
 
@@ -119,7 +158,7 @@ export class HSSettings extends HSModule {
 
                             // Handle toggling the setting on/off
                             toggleElement.addEventListener('click', function(e) {
-                                HSSettings.#handleSettingToggle(e, key);
+                                settingObj.handleToggle(e);
                             });
                         }
                     }
@@ -138,13 +177,13 @@ export class HSSettings extends HSModule {
 
                             // Handle toggling the setting on/off
                             toggleElement.addEventListener('click', function(e) {
-                                HSSettings.#handleSettingToggle(e, key);
+                                settingObj.handleToggle(e);
                             });
                         }
                     }
                 }
 
-                this.#handleSettingAction(setting, "state", setting.enabled);
+                settingObj.initialAction("state", setting.enabled);
             }
         }
 
@@ -164,7 +203,8 @@ export class HSSettings extends HSModule {
         const settingsBlocks : string[] = [];
         let didBuild = true;
 
-        for (const [key, setting] of Object.typedEntries(HSSettings.#settings)) {
+        for (const [key, settingObj] of Object.typedEntries(HSSettings.#settings)) {
+            const setting = settingObj.getDefinition();
             const controls = setting.settingControl;
 
             if(controls) {
@@ -172,7 +212,7 @@ export class HSSettings extends HSModule {
 
                 if(controls.controlType === "switch") {
                     components = [
-                        HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription }),
+                        HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } }),
                     ]
 
                     if(controls.controlEnabledId) {
@@ -184,7 +224,7 @@ export class HSSettings extends HSModule {
                     if(convertedType) {
                         // Create setting header and value input
                         components = [
-                            HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription }),
+                            HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } }),
                             HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: controls.controlId, type: convertedType }),
                         ]
 
@@ -217,85 +257,26 @@ export class HSSettings extends HSModule {
         };
     }
 
-    static #handleSettingChange<K extends keyof HSSettingsDefinition>(e: Event, settingKey: K) {
-        const setting = HSSettings.#settings[settingKey];
-        const oldValue = setting.settingValue;
-        const newValue = (e.target as HTMLInputElement).value;
+    #validateSetting(setting: HSSettingBase<number | string | boolean>) {
+        if(!('enabled' in setting)) return false;
+        if(!('settingName' in setting)) return false;
+        if(!('settingDescription' in setting)) return false;
+        if(!('settingValue' in setting)) return false;
+        if(!('settingType' in setting)) return false;
 
-        HSLogger.log(`Setting change caught for ${settingKey}: ${oldValue} -> ${newValue}`, HSSettings.#staticContext);
-
-        try {
-            HSSettings.#settings[settingKey].settingValue = parseFloat(newValue);
-        } catch (e) {
-            HSLogger.warn(`Error parsing setting value for ${settingKey}`, HSSettings.#staticContext);
-        }
-
-        // If the setting has some action bound to it, call it when the setting's value is changed
-        this.#handleSettingAction(setting, "value");
+        return true;
     }
 
-    static #handleSettingToggle<K extends keyof HSSettingsDefinition>(e: Event, settingKey: K) {
-        const setting = HSSettings.#settings[settingKey];
-        const oldState = setting.enabled;
-        const newState = !oldState;
-        const targetElement = (e.target as HTMLDivElement);
-
-        HSLogger.log(`Setting toggle caught for ${settingKey}: ${oldState} -> ${newState}`, HSSettings.#staticContext);
-
-        if(newState) {
-            targetElement.innerText = HSSettings.#settingEnabledString;
-            targetElement.classList.remove('hs-disabled');
-        } else {
-            targetElement.innerText = HSSettings.#settingDisabledString;
-            targetElement.classList.add('hs-disabled');
-        }
-        
-        HSSettings.#settings[settingKey].enabled = newState;
-        this.#handleSettingAction(setting, "state", newState);
+    static getSetting<K extends keyof HSSettingsDefinition>(settingName: K): HSSetting<number | string | boolean> {
+        return this.#settings[settingName];
     }
 
-    static #handleSettingAction<K extends keyof HSSettingsDefinition>(setting: HSSettingsDefinition[K], changeType: "value" | "state", newState?: boolean) {
-        // If the setting has some settingAction bound to it, call it when the setting is toggled on/off
-        if(setting.settingAction) {
-            const action = HSSettings.#settingAction.getAction(setting.settingAction);
-
-            if(action && action instanceof Function) {
-                if(changeType === "state") {
-                    if(newState === undefined) {
-                        HSLogger.warn(`Failed to handle setting state change, newState was undefined`, this.#staticContext);
-                        return;
-                    }
-
-                    if(newState) {
-                        action({
-                            contextName: HSSettings.#staticContext,
-                            value: setting.settingValue ?? null,
-                            disable: false
-                        });
-                    } else {
-                        action({
-                            contextName: HSSettings.#staticContext,
-                            value: setting.defaultValue ?? null,
-                            disable: true
-                        });
-                    }
-                } else {
-                    action({
-                        contextName: HSSettings.#staticContext,
-                        value: setting.settingValue ?? null,
-                        disable: false
-                    });
-                }
-            }
-        }
+    static setSetting<K extends keyof HSSettingsDefinition>(settingName: K, setting: HSSettingBase<number | string | boolean>): void {
+        this.#settings[settingName].setDefinition(setting);
     }
 
-    static getSetting<K extends keyof HSSettingsDefinition>(key: K): HSSettingsDefinition[K] {
-        return this.#settings[key];
-    }
-
-    static setSetting<K extends keyof HSSettingsDefinition>(key: K, setting: HSSettingsDefinition[K]): void {
-        this.#settings[key] = setting;
+    static setSettingValue<K extends keyof HSSettingsDefinition>(settingName: K, newValue: any): void {
+        this.#settings[settingName].setValue(newValue);
     }
 
     static dumpToConsole() {

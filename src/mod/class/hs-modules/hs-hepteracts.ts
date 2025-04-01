@@ -1,6 +1,7 @@
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
+import { HSSetting } from "../hs-core/hs-setting";
 import { HSSettings } from "../hs-core/hs-settings";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
@@ -138,15 +139,14 @@ export class HSHepteracts extends HSModule {
                                 const buyCost = currentMax * 2 * cubeCost;
                                 const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
 
-                                const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection');
-                            
-                                if(expandCostProtectionSetting.enabled) {
-                                    if(percentOwned >= expandCostProtectionSetting.settingValue) {
-                                        HSLogger.info(`Buying ${boxId} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${expandCostProtectionSetting.settingValue} (cost protection)`, this.context);
-                                        self.#watchUpdatePending = false;
-                                        self.#expandPending = false;
-                                        return;
-                                    }
+                                const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
+                                const settingValue = expandCostProtectionSetting.getCalculatedValue();
+
+                                if(percentOwned >= settingValue) {
+                                    HSLogger.info(`Buying ${boxId} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${settingValue} (cost protection)`, this.context);
+                                    self.#watchUpdatePending = false;
+                                    self.#expandPending = false;
+                                    return;
                                 }
                             }
 

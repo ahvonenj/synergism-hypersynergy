@@ -1,15 +1,16 @@
 import { HSSettingActionParams } from "../../types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
+import { HSMouse } from "./hs-mouse";
 
 /*
-    Class: HSSettingAction
+    Class: HSSettingActions
     IsExplicitHSModule: No
     Description: 
         Helper wrapper for HSSettings.
         Encapsulates SettingActions and their functionality.
     Author: Swiffy
 */
-export class HSSettingAction {
+export class HSSettingActions {
     // Record for SettingActions
     // If some setting in hs-settings.json has "settingAction" set, the action should be defined here
     #settingActions : Record<string, (params: HSSettingActionParams) => any> = {
@@ -38,6 +39,22 @@ export class HSSettingAction {
                 HSLogger.setTimestampDisplay(false);
             } else {
                 HSLogger.setTimestampDisplay(true);
+            }
+        },
+
+        reactiveMouseHover: (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            if(params.disable && params.disable === true) {
+                HSMouse.clearInterval('hover');
+            }
+        },
+
+        autoClick: (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            if(params.disable && params.disable === true) {
+                HSMouse.clearInterval('click');
             }
         }
     }
