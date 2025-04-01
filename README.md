@@ -9,13 +9,29 @@ Game's Github: https://github.com/Pseudo-Corp/SynergismOfficial
 
 # About the mod
 
+## In general
+
+The goal of this mod is to offer different "Quality of Life" features for the game, so features which:
+- Gather, calculate, format and display extra information about the game and it's features
+    - Examples: [Corruption reference sheet](#in-game-corruptions--runs-reference-sheet) and [Hepteract ratios](#in-game-hepteract-ratios)
+- Reduce the amount of excessive clicking without fully automating anything
+    - For example, the [promotion code injection](#promotion-code-injection) feature only displays the codes and copies them into the input box on click, but doesn't do it all automatically
+- Allow for adjusting or configuring things in the game
+    - For example, the [notification opacity control](#game-notification-opacity-control) feature changes the opacity of the in-game notifications
+- Provide hotkeys or shortcuts for the game's functions
+    - Examples: [Hepteract quick expand and max](#quick-expand--max-for-hepteracts) and [Additional mouse functionality](#reactive-mouse-hover-and-auto-click)
+- Warn, remind or notify the player of some things
+    - Example: [Hepteract quick expand and max](#quick-expand--max-for-hepteracts) feature's "Cost Protection" setting prevents hepteract expansion if the hepteract cost is over a set treshold
+
+In other words, the goal here is to build features which are not too game breaking, automating or streamlining. Even with the mod, players will still need to play the game, but ideally without developing carpal tunnel syndrome or getting fed up about meaningless busywork and clicking around.
+
 ## Features
 
 ### Promotion code injection
 
-Adds the codes `:unsmith:` and `:antismith:` right into the promotion code redeem modal. You can click the codes to automatically select them from quick copying and pasting into the code box.
+Reformats the promotion code modal and displays the additional reusable promotion codes `:unsmith:` and `:antismith:` right in the modal. The codes can be clicked to automatically copy them into the input box.
 
-![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/codes_sm.png?raw=true)
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/promo_code_2_sm.png?raw=true)
 
 ### Talisman fragment BUY ALL button enhanced
 
