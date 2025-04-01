@@ -79,6 +79,29 @@ Adjust the game notification opacity through the mod's panel.
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/settings_sm.png?raw=true)
 ![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/opacity_control_sm.png?raw=true)
 
+### Reactive mouse hover and Auto click
+
+Two toggleable settings to make your mouse more useful.
+
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/mouse_stuff.png?raw=true)
+
+**Reactive mouse hover**
+- When enabled, mouse will emit hover events at current mouse position when SHIFT is held
+- Setting value can be used to control how fast these events are emitted
+
+What it does?
+
+There are various things in the game which display values on mouse over, some examples being:
+-  Rune sacrifice fragment costs when you hover your mouse over the sacrifice buttons
+-  Talisman shard costs when you hover your mouse over the fragment buy buttons
+
+The problem being that you won't see any changes to these values unless you keep moving your mouse on and off the buttons.
+With this setting enabled, the values will get updated when SHIFT is held - this works in any such situation.
+
+**Auto click**
+- When enabled, mouse will click automatically at current mouse position when CTRL is held
+- Setting value can be used to control the clicking speed
+
 ### Mod log
 
 The mod logs all of the relevant info into a built-in log view, which can be viewed from the mod's panel. All log messages are contextualized, so you'll know which mod's module is saying what. Here for example, the HSHepteracts module is informing about the quick expand cost protection being triggered, which has resulted in cancellation of hepteract quick expand action to prevent expanding a hepteract which can't be afforded to max after expansion.
