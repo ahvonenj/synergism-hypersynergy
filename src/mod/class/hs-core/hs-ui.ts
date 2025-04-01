@@ -358,7 +358,10 @@ export class HSUI extends HSModule {
         const uuid = `hs-dom-${HSUtils.uuidv4()}`;
         const html = HSUIC._modal({
             ...modalOptions,
-            id: uuid
+            id: uuid,
+            styles: {
+                opacity: 0
+            }
         });	
 
         // Create temp div, inject UI panel HTML and append the contents to body
@@ -386,29 +389,33 @@ export class HSUI extends HSModule {
             });
 
             // Wait for images to load and then resolve open coordinates for the modal
-            Promise.all(imagePromises).then(() => {
-                const coords = this.#resolveCoordinates(modalOptions.position, modal);
-                modal.style.left = `${coords.x}px`;
-                modal.style.top = `${coords.y}px`;
-            });
-        } else {
+            await Promise.all(imagePromises);
+        }
+
+        if(modal) {
             const coords = this.#resolveCoordinates(modalOptions.position, modal);
             modal.style.left = `${coords.x}px`;
             modal.style.top = `${coords.y}px`;
-        }
 
-        // Make the modal draggable
-        this.#makeDraggable(modal, modalHead);
+            await modal.transition({
+                opacity: 1
+            });
 
-        if(modal) {
+            // Make the modal draggable
+            this.#makeDraggable(modal, modalHead);
+        
             // Make the modal's close button (X in the top right corner) close the modal
-            modal.addEventListener('click', function(e) {
+            modal.addEventListener('click', async function(e) {
                 const dClose = (e.target as HTMLDivElement).dataset.close;
 
                 if(dClose) {
                     const targetModal = document.querySelector(`#${dClose}`) as HTMLDivElement;
 
                     if(targetModal) {
+                        await targetModal.transition({
+                            opacity: 0
+                        });
+
                         targetModal.parentElement?.removeChild(targetModal);
                     }
                 }
