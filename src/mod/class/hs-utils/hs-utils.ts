@@ -113,7 +113,7 @@ export class HSUtils {
     // This is jQuery's solution to this problem - it is surprisingly difficult
     // https://github.com/jquery/jquery/blob/76687566f0569dc832f13e901f0d2ce74016cd4d/test/data/jquery-3.7.1.js#L10641
     static isNumeric(n: any) {
-        return !isNaN(n - parseFloat(n));
+        return !isNaN(n - HSUtils.parseFloat2(n));
     }
 
     static isString(n: any) {
@@ -122,5 +122,24 @@ export class HSUtils {
 
     static isBoolean(n: any) {
         return (typeof n == "boolean");
+    }
+
+    // JS native float parsing is fucky and won't work for when the number uses , like "123,456"...
+    static parseFloat2(float: any) {
+        if(!float) return NaN;
+
+        const posC = float.indexOf(',');
+        if(posC === -1) {
+            return parseFloat(float);
+        } else {
+            float = float.replace(/,/g, '');
+        }
+
+        const posFS = float.indexOf('.');
+        if(posFS === -1) return parseFloat(float.replace(/\,/g, '.'));
+
+        const parsed = ((posC < posFS) ? (float.replace(/\,/g,'')) : (float.replace(/\./g,'').replace(',', '.')));
+
+        return parseFloat(parsed);
     }
 }

@@ -34,23 +34,23 @@ export class HSHepteracts extends HSModule {
     #hepteractMeters: string[] = [];
 
     #boxCounts = {
-        chronos: 0,
-        hyperrealism: 0,
-        challenge: 0,
-        abyss: 0,
-        accelerator: 0,
-        acceleratorBoost: 0,
-        multiplier: 0
+        chronosHepteract: 0,
+        hyperrealismHepteract: 0,
+        challengeHepteract: 0,
+        abyssHepteract: 0,
+        acceleratorHepteract: 0,
+        acceleratorBoostHepteract: 0,
+        multiplierHepteract: 0
     };
 
-    #hepteractCosts = {
-        chronos: 10000,
-        hyperrealism: 10000,
-        challenge: 50000,
-        abyss: 1.00e8,
-        accelerator: 100000,
-        acceleratorBoost: 200000,
-        multiplier: 300000
+    #hepteractCosts : { [key: string]: number | null } = {
+        chronosHepteract: null,
+        hyperrealismHepteract: null,
+        challengeHepteract: null,
+        abyssHepteract: null,
+        acceleratorHepteract: null,
+        acceleratorBoostHepteract: null,
+        multiplierHepteract: null
     };
 
     #hyperToChallengeRatio = 0;
@@ -119,6 +119,29 @@ export class HSHepteracts extends HSModule {
                     const craftMaxBtn = document.querySelector(`#${id}CraftMax`) as HTMLElement;
                     const capBtn = document.querySelector(`#${id}Cap`) as HTMLElement;
                     const heptImg = document.querySelector(`#${id}Image`) as HTMLElement;
+
+                    // As hepteract costs are not static and we don't have direct access to them, we need to parse them from the DOM in a "just-in-time" manner...
+                    htmlNode.addEventListener('mouseenter', async (e: MouseEvent) => {
+                        const costElement = document.querySelector('#hepteractCostText') as HTMLDivElement;
+
+                        if(costElement) {
+                            const costString = costElement.innerText;
+                            const costMatch = costString.match(/you\s+(.*?)\s+Hepteracts/i);
+
+                            if(costMatch) {
+                                const cost = costMatch[1];
+                                
+                                try {
+                                    if(id in self.#hepteractCosts) {
+                                        const floatCost = HSUtils.parseFloat2(cost);
+                                        (self.#hepteractCosts as any)[id] = floatCost;
+                                    }
+                                } catch (e) {
+                                    HSLogger.warn(`Error while parsing hepteract cost for ${id}`, self.context);
+                                }
+                            }
+                        }
+                    });
                     
                     if(craftMaxBtn && capBtn && heptImg) {
                         heptImg.addEventListener('click', async () => {
@@ -130,20 +153,25 @@ export class HSHepteracts extends HSModule {
 
                             self.#expandPending = true;
                             self.#watchUpdatePending = true;
-                            
-                            const boxId = id.substring(0, id.indexOf('Hepteract'));
 
-                            if(boxId in self.#boxCounts && boxId in self.#hepteractCosts && self.#ownedHepteracts) {
-                                const currentMax = (self.#boxCounts as any)[boxId];
-                                const cubeCost = (self.#hepteractCosts as any)[boxId];
+                            if(self.#ownedHepteracts) {
+                                const currentMax = (self.#boxCounts as any)[id];
+                                const cubeCost = (self.#hepteractCosts as any)[id];
+
+                                if(currentMax === null || cubeCost === null) {
+                                    HSLogger.warn(`Hepteract cost for ${id} not parsed yet`, self.context);
+                                }
+
                                 const buyCost = currentMax * 2 * cubeCost;
                                 const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
 
                                 const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
                                 const settingValue = expandCostProtectionSetting.getCalculatedValue();
 
+                                HSLogger.info(`buyCost: ${HSUtils.N(buyCost)}, % owned: ${HSUtils.N(percentOwned)}`)
+
                                 if(percentOwned >= settingValue) {
-                                    HSLogger.info(`Buying ${boxId} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${settingValue} (cost protection)`, this.context);
+                                    HSLogger.info(`Buying ${id} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${settingValue} (cost protection)`, this.context);
                                     self.#watchUpdatePending = false;
                                     self.#expandPending = false;
                                     return;
@@ -199,7 +227,7 @@ export class HSHepteracts extends HSModule {
 
         this.#hepteractMeters.forEach(meterId => {
             const meter = document.querySelector(`#${meterId}`) as HTMLElement;
-            const boxName = meterId.substring(0, meterId.indexOf('ProgressBar'));
+            const boxName = meterId.substring(0, meterId.indexOf('ProgressBar')) + 'Hepteract';
 
             if(meter && boxName) {
                 HSElementHooker.watchElement(meter, (value) => {
@@ -207,11 +235,11 @@ export class HSHepteracts extends HSModule {
                         (self.#boxCounts as any)[boxName] = value;
                         
                         if(Object.values(self.#boxCounts).every(v => v > 0)) {
-                            self.#chronosToChallengeRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.challenge);
-                            self.#hyperToChallengeRatio = Math.round(self.#boxCounts.hyperrealism / self.#boxCounts.challenge);
-                            self.#acceleratorToMultiplierRatio = Math.round(self.#boxCounts.accelerator / self.#boxCounts.multiplier);
-                            self.#boostToMultiplierRatio = Math.round(self.#boxCounts.acceleratorBoost / self.#boxCounts.multiplier);
-                            self.#chronosToAcceleratorRatio = Math.round(self.#boxCounts.chronos / self.#boxCounts.accelerator);
+                            self.#chronosToChallengeRatio = Math.round(self.#boxCounts.chronosHepteract / self.#boxCounts.challengeHepteract);
+                            self.#hyperToChallengeRatio = Math.round(self.#boxCounts.hyperrealismHepteract / self.#boxCounts.challengeHepteract);
+                            self.#acceleratorToMultiplierRatio = Math.round(self.#boxCounts.acceleratorHepteract / self.#boxCounts.multiplierHepteract);
+                            self.#boostToMultiplierRatio = Math.round(self.#boxCounts.acceleratorBoostHepteract / self.#boxCounts.multiplierHepteract);
+                            self.#chronosToAcceleratorRatio = Math.round(self.#boxCounts.chronosHepteract / self.#boxCounts.acceleratorHepteract);
 
                             if(this.#ratioElementA && this.#ratioElementB && this.#ratioElementC) {
                                 this.#ratioElementA.innerText = `CHR/HYP/CHL: ${HSUtils.N(self.#chronosToChallengeRatio, 0)} / ${HSUtils.N(self.#hyperToChallengeRatio, 0)} / 1`;
