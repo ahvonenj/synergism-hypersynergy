@@ -11,6 +11,7 @@ import { HSSettings } from "./hs-settings";
 import { HSModuleDefinition } from "../../types/hs-types";
 import { HSPrototypes } from "./hs-prototypes";
 import { HSMouse } from "./hs-mouse";
+import { HSShadowDOM } from "./hs-shadowdom";
 
 /*
     Class: HSModuleManager
@@ -35,6 +36,7 @@ export class HSModuleManager {
         "HSSettings": HSSettings,
         "HSPrototypes": HSPrototypes,
         "HSMouse": HSMouse,
+        "HSShadowDOM": HSShadowDOM,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {

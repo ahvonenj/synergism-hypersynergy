@@ -35,6 +35,10 @@ declare global {
             loadOrder: 3,
         },
         {
+            className: 'HSShadowDOM',
+            context: 'HSShadowDOM',
+        },
+        {
             className: 'HSPotions',
             context: 'HSPotions',
         },

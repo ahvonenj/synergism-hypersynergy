@@ -7,6 +7,7 @@ import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
 import { HSInputType } from "../types/hs-ui-types";
 import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
+import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 
 /*
     Class: Hypersynergism
@@ -57,12 +58,18 @@ export class Hypersynergism {
                     html: [
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
+                        HSUIC.Div({ html: `-- TEST AREA, DON'T CLICK --`, styles: { gridColumn: '1 / span 2', textAlign: 'center', color: 'magenta' } }),
+                        HSUIC.Button({ id: 'hs-panel-shadow-create-btn', text: 'Create shadow' }),
+                        HSUIC.Button({ id: 'hs-panel-shadow-destroy-btn', text: 'Destroy shadow' }),
+                        HSUIC.Button({ id: 'hs-panel-shadow-show-btn', text: 'Show shadow' }),
+                        HSUIC.Button({ id: 'hs-panel-shadow-hide-btn', text: 'Hide shadow' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
                         gridTemplateRows: '1fr',
                         columnGap: '5px',
-                        rowGap: '5px'
+                        rowGap: '10px',
+                        padding: '5px'
                     }
                 })
             );
@@ -75,6 +82,46 @@ export class Hypersynergism {
             // Bind dump button to dump settings
             document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
                 HSSettings.dumpToConsole();
+            });
+
+            document.querySelector('#hs-panel-shadow-create-btn')?.addEventListener('click', () => {
+                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+
+                if(shadowDOM) {
+                    const settingsContainer = document.querySelector('#settings') as HTMLElement;
+
+                    if(settingsContainer) {
+                        HSLogger.info(`Creating shadow 'settingsShadow'`);
+                        const shadow = shadowDOM.createShadow(settingsContainer, 'settingsShadow');
+                    }
+                }
+            });
+
+            document.querySelector('#hs-panel-shadow-destroy-btn')?.addEventListener('click', () => {
+                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+
+                if(shadowDOM) {
+                    HSLogger.info(`Destroying shadow 'settingsShadow'`);
+                    shadowDOM.deleteShadow('settingsShadow');
+                }
+            });
+
+            document.querySelector('#hs-panel-shadow-show-btn')?.addEventListener('click', () => {
+                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+
+                if(shadowDOM) {
+                    const shadow = shadowDOM.getShadow('settingsShadow');
+                    shadow?.show();
+                }
+            });
+
+            document.querySelector('#hs-panel-shadow-hide-btn')?.addEventListener('click', () => {
+                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+
+                if(shadowDOM) {
+                    const shadow = shadowDOM.getShadow('settingsShadow');
+                    shadow?.hide();
+                }
             });
 
             // BUILD SETTINGS TAB
