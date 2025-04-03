@@ -1,4 +1,4 @@
-import { HSSettingBase, HSSettingRecord, HSSettingsControlType, HSSettingsDefinition } from "../../types/hs-settings-types";
+import { HSSettingBase, HSSettingRecord, HSSettingsControlType, HSSettingsDefinition, HSSettingType } from "../../types/hs-settings-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
@@ -102,7 +102,7 @@ export class HSSettings extends HSModule {
         this.isInitialized = true;
     }
 
-    static syncSettings() {
+    static async syncSettings() {
         HSLogger.log(`Syncing mod settings`, HSSettings.#staticContext);
 
         if(!HSSettings.#settingsParsed) {
@@ -138,9 +138,7 @@ export class HSSettings extends HSModule {
                         valueElement.value = setting.settingValue.toString();
 
                         // Listen for changes in the UI input to change the setting value
-                        valueElement.addEventListener('change', function(e) {
-                            settingObj.handleChange(e);
-                        });
+                        valueElement.addEventListener('change', async (e) => { await this.#settingChangeDelegate(e, settingObj); });
                     }
 
                     // This sets up the  "✓" / "✗" button next to the setting input
@@ -157,9 +155,7 @@ export class HSSettings extends HSModule {
                             }
 
                             // Handle toggling the setting on/off
-                            toggleElement.addEventListener('click', function(e) {
-                                settingObj.handleToggle(e);
-                            });
+                            toggleElement.addEventListener('click', async (e) => { await this.#settingToggleDelegate(e, settingObj); });
                         }
                     }
                 } else {
@@ -176,14 +172,12 @@ export class HSSettings extends HSModule {
                             }
 
                             // Handle toggling the setting on/off
-                            toggleElement.addEventListener('click', function(e) {
-                                settingObj.handleToggle(e);
-                            });
+                            toggleElement.addEventListener('click', async (e) => { await this.#settingToggleDelegate(e, settingObj); });
                         }
                     }
                 }
 
-                settingObj.initialAction("state", setting.enabled);
+                await settingObj.initialAction("state", setting.enabled);
             }
         }
 
@@ -257,7 +251,7 @@ export class HSSettings extends HSModule {
         };
     }
 
-    #validateSetting(setting: HSSettingBase<number | string | boolean>) {
+    #validateSetting(setting: HSSettingBase<HSSettingType>) {
         if(!('enabled' in setting)) return false;
         if(!('settingName' in setting)) return false;
         if(!('settingDescription' in setting)) return false;
@@ -267,16 +261,30 @@ export class HSSettings extends HSModule {
         return true;
     }
 
-    static getSetting<K extends keyof HSSettingsDefinition>(settingName: K): HSSetting<number | string | boolean> {
+    static getSetting<K extends keyof HSSettingsDefinition>(settingName: K): HSSetting<HSSettingType> {
         return this.#settings[settingName];
     }
 
-    static setSetting<K extends keyof HSSettingsDefinition>(settingName: K, setting: HSSettingBase<number | string | boolean>): void {
+    /*static setSetting<K extends keyof HSSettingsDefinition>(settingName: K, setting: HSSettingBase<HSSettingType>): void {
         this.#settings[settingName].setDefinition(setting);
     }
 
     static setSettingValue<K extends keyof HSSettingsDefinition>(settingName: K, newValue: any): void {
         this.#settings[settingName].setValue(newValue);
+    }*/
+
+    static async #settingChangeDelegate(e: Event, settingObj: HSSetting<HSSettingType>) {
+        await settingObj.handleChange(e);
+        this.#syncStorage();
+    }
+
+    static async #settingToggleDelegate(e: MouseEvent, settingObj: HSSetting<HSSettingType>) {
+        await settingObj.handleToggle(e);
+        this.#syncStorage();
+    }
+
+    static #syncStorage() {
+
     }
 
     static dumpToConsole() {

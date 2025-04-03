@@ -78,7 +78,7 @@
         "settingHelpText": "When enabled, mouse will click automatically at current mouse position when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
         "settingType": "numeric",
         "enabled": true,
-        "settingValue": 0.1,
+        "settingValue": 0.15,
         "settingValueMultiplier": 1000,
         "settingAction": "autoClick",
         "settingControl": {

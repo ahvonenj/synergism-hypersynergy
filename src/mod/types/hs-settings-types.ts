@@ -7,7 +7,8 @@
 import { HSSetting } from "../class/hs-core/hs-setting";
 import { WithRequired } from "./hs-typescript-functions";
 
-export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<number | string | boolean>>;
+export type HSSettingType = number | string | boolean;
+export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSettingType>>;
 
 export interface HSSettingsDefinition {
     expandCostProtection: ExpandCostProtectionSetting;

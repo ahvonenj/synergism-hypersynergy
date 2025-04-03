@@ -1,7 +1,7 @@
-import { HSSettingActionParams, HSSettingBase, HSSettingsDefinition } from "../../types/hs-settings-types";
+import { HSSettingActionParams, HSSettingBase, HSSettingsDefinition, HSSettingType } from "../../types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
 
-export abstract class HSSetting<T extends number | string | boolean> {
+export abstract class HSSetting<T extends HSSettingType> {
     protected context = 'HSSetting';
 
     #settingEnabledString;
@@ -40,7 +40,7 @@ export abstract class HSSetting<T extends number | string | boolean> {
         this.definition.enabled = false;
     }
 
-    handleToggle(e: MouseEvent) {
+    async handleToggle(e: MouseEvent) {
         HSLogger.log(`Setting toggle caught for ${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
         
         const newState = !this.definition.enabled;
@@ -59,31 +59,31 @@ export abstract class HSSetting<T extends number | string | boolean> {
         this.handleSettingAction('state', newState);
     }
 
-    initialAction(changeType: 'value' | 'state', initialState?: boolean) {
-        this.handleSettingAction(changeType, initialState);
+    async initialAction(changeType: 'value' | 'state', initialState?: boolean) {
+        await this.handleSettingAction(changeType, initialState);
     }
 
-    protected handleSettingAction(changeType: 'value' | 'state', newState?: boolean): void {
+    protected async handleSettingAction(changeType: 'value' | 'state', newState?: boolean): Promise<void> {
         if(this.settingAction) {
             const action = this.settingAction;
 
             if(action && action instanceof Function) {
                 if(changeType === "state") {
                     if(newState) {
-                        action({
+                        await action({
                             contextName: this.context,
                             value: this.definition.calculatedSettingValue ?? null,
                             disable: false
                         });
                     } else {
-                        action({
+                        await action({
                             contextName: this.context,
                             value: this.definition.calculatedSettingValue ?? null,
                             disable: true
                         });
                     }
                 } else {
-                    action({
+                    await action({
                         contextName: this.context,
                         value: this.definition.calculatedSettingValue ?? null,
                         disable: false
@@ -107,7 +107,7 @@ export abstract class HSSetting<T extends number | string | boolean> {
 
     abstract getValue() : T;
     abstract setValue(value: T) : void;
-    abstract handleChange(e: Event) : void;
+    abstract handleChange(e: Event) : Promise<void>;
 }
 
 export class HSNumericSetting extends HSSetting<number> {
@@ -117,7 +117,7 @@ export class HSNumericSetting extends HSSetting<number> {
         enabledString: string,
         disabledString: string) {
             super(settingDefinition, settingAction, enabledString, disabledString);
-            
+
             if(this.definition.settingValueMultiplier)
                 this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
     }
@@ -130,11 +130,11 @@ export class HSNumericSetting extends HSSetting<number> {
         return this.definition.settingValue = value;
     }
 
-    handleChange(e: Event) {
+    async handleChange(e: Event) {
         const newValue = parseFloat((e.target as HTMLInputElement).value);
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
-        super.handleSettingAction("value");
+        await super.handleSettingAction("value");
     }
 }
 
@@ -155,11 +155,11 @@ export class HSStringSetting extends HSSetting<string> {
         return this.definition.settingValue = value;
     }
 
-    handleChange(e: Event) {
+    async handleChange(e: Event) {
         const newValue = (e.target as HTMLInputElement).value;
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue;
-        super.handleSettingAction("value");
+        await super.handleSettingAction("value");
     }
 }
 
@@ -181,5 +181,5 @@ export class HSBooleanSetting extends HSSetting<boolean> {
         this.definition.enabled = value;
     }
 
-    handleChange(e: Event) { }
+    async handleChange(e: Event) { }
 }

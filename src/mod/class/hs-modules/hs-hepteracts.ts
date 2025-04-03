@@ -168,8 +168,6 @@ export class HSHepteracts extends HSModule {
                                 const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
                                 const settingValue = expandCostProtectionSetting.getCalculatedValue();
 
-                                HSLogger.info(`buyCost: ${HSUtils.N(buyCost)}, % owned: ${HSUtils.N(percentOwned)}`)
-
                                 if(percentOwned >= settingValue) {
                                     HSLogger.info(`Buying ${id} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${settingValue} (cost protection)`, this.context);
                                     self.#watchUpdatePending = false;

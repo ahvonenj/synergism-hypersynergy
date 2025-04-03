@@ -18,7 +18,7 @@ export class HSSettingActions {
         // Let this server as an EXAMPLE SETTINGACTION DEFINITION
         // NOTE THE EXPLICIT HANDLING OF WHEN PARAMS.DISABLE = TRUE
         // Care should be taken to handle this case so the setting will know what to do when it is enabled/disabled
-        syncNotificationOpacity: (params: HSSettingActionParams) => {
+        syncNotificationOpacity: async (params: HSSettingActionParams) => {
             const notifElement = document.querySelector('#notification') as HTMLDivElement;
             const context = params.contextName ?? "HSSettings";
 
@@ -34,7 +34,7 @@ export class HSSettingActions {
             }
         },
 
-        logTimestamp: (params: HSSettingActionParams) => {
+        logTimestamp: async (params: HSSettingActionParams) => {
             if(params.disable && params.disable === true) {
                 HSLogger.setTimestampDisplay(false);
             } else {
@@ -42,7 +42,7 @@ export class HSSettingActions {
             }
         },
 
-        reactiveMouseHover: (params: HSSettingActionParams) => {
+        reactiveMouseHover: async (params: HSSettingActionParams) => {
             const context = params.contextName ?? "HSSettings";
 
             if(params.disable && params.disable === true) {
@@ -50,7 +50,7 @@ export class HSSettingActions {
             }
         },
 
-        autoClick: (params: HSSettingActionParams) => {
+        autoClick: async (params: HSSettingActionParams) => {
             const context = params.contextName ?? "HSSettings";
 
             if(params.disable && params.disable === true) {
