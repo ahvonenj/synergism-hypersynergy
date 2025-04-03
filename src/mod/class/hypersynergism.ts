@@ -45,7 +45,7 @@ export class Hypersynergism {
     }
 
     #buildUIPanelContents() {
-        const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
 
         if(hsui) {
             // Update panel title with current version
@@ -85,7 +85,7 @@ export class Hypersynergism {
             });
 
             document.querySelector('#hs-panel-shadow-create-btn')?.addEventListener('click', () => {
-                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
                 if(shadowDOM) {
                     const settingsContainer = document.querySelector('#settings') as HTMLElement;
@@ -98,7 +98,7 @@ export class Hypersynergism {
             });
 
             document.querySelector('#hs-panel-shadow-destroy-btn')?.addEventListener('click', () => {
-                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
                 if(shadowDOM) {
                     HSLogger.info(`Destroying shadow 'settingsShadow'`);
@@ -107,7 +107,7 @@ export class Hypersynergism {
             });
 
             document.querySelector('#hs-panel-shadow-show-btn')?.addEventListener('click', () => {
-                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
                 if(shadowDOM) {
                     const shadow = shadowDOM.getShadow('settingsShadow');
@@ -116,7 +116,7 @@ export class Hypersynergism {
             });
 
             document.querySelector('#hs-panel-shadow-hide-btn')?.addEventListener('click', () => {
-                const shadowDOM = this.#moduleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
                 if(shadowDOM) {
                     const shadow = shadowDOM.getShadow('settingsShadow');

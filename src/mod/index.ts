@@ -25,14 +25,20 @@ declare global {
             initImmediate: true
         },
         {
+            className: 'HSStorage',
+            context: 'HSStorage',
+            loadOrder: 2,
+            initImmediate: true
+        },
+        {
             className: 'HSUI',
             context: 'HSUI',
-            loadOrder: 2,
+            loadOrder: 3,
         },
         {
             className: 'HSSettings',
             context: 'HSSettings',
-            loadOrder: 3,
+            loadOrder: 4,
         },
         {
             className: 'HSShadowDOM',

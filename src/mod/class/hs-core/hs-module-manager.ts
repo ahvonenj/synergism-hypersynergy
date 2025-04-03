@@ -12,6 +12,7 @@ import { HSModuleDefinition } from "../../types/hs-types";
 import { HSPrototypes } from "./hs-prototypes";
 import { HSMouse } from "./hs-mouse";
 import { HSShadowDOM } from "./hs-shadowdom";
+import { HSStorage } from "./hs-storage";
 
 /*
     Class: HSModuleManager
@@ -24,7 +25,7 @@ import { HSShadowDOM } from "./hs-shadowdom";
 export class HSModuleManager {
     #context = "HSModuleManager";
     #modules : HSModuleDefinition[] = [];
-    #enabledModules : HSModule[] = [];
+    static #enabledModules : HSModule[] = [];
 
     // This record is needed so that the modules can be instatiated properly and so that everything works nicely with TypeScript
     #moduleClasses: Record<string, new (name: string, context: string) => HSModule> = {
@@ -37,6 +38,7 @@ export class HSModuleManager {
         "HSPrototypes": HSPrototypes,
         "HSMouse": HSMouse,
         "HSShadowDOM": HSShadowDOM,
+        "HSStorage": HSStorage,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {
@@ -75,8 +77,8 @@ export class HSModuleManager {
             }
 
             const module = new ModuleClass(moduleName || context, context);
-            const lastIdx = this.#enabledModules.push(module);
-            return this.#enabledModules[lastIdx - 1];
+            const lastIdx = HSModuleManager.#enabledModules.push(module);
+            return HSModuleManager.#enabledModules[lastIdx - 1];
         } catch (error) {
             HSLogger.warn(`Failed to add module ${className}:`, this.#context);
             console.log(error);
@@ -86,14 +88,14 @@ export class HSModuleManager {
 
     async initModules() {
         // Go through the modules added to module manager and initialize all of them
-        this.#enabledModules.forEach(async (mod) => {
+        HSModuleManager.#enabledModules.forEach(async (mod) => {
             if(!mod.isInitialized)
                 await mod.init();
 
             // We want / try to init HSUI module as early as possible so that we can integrate HSLogger to it
             // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console
             if(mod.getName() === "HSUI") {
-                const hsui = this.getModule<HSUI>('HSUI');
+                const hsui = HSModuleManager.getModule<HSUI>('HSUI');
 
                 if(hsui) {
                     HSLogger.integrateToUI(hsui);
@@ -104,14 +106,14 @@ export class HSModuleManager {
 
     // Returns a list of all of the enabled modules
     getModules(): HSModule[] {
-        return this.#enabledModules;
+        return HSModuleManager.#enabledModules;
     }
 
     // Returns a module by name
     // The reason why this looks so complicated is because we need to do some TypeScript shenanigans to properly return the found mod with the correct type
     // Used like: const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
     // the e.g. <HSUI> part tells the getModule method which module (type) we're expecting it to return
-    getModule<T extends HSModule = HSModule>(moduleName: string): T | undefined {
+    static getModule<T extends HSModule = HSModule>(moduleName: string): T | undefined {
         return this.#enabledModules.find((mod) => {
             return mod.getName() === moduleName;
         }) as T | undefined;
