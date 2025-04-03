@@ -120,9 +120,9 @@ With this setting enabled, the values will get updated when SHIFT is held - this
 
 ### Mod log
 
-The mod logs all of the relevant info into a built-in log view, which can be viewed from the mod's panel. All log messages are contextualized, so you'll know which mod's module is saying what. Here for example, the HSHepteracts module is informing about the quick expand cost protection being triggered, which has resulted in cancellation of hepteract quick expand action to prevent expanding a hepteract which can't be afforded to max after expansion.
+The mod logs all of the relevant info into a built-in log view, which can be viewed from the mod's panel. All log messages are contextualized, so you'll know which mod's module is saying what.
 
-![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/log_sm.png?raw=true)
+![](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/log_colors.png?raw=true)
 
 # Using the mod
 
