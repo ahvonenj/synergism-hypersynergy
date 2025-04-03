@@ -10,14 +10,19 @@ import { HSLogger } from "./hs-logger";
 export abstract class HSModule {
     protected moduleName : string;
     protected context : string;
+    moduleColor? : string;
     isInitialized: boolean;
 
-    constructor(moduleName: string, context: string) {
+    constructor(moduleName: string, context: string, moduleColor?: string) {
         this.moduleName = moduleName;
         this.context = context;
+        this.moduleColor = moduleColor;
         this.isInitialized = false;
 
-        HSLogger.log(`Enabled module '${moduleName}'`);
+        if(this.moduleColor && typeof String.prototype.colorTag === 'function')
+            HSLogger.log(`Enabled module '${moduleName.colorTag(this.moduleColor)}'`, this.context);
+        else
+            HSLogger.log(`Enabled module '${moduleName}'`, this.context);
     }
 
     abstract init() : Promise<void>;

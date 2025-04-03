@@ -64,8 +64,8 @@ export class HSUI extends HSModule {
         }
     ];
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
         this.#staticPanelCss = panelCSS;
         this.#staticPanelHtml = panelHTML;
     }

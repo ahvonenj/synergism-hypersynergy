@@ -11,6 +11,7 @@ export type HSModuleDefinition = {
     moduleName?: string;
     loadOrder?: number;
     initImmediate?: boolean;
+    moduleColor?: string;
 }
 
 // Used by HSLogger, log levels
@@ -60,7 +61,7 @@ export type HSMousePosition = {
 export enum EKeyBoardKeys {
     LEFT_CTRL = 'ControlLeft',
     RIGHT_CTRL = 'ControlRight',
-    
+
     LEFT_SHIFT = 'ShiftLeft',
     RIGHT_SHIFT = 'ShiftRight'
 }

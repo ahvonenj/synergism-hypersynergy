@@ -17,8 +17,8 @@ export class HSPotions extends HSModule {
     #offeringPotionObserver : MutationObserver;
     #obtainiumPotionObserver : MutationObserver;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
 
         this.#offeringPotion = document.getElementById("offeringPotionHide");
         this.#obtainiumPotion = document.getElementById("obtainiumPotionHide");

@@ -91,8 +91,8 @@ export class HSHepteracts extends HSModule {
     #expandPending = false;
     #watchUpdatePending = false;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
 
         this.#hepteracts = this.#hepteractBaseNames.map(h => {
             return `${h}Hepteract`;

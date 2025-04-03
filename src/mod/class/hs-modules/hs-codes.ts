@@ -17,8 +17,8 @@ export class HSCodes extends HSModule {
     #codeBoxLabelObserver? : MutationObserver;
     #codeSpanStyle = 'white-space: nowrap; user-select: all; -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all;';
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
 
         this.#config = { attributes: false, childList: true, subtree: true };
 

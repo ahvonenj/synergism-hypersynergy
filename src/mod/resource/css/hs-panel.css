@@ -181,15 +181,18 @@
     background-color: #18171c;
     color: white;
 
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: scroll;
 
     flex-grow: 1;
+
+    padding-bottom: 5px;
 }
 
 .hs-ui-log-line {
     font-family: consolas, courier-new;
     font-size: 10pt;
+    white-space: nowrap;
 }
 
 .hs-ui-log-line-info {

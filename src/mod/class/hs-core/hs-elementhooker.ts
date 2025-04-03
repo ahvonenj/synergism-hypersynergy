@@ -21,10 +21,6 @@ export class HSElementHooker {
 
     static #watchers = new Map<string, HSElementWatcher>();
 
-    constructor() {
-
-    }
-
     // Uses setInterval to "watch" for when an element is found in DOM
     // Returns a promise which can be awaited and resolves with reference to the element when the element is found in DOM
     static HookElement(selector: string) : Promise<Element> {

@@ -25,10 +25,10 @@ import { HSStorage } from "./hs-storage";
 export class HSModuleManager {
     #context = "HSModuleManager";
     #modules : HSModuleDefinition[] = [];
-    static #enabledModules : HSModule[] = [];
+    static #enabledModules : Map<string, HSModule> = new Map<string, HSModule>();
 
     // This record is needed so that the modules can be instatiated properly and so that everything works nicely with TypeScript
-    #moduleClasses: Record<string, new (name: string, context: string) => HSModule> = {
+    #moduleClasses: Record<string, new (name: string, context: string, moduleColor?: string) => HSModule> = {
         "HSUI": HSUI,
         "HSPotions": HSPotions,
         "HSCodes": HSCodes, 
@@ -57,18 +57,25 @@ export class HSModuleManager {
 
     async preprocessModules() {
         this.#modules.forEach(async def => {
-            const module =  this.addModule(def.className, def.context || def.className, def.moduleName || def.className);
+            const module =  this.addModule(def.className, def.context || def.className, def.moduleName || def.className, def.moduleColor);
 
             if(def.initImmediate !== undefined && def.initImmediate === true) {
                 if(module) {
                     module.init();
+
+                    // We want / try to init HSUI module as early as possible so that we can integrate HSLogger to it
+                    // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console
+                    if(def.className === 'HSUI') {
+                        const hsui = module as HSUI;
+                        HSLogger.integrateToUI(hsui);
+                    }
                 }
             }
         });
     }
 
     // Adds module to the manager and instantiates the module's class (looks very unorthodox, but really isn't, I promise)
-    addModule(className: string, context: string, moduleName?: string) {
+    addModule(className: string, context: string, moduleName?: string, moduleColor?: string) {
         try {
             const ModuleClass = this.#moduleClasses[className];
 
@@ -76,36 +83,28 @@ export class HSModuleManager {
                 throw new Error(`Class "${className}" not found in module`);
             }
 
-            const module = new ModuleClass(moduleName || context, context);
-            const lastIdx = HSModuleManager.#enabledModules.push(module);
-            return HSModuleManager.#enabledModules[lastIdx - 1];
+            const module = new ModuleClass(moduleName || context, context, moduleColor);
+            HSModuleManager.#enabledModules.set(className, module);
+            return HSModuleManager.#enabledModules.get(className);
         } catch (error) {
             HSLogger.warn(`Failed to add module ${className}:`, this.#context);
             console.log(error);
-            return null;
+            return undefined;
         }
     }
 
     async initModules() {
         // Go through the modules added to module manager and initialize all of them
-        HSModuleManager.#enabledModules.forEach(async (mod) => {
-            if(!mod.isInitialized)
-                await mod.init();
 
-            // We want / try to init HSUI module as early as possible so that we can integrate HSLogger to it
-            // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console
-            if(mod.getName() === "HSUI") {
-                const hsui = HSModuleManager.getModule<HSUI>('HSUI');
-
-                if(hsui) {
-                    HSLogger.integrateToUI(hsui);
-                }
-            }
-        });
+        HSModuleManager.#enabledModules.forEach
+        for(const [className, module] of HSModuleManager.#enabledModules.entries()) {
+            if(!module.isInitialized)
+                await module.init();
+        }
     }
 
     // Returns a list of all of the enabled modules
-    getModules(): HSModule[] {
+    getModules(): Map<string, HSModule> {
         return HSModuleManager.#enabledModules;
     }
 
@@ -114,8 +113,6 @@ export class HSModuleManager {
     // Used like: const hsui = this.#moduleManager.getModule<HSUI>('HSUI');
     // the e.g. <HSUI> part tells the getModule method which module (type) we're expecting it to return
     static getModule<T extends HSModule = HSModule>(moduleName: string): T | undefined {
-        return this.#enabledModules.find((mod) => {
-            return mod.getName() === moduleName;
-        }) as T | undefined;
+        return HSModuleManager.#enabledModules.get(moduleName) as T;
     }
 }

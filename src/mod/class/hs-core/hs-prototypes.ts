@@ -39,6 +39,10 @@ declare global {
     interface ObjectConstructor {
         typedEntries<T extends object>(obj: T): Array<[keyof T, T[keyof T]]>;
     }
+
+    interface String {
+        colorTag(color: string) : string;
+    }
 }
 
 /*
@@ -51,8 +55,8 @@ declare global {
 */
 export class HSPrototypes extends HSModule {
     
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
     }
 
     async init(): Promise<void> {
@@ -67,6 +71,10 @@ export class HSPrototypes extends HSModule {
         HTMLElement.prototype.transition = this.#createTransition();
 
         Object.typedEntries = this.#typedEntries;
+
+        String.prototype.colorTag = function(color: string) {
+            return `<${color}>${this}</${color}>`;
+        }
 
         this.isInitialized = true;
     }

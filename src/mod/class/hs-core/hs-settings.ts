@@ -35,8 +35,8 @@ export class HSSettings extends HSModule {
 
     #settingActions : HSSettingActions;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
 
         HSSettings.#staticContext = this.context;
         this.#settingActions = new HSSettingActions();

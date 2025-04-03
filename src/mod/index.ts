@@ -21,48 +21,59 @@ declare global {
         {
             className: 'HSPrototypes',
             context: 'HSPrototypes',
+            moduleColor: 'crimson',
             loadOrder: 1,
-            initImmediate: true
-        },
-        {
-            className: 'HSStorage',
-            context: 'HSStorage',
-            loadOrder: 2,
             initImmediate: true
         },
         {
             className: 'HSUI',
             context: 'HSUI',
+            moduleColor: 'royalblue',
+            loadOrder: 2,
+            initImmediate: true
+        },
+        {
+            className: 'HSStorage',
+            context: 'HSStorage',
+            moduleColor: 'wheat',
             loadOrder: 3,
+            initImmediate: true
         },
         {
             className: 'HSSettings',
             context: 'HSSettings',
+            moduleColor: 'slategray',
             loadOrder: 4,
         },
         {
             className: 'HSShadowDOM',
             context: 'HSShadowDOM',
+            moduleColor: 'hotpink',
         },
         {
             className: 'HSPotions',
             context: 'HSPotions',
+            moduleColor: 'darkorange',
         },
         {
             className: 'HSCodes',
             context: 'HSCodes',
+            moduleColor: 'darkgoldenrod',
         },
         {
             className: 'HSHepteracts',
             context: 'HSHepteracts',
+            moduleColor: 'slateblue',
         },
         {
             className: 'HSTalismans',
             context: 'HSTalismans',
+            moduleColor: 'cyan',
         },
         {
             className: 'HSMouse',
             context: 'HSMouse',
+            moduleColor: 'gold',
         }
     ];
 

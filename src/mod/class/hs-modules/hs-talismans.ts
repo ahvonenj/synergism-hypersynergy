@@ -20,8 +20,8 @@ export class HSTalismans extends HSModule {
     #indexResetTimeout: number | null = null;
     #indexResetTimeoutTime = 3000;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
     }
 
     async init(): Promise<void> {

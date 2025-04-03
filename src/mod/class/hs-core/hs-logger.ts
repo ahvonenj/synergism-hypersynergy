@@ -2,6 +2,7 @@ import { ELogLevel, ELogType } from "../../types/hs-types";
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
+import { HSModuleManager } from "./hs-module-manager";
 
 /*
     Class: HSLogger
@@ -66,8 +67,10 @@ export class HSLogger {
             }
 
             const hiddenTS = this.#displayTimestamp ? "" : "hs-log-ts-hidden";
+            const moduleFromContext = HSModuleManager.getModule(context);
+            const contextString = (moduleFromContext && moduleFromContext.moduleColor) ? this.#parseColorTags(context.colorTag(moduleFromContext.moduleColor)) : context;
 
-            logLine.innerHTML = `${level} [<span class="hs-log-ctx">${context}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${msg}\n`;
+            logLine.innerHTML = `${level} [<span class="hs-log-ctx">${contextString}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${this.#parseColorTags(msg)}\n`;
 
             // We hash the current logged thing to uniquely identify it
             // and compare it to the hash of what was last logged.
@@ -113,6 +116,25 @@ export class HSLogger {
         }
     }
 
+    // Replace color tags for panel logging
+    static #parseColorTags(msg: string) : string {
+        const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
+        
+        // Replace all matched patterns with span elements
+        return msg.replace(tagPattern, (match, colorName, content) => {
+            return `<span style="color: ${colorName}">${content}</span>`;
+        });
+    }
+
+    // Remove color tags for console logging
+    static #removeColorTags(msg: string) : string {
+        const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
+        
+        return msg.replace(tagPattern, (match, colorName, content) => {
+            return `${content}`;
+        });
+    }
+
     static #shouldLog(logType: ELogType, isImportant : boolean) : boolean {
         const currentLogLevel = HSGlobal.HSLogger.logLevel;
 
@@ -139,25 +161,25 @@ export class HSLogger {
     
     static log(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.LOG, isImportant)) return;
-        console.log(`[${context}]: ${msg}`);
+        console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.LOG);
     }
 
     static info(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.INFO, isImportant)) return;
-        console.log(`[${context}]: ${msg}`);
+        console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.INFO);
     }
 
     static warn(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.WARN, isImportant)) return;
-        console.warn(`[${context}]: ${msg}`);
+        console.warn(`[${context}]: ${this.#removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.WARN);
     }
 
     static error(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.ERROR, isImportant)) return;
-        console.error(`[${context}]: ${msg}`);
+        console.error(`[${context}]: ${this.#removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.ERROR);
     }
 
@@ -169,8 +191,6 @@ export class HSLogger {
     }
 
     static setTimestampDisplay(display: boolean) {
-        HSLogger.log(`Log timestamps set to ${display}`, this.#staticContext);
-        
         if(display) {
             this.#displayTimestamp = true;
         } else {

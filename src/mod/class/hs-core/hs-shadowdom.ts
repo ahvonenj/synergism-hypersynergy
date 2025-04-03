@@ -5,8 +5,8 @@ export class HSShadowDOM extends HSModule {
 
     #shadows;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
         this.#shadows =  new Map<string, HSShadowElement>();
     }
 

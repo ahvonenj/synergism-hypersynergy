@@ -14,8 +14,8 @@ export class HSMouse extends HSModule {
     static #hoverUpdateInterval: number | null;
     static #autoClickUpdateInterval: number | null;
 
-    constructor(moduleName: string, context: string) {
-        super(moduleName, context);
+    constructor(moduleName: string, context: string, moduleColor?: string) {
+        super(moduleName, context, moduleColor);
         HSMouse.#staticContext = context;
     }
 
