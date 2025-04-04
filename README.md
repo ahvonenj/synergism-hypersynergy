@@ -3,7 +3,7 @@
 A QoL mod for the [Synergism](https://synergism.cc/) game.  
 Game's Github: https://github.com/Pseudo-Corp/SynergismOfficial
 
-![](https://synergism.cc/Pictures/Default/icon.gif)
+![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/logo.gif?raw=true)  
 
 # About the mod
 
@@ -76,7 +76,7 @@ Alertnatively the same loader code can be found in [here](https://github.com/ahv
 
 **Example:**
 
-![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/doc/img/bookmark_v2.png?raw=true)  
+![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/bookmark_v2.png?raw=true)  
 
 ## Enable the mod
 
