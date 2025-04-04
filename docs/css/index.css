@@ -124,6 +124,30 @@ button#github-btn
     padding-left: 15px;
 }
 
+/* Small mobile devices in portrait */
+@media only screen and (max-width: 480px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+/* Medium mobile devices in portrait */
+@media only screen and (min-width: 481px) and (max-width: 767px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+/* Tablets in portrait */
+@media only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
 .page-wrapper ul, dl {
     margin-left: 40px;
 }
