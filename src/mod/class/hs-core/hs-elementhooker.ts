@@ -19,14 +19,19 @@ export class HSElementHooker {
 
     // Uses setInterval to "watch" for when an element is found in DOM
     // Returns a promise which can be awaited and resolves with reference to the element when the element is found in DOM
-    static HookElement(selector: string) : Promise<HTMLElement> {
+    static HookElement(selector: string, parent?: HTMLElement) : Promise<HTMLElement> {
         const self = this;
 
         return new Promise((resolve, reject) => {
             let timeout: number | undefined = undefined;
+            const initialCheck = parent ? parent.querySelector(selector) as HTMLElement : document.querySelector(selector) as HTMLElement;
+
+            if(initialCheck) {
+                resolve(initialCheck);
+            }
 
             const ivl = setInterval(() => {
-                const element = document.querySelector(selector) as HTMLElement;
+                const element = parent ? parent.querySelector(selector) as HTMLElement : document.querySelector(selector) as HTMLElement;
                 
                 if(element) {
                     clearTimeout(timeout);

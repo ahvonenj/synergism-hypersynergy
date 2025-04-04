@@ -1,8 +1,10 @@
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
+import { HSModuleManager } from "../hs-core/hs-module-manager";
 import { HSSetting } from "../hs-core/hs-setting";
 import { HSSettings } from "../hs-core/hs-settings";
+import { HSShadowDOM } from "../hs-core/hs-shadowdom";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
@@ -176,26 +178,36 @@ export class HSHepteracts extends HSModule {
                                 }
                             }
 
-                            /* 
-                                Performs a sequence of clicks:
+                            const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
-                                - Expand hepteract
-                                - Wait for dialog
-                                - Confirm
-                                - Wait for dialog
-                                - Ok
-                                - Max the hepteract
-                                - Wait for dialog
-                                - Confirm
-                                - Wait for dialog
-                                - Ok
-                            */
-                            capBtn.click();
-                            (await HSElementHooker.HookElement('#ok_confirm')).click();
-                            (await HSElementHooker.HookElement('#ok_alert')).click();
-                            craftMaxBtn.click();
-                            (await HSElementHooker.HookElement('#ok_confirm')).click();
-                            (await HSElementHooker.HookElement('#ok_alert')).click();
+                            if(shadowDOM) {
+                                const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
+                                const confirm = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
+
+                                if(bg && confirm) {
+                                    const bgShadow = shadowDOM.createShadow(bg);
+                                    const confirmShadow = shadowDOM.createShadow(confirm);
+
+                                    if(bgShadow && confirmShadow) {
+                                        capBtn.click();
+                                        await HSUtils.wait(5);
+                                        (confirm.querySelector('#confirmWrapper > #confirm > #ok_confirm') as HTMLButtonElement).click();
+                                        await HSUtils.wait(5);
+                                        (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
+                                        await HSUtils.wait(5);
+                                        craftMaxBtn.click();
+                                        await HSUtils.wait(5);
+                                        (confirm.querySelector('#confirmWrapper > #confirm > #ok_confirm') as HTMLButtonElement).click();
+                                        await HSUtils.wait(5);
+                                        (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
+                                        await HSUtils.wait(5);
+                                        shadowDOM.destroyShadow(bgShadow);
+                                        shadowDOM.destroyShadow(confirmShadow);
+                                    }
+                                }
+                            } else {
+                                HSLogger.warn(`Could not get HSShadowDOM module`, this.context);
+                            }
 
                             self.#expandPending = false;
                         });
@@ -203,6 +215,26 @@ export class HSHepteracts extends HSModule {
                 }
             }
         });
+
+        if(document.querySelectorAll('.heptTypeImage').length > 0) {
+            HSUI.injectStyle(`
+                .heptTypeImage {
+                    transform: scale(1);
+                    transform-origin: 50% 50%;
+                }
+
+                .heptTypeImage:hover {
+                    transform: scale(1.05);
+                    cursor: pointer;
+                }
+
+                .heptTypeImage:active {
+                    transform: scale(0.98);
+                }
+            `);
+        }
+
+        
 
         HSLogger.log("Hepteract images now serve as 'quick expand and max' buttons", this.context);
         HSLogger.log("Setting up hepteract ratio watch", this.context);

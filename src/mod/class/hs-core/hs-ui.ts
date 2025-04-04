@@ -259,9 +259,10 @@ export class HSUI extends HSModule {
     }
 
     // Can be used to inject arbitrary CSS into the page
-    static injectStyle(styleString: string) {
+    static injectStyle(styleString: string, styleId?: string) {
         if(styleString) {
             const styleElement = document.createElement('style');
+            styleElement.id = styleId ? styleId : '';
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 

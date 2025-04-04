@@ -102,7 +102,7 @@ export class Hypersynergism {
 
                 if(shadowDOM) {
                     HSLogger.info(`Destroying shadow 'settingsShadow'`);
-                    shadowDOM.deleteShadow('settingsShadow');
+                    shadowDOM.destroyShadow('settingsShadow');
                 }
             });
 
