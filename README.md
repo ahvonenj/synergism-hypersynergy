@@ -25,11 +25,11 @@ In other words, the goal here is to build features which are not too game breaki
 
 ## Features
 
-Extensive list of the mod's features can be found the [Mod Features](https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features) section of the wiki.
+Extensive list of the mod's features can be found in the [Mod Features](https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features) section of the wiki.
 
 Quick overview:
 - Promotion code injection
-- Talisman fragment BUY ALL button enhanced
+- Enhanced talisman fragment BUY ALL button 
 - Potion buttons
 - Quick expand + max for hepteracts
 - Hepteract expand cost protection
