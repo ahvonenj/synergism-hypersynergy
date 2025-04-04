@@ -27,7 +27,7 @@ async function main() {
         }
 
         buttons.forEach(btn => {
-            btn.style.backgroundColor = '#101828';
+            btn.style.backgroundColor = '';
             btn.style.color = 'white';
         });
 

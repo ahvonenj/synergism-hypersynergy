@@ -124,6 +124,11 @@ button#github-btn
     border-color: cyan;
 }
 
+button#about-btn
+{
+    border-color: white;
+}
+
 .b-orange {
     background-color: orange !important;
 }
