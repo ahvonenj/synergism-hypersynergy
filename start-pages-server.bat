@@ -1,0 +1,1 @@
+http-server ./docs/ --mimetypes ./mimes.types --cors

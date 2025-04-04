@@ -2,8 +2,92 @@
 <html>
     <head>
         <title>Hypersynergism</title>
+        <link rel="stylesheet" href="css/index.css">
+        <script src = "js/index.js" type="text/javascript"></script>
     </head>
     <body>
-        Hypersynergism
+        <div id="wrapper">
+            <header>
+                <nav>
+                    <div id="tabs">
+                        <button data-page="home" id="home-btn" draggable="true">Home</button>
+                        <button data-page="features" id="features-btn" draggable="true">Mod features</button>
+                        <button data-page="github" id="github-btn" draggable="true">Github</button>
+                    </div>
+                </nav>
+            </header>
+            <div id="border"></div>
+            <div id="page-container">
+                <div class="page-wrapper" id="home" data-color="orange">
+                    <h1>Hypersynergism</h1>
+                
+                    <h2>Quick links</h2>
+                    
+                    <ul>
+                        <li><a href="https://github.com/ahvonenj/synergism-hypersynergy">Repository home</a></li>
+                        <li><a href="https://github.com/ahvonenj/synergism-hypersynergy/issues">Issues</a></li>
+                        <li><a href="https://github.com/ahvonenj/synergism-hypersynergy/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/ahvonenj/synergism-hypersynergy/pulls">Pull requests</a></li>
+                    </ul>
+                    
+                    <h2>About Hypersynergism</h2>
+                    
+                    <p>Hypersynergism is a mod for [Synergism](https://synergism.cc/), or rather, a modding framework as it has gotten a little out of hand.
+                    When I started this mod, I had just a couple of things in mind that I wanted to mod into the game, but a couple of weekends later I suddenly found myself with more or less a fully fledged modding framework. 
+                    Don't get me wrong, Hypersynergism does implement some actual game modifications as well (:D), but at this point it wouldn't do justice to call it just a mod.</p>
+                    
+                    <h2>Goal of the mod</h2>
+                    
+                    <p>The goal of this mod is to offer different "Quality of Life" features for the game, so features which:</p>
+                
+                    <br/>
+                
+                    <ul>
+                        <li>Gather, calculate, format and display extra information about the game and it's features</li>
+                        <li>Reduce the amount of excessive clicking without fully automating anything</li>
+                        <li>Allow for adjusting or configuring things in the game</li>
+                        <li>Provide hotkeys or shortcuts for the game's functions</li>
+                        <li>Warn, remind or notify the player of some things</li>
+                    </ul>
+                
+                    <br/>
+                
+                    <p>In other words, the goal here is to build features which are not too game breaking, automating or streamlining. 
+                    **Even with the mod, players will still need to play the game**, but ideally without developing carpal tunnel syndrome or getting fed up about meaningless busywork and clicking around.</p>
+                </div>
+                <div class="page-wrapper" id="features" data-color="green">
+                    <h1>Features</h1>
+                    <p>Extensive list of the mod's features can be found in the <a href="https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features">Mod Features</a> section of the wiki.</p>
+
+                    <h2>Quick overview</h2>
+
+                    <ul>
+                        <li>Promotion code injection</li>
+                        <li>Enhanced Talisman fragment BUY ALL button</li>
+                        <li>Potion buttons</li>
+                        <li>Quick expand + max for hepteracts</li>
+                        <li>Hepteract expand cost protection</li>
+                        <li>Mod panel</li>
+                        <li>In-game corruptions / runs reference sheet</li>
+                        <li>In-game hepteract ratios</li>
+                        <li>Game notification opacity control</li>
+                        <li>Reactive mouse hover and Auto click</li>
+                        <li>Reactive mouse hover</li>
+                        <li>Auto click</li>
+                        <li>Mod log</li>
+                    </ul>
+                </div>
+                <div class="page-wrapper" id="github" data-color="blue">
+                    <h1>Github</h1>
+                    <p>Click the logo to visit the mod's Github page</p>
+                    <a href="https://github.com/ahvonenj/synergism-hypersynergy" target="_blank"><img src="res/github.png" id="github-logo" /></a>
+                </div>
+            </div>
+        </div>
+        <script>
+            (async function() {
+                await main();
+            })();
+        </script>
     </body>
 </html>
