@@ -28,6 +28,7 @@ async function main() {
 
         buttons.forEach(btn => {
             btn.style.backgroundColor = '#101828';
+            btn.style.color = 'white';
         });
 
         pages.forEach(_page => {
@@ -42,6 +43,11 @@ async function main() {
         const pageButton = document.querySelector(`#tabs button[data-page="${hash}"]`);
 
         pageButton.style.backgroundColor = pageColor;
+
+        if(pageColor === "white") {
+            pageButton.style.color = 'black';
+        }
+
         border.style.backgroundColor = getComputedStyle(pageButton).borderColor;
     }
 
