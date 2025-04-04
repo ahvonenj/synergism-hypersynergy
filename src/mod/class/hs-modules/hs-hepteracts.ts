@@ -191,16 +191,11 @@ export class HSHepteracts extends HSModule {
                                 - Ok
                             */
                             capBtn.click();
-                            await HSUtils.wait(15);
-                            document.getElementById("ok_confirm")?.click();
-                            await HSUtils.wait(15);
-                            document.getElementById("ok_alert")?.click();
-                            await HSUtils.wait(15);
+                            (await HSElementHooker.HookElement('#ok_confirm')).click();
+                            (await HSElementHooker.HookElement('#ok_alert')).click();
                             craftMaxBtn.click();
-                            await HSUtils.wait(15);
-                            document.getElementById("ok_confirm")?.click();
-                            await HSUtils.wait(15);
-                            document.getElementById("ok_alert")?.click();
+                            (await HSElementHooker.HookElement('#ok_confirm')).click();
+                            (await HSElementHooker.HookElement('#ok_alert')).click();
 
                             self.#expandPending = false;
                         });

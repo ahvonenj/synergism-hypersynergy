@@ -21,7 +21,14 @@ export class HSGlobal {
 
     // watchElement's MutationObserver can fire max 20 times / second
     static HSElementHooker = {
-        hookThrottlingMS: 50
+        // HookElement / HookElements
+        elementHookUpdateMS: 10,
+        elementsHookUpdateMS: 100,
+        enableHelementHookTimeout: true,
+        elementHookTimeout: 500,
+
+        // Watchers
+        watcherThrottlingMS: 50,
     }
 
 

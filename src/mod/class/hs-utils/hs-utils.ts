@@ -1,4 +1,5 @@
 import { CSSValue } from "../../types/hs-ui-types";
+import { HSLogger } from "../hs-core/hs-logger";
 
 /*
     Class: HSUtils
@@ -141,5 +142,20 @@ export class HSUtils {
         const parsed = ((posC < posFS) ? (float.replace(/\,/g,'')) : (float.replace(/\./g,'').replace(',', '.')));
 
         return parseFloat(parsed);
+    }
+
+    static nullProxy<T>(proxyName: string) : T {
+        const nullProxy = new Proxy({}, {
+            get: () => {
+                HSLogger.warn(`Get operation intercepted by Null Proxy '${proxyName}', something is not right`, 'Proxy');
+                return nullProxy;
+            },
+            set: () => {
+                HSLogger.warn(`Set operation intercepted by Null Proxy '${proxyName}', something is not right`, 'Proxy');
+                return true;
+            }
+        });
+
+        return nullProxy as T;
     }
 }

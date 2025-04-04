@@ -15,49 +15,48 @@ export class HSElementHooker {
     // Class context, mainly for HSLogger
     static #context = "HSElementHooker";
 
-    // These are probably not needed. Was worried that the intervals might stay running for all eternity
-    static #hookTimeout = 50;
-    static #enableTimeout = false;
-
     static #watchers = new Map<string, HSElementWatcher>();
 
     // Uses setInterval to "watch" for when an element is found in DOM
     // Returns a promise which can be awaited and resolves with reference to the element when the element is found in DOM
-    static HookElement(selector: string) : Promise<Element> {
+    static HookElement(selector: string) : Promise<HTMLElement> {
         const self = this;
 
         return new Promise((resolve, reject) => {
-            let timeout = self.#hookTimeout;
+            let timeout: number | undefined = undefined;
 
             const ivl = setInterval(() => {
-                const element = document.querySelector(selector);
+                const element = document.querySelector(selector) as HTMLElement;
                 
                 if(element) {
+                    clearTimeout(timeout);
                     clearInterval(ivl);
                     resolve(element);
                 }
+            }, HSGlobal.HSElementHooker.elementHookUpdateMS)
 
-                if(self.#enableTimeout && timeout <= 0) {
+            // Setup timeout for the hook if enabled
+            if(HSGlobal.HSElementHooker.elementHookTimeout) {
+                timeout = setTimeout(() => {
                     HSLogger.warn('Hook timed out', self.#context);
                     clearInterval(ivl);
-                    reject();
-                }
-
-                timeout--;
-            }, 50)
+                      
+                    resolve(HSUtils.nullProxy<HTMLElement>('ElementHookTimeout'));
+                }, HSGlobal.HSElementHooker.elementHookTimeout)
+            }
         });
     }
 
     // Same as HookElement, but accepts a selector like '.someClass' or an array of selectors
     // Returns a promise which can be awaited and resolves with a list of references to all of the elements when ALL of the elements are found in DOM
-    static HookElements(selector: string | string[]) : Promise<Element[]> {
+    static HookElements(selector: string | string[]) : Promise<HTMLElement[]> {
         const self = this;
 
         return new Promise((resolve, reject) => {
-            let timeout = self.#hookTimeout;
-            
+            let timeout: number | undefined = undefined;
+
             const ivl = setInterval(() => {
-                const elements : (Element | null)[] = [];
+                const elements : (HTMLElement | null)[] = [];
 
                 if((Array.isArray(selector) && selector.length === 0) || (!Array.isArray(selector) && (!selector || selector === ''))) {
                     clearInterval(ivl);
@@ -70,24 +69,27 @@ export class HSElementHooker {
                         elements.push(document.querySelector(selector))
                     });
                 } else {
-                    const nodeList = document.querySelectorAll(selector);
-                    const nodesToElements : (Element | null)[] = Array.from(nodeList);
+                    const nodeList = document.querySelectorAll<HTMLElement>(selector);
+                    const nodesToElements : (HTMLElement | null)[] = Array.from(nodeList);
                     elements.push(...nodesToElements);
                 }
 
                 if(!elements.includes(null) && elements.length > 0) {
+                    clearTimeout(timeout);
                     clearInterval(ivl);
-                    resolve(elements as Element[]);
+                    resolve(elements as HTMLElement[]);
                 }
+            }, HSGlobal.HSElementHooker.elementsHookUpdateMS);
 
-                if(self.#enableTimeout && timeout <= 0) {
+            // Setup timeout for the hook if enabled
+            if(HSGlobal.HSElementHooker.elementHookTimeout) {
+                timeout = setTimeout(() => {
                     HSLogger.warn('Hook timed out', self.#context);
                     clearInterval(ivl);
-                    reject();
-                }
-
-                timeout--;
-            }, 150)
+                      
+                    resolve(HSUtils.nullProxy<HTMLElement[]>('ElementsHookTimeout'));
+                }, HSGlobal.HSElementHooker.elementHookTimeout)
+            }
         });
     }
 
@@ -132,7 +134,7 @@ export class HSElementHooker {
 
             if(watcher) {
                 // Throttling
-                if(watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.hookThrottlingMS) {
+                if(watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.watcherThrottlingMS) {
                     return;
                 }
 
