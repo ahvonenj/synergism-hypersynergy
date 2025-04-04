@@ -1,6 +1,8 @@
 # Hypersynergism
 
-A QoL mod for the [Synergism](https://synergism.cc/) game.  
+A QoL mod for the [Synergism](https://synergism.cc/) game.
+
+Mod homepage: https://ahvonenj.github.io/synergism-hypersynergy  
 Game's Github: https://github.com/Pseudo-Corp/SynergismOfficial
 
 ![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/logo.gif?raw=true)  
