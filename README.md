@@ -72,7 +72,7 @@ javascript:(function() {
 })();
 ```
 
-Alertnatively the same loader code can be found in [here](https://github.com/ahvonenj/synergism-hypersynergy/blob/main/release/loader/loader.js).
+Alertnatively the same loader code can be found in [here](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/release/loader/loader.js).
 
 **Example:**
 
