@@ -32,4 +32,11 @@ export class HSGlobal {
         logLevel: ELogLevel.ALL,
         logSize: 100
     }
+
+    // --- HSStorage ---
+
+    // Log level
+    static HSStorage = {
+        storagePrefix: 'hs-',
+    }
 }
