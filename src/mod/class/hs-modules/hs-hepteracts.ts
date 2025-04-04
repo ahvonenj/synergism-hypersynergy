@@ -178,16 +178,21 @@ export class HSHepteracts extends HSModule {
                                 }
                             }
 
+                            // Get instance of the Shadow DOM module
                             const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
 
                             if(shadowDOM) {
+                                // Query for the modal background and confirm modal elements
                                 const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
                                 const confirm = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
 
                                 if(bg && confirm) {
+                                    // Create shadows of the modal background and confirm modal elements
+                                    // (this detaches them from DOM)
                                     const bgShadow = shadowDOM.createShadow(bg);
                                     const confirmShadow = shadowDOM.createShadow(confirm);
 
+                                    // Perform our cap- and max button clicking
                                     if(bgShadow && confirmShadow) {
                                         capBtn.click();
                                         await HSUtils.wait(5);
@@ -201,6 +206,8 @@ export class HSHepteracts extends HSModule {
                                         await HSUtils.wait(5);
                                         (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
                                         await HSUtils.wait(5);
+
+                                        // Attach the elements back to the DOM by destroying the shadows
                                         shadowDOM.destroyShadow(bgShadow);
                                         shadowDOM.destroyShadow(confirmShadow);
                                     }
