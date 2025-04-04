@@ -120,6 +120,8 @@ button#github-btn
     color: ghostwhite;
     font-family: sans-serif;
     display: none;
+    padding-right: 50vw;
+    padding-left: 15px;
 }
 
 .page-wrapper ul, dl {
