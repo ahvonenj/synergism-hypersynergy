@@ -258,11 +258,39 @@ export class HSUI extends HSModule {
         }
     }
 
+    static #isStyleStringEmpty(styleString: string): boolean {
+        // The style is in form #<someid> { <empty or css rules> }
+        // Here we want to check if the brackets contain anything
+        let openBracketIdx = styleString.indexOf('{');
+        const closeBracketIdx = styleString.indexOf('}');
+
+        if(openBracketIdx > -1 && closeBracketIdx > -1) {
+            openBracketIdx++;
+
+            const bracketInsides = styleString.substring(openBracketIdx, closeBracketIdx);
+
+            if(!HSUtils.isString(bracketInsides)) {
+                return true;
+            } else {
+                const bracketsInsidesRemoveWhiteSpace = bracketInsides.replace(/\s+/g, '');
+                const areBracketsEmpty = bracketsInsidesRemoveWhiteSpace.length === 0;
+
+                return areBracketsEmpty;
+            }
+        } else {
+            // Not sure of this but lets return true if no brackets are found
+            return true;
+        }
+    }
+
     // Can be used to inject arbitrary CSS into the page
     static injectStyle(styleString: string, styleId?: string) {
-        if(styleString) {
+        if(styleString && !this.#isStyleStringEmpty(styleString)) {
             const styleElement = document.createElement('style');
-            styleElement.id = styleId ? styleId : '';
+
+            if(styleId)
+                styleElement.id = styleId;
+
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 
