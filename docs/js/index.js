@@ -1,3 +1,5 @@
+const LATEST_VERSION = '2.4.1';
+
 async function main() {
     const buttons = document.querySelectorAll('#tabs button');
     const pages = document.querySelectorAll('.page-wrapper');
@@ -53,4 +55,10 @@ async function main() {
 
     window.addEventListener('hashchange', showTab);
     showTab();
+
+    const versionElement = document.querySelector('#version_num');
+
+    if(versionElement) {
+        versionElement.innerHTML = `v${LATEST_VERSION}`;
+    }
 }

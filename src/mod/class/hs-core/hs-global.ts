@@ -5,7 +5,7 @@ export class HSGlobal {
 
     // Current mod version string
     static General = {
-        currentModVersion: '2.5.0'
+        currentModVersion: '2.4.1'
     };
 
 
