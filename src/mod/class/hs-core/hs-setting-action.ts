@@ -29,7 +29,6 @@ export class HSSettingActions {
 
                 if(notifElement && value && value >= 0 && value <= 1) {
                     notifElement.style.opacity = value.toString();
-                    HSLogger.log(`Set notification opacity to ${value}`, context);
                 }
             }
         },

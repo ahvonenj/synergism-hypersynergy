@@ -8,6 +8,9 @@ import { HSUIC } from "./hs-ui-components";
 import { HSInputType } from "../../types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
 import { HSBooleanSetting, HSNumericSetting, HSSetting, HSStringSetting } from "./hs-setting";
+import { HSModuleManager } from "./hs-module-manager";
+import { HSStorage } from "./hs-storage";
+import { HSGlobal } from "./hs-global";
 
 /*
     Class: HSSettings
@@ -44,11 +47,10 @@ export class HSSettings extends HSModule {
         HSLogger.log(`Parsing mod settings`, this.context);
 
         try {
-            // Parse the JSON settings
-            const parsedSettings = JSON.parse(settings) as any;
-        
+            const resulvedSettings = this.#resolveSettings();
+
             // Set default values for each setting
-            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(parsedSettings)) {
+            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(resulvedSettings)) {
                 
                 if(setting.settingType === 'boolean' || HSUtils.isBoolean(setting.settingValue)) {
                     (setting as any).settingValue = false;
@@ -91,6 +93,7 @@ export class HSSettings extends HSModule {
                 }
             }
 
+            HSSettings.#saveSettingsToStorage();
             HSSettings.#settingsParsed = true;
         } catch (e) {
             HSLogger.error(`Error parsing mod settings ${e}`, this.context);
@@ -112,7 +115,7 @@ export class HSSettings extends HSModule {
 
         // Update the setting UI controls with the configured values in hs-settings.json
         for (const [key, settingObj] of Object.typedEntries(HSSettings.#settings)) {
-            HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
+            //HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
             
             const setting = settingObj.getDefinition();
             const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
@@ -265,26 +268,129 @@ export class HSSettings extends HSModule {
         return this.#settings[settingName];
     }
 
-    /*static setSetting<K extends keyof HSSettingsDefinition>(settingName: K, setting: HSSettingBase<HSSettingType>): void {
-        this.#settings[settingName].setDefinition(setting);
+    static getSettings(): HSSettingRecord {
+        return this.#settings;
     }
 
-    static setSettingValue<K extends keyof HSSettingsDefinition>(settingName: K, newValue: any): void {
-        this.#settings[settingName].setValue(newValue);
-    }*/
+    // Serializes all current settings into JSON string
+    static #serializeSettings(): string {
+        const serializeableSettings = { }
+
+        for(const [key, setting] of Object.typedEntries(this.#settings)) {
+            (serializeableSettings as any)[key] = setting.getDefinition();
+        }
+
+        return JSON.stringify(serializeableSettings);
+    }
+
+    static #saveSettingsToStorage() {
+        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+
+        if(storageMod) {
+            const serializedSettings = this.#serializeSettings();
+            const saved = storageMod.setData(HSGlobal.HSSettings.storageKey, serializedSettings);
+
+            if(!saved) {
+                HSLogger.warn(`Could not save settings to localStorage`, this.#staticContext);
+            } else {
+                //HSLogger.log(`<green>Settings saved to localStorage</green>`, this.#staticContext);
+            }
+        }
+    }
+
+    // Parses the default settings read from settings.json
+    #parseDefaultSettings(): HSSettingsDefinition {
+        const defaultSettings = JSON.parse(settings) as Partial<HSSettingsDefinition>;
+        
+        for (const [key, setting] of Object.typedEntries<Partial<HSSettingsDefinition>>(defaultSettings)) {
+            if(!setting) continue;
+            
+            if(setting.settingType === 'boolean' || HSUtils.isBoolean(setting.settingValue)) {
+                (setting as any).settingValue = false;
+            }
+
+            if(!this.#validateSetting(setting)) {
+                throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
+            }
+
+            if(setting.settingType === 'numeric' || HSUtils.isNumeric(setting.settingValue)) {
+
+                if(!('settingValueMultiplier' in setting as any))
+                    (setting as any).settingValueMultiplier = 1;
+            }
+        }
+
+        return defaultSettings as HSSettingsDefinition;
+    }
+
+    // Loads and parses settings from local storage as JSON
+    #parseStoredSettings(): Partial<HSSettingsDefinition> | null  {
+        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+
+        if(storageMod) {
+            const loaded = storageMod.getData<string>(HSGlobal.HSSettings.storageKey);
+
+            if(loaded) {
+                return JSON.parse(loaded) as Partial<HSSettingsDefinition>;
+            } else {
+                HSLogger.warn(`Could not load settings from localStorage`, this.context);
+                return null;
+            }
+        } else {
+            HSLogger.warn(`Could not find HSStorage module`, this.context);
+            return null;
+        }
+    }
+
+    #resolveSettings() : HSSettingsDefinition {
+        const defaultSettings = this.#parseDefaultSettings();
+        
+        try {
+            const loadedSettings = this.#parseStoredSettings();
+            const resolved = JSON.parse(JSON.stringify(defaultSettings));
+
+            if(loadedSettings) {
+                HSLogger.log(`<green>Found settings from localStorage!</green>`, this.context);
+
+                // Process each top-level key that exists in A
+                Object.keys(defaultSettings).forEach(topLevelKey => {
+                    // Skip if this top-level key doesn't exist in B
+                    if (!(topLevelKey in loadedSettings)) return;
+
+                    // Create an object that only contains nested keys from B that also exist in A
+                    const filteredBNested = Object.entries((loadedSettings as any)[topLevelKey])
+                        .filter(([nestedKey]) => nestedKey in (defaultSettings as any)[topLevelKey])
+                        .reduce((obj, [key, value]) => {
+                            obj[key] = value;
+                            return obj;
+                        }, {} as Record<string, any>);
+
+                    // Merge A's values with the filtered B values
+                    resolved[topLevelKey] = { 
+                    ...(defaultSettings as any)[topLevelKey],   // Start with all of A's values
+                    ...filteredBNested                          // Override with B's valid values
+                    } as any;
+                });
+
+                return resolved as HSSettingsDefinition;
+            } else {
+                return defaultSettings;
+            }
+        } catch(err) {
+            HSLogger.error(`Error while resolving settings`, this.context);
+            console.log(err);
+            return defaultSettings;
+        }
+    }
 
     static async #settingChangeDelegate(e: Event, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleChange(e);
-        this.#syncStorage();
+        this.#saveSettingsToStorage();
     }
 
     static async #settingToggleDelegate(e: MouseEvent, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleToggle(e);
-        this.#syncStorage();
-    }
-
-    static #syncStorage() {
-
+        this.#saveSettingsToStorage();
     }
 
     static dumpToConsole() {

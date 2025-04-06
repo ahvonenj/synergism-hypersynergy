@@ -8,6 +8,7 @@ import { HSInputType } from "../types/hs-ui-types";
 import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
+import { HSStorage } from "./hs-core/hs-storage";
 
 /*
     Class: Hypersynergism

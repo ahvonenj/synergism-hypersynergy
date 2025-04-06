@@ -41,7 +41,7 @@ export abstract class HSSetting<T extends HSSettingType> {
     }
 
     async handleToggle(e: MouseEvent) {
-        HSLogger.log(`Setting toggle caught for ${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
         
         const newState = !this.definition.enabled;
         this.definition.enabled = newState;
@@ -105,6 +105,10 @@ export abstract class HSSetting<T extends HSSettingType> {
         return this.definition.calculatedSettingValue;
     }
 
+    toString() {
+        return JSON.stringify(this.definition);
+    }
+
     abstract getValue() : T;
     abstract setValue(value: T) : void;
     abstract handleChange(e: Event) : Promise<void>;
@@ -132,6 +136,9 @@ export class HSNumericSetting extends HSSetting<number> {
 
     async handleChange(e: Event) {
         const newValue = parseFloat((e.target as HTMLInputElement).value);
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
+        
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
         await super.handleSettingAction("value");
@@ -157,6 +164,9 @@ export class HSStringSetting extends HSSetting<string> {
 
     async handleChange(e: Event) {
         const newValue = (e.target as HTMLInputElement).value;
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
+
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue;
         await super.handleSettingAction("value");

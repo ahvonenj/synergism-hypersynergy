@@ -46,4 +46,11 @@ export class HSGlobal {
     static HSStorage = {
         storagePrefix: 'hs-',
     }
+
+    // --- HSSettings ---
+
+    // Log level
+    static HSSettings = {
+        storageKey: 'settings',
+    }
 }
