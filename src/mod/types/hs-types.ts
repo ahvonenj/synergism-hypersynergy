@@ -65,3 +65,46 @@ export enum EKeyBoardKeys {
     LEFT_SHIFT = 'ShiftLeft',
     RIGHT_SHIFT = 'ShiftRight'
 }
+
+export interface HSGlobalGeneral {
+    currentModVersion: string;
+}
+
+export interface HSGlobalPrototypes {
+    defaultTransitionTiming: number;
+}
+
+export interface HSGlobalElementHooker {
+    elementHookUpdateMS: number;
+    elementsHookUpdateMS: number;
+    enableHelementHookTimeout: boolean,
+    elementHookTimeout: number;
+    watcherThrottlingMS: number;
+}
+
+export interface HSGlobalLogger {
+    logLevel: ELogLevel.ALL,
+    logSize: number;
+}
+
+export interface HSGlobalStorage {
+    storagePrefix: string;
+}
+
+export interface HSGlobalSettings {
+    storageKey: string;
+}
+
+export interface HSGlobalMouse {
+    autoClickIgnoredElements: string[];
+}
+
+export interface IHSGlobal {
+    General: HSGlobalGeneral;
+    HSPrototypes: HSGlobalPrototypes;
+    HSElementHooker: HSGlobalElementHooker;
+    HSLogger: HSGlobalLogger;
+    HSStorage: HSGlobalStorage;
+    HSSettings: HSGlobalSettings;
+    HSMouse: HSGlobalMouse;
+}

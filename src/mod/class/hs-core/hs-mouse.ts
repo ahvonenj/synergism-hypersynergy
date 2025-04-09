@@ -1,4 +1,5 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-types";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSSetting } from "./hs-setting";
@@ -13,6 +14,8 @@ export class HSMouse extends HSModule {
 
     static #hoverUpdateInterval: number | null;
     static #autoClickUpdateInterval: number | null;
+
+    static #ignoredElements: string[] = [];
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -61,6 +64,26 @@ export class HSMouse extends HSModule {
         const elementUnderCursor = document.elementFromPoint(x, y);
 
         if (elementUnderCursor) {
+            if(eventType === 'click') {
+                const ignoreSetting = HSSettings.getSetting('autoClickIgnoreElements') as HSSetting<boolean>;
+
+                if(ignoreSetting.getValue()) {
+                    // If the element under cursor has id, check the ignore list by id
+                    if(elementUnderCursor.id && elementUnderCursor.id !== '') {
+                        if(HSGlobal.HSMouse.autoClickIgnoredElements.includes(`#${elementUnderCursor.id}`))
+                            return;
+                    }
+
+                    // If the element under cursor has some classes defined, go through them all and check the ignore list by class
+                    if(elementUnderCursor.classList.length > 0) {
+                        elementUnderCursor.classList.forEach(cls => {
+                            if(HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)) {
+                                return;
+                            }
+                        })
+                    }
+                }
+            }
             const mouseoverEvent = new MouseEvent(eventType, {
                 view: window,
                 bubbles: true,

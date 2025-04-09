@@ -225,17 +225,17 @@ export class HSHepteracts extends HSModule {
 
         if(document.querySelectorAll('.heptTypeImage').length > 0) {
             HSUI.injectStyle(`
-                .heptTypeImage {
+                .heptTypeImage:not(#quarkHepteractImage):not(#hepteractToQuarkImage):not(#overfluxPowderImage) {
                     transform: scale(1);
                     transform-origin: 50% 50%;
                 }
 
-                .heptTypeImage:hover {
+                .heptTypeImage:not(#quarkHepteractImage):not(#hepteractToQuarkImage):not(#overfluxPowderImage):hover {
                     transform: scale(1.05);
                     cursor: pointer;
                 }
 
-                .heptTypeImage:active {
+                .heptTypeImage:not(#quarkHepteractImage):not(#hepteractToQuarkImage):not(#overfluxPowderImage):active {
                     transform: scale(0.98);
                 }
             `);

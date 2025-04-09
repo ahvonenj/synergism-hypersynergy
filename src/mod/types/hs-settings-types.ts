@@ -16,6 +16,7 @@ export interface HSSettingsDefinition {
     logTimestamp: LogTimestampSetting;
     reactiveMouseHover: ReactiveMouseHoverSetting;
     autoClick: AutoclickSetting;
+    autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
 }
 
 export interface HSSettingControlOptions {
@@ -59,3 +60,4 @@ export interface SyncNotificationOpacitySetting extends HSSettingBase<number> {}
 export interface LogTimestampSetting extends HSSettingBase<boolean> {}
 export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}
 export interface AutoclickSetting extends HSSettingBase<number> {}
+export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}

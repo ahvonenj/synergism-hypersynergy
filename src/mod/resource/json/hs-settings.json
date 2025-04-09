@@ -91,5 +91,17 @@
                 "step": 0.05
             }
         }
+    },
+
+    "autoClickIgnoreElements": {
+        "settingName": "autoClickIgnoreElements",
+        "settingDescription": "Auto click ignores certain elements",
+        "settingHelpText": "When enabled, auto click will ignore (not click on) certain elements such as some buttons which there should be no need to auto click. This is to prevent accidental clicks.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingControl": {
+            "controlType": "switch",
+            "controlEnabledId": "hs-setting-autoclick-ignore-btn"
+        }
     }
 }

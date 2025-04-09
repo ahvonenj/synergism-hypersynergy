@@ -188,6 +188,7 @@ export class HSBooleanSetting extends HSSetting<boolean> {
 
     setValue(value: boolean) {
         this.definition.settingValue = value;
+        this.definition.calculatedSettingValue = value;
         this.definition.enabled = value;
     }
 
