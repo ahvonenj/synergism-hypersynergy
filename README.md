@@ -45,6 +45,16 @@ Quick overview:
 - Mod log
 - Ambrosia loadout icons
 
+## Latest update
+
+Hypersynergism version 2.5.0 introduces ambrosia loadout icons as it's most notable feature:
+
+<picture>
+  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/loadout_icons.gif?raw=true" width="400" />
+</picture>
+
+Simply drag any of the ambrosia upgrade icons to any of the loadout slots. Assigned icons persist and will be automatically assigned back when the mod loads!
+
 # Using the mod
 
 ## Create a bookmark
