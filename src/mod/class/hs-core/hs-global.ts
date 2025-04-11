@@ -12,7 +12,7 @@ export const HSGlobal: IHSGlobal = class {
 
     // Current mod version string
     static General = {
-        currentModVersion: '2.4.1'
+        currentModVersion: '2.5.0'
     };
 
 
