@@ -127,6 +127,31 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     this.saveState();
                 }
             });
+
+            slot.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+
+                // Clear the slot icon
+                const slotElement = e.target as HTMLButtonElement;
+                const slotElementId = slotElement.id;
+                const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
+
+                if (!slotEnum) {
+                    HSLogger.warn(`Invalid slot ID: ${slotElementId}`, this.context);
+                    return;
+                }
+
+                const iconEnum = this.#loadoutState.get(slotEnum);
+                if (!iconEnum) {
+                    HSLogger.warn(`No icon found for slot ID: ${slotElementId}`, this.context);
+                    return;
+                }
+
+                slotElement.classList.remove('hs-ambrosia-slot');
+                slotElement.style.backgroundImage = '';
+                this.#loadoutState.delete(slotEnum);
+                this.saveState();
+            });
         });
 
         this.isInitialized = true;

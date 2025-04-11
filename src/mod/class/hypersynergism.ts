@@ -57,11 +57,7 @@ export class Hypersynergism {
                     html: [
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
-                        HSUIC.Div({ html: `-- TEST AREA, DON'T CLICK --`, styles: { gridColumn: '1 / span 2', textAlign: 'center', color: 'magenta' } }),
-                        HSUIC.Button({ id: 'hs-panel-shadow-create-btn', text: 'Create shadow' }),
-                        HSUIC.Button({ id: 'hs-panel-shadow-destroy-btn', text: 'Destroy shadow' }),
-                        HSUIC.Button({ id: 'hs-panel-shadow-show-btn', text: 'Show shadow' }),
-                        HSUIC.Button({ id: 'hs-panel-shadow-hide-btn', text: 'Hide shadow' }),
+                        HSUIC.Button({ id: 'hs-panel-mod-docs-btn', text: 'Mod docs' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -83,44 +79,8 @@ export class Hypersynergism {
                 HSSettings.dumpToConsole();
             });
 
-            document.querySelector('#hs-panel-shadow-create-btn')?.addEventListener('click', () => {
-                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
-
-                if(shadowDOM) {
-                    const settingsContainer = document.querySelector('#settings') as HTMLElement;
-
-                    if(settingsContainer) {
-                        HSLogger.info(`Creating shadow 'settingsShadow'`);
-                        const shadow = shadowDOM.createShadow(settingsContainer, 'settingsShadow');
-                    }
-                }
-            });
-
-            document.querySelector('#hs-panel-shadow-destroy-btn')?.addEventListener('click', () => {
-                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
-
-                if(shadowDOM) {
-                    HSLogger.info(`Destroying shadow 'settingsShadow'`);
-                    shadowDOM.destroyShadow('settingsShadow');
-                }
-            });
-
-            document.querySelector('#hs-panel-shadow-show-btn')?.addEventListener('click', () => {
-                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
-
-                if(shadowDOM) {
-                    const shadow = shadowDOM.getShadow('settingsShadow');
-                    shadow?.show();
-                }
-            });
-
-            document.querySelector('#hs-panel-shadow-hide-btn')?.addEventListener('click', () => {
-                const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
-
-                if(shadowDOM) {
-                    const shadow = shadowDOM.getShadow('settingsShadow');
-                    shadow?.hide();
-                }
+            document.querySelector('#hs-panel-mod-docs-btn')?.addEventListener('click', () => {
+                window.open(HSGlobal.General.modFeaturesGithubUrl, '_blank')
             });
 
             // BUILD SETTINGS TAB

@@ -7,6 +7,7 @@ interface IStoreable {
 
 export interface HSGlobalGeneral {
     currentModVersion: string;
+    modFeaturesGithubUrl: string;
 }
 
 export interface HSGlobalPrototypes {

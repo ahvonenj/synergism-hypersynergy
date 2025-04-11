@@ -12,7 +12,8 @@ export const HSGlobal: IHSGlobal = class {
 
     // Current mod version string
     static General = {
-        currentModVersion: '2.5.0'
+        currentModVersion: '2.5.1',
+        modFeaturesGithubUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features'
     };
 
 
