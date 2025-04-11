@@ -1,4 +1,4 @@
-import { HSSettingActionParams, HSSettingBase, HSSettingsDefinition, HSSettingType } from "../../types/hs-settings-types";
+import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
 
 export abstract class HSSetting<T extends HSSettingType> {

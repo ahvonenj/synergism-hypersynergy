@@ -1,4 +1,15 @@
-import { CSSKeyValueObject, HSInputType, HSUICButtonOptions, HSUICDivOptions, HSUICFlexOptions, HSUICGridOptions, HSUICInputOptions, HSUICModalOptions, HTMLData, HTMLProps } from "../../types/hs-ui-types";
+import { 
+    CSSKeyValueObject, 
+    HSInputType, 
+    HSUICButtonOptions, 
+    HSUICDivOptions, 
+    HSUICFlexOptions, 
+    HSUICGridOptions, 
+    HSUICInputOptions, 
+    HSUICModalOptions, 
+    HTMLData, 
+    HTMLProps 
+} from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSUI } from "./hs-ui";
 

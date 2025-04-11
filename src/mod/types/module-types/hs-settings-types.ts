@@ -4,8 +4,7 @@
     Author: Swiffy
 */
 
-import { HSSetting } from "../class/hs-core/hs-setting";
-import { WithRequired } from "./hs-typescript-functions";
+import { HSSetting } from "../../class/hs-core/hs-setting";
 
 export type HSSettingType = number | string | boolean;
 export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSettingType>>;

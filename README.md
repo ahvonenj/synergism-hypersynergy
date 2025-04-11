@@ -43,6 +43,7 @@ Quick overview:
 - Reactive mouse hover
 - Auto click
 - Mod log
+- Ambrosia loadout icons
 
 # Using the mod
 

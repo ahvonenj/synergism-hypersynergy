@@ -1,4 +1,4 @@
-import { CSSValue } from "../../types/hs-ui-types";
+import { CSSValue } from "../../types/module-types/hs-ui-types";
 import { HSLogger } from "../hs-core/hs-logger";
 
 /*

@@ -13,6 +13,7 @@ import { HSPrototypes } from "./hs-prototypes";
 import { HSMouse } from "./hs-mouse";
 import { HSShadowDOM } from "./hs-shadowdom";
 import { HSStorage } from "./hs-storage";
+import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 
 /*
     Class: HSModuleManager
@@ -39,6 +40,7 @@ export class HSModuleManager {
         "HSMouse": HSMouse,
         "HSShadowDOM": HSShadowDOM,
         "HSStorage": HSStorage,
+        "HSAmbrosia": HSAmbrosia,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {

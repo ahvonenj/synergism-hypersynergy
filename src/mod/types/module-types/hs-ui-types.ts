@@ -4,8 +4,8 @@
     Author: Swiffy
 */
 
-import { TransitionableCSSProperty, HSUICCSSProperties } from "./hs-css-types";
-import { HSOptional } from "./hs-typescript-functions";
+import { TransitionableCSSProperty, HSUICCSSProperties } from "../hs-css-types";
+import { HSOptional } from "../hs-typescript-functions";
 
 export enum EPredefinedPosition {
     CENTER = 1,

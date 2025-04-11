@@ -74,6 +74,11 @@ declare global {
             className: 'HSMouse',
             context: 'HSMouse',
             moduleColor: 'gold',
+        },
+        {
+            className: 'HSAmbrosia',
+            context: 'HSAmbrosia',
+            moduleColor: 'blueviolet',
         }
     ];
 

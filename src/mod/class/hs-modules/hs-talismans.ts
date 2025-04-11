@@ -1,4 +1,4 @@
-import { ETalismanFragmentIndex } from "../../types/hs-types";
+import { ETalismanFragmentIndex } from "../../types/module-types/hs-talismans-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";

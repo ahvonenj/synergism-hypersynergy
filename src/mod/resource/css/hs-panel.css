@@ -234,11 +234,11 @@
 }
 
 .hs-ui-log-line-warn {
-    color: red;
+    color: yellow;
 }
 
 .hs-ui-log-line-error {
-    color: yellow;
+    color: red;
 }
 
 .hs-log-ts-hidden {
@@ -433,4 +433,10 @@
 
 .hs-disabled {
     border: 1px solid red;
+}
+
+.hs-ambrosia-slot {
+    background-repeat: no-repeat;
+    background-size: 80%;
+    background-position: center;
 }

@@ -1,6 +1,5 @@
-import { EPredefinedPosition, HSPanelTabDefinition, HSUICModalOptions, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/hs-ui-types";
+import { EPredefinedPosition, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
-import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSUIC } from "./hs-ui-components";

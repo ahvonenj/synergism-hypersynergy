@@ -4,11 +4,9 @@ import { HSModuleManager } from "./hs-core/hs-module-manager";
 import { HSUI } from "./hs-core/hs-ui";
 import { HSUIC } from "./hs-core/hs-ui-components";
 import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
-import { HSInputType } from "../types/hs-ui-types";
 import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
-import { HSStorage } from "./hs-core/hs-storage";
 
 /*
     Class: Hypersynergism

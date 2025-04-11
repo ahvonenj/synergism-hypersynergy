@@ -1,6 +1,6 @@
 import { CSSEasingFunction } from "../../types/hs-css-types";
-import { DelegateEventListener, RemoveDelegateEventListener } from "../../types/hs-proto-types";
-import { TransitionProperties } from "../../types/hs-ui-types";
+import { DelegateEventListener, RemoveDelegateEventListener } from "../../types/module-types/hs-proto-types";
+import { TransitionProperties } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";

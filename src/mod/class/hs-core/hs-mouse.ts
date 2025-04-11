@@ -1,4 +1,4 @@
-import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-types";
+import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";

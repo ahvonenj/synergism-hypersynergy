@@ -1,4 +1,4 @@
-import { HSElementWatcher } from "../../types/hs-types";
+import { HSElementWatcher } from "../../types/module-types/hs-elementhooker-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";

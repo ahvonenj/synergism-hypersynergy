@@ -1,11 +1,10 @@
-import { HSSettingBase, HSSettingRecord, HSSettingsControlType, HSSettingsDefinition, HSSettingType } from "../../types/hs-settings-types";
+import { HSSettingBase, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import settings from "inline:../../resource/json/hs-settings.json";
-import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
-import { HSInputType } from "../../types/hs-ui-types";
+import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
 import { HSBooleanSetting, HSNumericSetting, HSSetting, HSStringSetting } from "./hs-setting";
 import { HSModuleManager } from "./hs-module-manager";

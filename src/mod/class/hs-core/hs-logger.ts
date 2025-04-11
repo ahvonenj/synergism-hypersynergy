@@ -1,8 +1,8 @@
-import { ELogLevel, ELogType } from "../../types/hs-types";
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSModuleManager } from "./hs-module-manager";
+import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
 
 /*
     Class: HSLogger

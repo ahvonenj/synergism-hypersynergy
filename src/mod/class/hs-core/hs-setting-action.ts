@@ -1,4 +1,4 @@
-import { HSSettingActionParams } from "../../types/hs-settings-types";
+import { HSSettingActionParams } from "../../types/module-types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
 import { HSMouse } from "./hs-mouse";
 
