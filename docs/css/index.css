@@ -17,7 +17,7 @@
 
 header {
     width: 100%;
-    height: 156px;
+    min-height: 156px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,7 +104,7 @@ header {
 
 nav {
     width: 100%;
-    height: 21px;
+    min-height: 21px;
     display: flex;
     justify-content: center;
     margin-top: auto;
@@ -153,23 +153,23 @@ nav {
     background-color: white;
 }
 
-button#home-btn
-{
+button#home-btn {
     border-color: orange;
 }
 
-button#features-btn
-{
+button#features-btn {
     border-color: green;
 }
 
-button#github-btn
-{
+button#changelog-btn {
+    border-color: plum;
+}
+
+button#github-btn {
     border-color: cyan;
 }
 
-button#about-btn
-{
+button#about-btn {
     border-color: white;
 }
 
@@ -183,6 +183,10 @@ button#about-btn
 
 .b-blue {
     background-color: blue !important;
+}
+
+.b-plum {
+    background-color: plum !important;
 }
 
 #border {
@@ -205,30 +209,6 @@ button#about-btn
     display: none;
     padding-right: 50vw;
     padding-left: 15px;
-}
-
-/* Small mobile devices in portrait */
-@media only screen and (max-width: 480px) and (orientation: portrait) {
-    .page-wrapper {
-        padding-right: 0;
-        padding-left: 0;
-    }
-}
-
-/* Medium mobile devices in portrait */
-@media only screen and (min-width: 481px) and (max-width: 767px) and (orientation: portrait) {
-    .page-wrapper {
-        padding-right: 0;
-        padding-left: 0;
-    }
-}
-
-/* Tablets in portrait */
-@media only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .page-wrapper {
-        padding-right: 0;
-        padding-left: 0;
-    }
 }
 
 .page-wrapper ul, dl {
@@ -360,5 +340,64 @@ a {
 
     100% {
         color: yellow;
+    }
+}
+
+.fluid-img {
+    max-width: 400px;
+}
+
+.doc-img {
+    margin-left: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+p.sm {
+    font-size: 10pt;
+}
+
+/* Small mobile devices in portrait */
+@media only screen and (max-width: 480px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .fluid-img {
+        width: 100%;
+        width: -moz-available;
+        width: -webkit-fill-available;
+        width: fill-available;
+    }
+}
+
+/* Medium mobile devices in portrait */
+@media only screen and (min-width: 481px) and (max-width: 767px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .fluid-img {
+        width: 100%;
+        width: -moz-available;
+        width: -webkit-fill-available;
+        width: fill-available;
+    }
+}
+
+/* Tablets in portrait */
+@media only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .page-wrapper {
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .fluid-img {
+        width: 100%;
+        width: -moz-available;
+        width: -webkit-fill-available;
+        width: fill-available;
     }
 }

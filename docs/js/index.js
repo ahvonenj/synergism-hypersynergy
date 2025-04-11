@@ -1,4 +1,4 @@
-const LATEST_VERSION = '2.4.1';
+const LATEST_VERSION = '2.5.0';
 
 async function main() {
     const buttons = document.querySelectorAll('#tabs button');
