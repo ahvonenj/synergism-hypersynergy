@@ -4,6 +4,7 @@ import { HSModuleManager } from "./hs-core/hs-module-manager";
 import { HSUI } from "./hs-core/hs-ui";
 import { HSUIC } from "./hs-core/hs-ui-components";
 import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
+import corruption_ref_b64_2 from "inline:../resource/txt/corruption_ref_onemind.txt";
 import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
@@ -56,6 +57,7 @@ export class Hypersynergism {
                 HSUIC.Grid({ 
                     html: [
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
+                        HSUIC.Button({ id: 'hs-panel-cor-ref-btn-2', text: 'Crpt. Onemind' }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
                         HSUIC.Button({ id: 'hs-panel-mod-docs-btn', text: 'Mod docs' }),
                     ],
@@ -72,6 +74,11 @@ export class Hypersynergism {
             // Bind corruption reference button to open a modal
             document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
                 hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
+            });
+
+            // Bind corruption reference button to open a modal
+            document.querySelector('#hs-panel-cor-ref-btn-2')?.addEventListener('click', () => {
+                hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64_2}" />`, needsToLoad: true })
             });
 
             // Bind dump button to dump settings

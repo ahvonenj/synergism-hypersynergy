@@ -367,7 +367,7 @@
     width: 100%;
     height: calc(100% - 45px);
     max-height: 60vh;
-    max-width: 40vw;
+    max-width: 60vw;
     background-color: #18171c;
     border-top: 1px solid white;
     padding: 10px;
@@ -378,6 +378,8 @@
 
 .hs-modal-img {
     image-rendering: auto;
+    width: 100%;
+    max-width: 40vw;
 }
 
 #hs-settings-panel {
