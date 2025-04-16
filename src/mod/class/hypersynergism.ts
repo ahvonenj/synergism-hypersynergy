@@ -56,10 +56,34 @@ export class Hypersynergism {
             hsui.replaceTabContents(2, 
                 HSUIC.Grid({ 
                     html: [
+                        HSUIC.Div({ 
+                            html: 'References',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
                         HSUIC.Button({ id: 'hs-panel-cor-ref-btn-2', text: 'Crpt. Onemind' }),
+                        HSUIC.Div({ 
+                            html: 'Mod links',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
+                        HSUIC.Button({ id: 'hs-panel-mod-github-btn', text: 'Mod Github' }),
+                        HSUIC.Button({ id: 'hs-panel-mod-wiki-btn', text: 'Mod Wiki' }),
+                        HSUIC.Button({ id: 'hs-panel-mod-wiki_features-btn', text: 'Mod Features' }),
+                        HSUIC.Button({ id: 'hs-panel-mod-website-btn', text: 'Mod Website' }),
+                        HSUIC.Div({ 
+                            html: 'Other tools',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
-                        HSUIC.Button({ id: 'hs-panel-mod-docs-btn', text: 'Mod docs' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -86,8 +110,20 @@ export class Hypersynergism {
                 HSSettings.dumpToConsole();
             });
 
-            document.querySelector('#hs-panel-mod-docs-btn')?.addEventListener('click', () => {
-                window.open(HSGlobal.General.modFeaturesGithubUrl, '_blank')
+            document.querySelector('#hs-panel-mod-github-btn')?.addEventListener('click', () => {
+                window.open(HSGlobal.General.modGithubUrl, '_blank')
+            });
+
+            document.querySelector('#hs-panel-mod-wiki-btn')?.addEventListener('click', () => {
+                window.open(HSGlobal.General.modWikiUrl, '_blank')
+            });
+
+            document.querySelector('#hs-panel-mod-wiki_features-btn')?.addEventListener('click', () => {
+                window.open(HSGlobal.General.modWikiFeaturesUrl, '_blank')
+            });
+
+            document.querySelector('#hs-panel-mod-website-btn')?.addEventListener('click', () => {
+                window.open(HSGlobal.General.modWebsiteUrl, '_blank')
             });
 
             // BUILD SETTINGS TAB

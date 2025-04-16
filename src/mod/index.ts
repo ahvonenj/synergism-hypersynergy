@@ -79,6 +79,11 @@ declare global {
             className: 'HSAmbrosia',
             context: 'HSAmbrosia',
             moduleColor: 'blueviolet',
+        },
+        {
+            className: 'HSStats',
+            context: 'HSStats',
+            moduleColor: 'lawngreen',
         }
     ];
 
