@@ -1,0 +1,4 @@
+Sitemap: https://ahvonenj.github.io/synergism-hypersynergy/sitemap.xml
+
+User-agent: *
+Disallow:
