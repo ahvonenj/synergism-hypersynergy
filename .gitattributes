@@ -4,3 +4,4 @@ release/** linguist-generated
 other_scripts/** linguist-generated
 save_utils/** linguist-generated
 snippets/** linguist-generated
+* text eol=lf
