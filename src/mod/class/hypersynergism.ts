@@ -8,6 +8,7 @@ import corruption_ref_b64_2 from "inline:../resource/txt/corruption_ref_onemind.
 import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
+import { HSStorage } from "./hs-core/hs-storage";
 
 /*
     Class: Hypersynergism
@@ -84,6 +85,7 @@ export class Hypersynergism {
                             }
                         }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
+                        HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -105,11 +107,6 @@ export class Hypersynergism {
                 hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64_2}" />`, needsToLoad: true })
             });
 
-            // Bind dump button to dump settings
-            document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
-                HSSettings.dumpToConsole();
-            });
-
             document.querySelector('#hs-panel-mod-github-btn')?.addEventListener('click', () => {
                 window.open(HSGlobal.General.modGithubUrl, '_blank')
             });
@@ -124,6 +121,19 @@ export class Hypersynergism {
 
             document.querySelector('#hs-panel-mod-website-btn')?.addEventListener('click', () => {
                 window.open(HSGlobal.General.modWebsiteUrl, '_blank')
+            });
+
+            document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
+                HSSettings.dumpToConsole();
+            });
+
+            document.querySelector('#hs-panel-clear-settings-btn')?.addEventListener('click', () => {
+                const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+                
+                if(storageMod) {
+                    storageMod.clearData(HSGlobal.HSSettings.storageKey);
+                    HSLogger.info('Stored settings cleared', this.#context);
+                }
             });
 
             // BUILD SETTINGS TAB

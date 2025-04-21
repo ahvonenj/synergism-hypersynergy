@@ -45,4 +45,12 @@ export class HSStorage extends HSModule {
             return null;
         }
     }
+
+    clearData(key: string) {
+        try {
+            localStorage.removeItem(`${HSGlobal.HSStorage.storagePrefix}${key}`);
+        } catch (error) {
+            HSLogger.warn(`Error clearing localStorage: ${error}`, this.context);
+        }
+    }
 }
