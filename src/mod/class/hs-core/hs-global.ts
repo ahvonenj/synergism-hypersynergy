@@ -154,6 +154,9 @@ export const HSGlobal: IHSGlobal = class {
 
             // Auto challenge ignore toggle button
             '#toggleAutoChallengeIgnore',
+
+            // Hepteract alert toggle button
+            '#toggle35'
         ]
     }
 
