@@ -11,6 +11,7 @@ export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSet
 
 export interface HSSettingsDefinition {
     expandCostProtection: ExpandCostProtectionSetting;
+    expandCostProtectionDoubleCap: ExpandCostProtectionDoubleCap
     syncNotificationOpacity: SyncNotificationOpacitySetting;
     logTimestamp: LogTimestampSetting;
     reactiveMouseHover: ReactiveMouseHoverSetting;
@@ -26,6 +27,7 @@ export interface HSSettingControlOptions {
 }
 
 export type HSSettingsControlType = "text" | "number" | "switch";
+export type HSSettingJSONType = "numeric" | "string" | "boolean";
 
 export type HSSettingActionParams = {
     contextName?: string,
@@ -33,9 +35,15 @@ export type HSSettingActionParams = {
     disable?: boolean
 }
 
+export interface HSSettingControlGroup {
+    groupName: string;
+    order: number;
+}
+
 export interface HSSettingControl {
     controlId: string;
     controlType: HSSettingsControlType;
+    controlGroup: string;
     controlEnabledId?: string;
     controlOptions?: HSSettingControlOptions;
 }
@@ -45,7 +53,7 @@ export interface HSSettingBase<T> {
     settingName: string;
     settingDescription: string;
     settingHelpText?: string;
-    settingType: "numeric" | "string" | "boolean";
+    settingType: HSSettingJSONType;
     settingValue: T;
     calculatedSettingValue: T;
     settingValueMultiplier: T;
@@ -55,6 +63,7 @@ export interface HSSettingBase<T> {
 }
 
 export interface ExpandCostProtectionSetting extends HSSettingBase<number> {}
+export interface ExpandCostProtectionDoubleCap extends HSSettingBase<boolean> {}
 export interface SyncNotificationOpacitySetting extends HSSettingBase<number> {}
 export interface LogTimestampSetting extends HSSettingBase<boolean> {}
 export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}

@@ -1,0 +1,18 @@
+{
+    "hepteracts": {
+        "groupName": "Hepteract settings",
+        "order": 1
+    },
+    "notifications": {
+        "groupName": "Notification settings",
+        "order": 2
+    },
+    "log": {
+        "groupName": "Log settings",
+        "order": 3
+    },
+    "mouse": {
+        "groupName": "Mouse settings",
+        "order": 4
+    }
+}

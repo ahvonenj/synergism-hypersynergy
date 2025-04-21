@@ -3,6 +3,8 @@ import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSModuleManager } from "./hs-module-manager";
 import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
+import { HSSetting } from "./hs-setting";
+import { HSSettings } from "./hs-settings";
 
 /*
     Class: HSLogger
@@ -128,11 +130,16 @@ export class HSLogger {
 
     // Remove color tags for console logging
     static #removeColorTags(msg: string) : string {
-        const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
+        try {
+            const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
         
-        return msg.replace(tagPattern, (match, colorName, content) => {
-            return `${content}`;
-        });
+            return msg.replace(tagPattern, (match, colorName, content) => {
+                return `${content}`;
+            });
+        } catch(e) {
+            console.warn("Error removing color tags from log message", e);
+            return `${msg}`;
+        }
     }
 
     static #shouldLog(logType: ELogType, isImportant : boolean) : boolean {
@@ -150,6 +157,13 @@ export class HSLogger {
                 return (currentLogLevel === ELogLevel.WARN_AND_ERROR || currentLogLevel === ELogLevel.ERROR);
             case ELogType.INFO:
                 return (currentLogLevel === ELogLevel.INFO || currentLogLevel === ELogLevel.EXPLOG);
+            case ELogType.DEBUG:
+                const debugLog = HSSettings.getSetting('expandCostProtection') as HSSetting<boolean>;
+
+                if(debugLog)
+                    return debugLog.getValue();
+                else
+                    return false;
         }
     }
 

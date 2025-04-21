@@ -114,7 +114,7 @@ export class HSUtils {
     // This is jQuery's solution to this problem - it is surprisingly difficult
     // https://github.com/jquery/jquery/blob/76687566f0569dc832f13e901f0d2ce74016cd4d/test/data/jquery-3.7.1.js#L10641
     static isNumeric(n: any) {
-        return !isNaN(n - HSUtils.parseFloat2(n));
+        return !isNaN(n - parseFloat(n));
     }
 
     static isString(n: any) {

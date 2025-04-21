@@ -156,7 +156,14 @@ export class HSHepteracts extends HSModule {
                             self.#expandPending = true;
                             self.#watchUpdatePending = true;
 
-                            if(self.#ownedHepteracts) {
+                            if(self.#ownedHepteracts !== null && self.#ownedHepteracts !== undefined) {
+                                if(self.#ownedHepteracts === 0) {
+                                    HSLogger.info(`Owned hepteracts is 0`, this.context);
+                                    self.#watchUpdatePending = false;
+                                    self.#expandPending = false;
+                                    return;
+                                }
+
                                 const currentMax = (self.#boxCounts as any)[id];
                                 const cubeCost = (self.#hepteractCosts as any)[id];
 
@@ -164,18 +171,32 @@ export class HSHepteracts extends HSModule {
                                     HSLogger.warn(`Hepteract cost for ${id} not parsed yet`, self.context);
                                 }
 
-                                const buyCost = currentMax * 2 * cubeCost;
+                                let hepteractDoubleCapSetting = HSSettings.getSetting('expandCostProtectionDoubleCap') as HSSetting<boolean>;
+                                let buyCost = null;
+
+                                if(hepteractDoubleCapSetting.getValue()) {
+                                    buyCost = currentMax * cubeCost;
+                                } else {
+                                    buyCost = currentMax * 2 * cubeCost;
+                                }
+
                                 const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
 
                                 const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
                                 const settingValue = expandCostProtectionSetting.getCalculatedValue();
 
-                                if(percentOwned >= settingValue) {
-                                    HSLogger.info(`Buying ${id} would cost ${percentOwned.toFixed(2)} of current hepts which is >= ${settingValue} (cost protection)`, this.context);
+                                if(settingValue && percentOwned >= settingValue) {
+                                    HSLogger.info(`Buying ${id} would cost ${HSUtils.N(buyCost)} hepts (${percentOwned.toFixed(2)} of current hepts) which is >= ${settingValue} (cost protection)`, this.context);
                                     self.#watchUpdatePending = false;
                                     self.#expandPending = false;
                                     return;
                                 }
+                            } else {
+                                HSLogger.warn(`Owned hepteracts not parsed yet`, this.context);
+
+                                self.#watchUpdatePending = false;
+                                self.#expandPending = false;
+                                return;
                             }
 
                             // Get instance of the Shadow DOM module
@@ -312,7 +333,7 @@ export class HSHepteracts extends HSModule {
                 const hepts = parseFloat(value);
                 self.#ownedHepteracts = hepts;
             } catch (e) {
-                console.log(e);
+                HSLogger.error(`Failed to parse owned hepteracts`, self.context);
             }
 
             self.#watchUpdatePending = false;

@@ -9,12 +9,26 @@
         "settingControl": {
             "controlId": "hs-setting-expand-cost-protection-value",
             "controlType": "number",
+            "controlGroup": "hepteracts",
             "controlEnabledId": "hs-setting-expand-cost-protection-btn",
             "controlOptions": {
                 "min": 0,
                 "max": 1,
                 "step": 0.1
             }
+        }
+    },
+
+    "expandCostProtectionDoubleCap": {
+        "settingName": "expandCostProtectionDoubleCap",
+        "settingDescription": "Hepteract double capacity unlocked?",
+        "settingHelpText": "Check this if you have the double capacity upgrade unlocked for hepteracts. This will make the expand cost protection setting work correctly.",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "hepteracts",
+            "controlEnabledId": "hs-setting-hepteract-double-cap-btn"
         }
     },
 
@@ -29,6 +43,7 @@
         "settingControl": {
             "controlId": "hs-setting-notification-opacity-value",
             "controlType": "number",
+            "controlGroup": "notifications",
             "controlEnabledId": "hs-setting-notification-opacity-btn",
             "controlOptions": {
                 "min": 0,
@@ -47,6 +62,7 @@
         "settingAction": "logTimestamp",
         "settingControl": {
             "controlType": "switch",
+            "controlGroup": "log",
             "controlEnabledId": "hs-setting-display-timestamp-btn"
         }
     },
@@ -63,6 +79,7 @@
         "settingControl": {
             "controlId": "hs-setting-reactive-mouse-hover-value",
             "controlType": "number",
+            "controlGroup": "mouse",
             "controlEnabledId": "hs-setting-reactive-mouse-hover-btn",
             "controlOptions": {
                 "min": 0,
@@ -84,6 +101,7 @@
         "settingControl": {
             "controlId": "hs-setting-auto-click-value",
             "controlType": "number",
+            "controlGroup": "mouse",
             "controlEnabledId": "hs-setting-auto-click-btn",
             "controlOptions": {
                 "min": 0,
@@ -101,6 +119,7 @@
         "enabled": true,
         "settingControl": {
             "controlType": "switch",
+            "controlGroup": "mouse",
             "controlEnabledId": "hs-setting-autoclick-ignore-btn"
         }
     }

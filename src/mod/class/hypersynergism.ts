@@ -130,7 +130,11 @@ export class Hypersynergism {
             const settingsTabContents = HSSettings.autoBuildSettingsUI();
 
             if(settingsTabContents.didBuild) {
-                hsui.replaceTabContents(3, settingsTabContents.htmlString);
+                hsui.replaceTabContents(3, 
+                    HSUIC.Grid({ 
+                        html: settingsTabContents.htmlString
+                    })
+                );
             }
 
             // BUILD DEBUG TAB

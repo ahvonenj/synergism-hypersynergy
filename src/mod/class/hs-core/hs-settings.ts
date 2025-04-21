@@ -1,8 +1,9 @@
-import { HSSettingBase, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
+import { HSSettingBase, HSSettingControlGroup, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import settings from "inline:../../resource/json/hs-settings.json";
+import settings_control_groups from "inline:../../resource/json/hs-settings-control-groups.json";
 import { HSUIC } from "./hs-ui-components";
 import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
@@ -28,6 +29,7 @@ export class HSSettings extends HSModule {
     static #staticContext = '';
 
     static #settings : HSSettingRecord = {} as HSSettingRecord;
+    static #settingsControlGroups : Record<string, HSSettingControlGroup>;
 
     static #settingsParsed = false;
     static #settingsSynced = false;
@@ -46,6 +48,15 @@ export class HSSettings extends HSModule {
         HSLogger.log(`Parsing mod settings`, this.context);
 
         try {
+            HSLogger.log(`Parsing control groups`, this.context);
+            HSSettings.#settingsControlGroups = JSON.parse(settings_control_groups) as Record<string, HSSettingControlGroup>;
+        } catch(e) {
+            HSLogger.error(`Error parsing control groups ${e}`, this.context);
+            HSSettings.#settingsParsed = false;
+        }
+
+        try {
+            HSLogger.log(`Parsing settings.json`, this.context);
             const resulvedSettings = this.#resolveSettings();
 
             // Set default values for each setting
@@ -55,9 +66,7 @@ export class HSSettings extends HSModule {
                     (setting as any).settingValue = false;
                 }
 
-                if(!this.#validateSetting(setting)) {
-                    throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
-                }
+                this.#validateSetting(setting, HSSettings.#settingsControlGroups);
 
                 const settingActionName = ('settingAction' in setting) ? setting.settingAction : undefined;
                 const settingAction = settingActionName ? this.#settingActions.getAction(settingActionName) : null;
@@ -199,12 +208,45 @@ export class HSSettings extends HSModule {
         const settingsBlocks : string[] = [];
         let didBuild = true;
 
-        for (const [key, settingObj] of Object.typedEntries(HSSettings.#settings)) {
+        // Sort the settings by their control group
+        const sortedSettings = Object.entries(HSSettings.#settings).sort((a, b) => {
+            const aControlGroup = a[1].getDefinition().settingControl?.controlGroup;
+            const bControlGroup = b[1].getDefinition().settingControl?.controlGroup;
+
+            if(aControlGroup && bControlGroup) {
+                return (HSSettings.#settingsControlGroups[aControlGroup].order || 0) - (HSSettings.#settingsControlGroups[bControlGroup].order || 0);
+            } else if(aControlGroup) {
+                return -1;
+            } else if(bControlGroup) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        let currentControlGroup : string | null = null;
+
+        for (const [key, settingObj] of sortedSettings) {
             const setting = settingObj.getDefinition();
             const controls = setting.settingControl;
 
             if(controls) {
                 let components : string[] = [];
+
+                if(!currentControlGroup || currentControlGroup !== controls.controlGroup) {
+                    currentControlGroup = controls.controlGroup;
+                    const controlGroup = HSSettings.#settingsControlGroups[currentControlGroup];
+
+                    // Create control group header
+                    settingsBlocks.push(HSUIC.Div({ 
+                        html: controlGroup.groupName,
+                        styles: {
+                            borderBottom: '1px solid limegreen',
+                            gridColumn: 'span 2',
+                            marginBottom: '15px'
+                        }
+                    }))
+                }
 
                 if(controls.controlType === "switch") {
                     components = [
@@ -253,14 +295,65 @@ export class HSSettings extends HSModule {
         };
     }
 
-    #validateSetting(setting: HSSettingBase<HSSettingType>) {
-        if(!('enabled' in setting)) return false;
-        if(!('settingName' in setting)) return false;
-        if(!('settingDescription' in setting)) return false;
-        if(!('settingValue' in setting)) return false;
-        if(!('settingType' in setting)) return false;
+    #validateSetting(setting: HSSettingBase<HSSettingType>, controlGroups: Record<string, HSSettingControlGroup>) {
+        if(!setting) throw new Error(`Setting is undefined (wtf)`);
 
-        return true;
+        // These should be the same as HSSettingJSONType in hs-settings-types.ts
+        const validSettingTypes = ['numeric', 'string', 'boolean'];
+
+        // These should be the same as HSSettingsControlType in hs-settings-types.ts
+        const validControlTypes = ['text', 'number', 'switch'];
+
+        // Check the name first so we can use it in the error messages
+        if(!('settingName' in setting)) throw new Error(`Setting is missing settingName property`);
+        
+        const settingName = setting.settingName;
+
+        // Check the basic properties
+        if(!('enabled' in setting)) throw new Error(`Setting '${settingName}' is missing enabled property`);
+        if(!('settingDescription' in setting)) throw new Error(`Setting '${settingName}' is missing settingDescription property`);
+        if(!('settingValue' in setting)) throw new Error(`Setting '${settingName}' is missing settingValue property`);
+        if(!('settingType' in setting)) throw new Error(`Setting '${settingName}' is missing settingType property`);
+
+        // Check if the settingType is valid
+        if(!validSettingTypes.includes(setting.settingType)) 
+            throw new Error(`Setting '${settingName}' has invalid settingType property`);
+
+        const settingType = setting.settingType;
+
+        // Check if the settingValue is valid for the settingType
+        if(settingType === 'numeric') {
+            if(!HSUtils.isNumeric(setting.settingValue)) 
+                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
+        } 
+        else if(settingType === 'string') {
+            if(!HSUtils.isString(setting.settingValue))
+                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
+        } 
+        else if(settingType === 'boolean') {
+            if(!HSUtils.isBoolean(setting.settingValue))
+                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
+        }
+
+        // If the setting defines a settingControl, check the properties
+        if('settingControl' in setting) {
+            if(setting.settingControl) {
+                const settingControl = setting.settingControl;
+
+                if(!('controlType' in settingControl))
+                    throw new Error(`Setting '${settingName}' has settingControl defined, but it is missing controlType property`);
+                if(!('controlGroup' in settingControl))
+                    throw new Error(`Setting '${settingName}' has settingControl defined, but it is missing controlGroup property`);
+
+                if(!validControlTypes.includes(settingControl.controlType)) 
+                    throw new Error(`Setting '${settingName}' has invalid controlType property`);
+
+                const controlGroup = settingControl.controlGroup;
+
+                if(!(controlGroup in controlGroups))
+                    throw new Error(`Setting '${settingName}' has invalid controlGroup property`);
+            } 
+        }
     }
 
     static getSetting<K extends keyof HSSettingsDefinition>(settingName: K): HSSetting<HSSettingType> {
@@ -308,9 +401,7 @@ export class HSSettings extends HSModule {
                 (setting as any).settingValue = false;
             }
 
-            if(!this.#validateSetting(setting)) {
-                throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
-            }
+            this.#validateSetting(setting, HSSettings.#settingsControlGroups);
 
             if(setting.settingType === 'numeric' || HSUtils.isNumeric(setting.settingValue)) {
 
@@ -351,24 +442,48 @@ export class HSSettings extends HSModule {
             if(loadedSettings) {
                 HSLogger.log(`<green>Found settings from localStorage!</green>`, this.context);
 
-                // Process each top-level key that exists in A
+                // Process each top-level key that exists in defaultSettings (A)
                 Object.keys(defaultSettings).forEach(topLevelKey => {
-                    // Skip if this top-level key doesn't exist in B
+                    // Skip if this top-level key doesn't exist in loadedSettings (B)
                     if (!(topLevelKey in loadedSettings)) return;
 
-                    // Create an object that only contains nested keys from B that also exist in A
-                    const filteredBNested = Object.entries((loadedSettings as any)[topLevelKey])
-                        .filter(([nestedKey]) => nestedKey in (defaultSettings as any)[topLevelKey])
-                        .reduce((obj, [key, value]) => {
-                            obj[key] = value;
-                            return obj;
-                        }, {} as Record<string, any>);
-
-                    // Merge A's values with the filtered B values
-                    resolved[topLevelKey] = { 
-                    ...(defaultSettings as any)[topLevelKey],   // Start with all of A's values
-                    ...filteredBNested                          // Override with B's valid values
-                    } as any;
+                    // For each property in the top-level object in loadedSettings (B)
+                    // If it exists in defaultSettings (A), use B's value
+                    // This preserves new properties in A that don't exist in B
+                    Object.keys((loadedSettings as any)[topLevelKey]).forEach(nestedKey => {
+                        if (nestedKey in (defaultSettings as any)[topLevelKey]) {
+                            const bValue = (loadedSettings as any)[topLevelKey][nestedKey];
+                            
+                            // If this is a nested object (but not an array), recursively merge
+                            if (
+                                bValue !== null && 
+                                typeof bValue === 'object' && 
+                                !Array.isArray(bValue) &&
+                                typeof (defaultSettings as any)[topLevelKey][nestedKey] === 'object' &&
+                                !Array.isArray((defaultSettings as any)[topLevelKey][nestedKey])
+                            ) {
+                                // For nested objects, preserve structure from A but override with values from B
+                                // where the keys exist in both
+                                const mergedNestedObj = { 
+                                    ...((defaultSettings as any)[topLevelKey][nestedKey]), // Start with all properties from A
+                                };
+                                
+                                // Override with B's values where they exist
+                                Object.keys(bValue).forEach(deepKey => {
+                                    if (deepKey in mergedNestedObj) {
+                                        mergedNestedObj[deepKey] = bValue[deepKey];
+                                    }
+                                });
+                                
+                                // Update the resolved object
+                                (resolved as any)[topLevelKey][nestedKey] = mergedNestedObj;
+                            } else {
+                                // For primitive values or arrays, just use B's value directly
+                                (resolved as any)[topLevelKey][nestedKey] = bValue;
+                            }
+                        }
+                        // If nestedKey doesn't exist in A, we ignore it (doesn't get copied to resolved)
+                    });
                 });
 
                 return resolved as HSSettingsDefinition;
