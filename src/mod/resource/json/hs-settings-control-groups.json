@@ -14,5 +14,9 @@
     "mouse": {
         "groupName": "Mouse settings",
         "order": 4
+    },
+    "ambrosia": {
+        "groupName": "Ambrosia settings",
+        "order": 5
     }
 }

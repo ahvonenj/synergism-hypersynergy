@@ -163,6 +163,8 @@ export const HSGlobal: IHSGlobal = class {
     // HSAmbrosia
     static HSAmbrosia = {
         storageKey: 'ambrosia-loadouts',
+        quickBarId: 'hs-ambrosia-quick-loadout-container',
+        quickBarLoadoutIdPrefix: 'hs-ambrosia-quickbar',
         ambrosiaLoadoutIcons: new Map<AMBROSIA_ICON, HSAmbrosiaLoadoutIcon>([
                 // First row
                 [AMBROSIA_ICON.TUTORIAL, { 

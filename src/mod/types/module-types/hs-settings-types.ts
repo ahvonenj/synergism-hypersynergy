@@ -17,6 +17,7 @@ export interface HSSettingsDefinition {
     reactiveMouseHover: ReactiveMouseHoverSetting;
     autoClick: AutoclickSetting;
     autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
+    ambrosiaQuickBar: AmbrosiaQuickBar;
 }
 
 export interface HSSettingControlOptions {
@@ -69,3 +70,4 @@ export interface LogTimestampSetting extends HSSettingBase<boolean> {}
 export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}
 export interface AutoclickSetting extends HSSettingBase<number> {}
 export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}
+export interface AmbrosiaQuickBar extends HSSettingBase<boolean> {}

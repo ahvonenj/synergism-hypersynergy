@@ -122,5 +122,19 @@
             "controlGroup": "mouse",
             "controlEnabledId": "hs-setting-autoclick-ignore-btn"
         }
+    },
+
+    "ambrosiaQuickBar": {
+        "settingName": "ambrosiaQuickBar",
+        "settingDescription": "Ambrosia quick bar",
+        "settingHelpText": "When enabled, displays ambrosia loadout quick bar in the header. This is a quick way to load ambrosia loadouts without having to open the ambrosia menu.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingAction": "ambrosiaQuickBarAction",
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "ambrosia",
+            "controlEnabledId": "hs-setting-ambrosia-quickbar-btn"
+        }
     }
 }

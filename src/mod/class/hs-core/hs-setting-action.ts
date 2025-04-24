@@ -1,5 +1,7 @@
 import { HSSettingActionParams } from "../../types/module-types/hs-settings-types";
+import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 import { HSLogger } from "./hs-logger";
+import { HSModuleManager } from "./hs-module-manager";
 import { HSMouse } from "./hs-mouse";
 
 /*
@@ -54,6 +56,20 @@ export class HSSettingActions {
 
             if(params.disable && params.disable === true) {
                 HSMouse.clearInterval('click');
+            }
+        },
+
+        ambrosiaQuickBarAction: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            const ambrosiaMod = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+
+            if(ambrosiaMod) {
+                if(params.disable && params.disable === true) {
+                    await ambrosiaMod.destroyQuickBar();
+                } else {
+                    await ambrosiaMod.createQuickBar();
+                }
             }
         }
     }

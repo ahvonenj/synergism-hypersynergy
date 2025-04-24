@@ -9,6 +9,7 @@ import { HSSettings } from "./hs-core/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 import { HSStorage } from "./hs-core/hs-storage";
+import overrideCSS from "inline:../resource/css/hs-overrides.css";
 
 /*
     Class: Hypersynergism
@@ -39,6 +40,9 @@ export class Hypersynergism {
 
         HSLogger.log("Building UI Panel", this.#context);
         this.#buildUIPanelContents();
+
+        HSLogger.log("Injecting style overrides", this.#context);
+        this.#injectStyleOverrides();
 
         // Do this after UI Panel stuff is ready, because
         // syncing basically means syncing the UI with the settings
@@ -167,5 +171,9 @@ export class Hypersynergism {
             hsui.renameTab(3, 'Settings');
             hsui.renameTab(4, 'Debug');
         }
+    }
+
+    #injectStyleOverrides() {
+        HSUI.injectStyle(overrideCSS, 'hs-override-css');
     }
 }

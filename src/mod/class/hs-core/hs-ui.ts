@@ -75,9 +75,7 @@ export class HSUI extends HSModule {
         const self = this;
 
         // Inject UI panel styles
-        const panelStyleElement = document.createElement('style');
-        panelStyleElement.textContent = this.#staticPanelCss;
-        document.head.appendChild(panelStyleElement);
+        HSUI.injectStyle(this.#staticPanelCss, 'hs-panel-css');
 
         // Create temp div, inject UI panel HTML and append the contents to body
         HSUI.injectHTML(this.#staticPanelHtml);

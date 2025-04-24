@@ -43,7 +43,9 @@ export interface HSGlobalMouse {
 }
 
 export interface HSGlobalAmbrosia extends IStoreable {
-    ambrosiaLoadoutIcons: HSAmbrosiaLoadoutIconMapping,
+    ambrosiaLoadoutIcons: HSAmbrosiaLoadoutIconMapping;
+    quickBarId: string;
+    quickBarLoadoutIdPrefix: string;
 }
 
 export interface IHSGlobal {

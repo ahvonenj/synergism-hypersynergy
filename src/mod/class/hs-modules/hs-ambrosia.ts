@@ -5,12 +5,17 @@ import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 import { HSModuleManager } from "../hs-core/hs-module-manager";
+import { HSSetting } from "../hs-core/hs-setting";
+import { HSSettings } from "../hs-core/hs-settings";
 import { HSStorage } from "../hs-core/hs-storage";
 
 export class HSAmbrosia extends HSModule implements HSPersistable {
 
     #ambrosiaGrid: HTMLElement | null = null;
     #loadOutsSlots: HTMLElement[] = [];
+
+    #loadOutContainer: HTMLElement | null = null;
+    #pageHeader: HTMLElement | null = null;
     
     #loadoutState: HSAmbrosiaLoadoutState = new Map<AMBROSIA_LOADOUT_SLOT, AMBROSIA_ICON>();
 
@@ -19,6 +24,8 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
     }
 
     async init() {
+        const self = this;
+
         HSLogger.log(`Initializing HSAmbrosia module`, this.context);
 
         this.#ambrosiaGrid = await HSElementHooker.HookElement('#blueberryUpgradeContainer');
@@ -87,7 +94,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 }
             });
 
-            slot.addEventListener("drop", (e) => {
+            slot.addEventListener("drop", async (e) => {
                 if(e.dataTransfer && e.dataTransfer.types.includes('hs-amb-drag')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -125,10 +132,12 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     this.#applyIconToSlot(slotEnum, iconEnum);
                     this.#loadoutState.set(slotEnum, iconEnum);
                     this.saveState();
+
+                    await self.updateQuickBar();
                 }
             });
 
-            slot.addEventListener('contextmenu', (e) => {
+            slot.addEventListener('contextmenu', async (e) => {
                 e.preventDefault();
 
                 // Clear the slot icon
@@ -151,6 +160,8 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 slotElement.style.backgroundImage = '';
                 this.#loadoutState.delete(slotEnum);
                 this.saveState();
+
+                await self.updateQuickBar();
             });
         });
 
@@ -219,6 +230,72 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
             }
         } else {
             HSLogger.warn(`loadState - Could not find storage module`, this.context);
+        }
+    }
+
+    async createQuickBar() {
+        this.#loadOutContainer = await HSElementHooker.HookElement('#bbLoadoutContainer');
+        this.#pageHeader = await HSElementHooker.HookElement('header');
+
+        if(this.#loadOutContainer && this.#pageHeader) {
+            const referenceElement = this.#pageHeader.querySelector('nav.navbar') as HTMLElement;
+            const clone = this.#loadOutContainer.cloneNode(true) as HTMLElement;
+            clone.id = HSGlobal.HSAmbrosia.quickBarId;
+
+            const cloneSettingButton = clone.querySelector('.blueberryLoadoutSetting') as HTMLButtonElement;
+            const cloneLoadoutButtons = clone.querySelectorAll('.blueberryLoadoutSlot') as NodeListOf<HTMLButtonElement>;
+
+            cloneLoadoutButtons.forEach((button) => {
+                const buttonId = button.id;
+                button.id = `${HSGlobal.HSAmbrosia.quickBarLoadoutIdPrefix}-${buttonId}`;
+
+                button.addEventListener('click', async (e) => {
+                    const realButton = document.querySelector(`#${buttonId}`) as HTMLButtonElement;
+                    const modeButton = document.querySelector('#blueberryToggleMode') as HTMLButtonElement;
+
+                    if(realButton && modeButton) {
+                        const currentMode = modeButton.innerText;
+
+                        if(currentMode.includes('SAVE')) {
+                            HSLogger.info(`Auto-switched loadout mode to LOAD for quickbar`, this.context);
+                            modeButton.click();
+                        }
+
+                        realButton.click();
+                    } else {
+                        HSLogger.warn(`Could not find real button for ${buttonId}`, this.context);
+                    }
+                });
+            });
+
+            if(cloneSettingButton) {
+                cloneSettingButton.remove();
+            }
+
+            this.#pageHeader.insertBefore(clone, referenceElement)
+        }
+    }
+
+    async destroyQuickBar() {
+        if(!this.#pageHeader) {
+            this.#pageHeader = await HSElementHooker.HookElement('header');
+        }
+
+        const quickBar = this.#pageHeader.querySelector(`#${HSGlobal.HSAmbrosia.quickBarId}`) as HTMLElement;
+
+        if(quickBar) {
+            quickBar.remove();
+        } else {
+            HSLogger.warn(`Could not find quick bar element`, this.context);
+        }
+    }
+
+    async updateQuickBar() {
+        const quickbarSetting = HSSettings.getSetting('ambrosiaQuickBar') as HSSetting<boolean>;
+
+        if(quickbarSetting.isEnabled()) {
+            await this.destroyQuickBar();
+            await this.createQuickBar();
         }
     }
 }
