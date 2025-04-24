@@ -44,10 +44,25 @@ Quick overview:
 - Auto click
 - Mod log
 - Ambrosia loadout icons
+- Ambrosia Loadout Quickbar
 
-## Latest update
+## Latest update(s)
 
-Hypersynergism version 2.5.0 introduces ambrosia loadout icons as it's most notable feature:
+### Hypersynergism v2.6.0
+
+Hypersynergism version 2.6.0 introduces **Ambrosia Loadout Quickbar** as it's most notable feature:
+
+<picture>
+  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/ambrosia-quickbar.png?raw=true" width="400" />
+</picture>
+
+More information about this feature can be [found in the wiki](https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features#ambrosia-loadout-quickbar).
+
+In addition to Ambrosia Loadout Quickbar, version 2.6.0 comes with various bug fixes, settings grouping, initial HSStats-module implementation, new tools, new corruption reference sheet and much more.
+
+### Hypersynergism v2.5.0
+
+Hypersynergism version 2.5.0 introduces **Ambrosia Loadout Icons** as it's most notable feature:
 
 <picture>
   <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/loadout_icons.gif?raw=true" width="400" />
