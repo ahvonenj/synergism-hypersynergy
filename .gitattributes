@@ -4,4 +4,9 @@ release/** linguist-generated
 other_scripts/** linguist-generated
 save_utils/** linguist-generated
 snippets/** linguist-generated
+* text=auto
 * text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
