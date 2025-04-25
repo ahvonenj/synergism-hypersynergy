@@ -19,6 +19,7 @@ export abstract class HSModule {
         this.moduleColor = moduleColor;
         this.isInitialized = false;
 
+        // Checking that the colorTag prototype method exists just to be safe (it's defined by the HSPrototypes module)
         if(this.moduleColor && typeof String.prototype.colorTag === 'function')
             HSLogger.log(`Enabled module '${moduleName.colorTag(this.moduleColor)}'`, this.context);
         else

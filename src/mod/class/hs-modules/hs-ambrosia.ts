@@ -234,21 +234,29 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
     }
 
     async createQuickBar() {
+        // Get the ambrosia louadout container element
         this.#loadOutContainer = await HSElementHooker.HookElement('#bbLoadoutContainer');
+
+        // Get the page header element
         this.#pageHeader = await HSElementHooker.HookElement('header');
 
         if(this.#loadOutContainer && this.#pageHeader) {
             const referenceElement = this.#pageHeader.querySelector('nav.navbar') as HTMLElement;
+
+            // Clone the loadout container and set a new ID for it
             const clone = this.#loadOutContainer.cloneNode(true) as HTMLElement;
             clone.id = HSGlobal.HSAmbrosia.quickBarId;
 
             const cloneSettingButton = clone.querySelector('.blueberryLoadoutSetting') as HTMLButtonElement;
             const cloneLoadoutButtons = clone.querySelectorAll('.blueberryLoadoutSlot') as NodeListOf<HTMLButtonElement>;
 
+            // Set a new ID for each quickbar button and add event listeners to them
+            // The ID's must be overwritten to be unique, otherwise all hell breaks loose
             cloneLoadoutButtons.forEach((button) => {
                 const buttonId = button.id;
                 button.id = `${HSGlobal.HSAmbrosia.quickBarLoadoutIdPrefix}-${buttonId}`;
 
+                // Make the quickbar buttons simulate a click on the real buttons
                 button.addEventListener('click', async (e) => {
                     const realButton = document.querySelector(`#${buttonId}`) as HTMLButtonElement;
                     const modeButton = document.querySelector('#blueberryToggleMode') as HTMLButtonElement;
@@ -256,6 +264,8 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     if(realButton && modeButton) {
                         const currentMode = modeButton.innerText;
 
+                        // If the current mode is SAVE, we need to switch to LOAD mode
+                        // This is so that the user never accidentally saves a loadout when using the quickbar
                         if(currentMode.includes('SAVE')) {
                             HSLogger.info(`Auto-switched loadout mode to LOAD for quickbar`, this.context);
                             modeButton.click();
@@ -290,6 +300,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         }
     }
 
+    // Helper method to destroy the quick bar and recreate it (which updates the icons)
     async updateQuickBar() {
         const quickbarSetting = HSSettings.getSetting('ambrosiaQuickBar') as HSSetting<boolean>;
 

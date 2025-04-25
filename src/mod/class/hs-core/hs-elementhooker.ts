@@ -193,6 +193,7 @@ export class HSElementHooker {
         return uuid;
     }
 
+    // Stops the watcher with the given id
     static stopWatching(id: string) {
         const watcher = this.#watchers.get(id);
 
@@ -211,6 +212,7 @@ export class HSElementHooker {
         return false;
     }
 
+    // Stops all watchers
     static stopWatchers() {
         HSLogger.log(`Stopping all watchers`, this.#context);
 

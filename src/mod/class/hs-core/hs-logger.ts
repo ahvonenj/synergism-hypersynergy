@@ -5,6 +5,7 @@ import { HSModuleManager } from "./hs-module-manager";
 import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
 import { HSSetting } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
+import { ShowDebugLogsSetting } from "../../types/module-types/hs-settings-types";
 
 /*
     Class: HSLogger
@@ -63,13 +64,21 @@ export class HSLogger {
                     logLine.classList.add('hs-ui-log-line-error');
                 break;
 
+                case ELogType.DEBUG:
+                    level = "DBG ";
+                    logLine.classList.add('hs-ui-log-line-debug');
+                break;
+
                 default:
                     level = "";
                 break;
             }
 
+            // We add hs-log-ts-hidden to the timestamp span if the setting to show log timestamps is enabled
             const hiddenTS = this.#displayTimestamp ? "" : "hs-log-ts-hidden";
             const moduleFromContext = HSModuleManager.getModule(context);
+
+            // Just makes the [ModuleName] part of the log line colored
             const contextString = (moduleFromContext && moduleFromContext.moduleColor) ? this.#parseColorTags(context.colorTag(moduleFromContext.moduleColor)) : context;
 
             logLine.innerHTML = `${level} [<span class="hs-log-ctx">${contextString}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${this.#parseColorTags(msg)}\n`;
@@ -142,6 +151,8 @@ export class HSLogger {
         }
     }
 
+    // This methods is called every time a log is made
+    // It checks the current log level and if the log type is allowed to be logged
     static #shouldLog(logType: ELogType, isImportant : boolean) : boolean {
         const currentLogLevel = HSGlobal.HSLogger.logLevel;
 
@@ -156,17 +167,13 @@ export class HSLogger {
             case ELogType.ERROR:
                 return (currentLogLevel === ELogLevel.WARN_AND_ERROR || currentLogLevel === ELogLevel.ERROR);
             case ELogType.INFO:
-                return (currentLogLevel === ELogLevel.INFO || currentLogLevel === ELogLevel.EXPLOG);
+                return (currentLogLevel === ELogLevel.INFO || currentLogLevel === ELogLevel.EXPLOG); 
             case ELogType.DEBUG:
-                const debugLog = HSSettings.getSetting('expandCostProtection') as HSSetting<boolean>;
-
-                if(debugLog)
-                    return debugLog.getValue();
-                else
-                    return false;
+                return false;
         }
     }
 
+    // Scrolls the log element to the bottom
     static scrollToBottom() {
         if(this.#integratedToUI && this.#logElement) {
             this.#logElement.scrollTop = this.#logElement.scrollHeight;
@@ -197,6 +204,15 @@ export class HSLogger {
         this.#logToUi(msg, context, ELogType.ERROR);
     }
 
+    static debug(msg: string, context: string = "HSMain", isImportant: boolean = false) {
+        const debugLog = HSSettings.getSetting('showDebugLogs') as HSSetting<boolean>;
+
+        if(debugLog && debugLog.getValue()) {
+            console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
+            this.#logToUi(msg, context, ELogType.DEBUG);
+        }
+    }
+
     static clear() {
         if(this.#integratedToUI) {
             this.#logElement.innerHTML = '';
@@ -204,6 +220,8 @@ export class HSLogger {
         }
     }
 
+    // This gets called when the display timestamp setting is changed
+    // It will add or remove the hs-log-ts-hidden class to all log lines
     static setTimestampDisplay(display: boolean) {
         if(display) {
             this.#displayTimestamp = true;

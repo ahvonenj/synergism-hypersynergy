@@ -14,6 +14,7 @@ export interface HSSettingsDefinition {
     expandCostProtectionDoubleCap: ExpandCostProtectionDoubleCap
     syncNotificationOpacity: SyncNotificationOpacitySetting;
     logTimestamp: LogTimestampSetting;
+    showDebugLogs: ShowDebugLogsSetting;
     reactiveMouseHover: ReactiveMouseHoverSetting;
     autoClick: AutoclickSetting;
     autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
@@ -67,6 +68,7 @@ export interface ExpandCostProtectionSetting extends HSSettingBase<number> {}
 export interface ExpandCostProtectionDoubleCap extends HSSettingBase<boolean> {}
 export interface SyncNotificationOpacitySetting extends HSSettingBase<number> {}
 export interface LogTimestampSetting extends HSSettingBase<boolean> {}
+export interface ShowDebugLogsSetting extends HSSettingBase<boolean> {}
 export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}
 export interface AutoclickSetting extends HSSettingBase<number> {}
 export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}

@@ -67,6 +67,19 @@
         }
     },
 
+    "showDebugLogs": {
+        "settingName": "showDebugLogs",
+        "settingDescription": "Show debug logs",
+        "settingHelpText": "Controls whether 'debug' type logs are visible or not in the mod's log view.'",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "log",
+            "controlEnabledId": "hs-setting-display-debug-logs-btn"
+        }
+    },
+
     "reactiveMouseHover": {
         "settingName": "reactiveMouseHover",
         "settingDescription": "Reactive mouse hover (when SHIFT is held)",

@@ -63,20 +63,29 @@ export class HSPrototypes extends HSModule {
     async init(): Promise<void> {
         HSLogger.log(`Extending native prototypes with extra functionality`, this.context);
 
+        // Extend Element and Document prototypes with delegateEventListener method
         Element.prototype.delegateEventListener = this.#createDelegateEventListener<Element>();
         Document.prototype.delegateEventListener = this.#createDelegateEventListener<Document>();
 
+        // Extend Element and Document prototypes with removeDelegateEventListener method
         Element.prototype.removeDelegateEventListener = this.#createRemoveDelegateEventListener<Element>();
         Document.prototype.removeDelegateEventListener = this.#createRemoveDelegateEventListener<Document>();
 
+        // Extend HTMLElement prototype with transition method
         HTMLElement.prototype.transition = this.#createTransition();
 
+        // Extend Object with typedEntries method
+        // This method is a type-safe version of Object.entries
         Object.typedEntries = this.#typedEntries;
 
+        // Extend String prototype with colorTag method
+        // This method wraps the string in a color tag for use in the mod's log
         String.prototype.colorTag = function(color: string) {
             return `<${color}>${this}</${color}>`;
         }
 
+        // Extend HTMLElement prototype with textNodes method
+        // This method returns an array of text nodes in the element
         HTMLElement.prototype.textNodes = function() {
             return Array.from(this.childNodes)
                         .filter(n => n.nodeType === Node.TEXT_NODE)

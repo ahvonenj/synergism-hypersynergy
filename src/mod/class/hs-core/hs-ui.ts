@@ -291,7 +291,7 @@ export class HSUI extends HSModule {
             styleElement.textContent = styleString;
             document.head.appendChild(styleElement);
 
-            //HSLogger.log(`Injected new CSS`, this.#staticContext);
+            HSLogger.debug(`Injected new CSS`, this.#staticContext);
         }
     }
 
@@ -309,7 +309,7 @@ export class HSUI extends HSModule {
             }
         };
 
-        //HSLogger.log(`Injected new HTML`, this.#staticContext);
+        HSLogger.debug(`Injected new HTML`, this.#staticContext);
     }
 
     renameTab(tabId: number, newName: string) {

@@ -47,6 +47,7 @@ export class HSSettings extends HSModule {
 
         HSLogger.log(`Parsing mod settings`, this.context);
 
+        // Read hs-settings-control-groups.json and parse it
         try {
             HSLogger.log(`Parsing control groups`, this.context);
             HSSettings.#settingsControlGroups = JSON.parse(settings_control_groups) as Record<string, HSSettingControlGroup>;
@@ -57,6 +58,10 @@ export class HSSettings extends HSModule {
 
         try {
             HSLogger.log(`Parsing settings.json`, this.context);
+
+            // Parse and resolve the settings from hs-settings.json and localStorage
+            // This will also validate the settings and figure out things like 
+            // if some settings are missing from localStorage (happens when new settings are added)
             const resulvedSettings = this.#resolveSettings();
 
             // Set default values for each setting
@@ -71,6 +76,7 @@ export class HSSettings extends HSModule {
                 const settingActionName = ('settingAction' in setting) ? setting.settingAction : undefined;
                 const settingAction = settingActionName ? this.#settingActions.getAction(settingActionName) : null;
 
+                // Instantiate the setting as HSSetting objects based on their type
                 if(setting.settingType === 'numeric' || HSUtils.isNumeric(setting.settingValue)) {
 
                     if(!('settingValueMultiplier' in setting as any))
@@ -123,7 +129,7 @@ export class HSSettings extends HSModule {
 
         // Update the setting UI controls with the configured values in hs-settings.json
         for (const [key, settingObj] of Object.typedEntries(HSSettings.#settings)) {
-            //HSLogger.log(`Syncing ${key} settings`, HSSettings.#staticContext);
+            HSLogger.debug(`Syncing ${key} settings`, HSSettings.#staticContext);
             
             const setting = settingObj.getDefinition();
             const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
@@ -132,7 +138,7 @@ export class HSSettings extends HSModule {
                 const controlType = controlSettings.controlType;
                 const controlOptions = controlSettings.controlOptions;
 
-                // Switch control doesn't need value input, thus handled separately
+                // Render input for all the settings that are not a switch (just on/off toggles)
                 if(controlType !== "switch") {
                     const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement;
 
@@ -151,40 +157,23 @@ export class HSSettings extends HSModule {
                         // Listen for changes in the UI input to change the setting value
                         valueElement.addEventListener('change', async (e) => { await this.#settingChangeDelegate(e, settingObj); });
                     }
+                }
 
-                    // This sets up the  "✓" / "✗" button next to the setting input
-                    if(controlSettings.controlEnabledId) {
-                        const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
+                // This sets up the  "✓" / "✗" button next to the setting input (switch type settings just need this one)
+                if(controlSettings.controlEnabledId) {
+                    const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
 
-                        if(toggleElement) {
-                            if(setting.enabled) {
-                                toggleElement.innerText = HSSettings.#settingEnabledString;
-                                toggleElement.classList.remove('hs-disabled');
-                            } else {
-                                toggleElement.innerText = HSSettings.#settingDisabledString;
-                                toggleElement.classList.add('hs-disabled');
-                            }
-
-                            // Handle toggling the setting on/off
-                            toggleElement.addEventListener('click', async (e) => { await this.#settingToggleDelegate(e, settingObj); });
+                    if(toggleElement) {
+                        if(setting.enabled) {
+                            toggleElement.innerText = HSSettings.#settingEnabledString;
+                            toggleElement.classList.remove('hs-disabled');
+                        } else {
+                            toggleElement.innerText = HSSettings.#settingDisabledString;
+                            toggleElement.classList.add('hs-disabled');
                         }
-                    }
-                } else {
-                    if(controlSettings.controlEnabledId) {
-                        const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
 
-                        if(toggleElement) {
-                            if(setting.enabled) {
-                                toggleElement.innerText = HSSettings.#settingEnabledString;
-                                toggleElement.classList.remove('hs-disabled');
-                            } else {
-                                toggleElement.innerText = HSSettings.#settingDisabledString;
-                                toggleElement.classList.add('hs-disabled');
-                            }
-
-                            // Handle toggling the setting on/off
-                            toggleElement.addEventListener('click', async (e) => { await this.#settingToggleDelegate(e, settingObj); });
-                        }
+                        // Handle toggling the setting on/off
+                        toggleElement.addEventListener('click', async (e) => { await this.#settingToggleDelegate(e, settingObj); });
                     }
                 }
 
@@ -233,6 +222,8 @@ export class HSSettings extends HSModule {
             if(controls) {
                 let components : string[] = [];
 
+                // Check if the control group is different from the previous one
+                // If so, create a new setting group header
                 if(!currentControlGroup || currentControlGroup !== controls.controlGroup) {
                     currentControlGroup = controls.controlGroup;
                     const controlGroup = HSSettings.#settingsControlGroups[currentControlGroup];
@@ -364,7 +355,7 @@ export class HSSettings extends HSModule {
         return this.#settings;
     }
 
-    // Serializes all current settings into JSON string
+    // Serializes all current settings into a JSON string
     static #serializeSettings(): string {
         const serializeableSettings = { }
 
@@ -385,7 +376,7 @@ export class HSSettings extends HSModule {
             if(!saved) {
                 HSLogger.warn(`Could not save settings to localStorage`, this.#staticContext);
             } else {
-                //HSLogger.log(`<green>Settings saved to localStorage</green>`, this.#staticContext);
+                HSLogger.debug(`<green>Settings saved to localStorage</green>`, this.#staticContext);
             }
         }
     }

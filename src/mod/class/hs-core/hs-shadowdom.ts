@@ -2,6 +2,12 @@ import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 
+/*
+    Class: HSShadowDOM
+    IsExplicitHSModule: Yes
+    Description: 
+        Hypersynergism module for creating and managing shadow DOM elements.
+*/
 export class HSShadowDOM extends HSModule {
 
     #shadows;
@@ -13,6 +19,7 @@ export class HSShadowDOM extends HSModule {
 
     async init() { }
 
+    // Creates a shadow DOM for the given element and returns the HSShadow instance.
     createShadow(element: HTMLElement, shadowName?: string, visible = false) {
         const name = shadowName ?? HSUtils.domid();
         const existingShadow = this.#shadowExists(element);
@@ -55,6 +62,13 @@ export class HSShadowDOM extends HSModule {
     }
 }
 
+/*
+    Class: HSShadow
+    IsExplicitHSModule: No
+    Description: 
+        Wrapper class for shadow DOM elements created by HSShadowDOM.
+        Contains methods to create, destroy and manage the shadow DOM elements.
+*/
 export class HSShadow {
     #context = 'HSShadow';
 
@@ -110,11 +124,13 @@ export class HSShadow {
     }
 
     create(visible = false) {
+        // Save the original styles of the element
         this.#elementOriginalStyles = this.#element.style.cssText;
 
         const parent = this.#element.parentNode;
         this.#elementNextSibling = this.#element.nextSibling;
 
+        // If the element has no parent, we can't create a shadow (or we don't want to because we can't restore it)
         if(!parent) {
             HSLogger.warn(`Could not create shadow, parent is null`, this.#context);
             return null;

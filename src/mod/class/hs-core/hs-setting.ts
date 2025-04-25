@@ -1,6 +1,13 @@
 import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
 
+/* 
+    Class: HSSetting
+    IsExplicitHSModule: No
+    Description: 
+        Abstract class for all Hypersynergism settings
+        Contains the setting's definition and the action to be performed when the setting is changed
+*/
 export abstract class HSSetting<T extends HSSettingType> {
     protected context = 'HSSetting';
 
@@ -40,6 +47,8 @@ export abstract class HSSetting<T extends HSSettingType> {
         this.definition.enabled = false;
     }
 
+    // Toggles the setting's state and updates the UI accordingly
+    // This is generic for all (toggleable) settings
     async handleToggle(e: MouseEvent) {
         HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
         
@@ -59,10 +68,12 @@ export abstract class HSSetting<T extends HSSettingType> {
         this.handleSettingAction('state', newState);
     }
 
+    // For settings which have a settingAction defined, this will be called when the setting is initialized
     async initialAction(changeType: 'value' | 'state', initialState?: boolean) {
         await this.handleSettingAction(changeType, initialState);
     }
 
+    // Handles a setting's settingAction for all settings
     protected async handleSettingAction(changeType: 'value' | 'state', newState?: boolean): Promise<void> {
         if(this.settingAction) {
             const action = this.settingAction;
@@ -134,6 +145,8 @@ export class HSNumericSetting extends HSSetting<number> {
         return this.definition.settingValue = value;
     }
 
+    // Number type settings need to handle the change event differently
+    // because they need to take settingValueMultiplier into account
     async handleChange(e: Event) {
         const newValue = parseFloat((e.target as HTMLInputElement).value);
 
@@ -192,5 +205,6 @@ export class HSBooleanSetting extends HSSetting<boolean> {
         this.definition.enabled = value;
     }
 
+    // Boolean type settings have no value, they are just toggled on/off
     async handleChange(e: Event) { }
 }

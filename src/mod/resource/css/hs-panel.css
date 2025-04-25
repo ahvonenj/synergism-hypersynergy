@@ -241,6 +241,10 @@
     color: red;
 }
 
+.hs-ui-log-line-debug {
+    font-style : italic;
+}
+
 .hs-log-ts-hidden {
     display: none;
 }
