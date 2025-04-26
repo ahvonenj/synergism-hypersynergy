@@ -40,6 +40,17 @@ export const HSGlobal: IHSGlobal = class {
 
         // Watchers
         watcherThrottlingMS: 50,
+
+        defaultWatcherOptions: {
+            greedy: false,
+            overrideThrottle: false,
+            characterData: true,
+            childList: true,
+            subtree: true,
+            attributes: false,
+            attributeOldValue: false,
+            attributeFilter: []
+        }
     }
 
 

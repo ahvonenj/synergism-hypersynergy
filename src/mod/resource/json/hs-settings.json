@@ -32,6 +32,19 @@
         }
     },
 
+    "expandCostProtectionNotifications": {
+        "settingName": "expandCostProtectionNotifications",
+        "settingDescription": "Suppress cost protection logs",
+        "settingHelpText": "Check this if you want to suppress the rather spammy cost protection notifications in the log",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "hepteracts",
+            "controlEnabledId": "hs-setting-hepteract-cost-protection-notifications-btn"
+        }
+    },
+
     "syncNotificationOpacity": {
         "settingName": "syncNotificationOpacity",
         "settingDescription": "Notification opacity",

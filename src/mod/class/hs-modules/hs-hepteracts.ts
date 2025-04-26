@@ -1,4 +1,6 @@
+import { CUBE_VIEW, GAME_STATE_CHANGE, MAIN_VIEW } from "../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
+import { HSGameState } from "../hs-core/hs-gamestate";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 import { HSModuleManager } from "../hs-core/hs-module-manager";
@@ -83,8 +85,10 @@ export class HSHepteracts extends HSModule {
     #ratioElementB?: HTMLElement;
     #ratioElementC?: HTMLElement;
 
+    #hepteractForgeView?: HTMLElement;
     #ownedHepteractsElement?: HTMLElement;
     #ownedHepteracts?: number;
+    #ownedHepteractsWatch?: string;
 
     // Quick expand is expected to be spam clicked
     // We need to make sure that hepteract expansion + max goes through
@@ -109,6 +113,52 @@ export class HSHepteracts extends HSModule {
         const self = this;
 
         HSLogger.log("Initialising HSHepteracts module", this.context);
+
+        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+
+        if(gameStateMod) {
+            gameStateMod.subscribeGameStateChange(GAME_STATE_CHANGE.MAIN_VIEW, (prevView, currentView) => {
+                if(currentView.getId() !== MAIN_VIEW.CUBES && gameStateMod.getCurrentCubeView().getId() === CUBE_VIEW.HEPTERACT_FORGE) {
+                    if(self.#ownedHepteractsWatch) {
+                        HSLogger.debug("Hepteract forge view closed, stopping watch", this.context);
+                        HSElementHooker.stopWatching(self.#ownedHepteractsWatch);
+                    }
+                } 
+            });
+
+            gameStateMod.subscribeGameStateChange(GAME_STATE_CHANGE.CUBE_VIEW, async (prevView, currentView) => {
+                if(currentView.getId() === CUBE_VIEW.HEPTERACT_FORGE) {
+                    HSLogger.debug("Hepteract forge view opened, starting watch", this.context);
+                    self.#ownedHepteractsElement = await HSElementHooker.HookElement('#hepteractQuantity') as HTMLElement;
+
+                    // Sets up a watch to watch for changes in the element which shows owned hepteracts amount
+                    self.#ownedHepteractsWatch = HSElementHooker.watchElement(self.#ownedHepteractsElement, (value) => {
+                        try {
+                            const hepts = parseFloat(value);
+                            self.#ownedHepteracts = hepts;
+                        } catch (e) {
+                            HSLogger.error(`Failed to parse owned hepteracts`, self.context);
+                        }
+
+                        self.#watchUpdatePending = false;
+                    }, 
+                    {
+                        greedy: true,
+                        overrideThrottle: true,
+                        valueParser: (element) => {
+                            const subElement = element.querySelector('span');
+                            const value = subElement?.innerText;
+                            return value;
+                        }
+                    });
+                } else if(prevView.getId() === CUBE_VIEW.HEPTERACT_FORGE) {
+                    if(self.#ownedHepteractsWatch) {
+                        HSLogger.debug("Hepteract forge view closed, stopping watch", this.context);
+                        HSElementHooker.stopWatching(self.#ownedHepteractsWatch);
+                    }
+                }
+            });
+        }
 
         this.#heptGrid = await HSElementHooker.HookElement('#heptGrid');
 
@@ -186,7 +236,12 @@ export class HSHepteracts extends HSModule {
                                 const settingValue = expandCostProtectionSetting.getCalculatedValue();
 
                                 if(settingValue && percentOwned >= settingValue) {
-                                    HSLogger.info(`Buying ${id} would cost ${HSUtils.N(buyCost)} hepts (${percentOwned.toFixed(2)} of current hepts) which is >= ${settingValue} (cost protection)`, this.context);
+                                    const costProtectionNotificationSetting = HSSettings.getSetting('expandCostProtectionNotifications') as HSSetting<boolean>;
+
+                                    if(costProtectionNotificationSetting && costProtectionNotificationSetting.getValue() === false) {
+                                        HSLogger.info(`Buying ${id} would cost ${HSUtils.N(buyCost)} hepts (${percentOwned.toFixed(2)} of current hepts) which is >= ${settingValue} (cost protection)`, this.context);
+                                    }
+
                                     self.#watchUpdatePending = false;
                                     self.#expandPending = false;
                                     return;
@@ -198,9 +253,11 @@ export class HSHepteracts extends HSModule {
                                 self.#expandPending = false;
                                 return;
                             }
-
+                            
                             // Get instance of the Shadow DOM module
                             const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                            // This is the small "ON/OFF" toggle button which is used to enable/disable the hepteract buy notifications
+                            const hepteractBuyNotificationToggle = await HSElementHooker.HookElement('#toggle35') as HTMLButtonElement;
 
                             if(shadowDOM) {
                                 // Query for the modal background and confirm modal elements
@@ -213,6 +270,11 @@ export class HSHepteracts extends HSModule {
                                     const bgShadow = shadowDOM.createShadow(bg);
                                     const confirmShadow = shadowDOM.createShadow(confirm);
 
+                                    if(hepteractBuyNotificationToggle && hepteractBuyNotificationToggle.innerText.includes('ON')) {
+                                        HSLogger.info(`Turned hepteract notification toggle OFF`, this.context);
+                                        hepteractBuyNotificationToggle.click();
+                                    }
+
                                     // Perform our cap- and max button clicking
                                     if(bgShadow && confirmShadow) {
                                         capBtn.click();
@@ -222,11 +284,6 @@ export class HSHepteracts extends HSModule {
                                         (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
                                         await HSUtils.wait(5);
                                         craftMaxBtn.click();
-                                        await HSUtils.wait(5);
-                                        (confirm.querySelector('#confirmWrapper > #confirm > #ok_confirm') as HTMLButtonElement).click();
-                                        await HSUtils.wait(5);
-                                        (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
-                                        await HSUtils.wait(5);
 
                                         // Attach the elements back to the DOM by destroying the shadows
                                         shadowDOM.destroyShadow(bgShadow);
@@ -303,45 +360,29 @@ export class HSHepteracts extends HSModule {
                     } else {
                         HSLogger.warn(`Key ${boxName} not found in #boxCounts`, self.context);
                     }
-                }, (element) => {
-                    const value = element.innerText;
-
-                    if(typeof value === 'string') {
-                        const split = value.split('/');
-
-                        try {
-                            if(split && split[1]) {
-                                return parseFloat(split[1]);
+                }, {
+                    valueParser: (element) => {
+                        const value = element.innerText;
+    
+                        if(typeof value === 'string') {
+                            const split = value.split('/');
+    
+                            try {
+                                if(split && split[1]) {
+                                    return parseFloat(split[1]);
+                                }
+                            } catch (e) {
+                                HSLogger.warn(`Parsing failed for ${split}`, self.context);
+                                return '';
                             }
-                        } catch (e) {
-                            HSLogger.warn(`Parsing failed for ${split}`, self.context);
-                            return '';
                         }
+                        return '';
                     }
-                    return '';
                 });
             } else {
                 HSLogger.warn(`Invalid meter or boxName`, self.context);
             }
         });
-
-        this.#ownedHepteractsElement = await HSElementHooker.HookElement('#hepteractQuantity') as HTMLElement;
-
-        // Sets up a watch to watch for changes in the element which shows owned hepteracts amount
-        HSElementHooker.watchElement(this.#ownedHepteractsElement, (value) => {
-            try {
-                const hepts = parseFloat(value);
-                self.#ownedHepteracts = hepts;
-            } catch (e) {
-                HSLogger.error(`Failed to parse owned hepteracts`, self.context);
-            }
-
-            self.#watchUpdatePending = false;
-        }, (element) => {
-            const subElement = element.querySelector('span');
-            const value = subElement?.innerText;
-            return value;
-        }, true);
 
         this.isInitialized = true;
     }

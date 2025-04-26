@@ -12,6 +12,7 @@ export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSet
 export interface HSSettingsDefinition {
     expandCostProtection: ExpandCostProtectionSetting;
     expandCostProtectionDoubleCap: ExpandCostProtectionDoubleCap
+    expandCostProtectionNotifications: ExpandCostProtectionNotifications;
     syncNotificationOpacity: SyncNotificationOpacitySetting;
     logTimestamp: LogTimestampSetting;
     showDebugLogs: ShowDebugLogsSetting;
@@ -66,6 +67,7 @@ export interface HSSettingBase<T> {
 
 export interface ExpandCostProtectionSetting extends HSSettingBase<number> {}
 export interface ExpandCostProtectionDoubleCap extends HSSettingBase<boolean> {}
+export interface ExpandCostProtectionNotifications extends HSSettingBase<boolean> {}
 export interface SyncNotificationOpacitySetting extends HSSettingBase<number> {}
 export interface LogTimestampSetting extends HSSettingBase<boolean> {}
 export interface ShowDebugLogsSetting extends HSSettingBase<boolean> {}

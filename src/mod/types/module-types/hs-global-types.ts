@@ -1,4 +1,5 @@
 import { HSAmbrosiaLoadoutIconMapping } from "./hs-ambrosia-types";
+import { HSWatcherOptions } from "./hs-elementhooker-types";
 import { ELogLevel } from "./hs-logger-types";
 
 interface IStoreable {
@@ -23,6 +24,7 @@ export interface HSGlobalElementHooker {
     enableHelementHookTimeout: boolean,
     elementHookTimeout: number;
     watcherThrottlingMS: number;
+    defaultWatcherOptions: HSWatcherOptions;
 }
 
 export interface HSGlobalLogger {

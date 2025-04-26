@@ -1,4 +1,4 @@
-import { HSElementWatcher } from "../../types/module-types/hs-elementhooker-types";
+import { HSElementWatcher, HSWatcherOptions } from "../../types/module-types/hs-elementhooker-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
@@ -102,9 +102,9 @@ export class HSElementHooker {
     // This can be used to e.g. watch and catch changes in some element's value (like maybe you'd like to watch owned gold or diamonds)
     // As we don't have access to the game variables themselves, we just have to read values from the DOM
 
-    // Callback is the function which the watcher calls when a change in the element is detected and the currentValue will be the parsed value of the element
+    // Callback is the function which the watcher calls when a change in the element is detected and after the valueParser has been called
 
-    // valueParser is called before callback. It is called first when changes in element are detected and receives the element as parameter
+    // valueParser is called before callback. It is called first when changes in element are detected and receives the element and the mutations as parameter
     // It is expected that valueParser returns the value of the element in some way or form so it can be passed to callback
     // By default valueParser is a function: (element) => element.innerText
 
@@ -112,12 +112,14 @@ export class HSElementHooker {
     // Sometimes you might want to update things when the element is updated, even if the value isn't
     
     // Watches / MutationObservers are throttled to trigger 20 times per second at max to not degrade performance, especially if there are many watches
-    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, valueParser?: (watchedElement: HTMLElement) => any, greedy = false) {
+    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, watcherOptions?: HSWatcherOptions) {
         const self = this;
+
+        const options : HSWatcherOptions = { ...HSGlobal.HSElementHooker.defaultWatcherOptions, ...watcherOptions };
 
         if (!element) {
             HSLogger.warn('watchElement - element not found', this.#context);
-            return false;
+            return;
         }
 
         // Generate unique id for the watcher
@@ -128,7 +130,7 @@ export class HSElementHooker {
             element: element,
             callback: callback,
             value: undefined,
-            parser: valueParser ? valueParser : (element) => element.innerText,
+            parser: options.valueParser ? options.valueParser : (element) => element.innerText,
             observer: undefined,
             lastCall: undefined
         });
@@ -139,7 +141,7 @@ export class HSElementHooker {
 
             if(watcher) {
                 // Throttling
-                if(watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.watcherThrottlingMS) {
+                if(!options.overrideThrottle && (watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.watcherThrottlingMS)) {
                     return;
                 }
 
@@ -149,10 +151,10 @@ export class HSElementHooker {
 
                 if(wParser) {
                     // Parse the element's value with either the supplied valueParser or the default parser
-                    const newValue = wParser(element);
+                    const newValue = wParser(element, mutations);
 
                     // By default callback is only triggered on actual value changes, unless greedy=true
-                    if (newValue !== prevValue || greedy) {
+                    if (newValue !== prevValue || options.greedy) {
                         watcher.value = newValue;
 
                         // Call the callback with the new value
@@ -178,11 +180,18 @@ export class HSElementHooker {
             HSLogger.warn('watchElement - error while setting up observer, could not get watcher', this.#context);
         }
 
-        observer.observe(element, {
-            characterData: true,
-            childList: true,
-            subtree: true
-        });
+        let observerOptions : MutationObserverInit = {
+                characterData: options.characterData,
+                childList:  options.childList,
+                subtree: options.subtree, 
+                attributes: options.attributes,
+        }
+
+        if(options.attributes) {
+            observerOptions = { ...observerOptions, attributeOldValue: options.attributeOldValue, attributeFilter: options.attributeFilter };
+        }
+
+        observer.observe(element, observerOptions);
 
         /*if(element.id) {
             HSLogger.log(`Watcher set on ${element.nodeName} (id: ${element.id}) with uuid ${uuid}`, this.#context);

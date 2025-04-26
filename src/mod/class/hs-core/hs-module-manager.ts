@@ -15,6 +15,7 @@ import { HSShadowDOM } from "./hs-shadowdom";
 import { HSStorage } from "./hs-storage";
 import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 import { HSStats } from "../hs-modules/hs-stats";
+import { HSGameState } from "./hs-gamestate";
 
 /*
     Class: HSModuleManager
@@ -43,6 +44,7 @@ export class HSModuleManager {
         "HSStorage": HSStorage,
         "HSAmbrosia": HSAmbrosia,
         "HSStats": HSStats,
+        "HSGameState": HSGameState,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {
@@ -60,7 +62,14 @@ export class HSModuleManager {
     }
 
     async preprocessModules() {
+        const seenModules: string[] = [];
+
         this.#modules.forEach(async def => {
+            if(seenModules.includes(def.className)) {
+                HSLogger.warn(`Module "${def.className}" is already enabled - there is probably a duplicate module in enabledModules (index.ts)!`, this.#context);
+                return;
+            }
+
             const module =  this.addModule(def.className, def.context || def.className, def.moduleName || def.className, def.moduleColor);
 
             if(def.initImmediate !== undefined && def.initImmediate === true) {
@@ -75,6 +84,8 @@ export class HSModuleManager {
                     }
                 }
             }
+
+            seenModules.push(def.className);
         });
     }
 
