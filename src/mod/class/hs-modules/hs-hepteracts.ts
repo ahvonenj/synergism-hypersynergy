@@ -118,7 +118,10 @@ export class HSHepteracts extends HSModule {
 
         if(gameStateMod) {
             gameStateMod.subscribeGameStateChange(GAME_STATE_CHANGE.MAIN_VIEW, (prevView, currentView) => {
-                if(currentView.getId() !== MAIN_VIEW.CUBES && gameStateMod.getCurrentCubeView().getId() === CUBE_VIEW.HEPTERACT_FORGE) {
+                if(prevView.getId() === MAIN_VIEW.CUBES && 
+                    currentView.getId() !== MAIN_VIEW.CUBES && 
+                    gameStateMod.getCurrentCubeView().getId() === CUBE_VIEW.HEPTERACT_FORGE
+                ) {
                     if(self.#ownedHepteractsWatch) {
                         HSLogger.debug("Hepteract forge view closed, stopping watch", this.context);
                         HSElementHooker.stopWatching(self.#ownedHepteractsWatch);
