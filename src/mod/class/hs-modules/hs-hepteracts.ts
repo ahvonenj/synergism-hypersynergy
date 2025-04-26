@@ -198,7 +198,7 @@ export class HSHepteracts extends HSModule {
                     if(craftMaxBtn && capBtn && heptImg) {
                         heptImg.addEventListener('click', async () => {
                             if(self.#expandPending || self.#watchUpdatePending) {
-                                HSLogger.warn(`Quick expand cancelled, another expand was still pending (exp ${self.#expandPending}, wtch: ${self.#watchUpdatePending})`, self.context);
+                                HSLogger.debug(`Quick expand cancelled, another expand was still pending (exp ${self.#expandPending}, wtch: ${self.#watchUpdatePending})`, self.context);
                                 self.#expandPending = false;
                                 return;
                             }
