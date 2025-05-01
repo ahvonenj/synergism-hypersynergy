@@ -1,5 +1,6 @@
 import { HSSettingActionParams } from "../../types/module-types/hs-settings-types";
 import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
+import { HSPatches } from "../hs-modules/hs-patches";
 import { HSLogger } from "./hs-logger";
 import { HSModuleManager } from "./hs-module-manager";
 import { HSMouse } from "./hs-mouse";
@@ -71,7 +72,28 @@ export class HSSettingActions {
                     await ambrosiaMod.createQuickBar();
                 }
             }
-        }
+        },
+
+        patch: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            if(!params.patchConfig) {
+                HSLogger.error("No patch config provided for setting action", context);
+                return;
+            }
+
+            const patchMod = HSModuleManager.getModule<HSPatches>('HSPatches');
+
+            if(patchMod) {
+                if(params.disable && params.disable === true) {
+                    console.log("Disabling patch", params.patchConfig.patchName, context);
+                    await patchMod.revertPatch(params.patchConfig.patchName);
+                } else {
+                    console.log("Enabling patch", params.patchConfig.patchName, context);
+                    await patchMod.applyPatch(params.patchConfig.patchName);
+                }
+            }
+        },
     }
 
     constructor() {

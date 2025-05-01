@@ -295,6 +295,17 @@ export class HSUI extends HSModule {
         }
     }
 
+    // Can be used to inject arbitrary CSS into the page
+    static removeInjectedStyle(styleId: string) {
+        const styleElement = document.getElementById(styleId);
+        if(styleElement) {
+            styleElement.parentElement?.removeChild(styleElement);
+            HSLogger.debug(`Removed injected CSS`, this.#staticContext);
+        } else {
+            HSLogger.warn(`Could not find style with id ${styleId}`, this.#staticContext);
+        }
+    }
+
     // Can be used to inject arbitrary HTML
     // injectFunction can be supplied to control where the HTML is injected
     static injectHTML(htmlString: string, injectFunction?: (node: ChildNode) => void) {

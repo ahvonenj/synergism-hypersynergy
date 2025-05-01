@@ -162,5 +162,41 @@
             "controlGroup": "ambrosia",
             "controlEnabledId": "hs-setting-ambrosia-quickbar-btn"
         }
+    },
+
+    "patch_ambrosiaViewOverflow": {
+        "settingName": "patch_ambrosiaViewOverflow",
+        "settingDescription": "Fix ambrosia view overflow",
+        "settingHelpText": "This patch fixes an overflow issue in the ambrosia view which makes the page jump around when hovering over ambrosia upgrades.",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingAction": "patch",
+        "patchConfig": {
+            "patchName": "AmbrosiaViewOverflow",
+            "patchClassName": "PATCH_AmbrosiaViewOverflow"
+        },
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "patch",
+            "controlEnabledId": "hs-setting-patch-ambrosia-view-overflow-btn"
+        }
+    },
+
+    "patch_testPatch": {
+        "settingName": "patch_testPatch",
+        "settingDescription": "Test patch",
+        "settingHelpText": "Test patch (makes the Buildings button color red)",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingAction": "patch",
+        "patchConfig": {
+            "patchName": "TestPatch",
+            "patchClassName": "PATCH_TestPatch"
+        },
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "patch",
+            "controlEnabledId": "hs-setting-patch-test-btn"
+        }
     }
 }

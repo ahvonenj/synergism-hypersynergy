@@ -5,6 +5,7 @@
 */
 
 import { HSSetting } from "../../class/hs-core/hs-setting";
+import { HSPatch } from "../../class/patches/hs-patch";
 
 export type HSSettingType = number | string | boolean;
 export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSettingType>>;
@@ -20,6 +21,8 @@ export interface HSSettingsDefinition {
     autoClick: AutoclickSetting;
     autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
     ambrosiaQuickBar: AmbrosiaQuickBar;
+
+    PATCH_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
 }
 
 export interface HSSettingControlOptions {
@@ -32,10 +35,11 @@ export interface HSSettingControlOptions {
 export type HSSettingsControlType = "text" | "number" | "switch";
 export type HSSettingJSONType = "numeric" | "string" | "boolean";
 
-export type HSSettingActionParams = {
+export interface HSSettingActionParams {
     contextName?: string,
     value?: any,
-    disable?: boolean
+    disable?: boolean,
+    patchConfig?: HSPatchConfig;
 }
 
 export interface HSSettingControlGroup {
@@ -51,6 +55,11 @@ export interface HSSettingControl {
     controlOptions?: HSSettingControlOptions;
 }
 
+export interface HSPatchConfig {
+    patchName: string;
+    patchClassName: string;
+}
+
 export interface HSSettingBase<T> {
     enabled: boolean;
     settingName: string;
@@ -63,6 +72,7 @@ export interface HSSettingBase<T> {
     defaultValue?: T;
     settingControl?: HSSettingControl;
     settingAction?: string;
+    patchConfig?: HSPatchConfig;
 }
 
 export interface ExpandCostProtectionSetting extends HSSettingBase<number> {}
@@ -75,3 +85,5 @@ export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}
 export interface AutoclickSetting extends HSSettingBase<number> {}
 export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}
 export interface AmbrosiaQuickBar extends HSSettingBase<boolean> {}
+
+export interface PATCH_ambrosiaViewOverflow extends HSSettingBase<boolean> {}

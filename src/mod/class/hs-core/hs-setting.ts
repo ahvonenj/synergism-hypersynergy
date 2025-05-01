@@ -78,25 +78,31 @@ export abstract class HSSetting<T extends HSSettingType> {
         if(this.settingAction) {
             const action = this.settingAction;
 
+            const actionConfig : HSSettingActionParams = {
+                contextName: this.context,
+                value: this.definition.calculatedSettingValue ?? null
+            }
+
+            if(this.definition.patchConfig) {
+                actionConfig.patchConfig = this.definition.patchConfig;
+            }
+
             if(action && action instanceof Function) {
                 if(changeType === "state") {
                     if(newState) {
                         await action({
-                            contextName: this.context,
-                            value: this.definition.calculatedSettingValue ?? null,
+                            ...actionConfig,
                             disable: false
                         });
                     } else {
                         await action({
-                            contextName: this.context,
-                            value: this.definition.calculatedSettingValue ?? null,
+                            ...actionConfig,
                             disable: true
                         });
                     }
                 } else {
                     await action({
-                        contextName: this.context,
-                        value: this.definition.calculatedSettingValue ?? null,
+                        ...actionConfig,
                         disable: false
                     });
                 }
@@ -154,6 +160,7 @@ export class HSNumericSetting extends HSSetting<number> {
         
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
+
         await super.handleSettingAction("value");
     }
 }

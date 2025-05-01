@@ -16,6 +16,7 @@ import { HSStorage } from "./hs-storage";
 import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 import { HSStats } from "../hs-modules/hs-stats";
 import { HSGameState } from "./hs-gamestate";
+import { HSPatches } from "../hs-modules/hs-patches";
 
 /*
     Class: HSModuleManager
@@ -45,6 +46,7 @@ export class HSModuleManager {
         "HSAmbrosia": HSAmbrosia,
         "HSStats": HSStats,
         "HSGameState": HSGameState,
+        "HSPatches": HSPatches,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {

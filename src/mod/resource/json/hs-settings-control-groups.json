@@ -18,5 +18,9 @@
     "ambrosia": {
         "groupName": "Ambrosia settings",
         "order": 5
+    },
+    "patch": {
+        "groupName": "Patch settings",
+        "order": 6
     }
 }
