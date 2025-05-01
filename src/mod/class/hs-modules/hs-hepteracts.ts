@@ -53,7 +53,7 @@ export class HSHepteracts extends HSModule {
     #hepteractCosts : { [key: string]: number | null } = {
         chronosHepteract: null,
         hyperrealismHepteract: null,
-        quarkHepteract: null,
+        quarkHepteract: 100,
         challengeHepteract: null,
         abyssHepteract: null,
         acceleratorHepteract: null,
@@ -182,6 +182,11 @@ export class HSHepteracts extends HSModule {
 
                     // As hepteract costs are not static and we don't have direct access to them, we need to parse them from the DOM in a "just-in-time" manner...
                     htmlNode.addEventListener('mouseenter', async (e: MouseEvent) => {
+
+                        if(id in self.#hepteractCosts && id === 'quarkHepteract') {
+                            return;
+                        }
+
                         const costElement = document.querySelector('#hepteractCostText') as HTMLDivElement;
 
                         if(costElement) {
@@ -492,16 +497,16 @@ export class HSHepteracts extends HSModule {
                 costText.id = 'hs-costText';
 
                 if(isQuarkHepteract)
-                    costText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: Not implemented yet, check back later :)`;
+                    costText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    costText.innerText = `[${this.context}]: Total hept cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
+                    costText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
 
                 this.#hepteractCraftTexts.appendChild(costText);
             } else {
                 if(isQuarkHepteract)
-                    hasCostText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: Not implemented yet, check back later :)`;
+                    hasCostText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    hasCostText.innerText = `[${this.context}]: Total hept cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
+                    hasCostText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
             }
         }
     }
