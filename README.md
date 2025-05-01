@@ -48,6 +48,25 @@ Quick overview:
 
 ## Latest update(s)
 
+### Hypersynergism version 2.6.1 - The Statistics and Ambrosia Update
+
+<picture>
+  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/ambrosia_icons_2.gif?raw=true" width="400" />
+</picture>
+
+**Features**
+
+- Compability changes to support the new update
+- Added support for new ambrosia icons to be used in loadouts
+- Fixed issue with how settings are saved
+- Made quick expand and max automatically toggle hepteract confirmation notifications OFF.
+- Fixed issue with how settings are saved
+- Optimized element watcher(s) in HSHepteracts module. (hepteract quick expand can now be spammed more robustly and faster)
+- Hepteracts will now show their "next max hepteract cost" in the UI when hovered
+- Quark Hepteract shows the "next max quark cost" instead of hepteract cost
+- Added "Patch settings"
+- Added toggleable patch to fix overflow issues with the ambrosia page which made the page jump around
+
 ### Hypersynergism v2.6.0
 
 Hypersynergism version 2.6.0 introduces **Ambrosia Loadout Quickbar** as it's most notable feature:
@@ -59,16 +78,6 @@ Hypersynergism version 2.6.0 introduces **Ambrosia Loadout Quickbar** as it's mo
 More information about this feature can be [found in the wiki](https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features#ambrosia-loadout-quickbar).
 
 In addition to Ambrosia Loadout Quickbar, version 2.6.0 comes with various bug fixes, settings grouping, initial HSStats-module implementation, new tools, new corruption reference sheet and much more.
-
-### Hypersynergism v2.5.0
-
-Hypersynergism version 2.5.0 introduces **Ambrosia Loadout Icons** as it's most notable feature:
-
-<picture>
-  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/loadout_icons.gif?raw=true" width="400" />
-</picture>
-
-Simply drag any of the ambrosia upgrade icons to any of the loadout slots. Assigned icons persist and will be automatically assigned back when the mod loads!
 
 # Using the mod
 
