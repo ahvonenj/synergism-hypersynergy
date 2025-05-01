@@ -357,10 +357,21 @@ export class HSSettings extends HSModule {
 
     // Serializes all current settings into a JSON string
     static #serializeSettings(): string {
-        const serializeableSettings = { }
+        const serializeableSettings: Partial<HSSettingBase<HSSettingType>> = { }
 
         for(const [key, setting] of Object.typedEntries(this.#settings)) {
-            (serializeableSettings as any)[key] = setting.getDefinition();
+            const definition = { ...setting.getDefinition() as Partial<HSSettingBase<HSSettingType>> };
+
+            // Remove properties that should not be saved into localStorage
+            if(definition.settingDescription)       delete definition.settingDescription;
+            if(definition.settingHelpText)          delete definition.settingHelpText;
+            if(definition.settingValueMultiplier)   delete definition.settingValueMultiplier;
+            if(definition.defaultValue)             delete definition.defaultValue;
+            if(definition.settingControl)           delete definition.settingControl;
+            if(definition.settingAction)            delete definition.settingAction;
+            if(definition.patchConfig)              delete definition.patchConfig;
+
+            (serializeableSettings as any)[key] = definition;
         }
 
         return JSON.stringify(serializeableSettings);

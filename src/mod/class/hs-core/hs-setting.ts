@@ -83,7 +83,7 @@ export abstract class HSSetting<T extends HSSettingType> {
                 value: this.definition.calculatedSettingValue ?? null
             }
 
-            if(this.definition.patchConfig) {
+            if(this.definition.patchConfig && this.definition.patchConfig.patchName) {
                 actionConfig.patchConfig = this.definition.patchConfig;
             }
 

@@ -77,7 +77,7 @@ export class HSSettingActions {
         patch: async (params: HSSettingActionParams) => {
             const context = params.contextName ?? "HSSettings";
 
-            if(!params.patchConfig) {
+            if(!params.patchConfig || !params.patchConfig.patchName) {
                 HSLogger.error("No patch config provided for setting action", context);
                 return;
             }

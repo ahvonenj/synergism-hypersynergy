@@ -83,7 +83,7 @@
     "showDebugLogs": {
         "settingName": "showDebugLogs",
         "settingDescription": "Show debug logs",
-        "settingHelpText": "Controls whether 'debug' type logs are visible or not in the mod's log view.'",
+        "settingHelpText": "Controls whether 'debug' type logs are visible or not in the mod's log view.",
         "settingType": "boolean",
         "enabled": false,
         "settingControl": {
@@ -172,8 +172,7 @@
         "enabled": false,
         "settingAction": "patch",
         "patchConfig": {
-            "patchName": "AmbrosiaViewOverflow",
-            "patchClassName": "PATCH_AmbrosiaViewOverflow"
+            "patchName": "AmbrosiaViewOverflow"
         },
         "settingControl": {
             "controlType": "switch",
@@ -190,8 +189,7 @@
         "enabled": false,
         "settingAction": "patch",
         "patchConfig": {
-            "patchName": "TestPatch",
-            "patchClassName": "PATCH_TestPatch"
+            "patchName": "TestPatch"
         },
         "settingControl": {
             "controlType": "switch",

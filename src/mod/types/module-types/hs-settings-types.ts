@@ -57,7 +57,6 @@ export interface HSSettingControl {
 
 export interface HSPatchConfig {
     patchName: string;
-    patchClassName: string;
 }
 
 export interface HSSettingBase<T> {

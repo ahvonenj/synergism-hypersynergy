@@ -129,7 +129,7 @@ export class HSLogger {
 
     // Replace color tags for panel logging
     static #parseColorTags(msg: string) : string {
-        const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
+        const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
         
         // Replace all matched patterns with span elements
         return msg.replace(tagPattern, (match, colorName, content) => {
@@ -140,7 +140,7 @@ export class HSLogger {
     // Remove color tags for console logging
     static #removeColorTags(msg: string) : string {
         try {
-            const tagPattern = /<([a-zA-Z]+)>(.*?)<\/\1>/g;
+            const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
         
             return msg.replace(tagPattern, (match, colorName, content) => {
                 return `${content}`;
