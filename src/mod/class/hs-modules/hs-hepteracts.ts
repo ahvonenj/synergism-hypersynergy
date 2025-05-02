@@ -499,14 +499,14 @@ export class HSHepteracts extends HSModule {
                 if(isQuarkHepteract)
                     costText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    costText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
+                    costText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${HSUtils.N(percentOwned * 100)}% of owned)`;
 
                 this.#hepteractCraftTexts.appendChild(costText);
             } else {
                 if(isQuarkHepteract)
                     hasCostText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    hasCostText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${(percentOwned * 100).toFixed(2)}% of owned)`;
+                    hasCostText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${HSUtils.N(percentOwned * 100)}% of owned)`;
             }
         }
     }
