@@ -125,7 +125,10 @@ The bookmark will always load up the latest version of the mod, so once you're s
 
 Developer documentation can be found in the wiki: https://github.com/ahvonenj/synergism-hypersynergy/wiki
 
-In addition, the source code should be relatively well commented.
+Quick Reference: https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Framework-Quick-Reference  
+Core Module Documentation: https://github.com/ahvonenj/synergism-hypersynergy/wiki/Project-structure-and-Modules#core-modules
+
+In addition to the documentation in the wiki, the source code itself should be relatively well commented.
 
 **Keywords:** synergism, mod, modification, modding, modded, extension, tampermonkey, greasemonkey, chrome, firefox, incremental_games, incremental, idle, idle game, idler, incremental game, synergism wiki, synergism help, synergism tool, wiki, corruption, corruptions, help, ascension, singularity, reincarnation, challenge, userscript
 
