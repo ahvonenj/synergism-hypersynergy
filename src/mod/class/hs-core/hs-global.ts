@@ -8,6 +8,12 @@ export const HSGlobal: IHSGlobal = class {
         throw new Error("Cannot instantiate a static class");
     }
 
+    // --- DEBUG ---
+    static Debug = {
+        debugMode: false,
+        performanceDebugMode: false,
+    }
+
     // --- GENERAL ---
 
     // Current mod version string
@@ -167,7 +173,11 @@ export const HSGlobal: IHSGlobal = class {
             '#toggleAutoChallengeIgnore',
 
             // Hepteract alert toggle button
-            '#toggle35'
+            '#toggle35',
+
+            // Alert OK and cancel buttons
+            '#ok_prompt',
+            '#cancel_prompt',
         ]
     }
 
@@ -403,5 +413,10 @@ export const HSGlobal: IHSGlobal = class {
                 draggableIconId: AMBROSIA_ICON.RA_REGLUCK2
             }],
         ])
+    }
+
+    // HSGameData
+    static HSGameData = {
+        saveDataWatchInterval: 500,
     }
 }

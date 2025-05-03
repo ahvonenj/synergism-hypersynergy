@@ -107,7 +107,7 @@ export class HSSettings extends HSModule {
                 }
             }
 
-            HSSettings.#saveSettingsToStorage();
+            HSSettings.saveSettingsToStorage();
             HSSettings.#settingsParsed = true;
         } catch (e) {
             HSLogger.error(`Error parsing mod settings ${e}`, this.context);
@@ -377,7 +377,7 @@ export class HSSettings extends HSModule {
         return JSON.stringify(serializeableSettings);
     }
 
-    static #saveSettingsToStorage() {
+    static saveSettingsToStorage() {
         const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
 
         if(storageMod) {
@@ -501,12 +501,12 @@ export class HSSettings extends HSModule {
 
     static async #settingChangeDelegate(e: Event, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleChange(e);
-        this.#saveSettingsToStorage();
+        this.saveSettingsToStorage();
     }
 
     static async #settingToggleDelegate(e: MouseEvent, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleToggle(e);
-        this.#saveSettingsToStorage();
+        this.saveSettingsToStorage();
     }
 
     static dumpToConsole() {

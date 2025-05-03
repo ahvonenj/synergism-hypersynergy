@@ -94,6 +94,11 @@ declare global {
             className: 'HSPatches',
             context: 'HSPatches',
             moduleColor: '#487eb0',
+        },
+        {
+            className: 'HSGameData',
+            context: 'HSGameData',
+            moduleColor: '#fbc531',
         }
     ];
 

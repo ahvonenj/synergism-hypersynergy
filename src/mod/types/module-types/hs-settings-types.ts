@@ -22,7 +22,11 @@ export interface HSSettingsDefinition {
     autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
     ambrosiaQuickBar: AmbrosiaQuickBar;
 
-    PATCH_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
+    patch_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
+    patch_testPatch: PATCH_TestPatch;
+
+    useGameData: UseGameDataSetting;
+    stopSniffOnError: StopSniffOnErrorSetting;
 }
 
 export interface HSSettingControlOptions {
@@ -74,15 +78,30 @@ export interface HSSettingBase<T> {
     patchConfig?: HSPatchConfig;
 }
 
+// Expand Cost Protection Settings
 export interface ExpandCostProtectionSetting extends HSSettingBase<number> {}
 export interface ExpandCostProtectionDoubleCap extends HSSettingBase<boolean> {}
 export interface ExpandCostProtectionNotifications extends HSSettingBase<boolean> {}
+
+// Notification Opacity Settings
 export interface SyncNotificationOpacitySetting extends HSSettingBase<number> {}
+
+// Log Settings
 export interface LogTimestampSetting extends HSSettingBase<boolean> {}
 export interface ShowDebugLogsSetting extends HSSettingBase<boolean> {}
+
+// Mouse Settings
 export interface ReactiveMouseHoverSetting extends HSSettingBase<number> {}
 export interface AutoclickSetting extends HSSettingBase<number> {}
 export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}
+
+// Ambrosia Settings
 export interface AmbrosiaQuickBar extends HSSettingBase<boolean> {}
 
+// Patch Settings
 export interface PATCH_ambrosiaViewOverflow extends HSSettingBase<boolean> {}
+export interface PATCH_TestPatch extends HSSettingBase<boolean> {}
+
+// Game Data Settings
+export interface UseGameDataSetting extends HSSettingBase<boolean> {}
+export interface StopSniffOnErrorSetting extends HSSettingBase<boolean> {}

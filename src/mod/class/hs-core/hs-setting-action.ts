@@ -1,6 +1,7 @@
 import { HSSettingActionParams } from "../../types/module-types/hs-settings-types";
 import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 import { HSPatches } from "../hs-modules/hs-patches";
+import { HSGameData } from "./hs-gamedata";
 import { HSLogger } from "./hs-logger";
 import { HSModuleManager } from "./hs-module-manager";
 import { HSMouse } from "./hs-mouse";
@@ -91,6 +92,20 @@ export class HSSettingActions {
                 } else {
                     console.log("Enabling patch", params.patchConfig.patchName, context);
                     await patchMod.applyPatch(params.patchConfig.patchName);
+                }
+            }
+        },
+
+        useGameData: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+            if(gameDataMod) {
+                if(params.disable && params.disable === true) {
+                    gameDataMod.stopSaveDataWatch();
+                } else {
+                    gameDataMod.startSaveDataWatch();
                 }
             }
         },

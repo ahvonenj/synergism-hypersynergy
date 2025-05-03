@@ -22,5 +22,9 @@
     "patch": {
         "groupName": "Patch settings",
         "order": 6
+    },
+    "gamedata": {
+        "groupName": "Game data settings",
+        "order": 6
     }
 }

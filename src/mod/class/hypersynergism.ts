@@ -10,6 +10,7 @@ import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
+import { HSGameData } from "./hs-core/hs-gamedata";
 
 /*
     Class: Hypersynergism
@@ -90,6 +91,16 @@ export class Hypersynergism {
                         }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
                         HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
+                        HSUIC.Div({ 
+                            html: 'Testing tools',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
+                        HSUIC.Button({ id: 'hs-panel-test-get-save-data-btn', text: 'SData test' }),
+                        HSUIC.Button({ id: 'hs-panel-test-get-save-data-jit-btn', text: 'SData test (JIT)' }),
+                        HSUIC.Button({ id: 'hs-panel-test-sniff-error-btn', text: 'Sniff err test' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -137,6 +148,35 @@ export class Hypersynergism {
                 if(storageMod) {
                     storageMod.clearData(HSGlobal.HSSettings.storageKey);
                     HSLogger.info('Stored settings cleared', this.#context);
+                }
+            });
+
+            document.querySelector('#hs-panel-test-get-save-data-btn')?.addEventListener('click', async () => {
+                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+                
+                if(gameDataMod) {
+                    const saveData = await gameDataMod.getSaveData();
+                    HSLogger.info('Performed save data test, results in dev console (if any)', this.#context);
+                    console.log(saveData);
+                }
+            });
+
+            document.querySelector('#hs-panel-test-get-save-data-jit-btn')?.addEventListener('click', async () => {
+                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+                
+                if(gameDataMod) {
+                    const saveData = await gameDataMod.getSaveData(true);
+                    HSLogger.info('Performed save data test (JIT), results in dev console (if any)', this.#context);
+                    console.log(saveData);
+                }
+            });
+
+            document.querySelector('#hs-panel-test-sniff-error-btn')?.addEventListener('click', async () => {
+                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+                
+                if(gameDataMod) {
+                    await gameDataMod.getSaveData(true, 'Synergysave_WONTEXIST');
+                    HSLogger.info('Performed save data sniff error test. Game data sniffing should get auto disabled.', this.#context);
                 }
             });
 

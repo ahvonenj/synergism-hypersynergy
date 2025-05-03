@@ -6,6 +6,11 @@ interface IStoreable {
     storageKey: string;
 }
 
+export interface HSGlobalDebug {
+    debugMode: boolean;
+    performanceDebugMode: boolean;
+}
+
 export interface HSGlobalGeneral {
     currentModVersion: string;
     modGithubUrl: string;
@@ -50,7 +55,12 @@ export interface HSGlobalAmbrosia extends IStoreable {
     quickBarLoadoutIdPrefix: string;
 }
 
+export interface HSGlobalGameData {
+    saveDataWatchInterval: number;
+}
+
 export interface IHSGlobal {
+    Debug: HSGlobalDebug;
     General: HSGlobalGeneral;
     HSPrototypes: HSGlobalPrototypes;
     HSElementHooker: HSGlobalElementHooker;
@@ -59,4 +69,5 @@ export interface IHSGlobal {
     HSSettings: HSGlobalSettings;
     HSMouse: HSGlobalMouse;
     HSAmbrosia: HSGlobalAmbrosia;
+    HSGameData: HSGlobalGameData;
 }

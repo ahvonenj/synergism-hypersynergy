@@ -1,5 +1,6 @@
 import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSLogger } from "./hs-logger";
+import { HSSettings } from "./hs-settings";
 
 /* 
     Class: HSSetting
@@ -40,11 +41,11 @@ export abstract class HSSetting<T extends HSSettingType> {
     }
 
     enable() {
-        this.definition.enabled = true;
+        this.#handleManualToggle(true);
     }
 
     disable() {
-        this.definition.enabled = false;
+        this.#handleManualToggle(false);
     }
 
     // Toggles the setting's state and updates the UI accordingly
@@ -53,7 +54,16 @@ export abstract class HSSetting<T extends HSSettingType> {
         HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
         
         const newState = !this.definition.enabled;
+        const hasStateChanged = this.definition.enabled !== newState;
+
+        if(!hasStateChanged) return;
+
         this.definition.enabled = newState;
+
+        if(this.definition.settingType === 'boolean') {
+            (this.definition as HSSettingBase<boolean>).settingValue  = newState;
+            (this.definition as HSSettingBase<boolean>).calculatedSettingValue = newState;
+        }
 
         const targetElement = (e.target as HTMLDivElement);
 
@@ -66,6 +76,29 @@ export abstract class HSSetting<T extends HSSettingType> {
         }
 
         this.handleSettingAction('state', newState);
+    }
+
+    #handleManualToggle(newState: boolean) {
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${newState}`, this.context);
+
+        const hasStateChanged = this.definition.enabled !== newState;
+
+        if(!hasStateChanged) return;
+
+        this.definition.enabled = newState;
+
+        const toggleElement = document.querySelector(`#${this.definition.settingControl?.controlEnabledId}`) as HTMLDivElement;
+
+        if(newState && toggleElement) {
+            toggleElement.innerText = this.#settingEnabledString;
+            toggleElement.classList.remove('hs-disabled');
+        } else {
+            toggleElement.innerText = this.#settingDisabledString;
+            toggleElement.classList.add('hs-disabled');
+        }
+
+        this.handleSettingAction('state', newState);
+        HSSettings.saveSettingsToStorage();
     }
 
     // For settings which have a settingAction defined, this will be called when the setting is initialized

@@ -51,6 +51,16 @@ export class HSUtils {
         return hash;
     }  
 
+    static async computeHash(data: string): Promise<string> {
+        const encoder = new TextEncoder();
+        const dataBuffer = encoder.encode(data);
+        const hashBuffer = await crypto.subtle.digest('SHA-1', dataBuffer);
+        
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+    }
+
     static N(num: string | number, precision : number = 2, expDecimals : number = 2) {
         let tempNum = 0;
         let numString = '';

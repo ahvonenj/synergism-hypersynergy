@@ -196,5 +196,32 @@
             "controlGroup": "patch",
             "controlEnabledId": "hs-setting-patch-test-btn"
         }
+    },
+
+    "useGameData": {
+        "settingName": "useGameData",
+        "settingDescription": "Game data sniffing",
+        "settingHelpText": "Enables game data sniffing by continuously scanning localStorage save data in the background. Enabling this gives the mod vastly enhanced functionality, but may cause performance issues on some systems.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingAction": "useGameData",
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "gamedata",
+            "controlEnabledId": "hs-setting-use-game-data-btn"
+        }
+    },
+
+    "stopSniffOnError": {
+        "settingName": "stopSniffOnError",
+        "settingDescription": "Auto disable on error",
+        "settingHelpText": "When enabled, the mod will automatically disable game data sniffing if an error occurs. Recommended to be enabled as reading game data is not always reliable.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "gamedata",
+            "controlEnabledId": "hs-setting-stop-sniff-on-error-btn"
+        }
     }
 }
