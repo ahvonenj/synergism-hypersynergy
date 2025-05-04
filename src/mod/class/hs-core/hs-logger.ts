@@ -79,9 +79,9 @@ export class HSLogger {
             const moduleFromContext = HSModuleManager.getModule(context);
 
             // Just makes the [ModuleName] part of the log line colored
-            const contextString = (moduleFromContext && moduleFromContext.moduleColor) ? this.#parseColorTags(context.colorTag(moduleFromContext.moduleColor)) : context;
+            const contextString = (moduleFromContext && moduleFromContext.moduleColor) ? HSUtils.parseColorTags(context.colorTag(moduleFromContext.moduleColor)) : context;
 
-            logLine.innerHTML = `${level} [<span class="hs-log-ctx">${contextString}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${this.#parseColorTags(msg)}\n`;
+            logLine.innerHTML = `${level} [<span class="hs-log-ctx">${contextString}</span><span class="hs-log-ts ${hiddenTS}"> (${HSUtils.getTime()})</span>]: ${HSUtils.parseColorTags(msg)}\n`;
 
             // We hash the current logged thing to uniquely identify it
             // and compare it to the hash of what was last logged.
@@ -127,30 +127,6 @@ export class HSLogger {
         }
     }
 
-    // Replace color tags for panel logging
-    static #parseColorTags(msg: string) : string {
-        const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
-        
-        // Replace all matched patterns with span elements
-        return msg.replace(tagPattern, (match, colorName, content) => {
-            return `<span style="color: ${colorName}">${content}</span>`;
-        });
-    }
-
-    // Remove color tags for console logging
-    static #removeColorTags(msg: string) : string {
-        try {
-            const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
-        
-            return msg.replace(tagPattern, (match, colorName, content) => {
-                return `${content}`;
-            });
-        } catch(e) {
-            console.warn("Error removing color tags from log message", e);
-            return `${msg}`;
-        }
-    }
-
     // This methods is called every time a log is made
     // It checks the current log level and if the log type is allowed to be logged
     static #shouldLog(logType: ELogType, isImportant : boolean) : boolean {
@@ -182,25 +158,25 @@ export class HSLogger {
     
     static log(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.LOG, isImportant)) return;
-        console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
+        console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.LOG);
     }
 
     static info(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.INFO, isImportant)) return;
-        console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
+        console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.INFO);
     }
 
     static warn(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.WARN, isImportant)) return;
-        console.warn(`[${context}]: ${this.#removeColorTags(msg)}`);
+        console.warn(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.WARN);
     }
 
     static error(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if(!this.#shouldLog(ELogType.ERROR, isImportant)) return;
-        console.error(`[${context}]: ${this.#removeColorTags(msg)}`);
+        console.error(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
         this.#logToUi(msg, context, ELogType.ERROR);
     }
 
@@ -208,7 +184,7 @@ export class HSLogger {
         const debugLog = HSSettings.getSetting('showDebugLogs') as HSSetting<boolean>;
 
         if(debugLog && debugLog.getValue()) {
-            console.log(`[${context}]: ${this.#removeColorTags(msg)}`);
+            console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
             this.#logToUi(msg, context, ELogType.DEBUG);
         }
     }

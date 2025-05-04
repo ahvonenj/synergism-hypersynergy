@@ -7,6 +7,7 @@ import {
     HSUICGridOptions, 
     HSUICInputOptions, 
     HSUICModalOptions, 
+    HSUICPOptions, 
     HSUICSelectOption, 
     HTMLData, 
     HTMLProps 
@@ -45,6 +46,8 @@ export class HSUIC {
                 return "text";
             case HSInputType.SELECT:
                 return "select";
+            case HSInputType.STATE:
+                return "state";
         }
     }
 
@@ -60,6 +63,8 @@ export class HSUIC {
                 return "hs-panel-input-text";
             case HSInputType.SELECT:
                 return "hs-panel-input-select";
+            case HSInputType.STATE:
+                return "hs-panel-input-state";
         }
     }
 
@@ -145,6 +150,28 @@ export class HSUIC {
         }`)
 
         return `<div class="hs-panel-div ${comp_class}" ${id ? `id="${id}"` : ''}${propString}>${comp_html}</div>`;
+    }
+
+    // Div Component
+    static P(options: HSUICPOptions) : string {
+        const comp_class = options.class ?? '';
+        const id = options.id ?? HSUtils.domid();
+        let comp_text = '';
+        const propString = this.#getPropString(options.props);
+
+        if(options.text) {
+            if(Array.isArray(options.text)) {
+                comp_text = options.text.join('\n');
+            } else {
+                comp_text = options.text;
+            }
+        } 
+
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        return `<p class="hs-panel-p ${comp_class}" ${id ? `id="${id}"` : ''}${propString}>${comp_text}</p>`;
     }
 
     // Grid Component

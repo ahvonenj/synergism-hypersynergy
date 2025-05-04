@@ -442,6 +442,10 @@
     cursor: pointer;
 }
 
+.hs-panel-setting-block-state {
+    margin: 0;
+}
+
 .hs-panel-setting-block-btn {
     width: 30px;
     border: 1px solid green;

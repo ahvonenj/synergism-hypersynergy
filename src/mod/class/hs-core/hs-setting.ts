@@ -1,4 +1,5 @@
 import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
+import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSSettings } from "./hs-settings";
 
@@ -266,7 +267,7 @@ export class HSSelectNumericSetting extends HSSetting<number> {
     }
 
     setValue(value: number) {
-        return this.definition.settingValue = value;
+        //this.definition.settingValue = value;
     }
 
     // Number type settings need to handle the change event differently
@@ -297,7 +298,7 @@ export class HSSelectStringSetting extends HSSetting<string> {
     }
 
     setValue(value: string) {
-        return this.definition.settingValue = value;
+        //this.definition.settingValue = value;
     }
 
     async handleChange(e: Event) {
@@ -309,4 +310,37 @@ export class HSSelectStringSetting extends HSSetting<string> {
         this.definition.calculatedSettingValue = newValue;
         await super.handleSettingAction("value");
     }
+}
+
+export class HSStateSetting extends HSSetting<string> {
+    constructor(
+        settingDefinition: HSSettingBase<string>, 
+        settingAction: ((params: HSSettingActionParams) => any) | null,
+        enabledString: string,
+        disabledString: string) { 
+            super(settingDefinition, settingAction, enabledString, disabledString);
+    }
+
+    getValue() {
+        return HSUtils.removeColorTags(this.definition.settingValue);
+    }
+
+    getDisplayValue() {
+        return HSUtils.parseColorTags(this.definition.settingValue);
+    }
+
+    setValue(value: string) {
+        this.definition.settingValue = value;
+        this.definition.calculatedSettingValue = value;
+    
+        const stateElement = document.querySelector(`#${this.definition.settingControl?.controlId}`) as HTMLParagraphElement;
+
+        if(stateElement) {
+            stateElement.innerHTML = this.getDisplayValue();
+        }
+
+        HSSettings.saveSettingsToStorage();
+    }
+
+    async handleChange(e: Event) { }
 }

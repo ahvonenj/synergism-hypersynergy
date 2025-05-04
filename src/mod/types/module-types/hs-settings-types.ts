@@ -12,20 +12,35 @@ export type HSSettingType = number | string | boolean;
 export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSettingType>>;
 
 export interface HSSettingsDefinition {
+    // Expand Cost Protection Settings
     expandCostProtection: ExpandCostProtectionSetting;
     expandCostProtectionDoubleCap: ExpandCostProtectionDoubleCap
     expandCostProtectionNotifications: ExpandCostProtectionNotifications;
+
+    // Notification Settings
     syncNotificationOpacity: SyncNotificationOpacitySetting;
+
+    // Log Settings
     logTimestamp: LogTimestampSetting;
     showDebugLogs: ShowDebugLogsSetting;
+
+    // Mouse Settings
     reactiveMouseHover: ReactiveMouseHoverSetting;
     autoClick: AutoclickSetting;
     autoClickIgnoreElements: AutoClickIgnoreElementsSetting;
-    ambrosiaQuickBar: AmbrosiaQuickBar;
 
+    // Ambrosia Settings
+    ambrosiaQuickBar: AmbrosiaQuickBarSetting;
+    autoLoadout: AutoLoadoutSetting;
+    autoLoadoutState: AutoLoadoutStateSetting;
+    autoLoadoutAdd: AutoLoadoutAddSetting;
+    autoLoadoutTime: AutoLoadoutTimeSetting;
+
+    // Patch Settings
     patch_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
     patch_testPatch: PATCH_TestPatch;
 
+    // Game Data Settings
     useGameData: UseGameDataSetting;
     stopSniffOnError: StopSniffOnErrorSetting;
 }
@@ -37,8 +52,8 @@ export interface HSSettingControlOptions {
     placeholder?: string;
 }
 
-export type HSSettingsControlType = "text" | "number" | "switch" | "select";
-export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectnumeric" | "selectstring";
+export type HSSettingsControlType = "text" | "number" | "switch" | "select" | "state";
+export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectnumeric" | "selectstring" | "state";
 
 export interface HSSettingActionParams {
     contextName?: string,
@@ -98,7 +113,12 @@ export interface AutoclickSetting extends HSSettingBase<number> {}
 export interface AutoClickIgnoreElementsSetting extends HSSettingBase<boolean> {}
 
 // Ambrosia Settings
-export interface AmbrosiaQuickBar extends HSSettingBase<boolean> {}
+export interface AmbrosiaQuickBarSetting extends HSSettingBase<boolean> {}
+export interface AutoLoadoutSetting extends HSSettingBase<boolean> {}
+export interface AutoLoadoutStateSetting extends HSSettingBase<string> {}
+export interface AutoLoadoutAddSetting extends HSSettingBase<string> {}
+export interface AutoLoadoutTimeSetting extends HSSettingBase<string> {}
+
 
 // Patch Settings
 export interface PATCH_ambrosiaViewOverflow extends HSSettingBase<boolean> {}

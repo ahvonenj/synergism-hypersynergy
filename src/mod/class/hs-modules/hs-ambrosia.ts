@@ -19,6 +19,8 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
     
     #loadoutState: HSAmbrosiaLoadoutState = new Map<AMBROSIA_LOADOUT_SLOT, AMBROSIA_ICON>();
 
+    #currentLoadout?: AMBROSIA_LOADOUT_SLOT;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -162,6 +164,25 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 this.saveState();
 
                 await self.updateQuickBar();
+            });
+
+            slot.addEventListener('click', async (e) => {
+                const slotElement = e.target as HTMLButtonElement;
+                const slotElementId = slotElement.id;
+                const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
+
+                if (!slotEnum) {
+                    HSLogger.warn(`Invalid slot ID: ${slotElementId}`, this.context);
+                    return;
+                }
+
+                self.#currentLoadout = slotEnum;
+
+                const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
+                console.log(loadoutStateSetting, slotEnum);
+                if(loadoutStateSetting) {
+                    loadoutStateSetting.setValue(`<green>${slotEnum}</green>`);
+                }
             });
         });
 

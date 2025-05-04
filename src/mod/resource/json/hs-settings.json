@@ -177,6 +177,20 @@
         }
     },
 
+    "autoLoadoutState": {
+        "settingName": "autoLoadoutState",
+        "settingDescription": "Current loadout state",
+        "settingHelpText": "This shows if the mod is aware of your current loadout state. If the state is Unknown, auto loadout switch will not work. To fix this, please open the ambrosia menu and witch to any loadout.",
+        "settingType": "state",
+        "settingValue": "<red>Unknown</red>",
+        "enabled": true,
+        "settingControl": {
+            "controlId": "hs-setting-auto-loadout-state-value",
+            "controlType": "state",
+            "controlGroup": "ambrosia"
+        }
+    },
+
     "autoLoadoutAdd": {
         "settingName": "autoLoadoutAdd",
         "settingDescription": "ADD Loadout",

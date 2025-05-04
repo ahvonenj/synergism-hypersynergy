@@ -34,7 +34,8 @@ export enum HSInputType {
     COLOR = 2,
     NUMBER = 3,
     TEXT = 4,
-    SELECT = 5
+    SELECT = 5,
+    STATE = 6
 }
 
 export type TransitionProperties = {
@@ -63,6 +64,10 @@ export interface HSUICInputOptions extends HSUICOptions {
 
 export interface HSUICDivOptions extends HSOptional<HSUICOptions, 'id'> {
     html?: string | string[];
+}
+
+export interface HSUICPOptions extends HSOptional<HSUICOptions, 'id'> {
+    text?: string | string[];
 }
 
 export interface HSUICGridOptions extends HSOptional<HSUICOptions, 'id'> {

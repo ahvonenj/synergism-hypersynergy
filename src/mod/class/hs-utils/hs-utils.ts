@@ -168,4 +168,28 @@ export class HSUtils {
 
         return nullProxy as T;
     }
+
+    // Replace color tags for panel logging
+    static parseColorTags(msg: string) : string {
+        const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
+        
+        // Replace all matched patterns with span elements
+        return msg.replace(tagPattern, (match, colorName, content) => {
+            return `<span style="color: ${colorName}">${content}</span>`;
+        });
+    }
+
+    // Remove color tags for console logging
+    static removeColorTags(msg: string) : string {
+        try {
+            const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
+        
+            return msg.replace(tagPattern, (match, colorName, content) => {
+                return `${content}`;
+            });
+        } catch(e) {
+            console.warn("Error removing color tags from log message", e);
+            return `${msg}`;
+        }
+    }
 }
