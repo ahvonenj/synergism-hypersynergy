@@ -7,6 +7,7 @@ import {
     HSUICGridOptions, 
     HSUICInputOptions, 
     HSUICModalOptions, 
+    HSUICSelectOption, 
     HTMLData, 
     HTMLProps 
 } from "../../types/module-types/hs-ui-types";
@@ -42,6 +43,8 @@ export class HSUIC {
                 return "number";
             case HSInputType.TEXT:
                 return "text";
+            case HSInputType.SELECT:
+                return "select";
         }
     }
 
@@ -55,6 +58,8 @@ export class HSUIC {
                 return "hs-panel-input-number";
             case HSInputType.TEXT:
                 return "hs-panel-input-text";
+            case HSInputType.SELECT:
+                return "hs-panel-input-select";
         }
     }
 
@@ -98,6 +103,26 @@ export class HSUIC {
         }`)
 
         return `<input type="${comp_type}" class="${comp_input_class} ${comp_class}" id="${id}"${propString}></input>`;
+    }
+
+    // Input Component
+    static Select(options: HSUICInputOptions, selectOptions: HSUICSelectOption[]) : string {
+        const comp_class = options.class ?? '';
+        const comp_type = this.#resolveInputType(options.type);
+        const comp_input_class = this.#resolveInputClass(options.type);
+        const id = options.id ?? HSUtils.domid();
+        const propString = this.#getPropString(options.props);
+
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        const selectOptionsStr = selectOptions.map((option) => {
+            return `<option value="${option.value}" ${option.selected ? 'selected' : ''}>${option.text}</option>`;  
+        }
+        ).join('\n');
+
+        return `<select class="${comp_input_class} ${comp_class}" id="${id}"${propString}>${selectOptionsStr}</select>`;
     }
 
     // Div Component

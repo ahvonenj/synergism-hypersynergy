@@ -7,7 +7,7 @@ import settings_control_groups from "inline:../../resource/json/hs-settings-cont
 import { HSUIC } from "./hs-ui-components";
 import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
-import { HSBooleanSetting, HSNumericSetting, HSSetting, HSStringSetting } from "./hs-setting";
+import { HSBooleanSetting, HSNumericSetting, HSSelectNumericSetting, HSSelectStringSetting, HSSetting, HSStringSetting } from "./hs-setting";
 import { HSModuleManager } from "./hs-module-manager";
 import { HSStorage } from "./hs-storage";
 import { HSGlobal } from "./hs-global";
@@ -102,6 +102,23 @@ export class HSSettings extends HSModule {
                         HSSettings.#settingEnabledString, 
                         HSSettings.#settingDisabledString
                     );
+                } else if(setting.settingType === 'selectnumeric') {
+                    if(!('settingValueMultiplier' in setting as any))
+                        (setting as any).settingValueMultiplier = 1;
+
+                    (HSSettings.#settings as any)[key] = new HSSelectNumericSetting(
+                        setting as unknown as HSSettingBase<number>, 
+                        settingAction, 
+                        HSSettings.#settingEnabledString, 
+                        HSSettings.#settingDisabledString
+                    );
+                } else if(setting.settingType === 'selectstring') {
+                    (HSSettings.#settings as any)[key] = new HSSelectStringSetting(
+                        setting as unknown as HSSettingBase<string>, 
+                        settingAction, 
+                        HSSettings.#settingEnabledString, 
+                        HSSettings.#settingDisabledString
+                    );
                 } else {
                     throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
                 }
@@ -138,8 +155,9 @@ export class HSSettings extends HSModule {
                 const controlType = controlSettings.controlType;
                 const controlOptions = controlSettings.controlOptions;
 
-                // Render input for all the settings that are not a switch (just on/off toggles)
-                if(controlType !== "switch") {
+                // Render input for all the text and number settings
+                // NOTE: switch settings do not need any input to be rendered
+                if(controlType === "text" || controlType === "number") {
                     const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement;
 
                     if(valueElement) {
@@ -157,7 +175,26 @@ export class HSSettings extends HSModule {
                         // Listen for changes in the UI input to change the setting value
                         valueElement.addEventListener('change', async (e) => { await this.#settingChangeDelegate(e, settingObj); });
                     }
+                } else if(controlType === "select") { // Render input for all the select settings
+                    const settingValue = setting.settingValue.toString();
+                    const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement;
+
+                    if(selectElement) {
+                        const optionExists = Array.from(selectElement.options).some(option => option.value === settingValue);
+
+                        if (optionExists) {
+                            // Set the input value to the JSON setting value
+                            selectElement.value = settingValue;
+                        } else {
+                            selectElement.value = ""; // Set to empty string if the value doesn't exist in the options
+                            HSLogger.warn(`Setting value ${settingValue} does not exist in select options for setting ${key}`, HSSettings.#staticContext);
+                        }
+
+                        // Listen for changes in the UI input to change the setting value
+                        selectElement.addEventListener('change', async (e) => { await this.#settingChangeDelegate(e, settingObj); });
+                    }
                 }
+
 
                 // This sets up the  "✓" / "✗" button next to the setting input (switch type settings just need this one)
                 if(controlSettings.controlEnabledId) {
@@ -248,14 +285,43 @@ export class HSSettings extends HSModule {
                         components.push(HSUIC.Button({ class: 'hs-panel-setting-block-btn hs-panel-settings-block-btn-standalone', id: controls.controlEnabledId, text: "" }))
                     }
                 } else {
-                    const convertedType = controls.controlType === "number" ? HSInputType.NUMBER : controls.controlType === "text" ? HSInputType.TEXT : null;
+                    let convertedType : HSInputType | null = null;
+
+                    switch(controls.controlType) {
+                        case "text":
+                            convertedType = HSInputType.TEXT;
+                            break;
+                        case "number":
+                            convertedType = HSInputType.NUMBER;
+                            break;
+                        case "select":
+                            convertedType = HSInputType.SELECT;
+                            break;
+                        default:
+                            convertedType = null;
+                    }
 
                     if(convertedType) {
-                        // Create setting header and value input
-                        components = [
-                            HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } }),
-                            HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: controls.controlId, type: convertedType }),
-                        ]
+                        // Setting header
+                        components = [ 
+                            HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } })
+                        ];
+
+                        // Setting value input
+                        if(convertedType === HSInputType.NUMBER || convertedType === HSInputType.TEXT) {
+                            components.push(HSUIC.Input({ class: 'hs-panel-setting-block-num-input', id: controls.controlId, type: convertedType }));
+                        } else if(convertedType === HSInputType.SELECT) {
+                            if(controls.selectOptions) {
+                                components.push(HSUIC.Select(
+                                    { class: 'hs-panel-setting-block-select-input', id: controls.controlId, type: convertedType },
+                                    controls.selectOptions
+                                ));
+                            } else {
+                                HSLogger.error(`Error autobuilding settings UI, ${setting.settingName} does not have selectOptions defined`, self.#staticContext);
+                                didBuild = false;
+                                break;
+                            }
+                        }
 
                         // Create setting on/off toggle
                         if(controls.controlEnabledId) {
@@ -289,11 +355,11 @@ export class HSSettings extends HSModule {
     #validateSetting(setting: HSSettingBase<HSSettingType>, controlGroups: Record<string, HSSettingControlGroup>) {
         if(!setting) throw new Error(`Setting is undefined (wtf)`);
 
-        // These should be the same as HSSettingJSONType in hs-settings-types.ts
-        const validSettingTypes = ['numeric', 'string', 'boolean'];
+         // These should be the same as HSSettingsControlType in hs-settings-types.ts
+         const validControlTypes = ['text', 'number', 'switch', 'select'];
 
-        // These should be the same as HSSettingsControlType in hs-settings-types.ts
-        const validControlTypes = ['text', 'number', 'switch'];
+        // These should be the same as HSSettingJSONType in hs-settings-types.ts
+        const validSettingTypes = ['numeric', 'string', 'boolean', 'selectnumeric', 'selectstring'];
 
         // Check the name first so we can use it in the error messages
         if(!('settingName' in setting)) throw new Error(`Setting is missing settingName property`);
@@ -323,6 +389,14 @@ export class HSSettings extends HSModule {
         } 
         else if(settingType === 'boolean') {
             if(!HSUtils.isBoolean(setting.settingValue))
+                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
+        }
+        else if(settingType === 'selectnumeric') {
+            if(!HSUtils.isString(setting.settingValue) && !HSUtils.isNumeric(setting.settingValue))
+                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
+        }
+        else if(settingType === 'selectstring') {
+            if(!HSUtils.isString(setting.settingValue) && !HSUtils.isNumeric(setting.settingValue))
                 throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
         }
 
@@ -403,10 +477,34 @@ export class HSSettings extends HSModule {
                 (setting as any).settingValue = false;
             }
 
+            // Try fixing select type settings if they're missing some things
+            if(setting.settingType === 'selectnumeric' || setting.settingType === 'selectstring') {
+                // If there is no (default) value defined, define it as empty string
+                if(!("settingValue" in setting))
+                    (setting as any).settingValue = "";
+
+                // Make sure that the selectOptions contains a default option with value ""
+                if("settingControl" in setting && setting.settingControl) {
+                    const settingControl = setting.settingControl;
+
+                    if("selectOptions" in settingControl && settingControl.selectOptions) {
+                        const hasDefaultOption = settingControl.selectOptions.find(option => {
+                            return option.value === "";
+                        });
+
+                        if(!hasDefaultOption) {
+                            settingControl.selectOptions.unshift({
+                                text: "None",
+                                value: ""
+                            });
+                        }
+                    }
+                }
+            }
+
             this.#validateSetting(setting, HSSettings.#settingsControlGroups);
 
-            if(setting.settingType === 'numeric' || HSUtils.isNumeric(setting.settingValue)) {
-
+            if(setting.settingType === 'numeric' || setting.settingType === 'selectnumeric' || HSUtils.isNumeric(setting.settingValue)) {
                 if(!('settingValueMultiplier' in setting as any))
                     (setting as any).settingValueMultiplier = 1;
             }

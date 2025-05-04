@@ -248,3 +248,65 @@ export class HSBooleanSetting extends HSSetting<boolean> {
     // Boolean type settings have no value, they are just toggled on/off
     async handleChange(e: Event) { }
 }
+
+export class HSSelectNumericSetting extends HSSetting<number> {
+    constructor(
+        settingDefinition: HSSettingBase<number>, 
+        settingAction: ((params: HSSettingActionParams) => any) | null,
+        enabledString: string,
+        disabledString: string) {
+            super(settingDefinition, settingAction, enabledString, disabledString);
+
+            if(this.definition.settingValueMultiplier)
+                this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
+    }
+
+    getValue() {
+        return this.definition.settingValue;
+    }
+
+    setValue(value: number) {
+        return this.definition.settingValue = value;
+    }
+
+    // Number type settings need to handle the change event differently
+    // because they need to take settingValueMultiplier into account
+    async handleChange(e: Event) {
+        const newValue = parseFloat((e.target as HTMLSelectElement).value);
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
+        
+        this.definition.settingValue = newValue;
+        this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
+
+        await super.handleSettingAction("value");
+    }
+}
+
+export class HSSelectStringSetting extends HSSetting<string> {
+    constructor(
+        settingDefinition: HSSettingBase<string>, 
+        settingAction: ((params: HSSettingActionParams) => any) | null,
+        enabledString: string,
+        disabledString: string) { 
+            super(settingDefinition, settingAction, enabledString, disabledString);
+    }
+
+    getValue() {
+        return this.definition.settingValue;
+    }
+
+    setValue(value: string) {
+        return this.definition.settingValue = value;
+    }
+
+    async handleChange(e: Event) {
+        const newValue = (e.target as HTMLSelectElement).value;
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
+
+        this.definition.settingValue = newValue;
+        this.definition.calculatedSettingValue = newValue;
+        await super.handleSettingAction("value");
+    }
+}

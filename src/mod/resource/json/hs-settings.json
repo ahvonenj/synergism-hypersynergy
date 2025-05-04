@@ -164,6 +164,69 @@
         }
     },
 
+    "autoLoadout": {
+        "settingName": "autoLoadout",
+        "settingDescription": "Auto loadout",
+        "settingHelpText": "When enabled, the mod will automatically switch to configured ambrosia loadouts when ADD or TIME buttons are clicked.",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "ambrosia",
+            "controlEnabledId": "hs-setting-auto-loadout-btn"
+        }
+    },
+
+    "autoLoadoutAdd": {
+        "settingName": "autoLoadoutAdd",
+        "settingDescription": "ADD Loadout",
+        "settingHelpText": "Configures to loadout to use when ADD button is clicked.",
+        "settingType": "selectnumeric",
+        "enabled": true,
+        "settingValue": "",
+        "settingControl": {
+            "controlId": "hs-setting-add-loadout-value",
+            "controlType": "select",
+            "controlGroup": "ambrosia",
+            "selectOptions": [
+                { "text": "None", "value": "" },
+                { "text": "Loadout 1", "value": "1" },
+                { "text": "Loadout 2", "value": "2" },
+                { "text": "Loadout 3", "value": "3" },
+                { "text": "Loadout 4", "value": "4" },
+                { "text": "Loadout 5", "value": "5" },
+                { "text": "Loadout 6", "value": "6" },
+                { "text": "Loadout 7", "value": "7" },
+                { "text": "Loadout 8", "value": "8" }
+            ]
+        }
+    },
+
+    "autoLoadoutTime": {
+        "settingName": "autoLoadoutTime",
+        "settingDescription": "TIME loadout",
+        "settingHelpText": "Configures to loadout to use when TIME button is clicked.",
+        "settingType": "selectnumeric",
+        "enabled": true,
+        "settingValue": "",
+        "settingControl": {
+            "controlId": "hs-setting-time-loadout-value",
+            "controlType": "select",
+            "controlGroup": "ambrosia",
+            "selectOptions": [
+                { "text": "None", "value": "" },
+                { "text": "Loadout 1", "value": "1" },
+                { "text": "Loadout 2", "value": "2" },
+                { "text": "Loadout 3", "value": "3" },
+                { "text": "Loadout 4", "value": "4" },
+                { "text": "Loadout 5", "value": "5" },
+                { "text": "Loadout 6", "value": "6" },
+                { "text": "Loadout 7", "value": "7" },
+                { "text": "Loadout 8", "value": "8" }
+            ]
+        }
+    },
+
     "patch_ambrosiaViewOverflow": {
         "settingName": "patch_ambrosiaViewOverflow",
         "settingDescription": "Fix ambrosia view overflow",

@@ -34,6 +34,7 @@ export enum HSInputType {
     COLOR = 2,
     NUMBER = 3,
     TEXT = 4,
+    SELECT = 5
 }
 
 export type TransitionProperties = {
@@ -80,4 +81,10 @@ export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
 
 export interface HSUICModalOptions extends HSUICOptions {
     htmlContent?: string;
+}
+
+export interface HSUICSelectOption {
+    value: string | number;
+    text: string;
+    selected?: boolean;
 }

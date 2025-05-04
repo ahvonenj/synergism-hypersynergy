@@ -6,6 +6,7 @@
 
 import { HSSetting } from "../../class/hs-core/hs-setting";
 import { HSPatch } from "../../class/patches/hs-patch";
+import { HSUICSelectOption } from "./hs-ui-types";
 
 export type HSSettingType = number | string | boolean;
 export type HSSettingRecord = Record<keyof HSSettingsDefinition, HSSetting<HSSettingType>>;
@@ -36,8 +37,8 @@ export interface HSSettingControlOptions {
     placeholder?: string;
 }
 
-export type HSSettingsControlType = "text" | "number" | "switch";
-export type HSSettingJSONType = "numeric" | "string" | "boolean";
+export type HSSettingsControlType = "text" | "number" | "switch" | "select";
+export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectnumeric" | "selectstring";
 
 export interface HSSettingActionParams {
     contextName?: string,
@@ -57,6 +58,7 @@ export interface HSSettingControl {
     controlGroup: string;
     controlEnabledId?: string;
     controlOptions?: HSSettingControlOptions;
+    selectOptions?: HSUICSelectOption[];
 }
 
 export interface HSPatchConfig {

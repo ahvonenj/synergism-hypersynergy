@@ -426,6 +426,22 @@
     box-sizing: border-box;
 }
 
+.hs-panel-setting-block-select-input {
+    display: block;
+    height: 30px;
+    border: 1px solid green;
+    grid-column: 1 / 2;
+    box-sizing: border-box;
+    min-height: 20px;
+    color: white;
+    padding: 0 0 0 0.2em;
+    background-color: #101828;
+}
+
+.hs-panel-setting-block-select-input:hover {
+    cursor: pointer;
+}
+
 .hs-panel-setting-block-btn {
     width: 30px;
     border: 1px solid green;
