@@ -24,12 +24,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
     #currentLoadout?: AMBROSIA_LOADOUT_SLOT;
 
-    #_delegateAddHandler?: (e: Event) => void;
-    #_delegateTimeHandler?: (e: Event) => void;
+    #_delegateAddHandler?: (e: Event) => Promise<void>;
+    #_delegateTimeHandler?: (e: Event) => Promise<void>;
+    
+    #quickBarClickHandlers: Map<HTMLButtonElement, (e: Event) => Promise<void>> = new Map<HTMLButtonElement, (e: Event) => Promise<void>>();
 
     #quickbarCSS = `
         #${HSGlobal.HSAmbrosia.quickBarId} > .blueberryLoadoutSlot:hover {
-            border: 2px solid #ff44ae;
+            filter: brightness(150%);
         }
         
         .hs-ambrosia-active-slot {
@@ -334,6 +336,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
     }
 
     async createQuickBar() {
+        const self = this;
+
+        this.#quickBarClickHandlers.forEach((handler, button) => {
+            button.removeEventListener('click', handler);
+        });
+        
+        this.#quickBarClickHandlers.clear();
+
         // Get the ambrosia louadout container element
         this.#loadOutContainer = await HSElementHooker.HookElement('#bbLoadoutContainer');
 
@@ -356,17 +366,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 const buttonId = button.id;
                 button.id = `${HSGlobal.HSAmbrosia.quickBarLoadoutIdPrefix}-${buttonId}`;
 
-                // Make the quickbar buttons simulate a click on the real buttons
-                button.addEventListener('click', async (e) => {
-                    const realButton = document.querySelector(`#${buttonId}`) as HTMLButtonElement;
+                const buttonHandler = async function(e: Event) {
+                    await self.#quickBarClickHandler(e, buttonId);
+                };
 
-                    if(realButton) {
-                        await this.#maybeTurnLoadoutModeToLoad();
-                        realButton.click();
-                    } else {
-                        HSLogger.warn(`Could not find real button for ${buttonId}`, this.context);
-                    }
-                });
+                this.#quickBarClickHandlers.set(button, buttonHandler);
+
+                // Make the quickbar buttons simulate a click on the real buttons
+                button.addEventListener('click', buttonHandler);
             });
 
             if(cloneSettingButton) {
@@ -391,7 +398,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         const quickBar = this.#pageHeader.querySelector(`#${HSGlobal.HSAmbrosia.quickBarId}`) as HTMLElement;
 
         if(quickBar) {
+            this.#quickBarClickHandlers.forEach((handler, button) => {
+                button.removeEventListener('click', handler);
+            });
+            
+            this.#quickBarClickHandlers.clear();
+
             quickBar.remove();
+            
             HSUI.removeInjectedStyle(this.#quickbarCSSId);
         } else {
             HSLogger.warn(`Could not find quick bar element`, this.context);
@@ -543,6 +557,20 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
             await HSUtils.hiddenAction(async () => {
                 loadoutSlot.click();
             });
+        }
+    }
+
+    async #quickBarClickHandler(e: Event, buttonId: string) {
+        const realButton = document.querySelector(`#${buttonId}`) as HTMLButtonElement;
+
+        if(realButton) {
+            await this.#maybeTurnLoadoutModeToLoad();
+            await HSUtils.hiddenAction(async () => {
+                realButton.click();
+            });
+            
+        } else {
+            HSLogger.warn(`Could not find real button for ${buttonId}`, this.context);
         }
     }
 

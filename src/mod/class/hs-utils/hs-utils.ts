@@ -194,21 +194,97 @@ export class HSUtils {
         }
     }
 
+    /*
+        Warning: This is really hacky
+
+        We override the original display property setter and getters, as well as setProperty method for the element's style
+
+        This is becase the game forces the inline display style in a weird way when it wants to show e.g. alert modals
+        and thus we can't simply force the display to none, but instead we need to prevent the game from setting it in the first place
+    */
+    static #killElementDisplayProperties(element: HTMLElement) {
+        const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+        let originalDisplayDescriptor;
+
+        try {
+            // First try the prototype (which might be CSSStyleDeclaration.prototype)
+            originalDisplayDescriptor = Object.getOwnPropertyDescriptor(
+                Object.getPrototypeOf(element.style), 
+                'display'
+            );
+
+            // If that fails, try getting it from CSSStyleDeclaration.prototype directly
+            if (!originalDisplayDescriptor) {
+                originalDisplayDescriptor = Object.getOwnPropertyDescriptor(
+                    CSSStyleDeclaration.prototype,
+                    'display'
+                );
+            }
+
+            // If still not found, create a default descriptor that will at least restore functionality
+            if (!originalDisplayDescriptor) {
+                originalDisplayDescriptor = {
+                    configurable: true,
+                    enumerable: true,
+
+                    get: function() { 
+                        return this.getPropertyValue('display'); 
+                    },
+
+                    set: function(value: any) { 
+                        this.setProperty('display', value, '');
+                    }
+                };
+            }
+        } catch (e) {
+            // Create a fallback descriptor that will restore basic functionality
+            originalDisplayDescriptor = {
+                configurable: true,
+                enumerable: true,
+
+                get: function() { 
+                    return this.getPropertyValue('display'); 
+                },
+
+                set: function(value: any) { 
+                    this.setProperty('display', value, '');
+                }
+            };
+        }
+        
+        Object.defineProperty(element.style, 'display', { get: function() { return 'none'; }, set: function() { return; }, configurable: true });
+        
+        element.style.setProperty = function(propertyName, value, priority) {
+            if (propertyName === 'display') 
+                return originalSetProperty.call(this, propertyName, 'none');
+
+            return originalSetProperty.call(this, propertyName, value, priority);
+        };
+
+        return {
+            restore: () => {
+                Object.defineProperty(element.style, 'display', originalDisplayDescriptor);
+                element.style.setProperty = originalSetProperty;
+            }
+        };
+    }
+
+    // This might be very volatile, but it works for now and hides alert/confirmation boxes
     static async hiddenAction(action: (...args: any[]) => any) {
         const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
         const confirmBox = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
         const alertWrapper = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
         const okButton = document.querySelector('#ok_alert') as HTMLButtonElement;
 
-        bg.style.visibility = 'hidden !important';
-        confirmBox.style.visibility = 'hidden !important';
-        alertWrapper.style.visibility = 'hidden !important';
+        const killedBg = HSUtils.#killElementDisplayProperties(bg);
+        const killedConfirm = HSUtils.#killElementDisplayProperties(confirmBox);
+        const killedAlertWrapper = HSUtils.#killElementDisplayProperties(alertWrapper);
+
         await action();
         await HSUtils.wait(25);
+        killedBg.restore();
+        killedConfirm.restore();
+        killedAlertWrapper.restore();
         okButton.click();
-        await HSUtils.wait(25);
-        bg.style.visibility = '';
-        confirmBox.style.visibility = '';
-        alertWrapper.style.visibility = '';
     }
 }
