@@ -25,8 +25,8 @@ export class HSLogger {
     static #displayTimestamp : boolean = false;
 
     // Integrates the logger to the mod's UI panel's Log tab
-    static integrateToUI(hsui: HSUI) {
-        const logElement = hsui.getLogElement();
+    static async integrateToUI(hsui: HSUI) {
+        const logElement = await hsui.getLogElement();
 
         if(logElement) {
             this.#logElement = logElement;

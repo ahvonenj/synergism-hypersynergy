@@ -1,5 +1,7 @@
 import { EPredefinedPosition, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSElementHooker } from "./hs-elementhooker";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSUIC } from "./hs-ui-components";
@@ -35,6 +37,9 @@ export class HSUI extends HSModule {
     #logClearBtn? : HTMLButtonElement;
 
     #modPanelOpen = false;
+
+    static #injectedStyles = new Map<string, string>();
+    static #injectedStylesHolder?: HTMLStyleElement;
 
     #tabs : HSPanelTabDefinition[] = [
         {
@@ -74,6 +79,10 @@ export class HSUI extends HSModule {
 
         const self = this;
 
+        HSUI.#injectedStylesHolder = document.createElement('style');
+        HSUI.#injectedStylesHolder.id = HSGlobal.HSUI.injectedStylesDomId;
+        document.head.appendChild(HSUI.#injectedStylesHolder);
+
         // Inject UI panel styles
         HSUI.injectStyle(this.#staticPanelCss, 'hs-panel-css');
 
@@ -81,12 +90,12 @@ export class HSUI extends HSModule {
         HSUI.injectHTML(this.#staticPanelHtml);
 
         // Find the UI elements in DOM and store the refs
-        this.#uiPanel = document.querySelector('#hs-panel') as HTMLDivElement;
-        this.#uiPanelTitle = document.querySelector('#hs-panel-version') as HTMLDivElement;
-        this.#uiPanelCloseBtn = document.querySelector('.hs-panel-header-right') as HTMLDivElement;
-        this.#loggerElement = document.querySelector('#hs-ui-log') as HTMLTextAreaElement;
-        this.#logClearBtn = document.querySelector('#hs-ui-log-clear') as HTMLButtonElement;
-        const panelHandle = document.querySelector('.hs-panel-header') as HTMLDivElement;
+        this.#uiPanel = await HSElementHooker.HookElement('#hs-panel') as HTMLDivElement;
+        this.#uiPanelTitle = await HSElementHooker.HookElement('#hs-panel-version') as HTMLDivElement;
+        this.#uiPanelCloseBtn = await HSElementHooker.HookElement('.hs-panel-header-right') as HTMLDivElement;
+        this.#loggerElement = await HSElementHooker.HookElement('#hs-ui-log') as HTMLTextAreaElement;
+        this.#logClearBtn = await HSElementHooker.HookElement('#hs-ui-log-clear') as HTMLButtonElement;
+        const panelHandle = await HSElementHooker.HookElement('.hs-panel-header') as HTMLDivElement;
 
         // Make the HS UI panel draggable
         this.#makeDraggable(this.#uiPanel, panelHandle);
@@ -225,8 +234,14 @@ export class HSUI extends HSModule {
         }
     }
 
-    getLogElement() : HTMLTextAreaElement | null {
-        return this.#loggerElement ? this.#loggerElement : null;
+    async getLogElement() : Promise<HTMLTextAreaElement> {
+        if(this.#loggerElement) {
+            return this.#loggerElement;
+        } else {
+            const logEl = await HSElementHooker.HookElement('#hs-ui-log') as HTMLTextAreaElement;
+            this.#loggerElement = logEl;
+            return logEl;
+        }
     }
 
     replaceTabContents(tabId: number, htmlContent: string) {
@@ -283,13 +298,14 @@ export class HSUI extends HSModule {
     // Can be used to inject arbitrary CSS into the page
     static injectStyle(styleString: string, styleId?: string) {
         if(styleString && !this.#isStyleStringEmpty(styleString)) {
-            const styleElement = document.createElement('style');
 
-            if(styleId)
-                styleElement.id = styleId;
+            let style_id = styleId ? styleId : 'hs-injected-style-' + HSUtils.domid();
 
-            styleElement.textContent = styleString;
-            document.head.appendChild(styleElement);
+            if(!this.#injectedStyles.has(style_id)) {
+                this.#injectedStyles.set(style_id, styleString);
+            }
+
+            this.updateInjectedStyleBlock();
 
             HSLogger.debug(`Injected new CSS`, this.#staticContext);
         }
@@ -297,13 +313,29 @@ export class HSUI extends HSModule {
 
     // Can be used to inject arbitrary CSS into the page
     static removeInjectedStyle(styleId: string) {
-        const styleElement = document.getElementById(styleId);
-        if(styleElement) {
-            styleElement.parentElement?.removeChild(styleElement);
+        if(this.#injectedStyles.has(styleId)) {
+            this.#injectedStyles.delete(styleId);
+            this.updateInjectedStyleBlock();
             HSLogger.debug(`Removed injected CSS`, this.#staticContext);
         } else {
             HSLogger.warn(`Could not find style with id ${styleId}`, this.#staticContext);
         }
+    }
+
+    static updateInjectedStyleBlock() {
+        const styleHolder = document.querySelector(`#${HSGlobal.HSUI.injectedStylesDomId}`) as HTMLStyleElement;
+
+        if(!this.#injectedStylesHolder) {
+            this.#injectedStylesHolder = document.createElement('style');
+            this.#injectedStylesHolder.id = HSGlobal.HSUI.injectedStylesDomId;
+            document.head.appendChild(this.#injectedStylesHolder);
+        }
+
+        this.#injectedStylesHolder.innerHTML = '';
+
+        this.#injectedStyles.forEach((style, styleId) => {
+            HSUI.#injectedStylesHolder!.innerHTML += style;
+        });
     }
 
     // Can be used to inject arbitrary HTML

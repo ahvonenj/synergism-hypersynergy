@@ -84,7 +84,7 @@ export class HSModuleManager {
                     // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console
                     if(def.className === 'HSUI') {
                         const hsui = module as HSUI;
-                        HSLogger.integrateToUI(hsui);
+                        await HSLogger.integrateToUI(hsui);
                     }
                 }
             }

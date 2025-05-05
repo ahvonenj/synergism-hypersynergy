@@ -59,6 +59,10 @@ export interface HSGlobalGameData {
     saveDataWatchInterval: number;
 }
 
+export interface HSGlobalHSUI {
+    injectedStylesDomId: string;
+}
+
 export interface IHSGlobal {
     Debug: HSGlobalDebug;
     General: HSGlobalGeneral;
@@ -70,4 +74,5 @@ export interface IHSGlobal {
     HSMouse: HSGlobalMouse;
     HSAmbrosia: HSGlobalAmbrosia;
     HSGameData: HSGlobalGameData;
+    HSUI: HSGlobalHSUI;
 }

@@ -75,6 +75,13 @@ export const HSGlobal: IHSGlobal = class {
         storagePrefix: 'hs-',
     }
 
+    // --- HSUI ---
+
+    // Log level
+    static HSUI = {
+        injectedStylesDomId: 'hs-injected-styles',
+    }
+
     // --- HSSettings ---
 
     // Log level
