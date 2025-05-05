@@ -7,7 +7,9 @@ import { HSModule } from "../hs-core/hs-module";
 import { HSModuleManager } from "../hs-core/hs-module-manager";
 import { HSSetting } from "../hs-core/hs-setting";
 import { HSSettings } from "../hs-core/hs-settings";
+import { HSShadowDOM } from "../hs-core/hs-shadowdom";
 import { HSStorage } from "../hs-core/hs-storage";
+import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
 export class HSAmbrosia extends HSModule implements HSPersistable {
@@ -24,6 +26,47 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
     #_delegateAddHandler?: (e: Event) => void;
     #_delegateTimeHandler?: (e: Event) => void;
+
+    #quickbarCSS = `
+        #${HSGlobal.HSAmbrosia.quickBarId} > .blueberryLoadoutSlot:hover {
+            border: 2px solid #00ffd9;
+        }
+        
+        .hs-ambrosia-active-slot {
+            --angle: 0deg;
+            border-image: conic-gradient(
+                from var(--angle), 
+                #ff5e00, 
+                #ff9a00, 
+                #ffcd00, 
+                #e5ff00, 
+                #a5ff00, 
+                #00ffc8, 
+                #00c8ff, 
+                #00a5ff, 
+                #9500ff, 
+                #ff00e1, 
+                #ff0095, 
+                #ff5e00
+            ) 1;
+            
+            animation: hue-rotate 6s linear infinite;
+        }
+
+        @keyframes hue-rotate {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+    `
+
+    #quickbarCSSId = 'hs-ambrosia-quickbar-css';
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -180,17 +223,41 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     return;
                 }
 
-                self.#currentLoadout = slotEnum;
-
-                const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
-
-                if(loadoutStateSetting) {
-                    loadoutStateSetting.setValue(`<green>${slotEnum}</green>`);
-                }
+                await self.#updateCurrentLoadout(slotEnum);
             });
         });
 
         this.isInitialized = true;
+    }
+
+    async #updateCurrentLoadout(slotEnum: AMBROSIA_LOADOUT_SLOT) {
+        this.#currentLoadout = slotEnum;
+
+        const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
+
+        if(loadoutStateSetting) {
+            loadoutStateSetting.setValue(`<green>${slotEnum}</green>`);
+        }
+
+        if(!this.#pageHeader) {
+            this.#pageHeader = await HSElementHooker.HookElement('header');
+        }
+
+        const quickBar = this.#pageHeader.querySelector(`#${HSGlobal.HSAmbrosia.quickBarId}`) as HTMLElement;
+        
+        if(quickBar) {
+            quickBar.querySelectorAll('.blueberryLoadoutSlot').forEach((slot) => {
+                slot.classList.remove('hs-ambrosia-active-slot');
+            });
+
+            const activeSlot = quickBar.querySelector(`#${HSGlobal.HSAmbrosia.quickBarLoadoutIdPrefix}-${slotEnum}`) as HTMLElement;
+
+            if(activeSlot) {
+                activeSlot.classList.add('hs-ambrosia-active-slot');
+            }
+        } else {
+            HSLogger.warn(`Could not find quick bar element`, this.context);
+        }
     }
 
     #getIconEnumById(iconId: string): AMBROSIA_ICON | undefined {
@@ -306,7 +373,13 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 cloneSettingButton.remove();
             }
 
-            this.#pageHeader.insertBefore(clone, referenceElement)
+            this.#pageHeader.insertBefore(clone, referenceElement);
+
+            HSUI.injectStyle(this.#quickbarCSS, this.#quickbarCSSId);
+
+            if(this.#currentLoadout) {
+                await this.#updateCurrentLoadout(this.#currentLoadout);
+            }
         }
     }
 
@@ -319,6 +392,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
         if(quickBar) {
             quickBar.remove();
+            HSUI.removeInjectedStyle(this.#quickbarCSSId);
         } else {
             HSLogger.warn(`Could not find quick bar element`, this.context);
         }
@@ -331,6 +405,10 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         if(quickbarSetting.isEnabled()) {
             await this.destroyQuickBar();
             await this.createQuickBar();
+
+            if(this.#currentLoadout) {
+                await this.#updateCurrentLoadout(this.#currentLoadout);
+            }
         }
     }
 
@@ -375,11 +453,11 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         const [addCodeBtn, addCodeAllBtn, addCodeOneBtn, timeButton] = buttons as HTMLButtonElement[];
 
         if (!this.#_delegateAddHandler) {
-            this.#_delegateAddHandler = (e: Event) => { self.#addCodeButtonHandler(e); };
+            this.#_delegateAddHandler = async (e: Event) => { await self.#addCodeButtonHandler(e); };
         }
         
         if (!this.#_delegateTimeHandler) {
-            this.#_delegateTimeHandler = (e: Event) => { self.#timeCodeButtonHandler(e); };
+            this.#_delegateTimeHandler = async (e: Event) => { await self.#timeCodeButtonHandler(e); };
         }
 
         addCodeBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
@@ -424,11 +502,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
         const [addCodeBtn, addCodeAllBtn, addCodeOneBtn, timeButton] = buttons as HTMLButtonElement[];
 
-        [addCodeBtn, addCodeAllBtn, addCodeOneBtn].forEach((button) => {
-            button.removeEventListener('click', (e) => { self.#addCodeButtonHandler(e); }, { capture: true });
-        });
+        if (this.#_delegateAddHandler) {
+            addCodeBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+            addCodeAllBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+            addCodeOneBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+        }
 
-        timeButton.removeEventListener('click', (e) => { self.#timeCodeButtonHandler(e); }, { capture: true });	
+        if (this.#_delegateTimeHandler)
+            timeButton.removeEventListener('click', this.#_delegateTimeHandler, { capture: true });	
 
         HSLogger.log(`Disabled auto loadout`, this.context);
     }
@@ -442,7 +523,10 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
             const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${addLoadout}`) as HTMLButtonElement;
 
             await this.#maybeTurnLoadoutModeToLoad();
-            loadoutSlot.click();
+
+            await HSUtils.hiddenAction(async () => {
+                loadoutSlot.click();
+            });
         }
     }
 
@@ -455,7 +539,10 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
             const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${timeLoadout}`) as HTMLButtonElement;
 
             await this.#maybeTurnLoadoutModeToLoad();
-            loadoutSlot.click();
+
+            await HSUtils.hiddenAction(async () => {
+                loadoutSlot.click();
+            });
         }
     }
 

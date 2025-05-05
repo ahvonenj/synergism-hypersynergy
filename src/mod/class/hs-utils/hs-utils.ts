@@ -1,4 +1,5 @@
 import { CSSValue } from "../../types/module-types/hs-ui-types";
+import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 
 /*
@@ -191,5 +192,18 @@ export class HSUtils {
             console.warn("Error removing color tags from log message", e);
             return `${msg}`;
         }
+    }
+
+    static async hiddenAction(action: (...args: any[]) => any) {
+        const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
+        const confirm = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
+        const okButton = document.querySelector('#ok_alert') as HTMLButtonElement;
+        bg.style.display = 'none !important';
+        confirm.style.display = 'none !important';
+        await action();
+        await HSUtils.wait(50);
+        okButton.click();
+        bg.style.display = 'none';
+        confirm.style.display = 'none';
     }
 }
