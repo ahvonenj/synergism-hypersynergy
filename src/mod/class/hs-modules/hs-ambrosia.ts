@@ -8,6 +8,7 @@ import { HSModuleManager } from "../hs-core/hs-module-manager";
 import { HSSetting } from "../hs-core/hs-setting";
 import { HSSettings } from "../hs-core/hs-settings";
 import { HSStorage } from "../hs-core/hs-storage";
+import { HSUtils } from "../hs-utils/hs-utils";
 
 export class HSAmbrosia extends HSModule implements HSPersistable {
 
@@ -20,6 +21,9 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
     #loadoutState: HSAmbrosiaLoadoutState = new Map<AMBROSIA_LOADOUT_SLOT, AMBROSIA_ICON>();
 
     #currentLoadout?: AMBROSIA_LOADOUT_SLOT;
+
+    #_delegateAddHandler?: (e: Event) => void;
+    #_delegateTimeHandler?: (e: Event) => void;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -179,7 +183,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 self.#currentLoadout = slotEnum;
 
                 const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
-                console.log(loadoutStateSetting, slotEnum);
+
                 if(loadoutStateSetting) {
                     loadoutStateSetting.setValue(`<green>${slotEnum}</green>`);
                 }
@@ -252,6 +256,14 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         } else {
             HSLogger.warn(`loadState - Could not find storage module`, this.context);
         }
+
+        const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
+
+        if(loadoutStateSetting && !this.#currentLoadout) {
+            this.#currentLoadout = HSUtils.removeColorTags(loadoutStateSetting.getValue()) as AMBROSIA_LOADOUT_SLOT;
+        } else {
+            HSLogger.warn(`loadState - Could not find autoLoadoutState setting`, this.context);
+        }
     }
 
     async createQuickBar() {
@@ -280,18 +292,9 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 // Make the quickbar buttons simulate a click on the real buttons
                 button.addEventListener('click', async (e) => {
                     const realButton = document.querySelector(`#${buttonId}`) as HTMLButtonElement;
-                    const modeButton = document.querySelector('#blueberryToggleMode') as HTMLButtonElement;
 
-                    if(realButton && modeButton) {
-                        const currentMode = modeButton.innerText;
-
-                        // If the current mode is SAVE, we need to switch to LOAD mode
-                        // This is so that the user never accidentally saves a loadout when using the quickbar
-                        if(currentMode.includes('SAVE')) {
-                            HSLogger.info(`Auto-switched loadout mode to LOAD for quickbar`, this.context);
-                            modeButton.click();
-                        }
-
+                    if(realButton) {
+                        await this.#maybeTurnLoadoutModeToLoad();
                         realButton.click();
                     } else {
                         HSLogger.warn(`Could not find real button for ${buttonId}`, this.context);
@@ -328,6 +331,145 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         if(quickbarSetting.isEnabled()) {
             await this.destroyQuickBar();
             await this.createQuickBar();
+        }
+    }
+
+    async enableAutoLoadout() {
+        const self = this;
+
+        const loadoutStateSetting = HSSettings.getSetting('autoLoadoutState') as HSSetting<string>;
+        
+        if((loadoutStateSetting && loadoutStateSetting.getValue().includes('Unknown')) || !this.#currentLoadout) {
+            const autoLoadoutSetting = HSSettings.getSetting('autoLoadout') as HSSetting<boolean>;
+
+            if(autoLoadoutSetting && autoLoadoutSetting.isEnabled()) {
+                autoLoadoutSetting.disable();
+            }
+
+            HSLogger.warn(`Could not enable auto loadout - current loadout state is not known!`, this.context);
+            return;
+        }
+
+        const promises = [
+            HSElementHooker.HookElement('#addCode'),
+            HSElementHooker.HookElement('#addCodeAll'),
+            HSElementHooker.HookElement('#addCodeOne'),
+            HSElementHooker.HookElement('#timeCode')
+        ];
+        
+        const results = await Promise.allSettled(promises);
+
+        const buttons = results.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                return result.value as HTMLButtonElement;
+            } else {
+                return null;
+            }
+        });
+
+        if(buttons.some(button => button === null)) {
+            HSLogger.warn(`Problem with enabling auto loadout`, this.context);
+            return;
+        }
+
+        const [addCodeBtn, addCodeAllBtn, addCodeOneBtn, timeButton] = buttons as HTMLButtonElement[];
+
+        if (!this.#_delegateAddHandler) {
+            this.#_delegateAddHandler = (e: Event) => { self.#addCodeButtonHandler(e); };
+        }
+        
+        if (!this.#_delegateTimeHandler) {
+            this.#_delegateTimeHandler = (e: Event) => { self.#timeCodeButtonHandler(e); };
+        }
+
+        addCodeBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+        addCodeBtn.addEventListener('click', this.#_delegateAddHandler, { capture: true });
+
+        addCodeAllBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+        addCodeAllBtn.addEventListener('click', this.#_delegateAddHandler, { capture: true });
+
+        addCodeOneBtn.removeEventListener('click', this.#_delegateAddHandler, { capture: true });
+        addCodeOneBtn.addEventListener('click', this.#_delegateAddHandler, { capture: true });
+
+        timeButton.removeEventListener('click', this.#_delegateTimeHandler, { capture: true });	
+        timeButton.addEventListener('click', this.#_delegateTimeHandler, { capture: true });
+
+        HSLogger.log(`Enabled auto loadout`, this.context);
+    }
+
+    async disableAutoLoadout() {
+        const self = this;
+
+        const promises = [
+            HSElementHooker.HookElement('#addCode'),
+            HSElementHooker.HookElement('#addCodeAll'),
+            HSElementHooker.HookElement('#addCodeOne'),
+            HSElementHooker.HookElement('#timeCode')
+        ];
+        
+        const results = await Promise.allSettled(promises);
+
+        const buttons = results.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                return result.value as HTMLButtonElement;
+            } else {
+                return null;
+            }
+        });
+
+        if(buttons.some(button => button === null)) {
+            HSLogger.warn(`Problem with disabling auto loadout`, this.context);
+            return;
+        }
+
+        const [addCodeBtn, addCodeAllBtn, addCodeOneBtn, timeButton] = buttons as HTMLButtonElement[];
+
+        [addCodeBtn, addCodeAllBtn, addCodeOneBtn].forEach((button) => {
+            button.removeEventListener('click', (e) => { self.#addCodeButtonHandler(e); }, { capture: true });
+        });
+
+        timeButton.removeEventListener('click', (e) => { self.#timeCodeButtonHandler(e); }, { capture: true });	
+
+        HSLogger.log(`Disabled auto loadout`, this.context);
+    }
+
+    async #addCodeButtonHandler(e: Event) {
+        const currentLoadout = this.#currentLoadout;
+        const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSetting<string>;
+
+        if(currentLoadout && addLoadoutSetting) {
+            const addLoadout = addLoadoutSetting.getValue();
+            const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${addLoadout}`) as HTMLButtonElement;
+
+            await this.#maybeTurnLoadoutModeToLoad();
+            loadoutSlot.click();
+        }
+    }
+
+    async #timeCodeButtonHandler(e: Event) {
+        const currentLoadout = this.#currentLoadout;
+        const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSetting<string>;
+
+        if(currentLoadout && timeLoadoutSetting) {
+            const timeLoadout = timeLoadoutSetting.getValue();
+            const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${timeLoadout}`) as HTMLButtonElement;
+
+            await this.#maybeTurnLoadoutModeToLoad();
+            loadoutSlot.click();
+        }
+    }
+
+    async #maybeTurnLoadoutModeToLoad() {
+        const modeButton = await HSElementHooker.HookElement('#blueberryToggleMode') as HTMLButtonElement;
+
+        if(modeButton) {
+            const currentMode = modeButton.innerText;
+
+            // If the current mode is SAVE, we need to switch to LOAD mode
+            // This is so that the user never accidentally saves a loadout when using the quickbar
+            if(currentMode.includes('SAVE')) {
+                modeButton.click();
+            }
         }
     }
 }
