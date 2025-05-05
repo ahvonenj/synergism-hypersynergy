@@ -29,7 +29,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
     #quickbarCSS = `
         #${HSGlobal.HSAmbrosia.quickBarId} > .blueberryLoadoutSlot:hover {
-            border: 2px solid #00ffd9;
+            border: 2px solid #ff44ae;
         }
         
         .hs-ambrosia-active-slot {
@@ -244,7 +244,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
         }
 
         const quickBar = this.#pageHeader.querySelector(`#${HSGlobal.HSAmbrosia.quickBarId}`) as HTMLElement;
-        
+
         if(quickBar) {
             quickBar.querySelectorAll('.blueberryLoadoutSlot').forEach((slot) => {
                 slot.classList.remove('hs-ambrosia-active-slot');

@@ -196,14 +196,19 @@ export class HSUtils {
 
     static async hiddenAction(action: (...args: any[]) => any) {
         const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
-        const confirm = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
+        const confirmBox = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
+        const alertWrapper = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
         const okButton = document.querySelector('#ok_alert') as HTMLButtonElement;
-        bg.style.display = 'none !important';
-        confirm.style.display = 'none !important';
+
+        bg.style.visibility = 'hidden !important';
+        confirmBox.style.visibility = 'hidden !important';
+        alertWrapper.style.visibility = 'hidden !important';
         await action();
-        await HSUtils.wait(50);
+        await HSUtils.wait(25);
         okButton.click();
-        bg.style.display = 'none';
-        confirm.style.display = 'none';
+        await HSUtils.wait(25);
+        bg.style.visibility = '';
+        confirmBox.style.visibility = '';
+        alertWrapper.style.visibility = '';
     }
 }
