@@ -1,0 +1,119 @@
+
+expandCostProtectionObtainium: ExpandCostProtectionObtainiumSetting;
+expandCostProtectionOffering: ExpandCostProtectionOfferingSetting;
+
+export interface ExpandCostProtectionObtainiumSetting extends HSSettingBase<number> {}
+export interface ExpandCostProtectionOfferingSetting extends HSSettingBase<number> {}
+
+#hepteractSecondaryCosts : { [key: string]: number | null } = {
+    chronosHepteract: null,             // Obtainium
+    hyperrealismHepteract: null,        // Offering
+    quarkHepteract: 0,
+    challengeHepteract: null,
+    abyssHepteract: null,
+    acceleratorHepteract: null,
+    acceleratorBoostHepteract: null,
+    multiplierHepteract: null           // Obtainium
+};
+
+const obtHolder = await HSElementHooker.HookElement('#obtainiumDisplay') as HTMLElement;
+const offeringHolder = await HSElementHooker.HookElement('#offeringDisplay') as HTMLElement;
+
+if(obtHolder && offeringHolder) {
+    const obtText = obtHolder.innerText;
+    const offeringText = offeringHolder.innerText;
+
+    if(obtText && offeringText) {
+        const obtValue = parseFloat(HSUtils.unfuckNumericString(obtHolder.innerText));
+        const offeringValue = parseFloat(HSUtils.unfuckNumericString(offeringHolder.innerText));
+
+        percentObtOwned = ;
+        percentOfferingOwned = ;
+    }
+}
+
+const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
+const expandCostProtectionObtainiumSetting = HSSettings.getSetting('expandCostProtectionObtainium') as HSSetting<number>;
+const expandCostProtectionOfferingSetting = HSSettings.getSetting('expandCostProtectionOffering') as HSSetting<number>;
+const costProtectionNotificationSetting = HSSettings.getSetting('expandCostProtectionNotifications') as HSSetting<boolean>;
+
+const notify = (costProtectionNotificationSetting && costProtectionNotificationSetting.getValue() === true) ? true : false;
+
+if(expandCostProtectionSetting.isEnabled()) {
+    const heptSettingValue = expandCostProtectionSetting.getCalculatedValue();
+
+    if(heptSettingValue && percentHeptOwned >= heptSettingValue) {
+        if(notify)
+            HSLogger.info(`Hept. cost protection: ${percentHeptOwned.toFixed(2)} >= ${heptSettingValue}`, this.context);
+
+        self.#watchUpdatePending = false;
+        self.#expandPending = false;
+        return;
+    }
+}
+
+if(expandCostProtectionObtainiumSetting.isEnabled()) {
+    const obtSettingValue = expandCostProtectionObtainiumSetting.getCalculatedValue();
+
+    if(obtSettingValue && percentObtOwned >= obtSettingValue) {
+        if(notify)
+            HSLogger.info(`Obt. cost protection: ${percentObtOwned.toFixed(2)} >= ${obtSettingValue}`, this.context);
+
+        self.#watchUpdatePending = false;
+        self.#expandPending = false;
+        return;
+    }
+}
+
+if(expandCostProtectionOfferingSetting.isEnabled()) {
+    const offeringSettingValue = expandCostProtectionOfferingSetting.getCalculatedValue();
+
+    if(offeringSettingValue && percentOfferingOwned >= offeringSettingValue) {
+        if(notify)
+            HSLogger.info(`Off. cost protection: ${percentOfferingOwned.toFixed(2)} >= ${offeringSettingValue}`, this.context);
+
+        self.#watchUpdatePending = false;
+        self.#expandPending = false;
+        return;
+    }
+}
+
+"expandCostProtectionObtainium": {
+    "settingName": "expandCostProtectionObtainium",
+    "settingDescription": "Obtainium protection",
+    "settingHelpText": "When enabled, expand cost protection will also try to take your current obtainium into account.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.5,
+    "settingControl": {
+        "controlId": "hs-setting-expand-cost-protection-obt-value",
+        "controlType": "number",
+        "controlGroup": "hepteracts",
+        "controlEnabledId": "hs-setting-expand-cost-protection-obt-btn",
+        "controlOptions": {
+            "min": 0,
+            "max": 1,
+            "step": 0.1
+        }
+    }
+},
+
+"expandCostProtectionOffering": {
+    "settingName": "expandCostProtectionOffering",
+    "settingDescription": "Sac. protection",
+    "settingHelpText": "When enabled, expand cost protection will also try to take your current offerings into account.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.5,
+    "settingControl": {
+        "controlId": "hs-setting-expand-cost-protection-offering-value",
+        "controlType": "number",
+        "controlGroup": "hepteracts",
+        "controlEnabledId": "hs-setting-expand-cost-protection-offering-btn",
+        "controlOptions": {
+            "min": 0,
+            "max": 1,
+            "step": 0.1
+        }
+    }
+},

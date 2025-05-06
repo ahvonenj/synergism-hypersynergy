@@ -194,6 +194,32 @@ export class HSUtils {
         }
     }
 
+    static unfuckNumericString(str: string) : string {
+        if(!str) return str;
+
+        // if the number is in e-notation, we can just parse it normally
+        if(str.toLowerCase().includes('e')) {
+            return str.replace(/,/g, '');
+        }
+
+        // Remove all non-numeric characters except for . and -
+        const cleanedStr = str.replace(/[^0-9.,-]/g, '');
+
+        // Remove , if it is used as thousand separator
+        // and replace . with , if it is used as decimal separator
+        const parts = cleanedStr.split('.');
+
+        let finalStr = '';
+
+        if(parts.length > 1) {
+            finalStr = parts[0].replace(/,/g, '') + '.' + parts[1].replace(/,/g, '');
+        } else {
+            finalStr = cleanedStr.replace(/,/g, '');
+        }
+
+        return finalStr;
+    }
+
     /*
         Warning: This is really hacky
 
@@ -270,21 +296,29 @@ export class HSUtils {
     }
 
     // This might be very volatile, but it works for now and hides alert/confirmation boxes
-    static async hiddenAction(action: (...args: any[]) => any) {
+    static async hiddenAction(action: (...args: any[]) => any, needConfirm = false, waitMs = 25) {
         const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
         const confirmBox = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
         const alertWrapper = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
-        const okButton = document.querySelector('#ok_alert') as HTMLButtonElement;
+        const okAlert = document.querySelector('#ok_alert') as HTMLButtonElement;
+        const okConfirm = document.querySelector('#ok_confirm') as HTMLButtonElement;
 
         const killedBg = HSUtils.#killElementDisplayProperties(bg);
         const killedConfirm = HSUtils.#killElementDisplayProperties(confirmBox);
         const killedAlertWrapper = HSUtils.#killElementDisplayProperties(alertWrapper);
 
         await action();
-        await HSUtils.wait(25);
+        await HSUtils.wait(waitMs);
+
+        if(needConfirm) {
+            okConfirm.click();
+            await HSUtils.wait(waitMs);
+        }
+
         killedBg.restore();
         killedConfirm.restore();
         killedAlertWrapper.restore();
-        okButton.click();
+        okAlert.click();
+        
     }
 }

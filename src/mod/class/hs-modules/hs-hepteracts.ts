@@ -59,7 +59,7 @@ export class HSHepteracts extends HSModule {
         acceleratorHepteract: null,
         acceleratorBoostHepteract: null,
         multiplierHepteract: null
-    };
+    }; 
 
     #hyperToChallengeRatio = 0;
     #chronosToChallengeRatio = 0;
@@ -228,7 +228,7 @@ export class HSHepteracts extends HSModule {
                                 let buyCost = null;
 
                                 if(hepteractDoubleCapSetting.getValue()) {
-                                    buyCost = currentMax * cubeCost;
+                                    buyCost = ((currentMax * 2) - currentMax) * cubeCost;
                                 } else {
                                     buyCost = currentMax * 2 * cubeCost;
                                 }
@@ -257,8 +257,12 @@ export class HSHepteracts extends HSModule {
 
                             self.#expandPending = true;
                             self.#watchUpdatePending = true;
+
                             let buyCost = null;
-                            let percentOwned = null;
+
+                            let percentHeptOwned = null;
+                            //let percentObtOwned = null;
+                            //let percentOfferingOwned = null;
 
                             if(self.#ownedHepteracts !== null && self.#ownedHepteracts !== undefined) {
                                 if(self.#ownedHepteracts === 0) {
@@ -276,29 +280,89 @@ export class HSHepteracts extends HSModule {
                                 }
 
                                 let hepteractDoubleCapSetting = HSSettings.getSetting('expandCostProtectionDoubleCap') as HSSetting<boolean>;
+                                let nextHepts = null;
 
                                 if(hepteractDoubleCapSetting.getValue()) {
-                                    buyCost = currentMax * cubeCost;
+                                    nextHepts = ((currentMax * 2) - currentMax)
+                                    buyCost = ((currentMax * 2) - currentMax) * cubeCost;
                                 } else {
+                                    nextHepts = currentMax * 2;
                                     buyCost = currentMax * 2 * cubeCost;
                                 }
 
-                                percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
+                                percentHeptOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
+
+                                /*const obtHolder = await HSElementHooker.HookElement('#obtainiumDisplay') as HTMLElement;
+                                const offeringHolder = await HSElementHooker.HookElement('#offeringDisplay') as HTMLElement;
+
+                                if(obtHolder && offeringHolder) {
+                                    const obtText = obtHolder.innerText;
+                                    const offeringText = offeringHolder.innerText;
+
+                                    if(obtText && offeringText) {
+                                        const obtValue = parseFloat(HSUtils.unfuckNumericString(obtHolder.innerText));
+                                        const offeringValue = parseFloat(HSUtils.unfuckNumericString(offeringHolder.innerText));
+
+                                        percentObtOwned = ;
+                                        percentOfferingOwned = ;
+                                    }
+                                }*/
+
+                                HSLogger.debug(`
+                                    Current max: ${currentMax},
+                                    Cube cost: ${HSUtils.N(cubeCost)},
+                                    Next hepts: ${HSUtils.N(nextHepts)},
+                                    Buy cost: ${HSUtils.N(buyCost)},
+                                    Percent owned: ${HSUtils.N(percentHeptOwned)},
+                                    Double Cap: ${hepteractDoubleCapSetting.getValue()}`,
+                                    this.context
+                                );
 
                                 const expandCostProtectionSetting = HSSettings.getSetting('expandCostProtection') as HSSetting<number>;
-                                const settingValue = expandCostProtectionSetting.getCalculatedValue();
+                                //const expandCostProtectionObtainiumSetting = HSSettings.getSetting('expandCostProtectionObtainium') as HSSetting<number>;
+                                //const expandCostProtectionOfferingSetting = HSSettings.getSetting('expandCostProtectionOffering') as HSSetting<number>;
+                                const costProtectionNotificationSetting = HSSettings.getSetting('expandCostProtectionNotifications') as HSSetting<boolean>;
 
-                                if(settingValue && percentOwned >= settingValue) {
-                                    const costProtectionNotificationSetting = HSSettings.getSetting('expandCostProtectionNotifications') as HSSetting<boolean>;
+                                const notify = (costProtectionNotificationSetting && costProtectionNotificationSetting.getValue() === true) ? false : true;
 
-                                    if(costProtectionNotificationSetting && costProtectionNotificationSetting.getValue() === false) {
-                                        HSLogger.info(`Buying ${id} would cost ${HSUtils.N(buyCost)} hepts (${percentOwned.toFixed(2)} of current hepts) which is >= ${settingValue} (cost protection)`, this.context);
+                                if(expandCostProtectionSetting.isEnabled()) {
+                                    const heptSettingValue = expandCostProtectionSetting.getCalculatedValue();
+
+                                    if(heptSettingValue && percentHeptOwned >= heptSettingValue) {
+                                        if(notify)
+                                            HSLogger.info(`Hept. cost protection: Cost owned ${HSUtils.N(percentHeptOwned * 100)}& >= ${heptSettingValue * 100}%`, this.context);
+    
+                                        self.#watchUpdatePending = false;
+                                        self.#expandPending = false;
+                                        return;
                                     }
-
-                                    self.#watchUpdatePending = false;
-                                    self.#expandPending = false;
-                                    return;
                                 }
+
+                                /*if(expandCostProtectionObtainiumSetting.isEnabled()) {
+                                    const obtSettingValue = expandCostProtectionObtainiumSetting.getCalculatedValue();
+
+                                    if(obtSettingValue && percentObtOwned >= obtSettingValue) {
+                                        if(notify)
+                                            HSLogger.info(`Obt. cost protection: ${percentObtOwned.toFixed(2)} >= ${obtSettingValue}`, this.context);
+    
+                                        self.#watchUpdatePending = false;
+                                        self.#expandPending = false;
+                                        return;
+                                    }
+                                }
+
+                                if(expandCostProtectionOfferingSetting.isEnabled()) {
+                                    const offeringSettingValue = expandCostProtectionOfferingSetting.getCalculatedValue();
+
+                                    if(offeringSettingValue && percentOfferingOwned >= offeringSettingValue) {
+                                        if(notify)
+                                            HSLogger.info(`Off. cost protection: ${percentOfferingOwned.toFixed(2)} >= ${offeringSettingValue}`, this.context);
+    
+                                        self.#watchUpdatePending = false;
+                                        self.#expandPending = false;
+                                        return;
+                                    }
+                                }*/
                             } else {
                                 HSLogger.warn(`Owned hepteracts not parsed yet`, this.context);
 
@@ -308,49 +372,49 @@ export class HSHepteracts extends HSModule {
                             }
                             
                             // Get instance of the Shadow DOM module
-                            const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
+                            //const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
                             // This is the small "ON/OFF" toggle button which is used to enable/disable the hepteract buy notifications
                             const hepteractBuyNotificationToggle = await HSElementHooker.HookElement('#toggle35') as HTMLButtonElement;
 
-                            if(shadowDOM) {
-                                // Query for the modal background and confirm modal elements
-                                const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
-                                const confirm = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
+                            if(hepteractBuyNotificationToggle && hepteractBuyNotificationToggle.innerText.includes('ON')) {
+                                HSLogger.info(`Turned hepteract notification toggle OFF`, this.context);
+                                hepteractBuyNotificationToggle.click();
+                            }
 
-                                if(bg && confirm) {
-                                    // Create shadows of the modal background and confirm modal elements
-                                    // (this detaches them from DOM)
-                                    const bgShadow = shadowDOM.createShadow(bg);
-                                    const confirmShadow = shadowDOM.createShadow(confirm);
+                            // Perform our cap- and max button clicking
+                            await HSUtils.hiddenAction(async () => {
+                                capBtn.click();
+                            }, true, 5);
 
-                                    if(hepteractBuyNotificationToggle && hepteractBuyNotificationToggle.innerText.includes('ON')) {
-                                        HSLogger.info(`Turned hepteract notification toggle OFF`, this.context);
-                                        hepteractBuyNotificationToggle.click();
-                                    }
+                            await HSUtils.wait(25);
+                            
+                            craftMaxBtn.click();
 
-                                    // Perform our cap- and max button clicking
-                                    if(bgShadow && confirmShadow) {
-                                        capBtn.click();
-                                        await HSUtils.wait(5);
-                                        (confirm.querySelector('#confirmWrapper > #confirm > #ok_confirm') as HTMLButtonElement).click();
-                                        await HSUtils.wait(5);
-                                        (confirm.querySelector('#alertWrapper > #alert > #ok_alert') as HTMLButtonElement).click();
-                                        await HSUtils.wait(5);
-                                        craftMaxBtn.click();
-                                        await HSUtils.wait(5);
+                            if(buyCost && percentHeptOwned) {
+                                self.#updateCraftText(buyCost, percentHeptOwned);
+                            }
 
-                                        // Attach the elements back to the DOM by destroying the shadows
-                                        shadowDOM.destroyShadow(bgShadow);
-                                        shadowDOM.destroyShadow(confirmShadow);
+                            /*if(id !== 'quarkHepteract') {
+                                const costElement = document.querySelector('#hepteractCostText') as HTMLDivElement;
+        
+                                if(costElement) {
+                                    const costString = costElement.innerText;
+                                    const costMatch = costString.match(/you\s+(.*?)\s+Hepteracts/i);
+        
+                                    if(costMatch) {
+                                        const cost = costMatch[1];
+                                        
+                                        try {
+                                            if(id in self.#hepteractCosts) {
+                                                const floatCost = HSUtils.parseFloat2(cost);
+                                                (self.#hepteractCosts as any)[id] = floatCost;
+                                            }
+                                        } catch (e) {
+                                            HSLogger.warn(`Error while parsing NEW hepteract cost for ${id}`, self.context);
+                                        }
                                     }
                                 }
-                            } else {
-                                HSLogger.warn(`Could not get HSShadowDOM module`, this.context);
-                            }
-
-                            if(buyCost && percentOwned) {
-                                self.#updateCraftText(buyCost, percentOwned);
-                            }
+                            }*/
 
                             self.#expandPending = false;
                         });
@@ -428,7 +492,7 @@ export class HSHepteracts extends HSModule {
     
                             try {
                                 if(split && split[1]) {
-                                    return parseFloat(split[1]);
+                                    return parseFloat(HSUtils.unfuckNumericString(split[1]));
                                 }
                             } catch (e) {
                                 HSLogger.warn(`Parsing failed for ${split}`, self.context);
