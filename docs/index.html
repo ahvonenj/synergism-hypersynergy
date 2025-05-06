@@ -142,11 +142,36 @@
                         <li>Auto click</li>
                         <li>Mod log</li>
                         <li>Ambrosia loadout icons</li>
-                        <li>Ambrosia loadout quickbar</li>
+                        <li>Ambrosia Loadout Quickbar (with equipped loadout indicator)</li>
+                        <li>Ambrosia loadout auto switcher when using ADD or TIME codes</li>
+                        <li>Toggleable patches (such as overflow fix on ambrosia page)</li>
                     </ul>
                 </div>
                 <div class="page-wrapper" id="changelog" data-color="purple">
                     <h1>Changelog</h1>
+
+                    <h2>Hypersynergism version 2.6.2 - Auto Ambrosia Loadout & Bugfixes</h2>
+                    <p class="sm">Released: 6.5.2025</p><br/>
+                    <img src="res/quickbar_equipped.png" width="400" />
+
+                    <h3 style="margin-left: 30px">Features</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>Implemented ambrosia loadout auto switcher when using ADD or TIME codes</li>
+                        <li>Ambrosia loadout quickbar now shows the currently equipped loadout</li>
+                        <li>Fixed multi event binding bug with quickbar</li>
+                        <li>FIXED REMAINING HEPTERACT COST PROTECTION BUGS ONCE AND FOR ALL (there should be no more random expands anymore when they can't be afforded, like... at all, ever.)</li>
+                        <li>Made cost protection calculation with 2x cap more accurate</li>
+                        <li>Made cost protection info log shorter. Was 200 kilometers long.</li>
+                    </ul>
+
+                    <h3 style="margin-left: 30px">Boring features</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>Injected styles are now batched under single style tag</li>
+                        <li>Added `HSUtils.hiddenAction()` which can be used to perform actions "silently" which would otherwise pop an alert modal</li>
+                        <li>Added `HSUtils.unfuckNumericString()` which, when used on any string presentation of a number, should make sure that nothing will parse the number in a ridiculous way afterwards</li>
+                        <li>Added STATE type setting</li>
+                        <li>Added SELECT type setting</li>
+                    </ul>
 
                     <h2>Version 2.6.1 - The Statistics and Ambrosia Update</h2>
                     <p class="sm">Released: 1.5.2025</p><br/>

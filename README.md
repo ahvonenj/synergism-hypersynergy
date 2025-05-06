@@ -44,9 +44,34 @@ Quick overview:
 - Auto click
 - Mod log
 - Ambrosia loadout icons
-- Ambrosia Loadout Quickbar
+- Ambrosia Loadout Quickbar (with equipped loadout indicator)
+- Ambrosia loadout auto switcher when using ADD or TIME codes
+- Toggleable patches (such as overflow fix on ambrosia page)
 
 ## Latest update(s)
+
+### Hypersynergism version 2.6.2 - Auto Ambrosia Loadout & Bugfixes
+
+<picture>
+  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/hd/quickbar_equipped.png?raw=true" width="400" />
+</picture>
+
+**Features**
+
+- Implemented ambrosia loadout auto switcher when using ADD or TIME codes
+- Ambrosia loadout quickbar now shows the currently equipped loadout
+- Fixed multi event binding bug with quickbar
+- FIXED REMAINING HEPTERACT COST PROTECTION BUGS ONCE AND FOR ALL (there should be no more random expands anymore when they can't be afforded, like... at all, ever.)
+- Made cost protection calculation with 2x cap more accurate
+- Made cost protection info log shorter. Was 200 kilometers long.
+
+**Boring features**
+
+- Injected styles are now batched under single style tag
+- Added `HSUtils.hiddenAction()` which can be used to perform actions "silently" which would otherwise pop an alert modal
+- Added `HSUtils.unfuckNumericString()` which, when used on any string presentation of a number, should make sure that nothing will parse the number in a ridiculous way afterwards
+- Added STATE type setting
+- Added SELECT type setting
 
 ### Hypersynergism version 2.6.1 - The Statistics and Ambrosia Update
 
@@ -66,18 +91,6 @@ Quick overview:
 - Quark Hepteract shows the "next max quark cost" instead of hepteract cost
 - Added "Patch settings"
 - Added toggleable patch to fix overflow issues with the ambrosia page which made the page jump around
-
-### Hypersynergism v2.6.0
-
-Hypersynergism version 2.6.0 introduces **Ambrosia Loadout Quickbar** as it's most notable feature:
-
-<picture>
-  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/ambrosia-quickbar.png?raw=true" width="400" />
-</picture>
-
-More information about this feature can be [found in the wiki](https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features#ambrosia-loadout-quickbar).
-
-In addition to Ambrosia Loadout Quickbar, version 2.6.0 comes with various bug fixes, settings grouping, initial HSStats-module implementation, new tools, new corruption reference sheet and much more.
 
 # Using the mod
 
