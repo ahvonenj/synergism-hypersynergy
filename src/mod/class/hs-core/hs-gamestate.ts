@@ -195,6 +195,14 @@ export class HSGameState extends HSModule {
         return id;
     }
 
+    unsubscribeGameStateChange(viewKey: VIEW_KEY, subscriptionId: string) {
+        if(this.#viewStates[viewKey].viewChangeSubscribers.has(subscriptionId)) {
+            this.#viewStates[viewKey].viewChangeSubscribers.delete(subscriptionId);
+        } else {
+            HSLogger.warn(`Subscription ID ${subscriptionId} not found for view key ${viewKey}`, this.context);
+        }
+    }
+
     async #resolveSubViewChanges(mainViewId: MAIN_VIEW) {
         const self = this;
         const viewProperties = HSGlobal.HSGameState.viewProperties.get(mainViewId);

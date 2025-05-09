@@ -1,6 +1,8 @@
-import { HSPersistable } from "../../types/hs-types";
+import { PlayerData } from "../../types/hs-player-savedata";
+import { HSGameDataSubscriber, HSPersistable } from "../../types/hs-types";
 import { AMBROSIA_ICON, AMBROSIA_LOADOUT_SLOT, HSAmbrosiaLoadoutIcon, HSAmbrosiaLoadoutState } from "../../types/module-types/hs-ambrosia-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
+import { HSGameData } from "../hs-core/hs-gamedata";
 import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
@@ -12,7 +14,9 @@ import { HSStorage } from "../hs-core/hs-storage";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
-export class HSAmbrosia extends HSModule implements HSPersistable {
+export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSubscriber {
+
+    subscriptionId?: string;
 
     #ambrosiaGrid: HTMLElement | null = null;
     #loadOutsSlots: HTMLElement[] = [];
@@ -591,5 +595,92 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 modeButton.click();
             }
         }
+    }
+
+    subscribeGameDataChanges() {
+        const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+        if(gameDataMod) {
+            this.subscriptionId = gameDataMod.subscribeGameDataChange(this.gameDataCallback.bind(this));
+        }
+    }
+
+    unsubscribeGameDataChanges() {
+        const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+        if(gameDataMod && this.subscriptionId) {
+            gameDataMod.unsubscribeGameDataChange(this.subscriptionId);
+            this.subscriptionId = undefined;
+        }
+    }
+
+    async gameDataCallback(data: PlayerData) {
+        if(!data) return;
+
+        if(data.blueberryTime && data.redAmbrosiaTime) {
+            const redBarRequirementMultiplier = 1 - (0.01 * data.singularityChallenges.limitedTime.completions);
+
+            const blueAmbrosiaBarValue = data.blueberryTime;
+            const redAmbrosiaBarValue = data.redAmbrosiaTime;
+            const blueAmbrosiaBarMax = this.#calculateRequiredBlueberryTime(data.lifetimeAmbrosia);
+            const redAmbrosiaBarMax = this.#calculateRequiredRedAmbrosiaTime(data.lifetimeRedAmbrosia, redBarRequirementMultiplier);
+            console.log(blueAmbrosiaBarValue, blueAmbrosiaBarMax, redAmbrosiaBarValue, redAmbrosiaBarMax);
+        }
+    };
+
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts#
+    #calculateNumberOfThresholds = (lifetimeAmbrosia: number) => {
+        const numDigits = lifetimeAmbrosia > 0 ? 1 + Math.floor(Math.log10(lifetimeAmbrosia)) : 0
+        const matissa = Math.floor(lifetimeAmbrosia / Math.pow(10, numDigits - 1))
+
+        const extraReduction = matissa >= 3 ? 1 : 0
+
+        // First reduction at 10^(digitReduction+1), add 1 at 3 * 10^(digitReduction+1)
+        return Math.max(0, 2 * (numDigits - HSGlobal.HSAmbrosia.R_digitReduction) - 1 + extraReduction)
+    }
+
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
+    #calculateToNextThreshold = (lifetimeAmbrosia: number) => {
+        const numThresholds = this.#calculateNumberOfThresholds(lifetimeAmbrosia);
+
+        if (numThresholds === 0) {
+            return 10000 - lifetimeAmbrosia
+        } else {
+            // This is when the previous threshold is of the form 3 * 10^n
+            if (numThresholds % 2 === 0) {
+                return Math.pow(10, numThresholds / 2 + HSGlobal.HSAmbrosia.R_digitReduction) - lifetimeAmbrosia
+            } // Previous threshold is of the form 10^n
+            else {
+                return 3 * Math.pow(10, (numThresholds - 1) / 2 + HSGlobal.HSAmbrosia.R_digitReduction) - lifetimeAmbrosia
+            }
+        }
+    }
+
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts#
+    #calculateRequiredBlueberryTime = (lifetimeAmbrosia: number) => {
+        let val = HSGlobal.HSAmbrosia.R_TIME_PER_AMBROSIA // Currently 30
+        val += Math.floor(lifetimeAmbrosia / 500)
+
+        const thresholds = this.#calculateNumberOfThresholds(lifetimeAmbrosia)
+        const thresholdBase = 2
+        return Math.pow(thresholdBase, thresholds) * val
+    }
+
+    #calculateRequiredRedAmbrosiaTime = (lifetimeRedAmbrosia: number, barRequirementMultiplier: number) => {
+        let val = HSGlobal.HSAmbrosia.R_TIME_PER_RED_AMBROSIA // Currently 100,000
+        val += 200 * lifetimeRedAmbrosia
+
+        const max = 1e6 * + barRequirementMultiplier;
+        val *= + barRequirementMultiplier;
+
+        return Math.min(max, val)
+    }
+
+    enableIdleSwap() {
+        this.subscribeGameDataChanges();
+    }
+
+    disableIdleSwap() {
+        this.unsubscribeGameDataChanges();
     }
 }

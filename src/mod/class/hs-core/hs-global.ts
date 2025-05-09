@@ -434,7 +434,12 @@ export const HSGlobal: IHSGlobal = class {
                 url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRegularLuck.png',
                 draggableIconId: AMBROSIA_ICON.RA_REGLUCK2
             }],
-        ])
+        ]),
+
+        // Constants ripped from the game code
+        R_TIME_PER_AMBROSIA: 30,
+        R_TIME_PER_RED_AMBROSIA: 100000,
+        R_digitReduction: 4
     }
 
     // HSGameState

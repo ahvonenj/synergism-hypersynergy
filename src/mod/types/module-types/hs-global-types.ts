@@ -55,6 +55,9 @@ export interface HSGlobalAmbrosia extends IStoreable {
     ambrosiaLoadoutIcons: HSAmbrosiaLoadoutIconMapping;
     quickBarId: string;
     quickBarLoadoutIdPrefix: string;
+    R_TIME_PER_AMBROSIA: number;
+    R_TIME_PER_RED_AMBROSIA: number;
+    R_digitReduction: number;
 }
 
 export interface HSGlobalGameState {

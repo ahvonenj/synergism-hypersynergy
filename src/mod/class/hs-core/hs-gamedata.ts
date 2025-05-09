@@ -36,6 +36,8 @@ export class HSGameData extends HSModule {
 
     #gameDataDebugElement?: HTMLDivElement;
 
+    #gameDataSubscribers: Map<string, (data: PlayerData) => void> = new Map<string, (data: PlayerData) => void>();
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -178,7 +180,7 @@ export class HSGameData extends HSModule {
 
         const useGameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
         const stopSniffOnErrorSetting = HSSettings.getSetting('stopSniffOnError') as HSBooleanSetting;
-
+        
         if(useGameDataSetting && stopSniffOnErrorSetting) {
             if(stopSniffOnErrorSetting.isEnabled()) {
                 HSLogger.debug(`Stopped game data sniffing on error`, this.context);
@@ -252,8 +254,30 @@ export class HSGameData extends HSModule {
         this.#turboEnabled = false;
     }
 
+    subscribeGameDataChange(callback: (data: PlayerData) => void): string | undefined {
+        const id = HSUtils.uuidv4();
+        this.#gameDataSubscribers.set(id, callback);
+        return id;
+    }
+
+    unsubscribeGameDataChange(id: string) {
+        if(this.#gameDataSubscribers.has(id)) {
+            this.#gameDataSubscribers.delete(id);
+        } else {
+            HSLogger.warn(`Could not unsubscribe from game data change. ID ${id} not found`, this.context);
+        }
+    }
+
     #saveDataChanged() {
         this.#updateDebug();
+
+        this.#gameDataSubscribers.forEach((callback) => {
+            if(this.#saveData) {
+                callback(this.#saveData);
+            } else {
+                HSLogger.debug(`Could not call game data change callback. No save data found`, this.context);
+            }
+        });
     }
 
     #updateDebug() {

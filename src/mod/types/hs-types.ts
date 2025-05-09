@@ -4,6 +4,8 @@
     Author: Swiffy
 */
 
+import { PlayerData } from "./hs-player-savedata";
+
 // Used when listing and loading modules
 export type HSModuleDefinition = {
     className: string;
@@ -23,4 +25,11 @@ export type HSModuleDefinition = {
 export interface HSPersistable {
     saveState(): Promise<any>;
     loadState(): Promise<void>;
+}
+
+export interface HSGameDataSubscriber {
+    subscriptionId?: string;
+    gameDataCallback: (data: PlayerData) => Promise<void>;
+    subscribeGameDataChanges: () => void;
+    unsubscribeGameDataChanges: () => void;
 }

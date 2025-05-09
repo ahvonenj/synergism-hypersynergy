@@ -145,6 +145,20 @@ export class HSSettingActions {
                 }
             }
         },
+
+        ambrosiaIdleSwapAction: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            const ambrosiaMod = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+
+            if(ambrosiaMod) {
+                if(params.disable && params.disable === true) {
+                    await ambrosiaMod.disableIdleSwap();
+                } else {
+                    await ambrosiaMod.enableIdleSwap();
+                }
+            }
+        }
     }
 
     constructor() {
