@@ -5,6 +5,7 @@ import {
     HSUICDivOptions, 
     HSUICFlexOptions, 
     HSUICGridOptions, 
+    HSUICImageOptions, 
     HSUICInputOptions, 
     HSUICModalOptions, 
     HSUICPOptions, 
@@ -13,6 +14,8 @@ import {
     HTMLProps 
 } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSGlobal } from "./hs-global";
+import { HSLogger } from "./hs-logger";
 import { HSUI } from "./hs-ui";
 
 /*
@@ -24,6 +27,8 @@ import { HSUI } from "./hs-ui";
     Author: Swiffy
 */
 export class HSUIC {
+    static #staticContext = 'HSUIC';
+
     static dataString(data: HTMLData[]) {
         let str = ``;
 
@@ -172,6 +177,27 @@ export class HSUIC {
         }`)
 
         return `<p class="hs-panel-p ${comp_class}" ${id ? `id="${id}"` : ''}${propString}>${comp_text}</p>`;
+    }
+
+    // Div Component
+    static Image(options: HSUICImageOptions) : string {
+        const comp_class = options.class ?? '';
+        const id = options.id ?? HSUtils.domid();
+        const propString = this.#getPropString(options.props);
+
+        if(!options.src) {
+            HSLogger.warn(`HSUIC.Image: No src provided for image component`, this.#staticContext);
+            return '';
+        }
+
+        const width = options.width ? options.width : HSGlobal.HSUIC.defaultImageWidth;
+        const height = options.height ? options.height : HSGlobal.HSUIC.defaultImageHeight;
+
+        HSUI.injectStyle(`#${id} {
+            ${HSUtils.objectToCSS(options.styles as CSSKeyValueObject)}
+        }`)
+
+        return `<img src="${options.src}" width="${width}" height="${height}" class="hs-panel-img ${comp_class}" ${id ? `id="${id}"` : ''}${propString} />`;
     }
 
     // Grid Component

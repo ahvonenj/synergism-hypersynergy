@@ -1,18 +1,40 @@
 import { PlayerData } from "../../types/hs-player-savedata";
 import { HSPerformance } from "../hs-utils/hs-performance";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./hs-module";
 import { HSBooleanSetting } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
+import { HSUI } from "./hs-ui";
 
 export class HSGameData extends HSModule {
     #saveDataLocalStorageKey = 'Synergysave2';
+    
     #lastSaveDataHash?: string;
+    #saveDataCheckInterval?: number;
+
     #saveData?: PlayerData;
 
-    #saveDataCheckInterval?: number;
+    // Turbo mode
+    #turboEnabled = false;
+    #manualSaveButton?: HTMLButtonElement;
+    #saveinfoElement?: HTMLParagraphElement;
+
+    #turboCSS = `
+        #savegame {
+            display: none !important;
+        }
+
+        #saveinfo {
+            display: none !important;
+        }
+    `;
+
+    #turboInterval?: number;
+
+    #gameDataDebugElement?: HTMLDivElement;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -37,7 +59,7 @@ export class HSGameData extends HSModule {
                         this.#processSaveData(storageKey);
                     }
                 } else {
-                    return undefined
+                    return undefined;
                 }
             }
 
@@ -52,6 +74,10 @@ export class HSGameData extends HSModule {
         const self = this;
 
         HSLogger.info(`Starting save data watch`, this.context);
+
+        if (this.#saveDataCheckInterval) {
+            clearInterval(this.#saveDataCheckInterval);
+        }
 
         this.#saveDataCheckInterval = setInterval(async () => {
             if(HSGlobal.Debug.performanceDebugMode) {
@@ -107,6 +133,7 @@ export class HSGameData extends HSModule {
             }
             
             this.#saveData = JSON.parse(atob(saveDataB64)) as PlayerData;
+            this.#saveDataChanged();
         } catch (error) {
             HSLogger.debug(`<red>Error processing save data:</red> ${error}`, this.context);
             this.#maybeStopSniffOnError();
@@ -114,6 +141,10 @@ export class HSGameData extends HSModule {
     }
 
     async #hasDataChanged(storageKey: string = this.#saveDataLocalStorageKey): Promise<boolean> {
+        // If hashing is disabled, we just say that the data has always changed
+        if(!HSGlobal.HSGameData.saveDataHashing)
+            return true;
+
         const currentSaveDataB64 = localStorage.getItem(storageKey);
         
         // If both are null, no change
@@ -157,6 +188,93 @@ export class HSGameData extends HSModule {
             }
         } else {
             HSLogger.debug(`maybeStopSniffOnError() - Issue with fetching settings: ${useGameDataSetting}, ${stopSniffOnErrorSetting}`, this.context);
+        }
+    }
+
+    async enableTurbo() {
+        const self = this;
+
+        if(this.#turboEnabled) return;
+
+        const gameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
+
+        if(gameDataSetting && !gameDataSetting.isEnabled()) {
+            const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
+
+            if(gameDataTurboSetting) {
+                gameDataTurboSetting.disable();
+            }
+
+            HSLogger.warn(`Please enable game data sniffing before enabling turbo mode.`, this.context); 
+            return;
+        }
+
+        HSUI.injectStyle(this.#turboCSS, HSGlobal.HSGameData.turboCSSId);
+
+        if(this.#turboInterval) {
+            clearInterval(this.#turboInterval);
+        }
+
+        this.stopSaveDataWatch();
+
+        if(!this.#manualSaveButton) {
+            this.#manualSaveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
+        }
+
+        if(!this.#saveinfoElement) {
+            this.#saveinfoElement = await HSElementHooker.HookElement('#saveinfo') as HTMLParagraphElement;
+        }
+
+        this.#turboInterval = setInterval(() => {
+            if(self.#manualSaveButton && self.#saveinfoElement) {
+                self.#manualSaveButton.click();
+                self.#processSaveData();
+            }
+        }, HSGlobal.HSGameData.turboModeSpeedMs);
+
+        this.#turboEnabled = true;
+    }
+
+    async disableTurbo() {
+        if(this.#turboInterval) {
+            clearInterval(this.#turboInterval);
+            this.#turboInterval = undefined;
+        }
+
+        const gameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
+
+        if(gameDataSetting && gameDataSetting.isEnabled()) {
+            this.startSaveDataWatch();
+        }
+
+        HSUI.removeInjectedStyle(HSGlobal.HSGameData.turboCSSId);
+
+        this.#turboEnabled = false;
+    }
+
+    #saveDataChanged() {
+        this.#updateDebug();
+    }
+
+    #updateDebug() {
+        let ambrosia = null;
+        let ant = null;
+        let dbg = '';
+
+        if(this.#saveData) {
+            ambrosia = Math.round(this.#saveData.blueberryTime);
+            ant = this.#saveData.antPoints;
+        }
+
+        if(!this.#gameDataDebugElement || this.#gameDataDebugElement === undefined) {
+            const debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
+
+            if(debugElement) {
+                this.#gameDataDebugElement = debugElement;
+                this.#gameDataDebugElement.innerHTML = `Current ambrosia: ${ambrosia ? ambrosia : 'null'}<br>Current ant: ${ant ? ant : 'null'}`;
+            }
+        } else {
+            this.#gameDataDebugElement.innerHTML = `Current ambrosia: ${ambrosia ? ambrosia : 'null'}<br>Current ant: ${ant ? ant : 'null'}`;
         }
     }
 }

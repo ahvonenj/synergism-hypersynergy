@@ -64,7 +64,7 @@ export class HSUI extends HSModule {
             tabId: 4,
             tabBodySel: '.hs-panel-body-4',
             tabSel: '#hs-panel-tab-4',
-            panelDisplayType: 'flex'
+            panelDisplayType: 'block'
         }
     ];
 
@@ -318,7 +318,7 @@ export class HSUI extends HSModule {
             this.updateInjectedStyleBlock();
             HSLogger.debug(`Removed injected CSS`, this.#staticContext);
         } else {
-            HSLogger.warn(`Could not find style with id ${styleId}`, this.#staticContext);
+            HSLogger.debug(`<yellow>Could not find style with id ${styleId}</yellow>`, this.#staticContext);
         }
     }
 

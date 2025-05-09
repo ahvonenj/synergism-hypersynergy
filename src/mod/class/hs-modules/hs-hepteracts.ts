@@ -121,10 +121,10 @@ export class HSHepteracts extends HSModule {
         const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
 
         if(gameStateMod) {
-            gameStateMod.subscribeGameStateChange(GAME_STATE_CHANGE.MAIN_VIEW, (prevView, currentView) => {
+            gameStateMod.subscribeGameStateChange("MAIN_VIEW", (prevView, currentView) => {
                 if(prevView.getId() === MAIN_VIEW.CUBES && 
                     currentView.getId() !== MAIN_VIEW.CUBES && 
-                    gameStateMod.getCurrentCubeView().getId() === CUBE_VIEW.HEPTERACT_FORGE
+                    gameStateMod.getCurrentUIView("CUBE_VIEW").getId() === CUBE_VIEW.HEPTERACT_FORGE
                 ) {
                     if(self.#ownedHepteractsWatch) {
                         HSLogger.debug("Hepteract forge view closed, stopping watch", this.context);
@@ -133,7 +133,7 @@ export class HSHepteracts extends HSModule {
                 } 
             });
 
-            gameStateMod.subscribeGameStateChange(GAME_STATE_CHANGE.CUBE_VIEW, async (prevView, currentView) => {
+            gameStateMod.subscribeGameStateChange("CUBE_VIEW", async (prevView, currentView) => {
                 if(currentView.getId() === CUBE_VIEW.HEPTERACT_FORGE) {
                     HSLogger.debug("Hepteract forge view opened, starting watch", this.context);
                     self.#ownedHepteractsElement = await HSElementHooker.HookElement('#hepteractQuantity') as HTMLElement;
@@ -141,7 +141,7 @@ export class HSHepteracts extends HSModule {
                     // Sets up a watch to watch for changes in the element which shows owned hepteracts amount
                     self.#ownedHepteractsWatch = HSElementHooker.watchElement(self.#ownedHepteractsElement, (value) => {
                         try {
-                            const hepts = parseFloat(value);
+                            const hepts = parseFloat(HSUtils.unfuckNumericString(value));
                             self.#ownedHepteracts = hepts;
                         } catch (e) {
                             HSLogger.error(`Failed to parse owned hepteracts`, self.context);
@@ -228,7 +228,7 @@ export class HSHepteracts extends HSModule {
                                 let buyCost = null;
 
                                 if(hepteractDoubleCapSetting.getValue()) {
-                                    buyCost = ((currentMax * 2) - currentMax) * cubeCost;
+                                    buyCost = ((currentMax * 2) /*- currentMax*/) * cubeCost;
                                 } else {
                                     buyCost = currentMax * 2 * cubeCost;
                                 }
@@ -251,12 +251,12 @@ export class HSHepteracts extends HSModule {
 
                             if(self.#expandPending || self.#watchUpdatePending) {
                                 HSLogger.debug(`Quick expand cancelled, another expand was still pending (exp ${self.#expandPending}, wtch: ${self.#watchUpdatePending})`, self.context);
-                                self.#expandPending = false;
+                                //self.#expandPending = false;
                                 return;
                             }
 
                             self.#expandPending = true;
-                            self.#watchUpdatePending = true;
+                            //self.#watchUpdatePending = true;
 
                             let buyCost = null;
 
@@ -267,7 +267,6 @@ export class HSHepteracts extends HSModule {
                             if(self.#ownedHepteracts !== null && self.#ownedHepteracts !== undefined) {
                                 if(self.#ownedHepteracts === 0) {
                                     HSLogger.info(`Owned hepteracts is 0`, this.context);
-                                    self.#watchUpdatePending = false;
                                     self.#expandPending = false;
                                     return;
                                 }
@@ -283,8 +282,8 @@ export class HSHepteracts extends HSModule {
                                 let nextHepts = null;
 
                                 if(hepteractDoubleCapSetting.getValue()) {
-                                    nextHepts = ((currentMax * 2) - currentMax)
-                                    buyCost = ((currentMax * 2) - currentMax) * cubeCost;
+                                    nextHepts = ((currentMax * 2) /*- currentMax*/)
+                                    buyCost = ((currentMax * 2) /*- currentMax*/) * cubeCost;
                                 } else {
                                     nextHepts = currentMax * 2;
                                     buyCost = currentMax * 2 * cubeCost;
@@ -328,11 +327,11 @@ export class HSHepteracts extends HSModule {
                                 if(expandCostProtectionSetting.isEnabled()) {
                                     const heptSettingValue = expandCostProtectionSetting.getCalculatedValue();
 
-                                    if(heptSettingValue && percentHeptOwned >= heptSettingValue) {
+                                    if(heptSettingValue && (percentHeptOwned >= heptSettingValue)) {
                                         if(notify)
-                                            HSLogger.info(`Hept. cost protection: Cost owned ${HSUtils.N(percentHeptOwned * 100)}& >= ${heptSettingValue * 100}%`, this.context);
+                                            HSLogger.info(`Hept. cost protection: Cost owned ${HSUtils.N(percentHeptOwned * 100)}% >= ${heptSettingValue * 100}%`, this.context);
     
-                                        self.#watchUpdatePending = false;
+                                        //self.#watchUpdatePending = false;
                                         self.#expandPending = false;
                                         return;
                                     }
@@ -371,8 +370,6 @@ export class HSHepteracts extends HSModule {
                                 return;
                             }
                             
-                            // Get instance of the Shadow DOM module
-                            //const shadowDOM = HSModuleManager.getModule<HSShadowDOM>('HSShadowDOM');
                             // This is the small "ON/OFF" toggle button which is used to enable/disable the hepteract buy notifications
                             const hepteractBuyNotificationToggle = await HSElementHooker.HookElement('#toggle35') as HTMLButtonElement;
 
@@ -384,7 +381,7 @@ export class HSHepteracts extends HSModule {
                             // Perform our cap- and max button clicking
                             await HSUtils.hiddenAction(async () => {
                                 capBtn.click();
-                            }, true, 5);
+                            }, "confirm", false, 25);
 
                             await HSUtils.wait(25);
                             
@@ -394,7 +391,9 @@ export class HSHepteracts extends HSModule {
                                 self.#updateCraftText(buyCost, percentHeptOwned);
                             }
 
-                            /*if(id !== 'quarkHepteract') {
+                            await HSUtils.wait(5);
+
+                            if(id !== 'quarkHepteract') {
                                 const costElement = document.querySelector('#hepteractCostText') as HTMLDivElement;
         
                                 if(costElement) {
@@ -414,7 +413,19 @@ export class HSHepteracts extends HSModule {
                                         }
                                     }
                                 }
-                            }*/
+                            }
+                           
+                            const ownedHeptQuantElement = !self.#ownedHepteractsElement ? document.querySelector('#hepteractQuantity') as HTMLElement : self.#ownedHepteractsElement;
+
+                            if(ownedHeptQuantElement) {
+                                const subElement = ownedHeptQuantElement.querySelector('span') as HTMLSpanElement;
+
+                                if(subElement) {
+                                    const value = subElement.innerText;
+                                    const hepts = parseFloat(value);
+                                    self.#ownedHepteracts = hepts;
+                                }
+                            }
 
                             self.#expandPending = false;
                         });

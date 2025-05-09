@@ -81,6 +81,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
 
         this.#ambrosiaGrid = await HSElementHooker.HookElement('#blueberryUpgradeContainer');
         this.#loadOutsSlots = await HSElementHooker.HookElements('.blueberryLoadoutSlot');
+        this.#loadOutContainer = await HSElementHooker.HookElement('#bbLoadoutContainer');
 
         this.loadState();
 
@@ -108,6 +109,11 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
             }
         }
 
+        if(!this.#loadOutContainer) {
+            HSLogger.warn(`Could not find loadout container`, this.context);
+            return;
+        }
+
         this.#loadOutsSlots.forEach((slot) => {
             // Here we load the loadout icons for the loadout slots if there is any saved
             const slotElementId = slot.id;
@@ -123,77 +129,53 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     }
                 }
             }
+        });
 
-            // Bind events
-            slot.addEventListener("dragenter", (e) => {
-                if(e.dataTransfer) {
-                    if(e.dataTransfer.types.includes('hs-amb-drag')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.dataTransfer.effectAllowed = "move";
-                    }
-                }
-            });
-
-            slot.addEventListener("dragover", (e) => {
-                if(e.dataTransfer) {
-                    if(e.dataTransfer.types.includes('hs-amb-drag')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.dataTransfer.effectAllowed = "move";
-                    }
-                }
-            });
-
-            slot.addEventListener("drop", async (e) => {
-                if(e.dataTransfer && e.dataTransfer.types.includes('hs-amb-drag')) {
+        this.#loadOutContainer.delegateEventListener('dragenter', '.blueberryLoadoutSlot', (e) => {
+            if(e.dataTransfer) {
+                if(e.dataTransfer.types.includes('hs-amb-drag')) {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    const iconEnum = this.#getIconEnumById(e.dataTransfer.getData('hs-amb-drag'));
-                    const slotElement = e.target as HTMLButtonElement;
-                    const slotElementId = slotElement.id;
-
-                    if (!iconEnum) {
-                        HSLogger.warn(`Invalid icon ID: ${iconEnum}`, this.context);
-                        return;
-                    }
-
-                    if(!HSGlobal.HSAmbrosia.ambrosiaLoadoutIcons.has(iconEnum)) {
-                        HSLogger.warn(`Could not find loadout slot entry for ${iconEnum}`, this.context);
-                        return;
-                    }
-
-                    if(!slotElement.classList.contains('blueberryLoadoutSlot')) {
-                        return;
-                    }
-
-                    if(!slotElementId) return;
-
-                    const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
-
-                    if (!slotEnum) {
-                        HSLogger.warn(`Invalid slot ID: ${slotElementId}`, this.context);
-                        return;
-                    }
-
-                    const icon = HSGlobal.HSAmbrosia.ambrosiaLoadoutIcons.get(iconEnum)!;
-
-                    // Apply the icon to the slot and save the state
-                    this.#applyIconToSlot(slotEnum, iconEnum);
-                    this.#loadoutState.set(slotEnum, iconEnum);
-                    this.saveState();
-
-                    await self.updateQuickBar();
+                    e.dataTransfer.effectAllowed = "move";
                 }
-            });
+            }
+        });
 
-            slot.addEventListener('contextmenu', async (e) => {
+        this.#loadOutContainer?.delegateEventListener('dragover', '.blueberryLoadoutSlot', (e) => {
+            if(e.dataTransfer) {
+                if(e.dataTransfer.types.includes('hs-amb-drag')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.effectAllowed = "move";
+                }
+            }
+        });
+
+        this.#loadOutContainer?.delegateEventListener('drop', '.blueberryLoadoutSlot', async (e) => {
+            if(e.dataTransfer && e.dataTransfer.types.includes('hs-amb-drag')) {
                 e.preventDefault();
+                e.stopPropagation();
 
-                // Clear the slot icon
+                const iconEnum = this.#getIconEnumById(e.dataTransfer.getData('hs-amb-drag'));
                 const slotElement = e.target as HTMLButtonElement;
                 const slotElementId = slotElement.id;
+
+                if (!iconEnum) {
+                    HSLogger.warn(`Invalid icon ID: ${iconEnum}`, this.context);
+                    return;
+                }
+
+                if(!HSGlobal.HSAmbrosia.ambrosiaLoadoutIcons.has(iconEnum)) {
+                    HSLogger.warn(`Could not find loadout slot entry for ${iconEnum}`, this.context);
+                    return;
+                }
+
+                if(!slotElement.classList.contains('blueberryLoadoutSlot')) {
+                    return;
+                }
+
+                if(!slotElementId) return;
+
                 const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
 
                 if (!slotEnum) {
@@ -201,22 +183,46 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                     return;
                 }
 
-                const iconEnum = this.#loadoutState.get(slotEnum);
-                if (!iconEnum) {
-                    HSLogger.warn(`No icon found for slot ID: ${slotElementId}`, this.context);
-                    return;
-                }
+                const icon = HSGlobal.HSAmbrosia.ambrosiaLoadoutIcons.get(iconEnum)!;
 
-                slotElement.classList.remove('hs-ambrosia-slot');
-                slotElement.style.backgroundImage = '';
-                this.#loadoutState.delete(slotEnum);
+                // Apply the icon to the slot and save the state
+                this.#applyIconToSlot(slotEnum, iconEnum);
+                this.#loadoutState.set(slotEnum, iconEnum);
                 this.saveState();
 
                 await self.updateQuickBar();
-            });
+            }
+        });
 
-            slot.addEventListener('click', async (e) => {
-                const slotElement = e.target as HTMLButtonElement;
+        this.#loadOutContainer?.delegateEventListener('contextmenu', '.blueberryLoadoutSlot', async (e) => {
+            e.preventDefault();
+
+            // Clear the slot icon
+            const slotElement = e.target as HTMLButtonElement;
+            const slotElementId = slotElement.id;
+            const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
+
+            if (!slotEnum) {
+                HSLogger.warn(`Invalid slot ID: ${slotElementId}`, this.context);
+                return;
+            }
+
+            const iconEnum = this.#loadoutState.get(slotEnum);
+            if (!iconEnum) {
+                HSLogger.warn(`No icon found for slot ID: ${slotElementId}`, this.context);
+                return;
+            }
+
+            slotElement.classList.remove('hs-ambrosia-slot');
+            slotElement.style.backgroundImage = '';
+            this.#loadoutState.delete(slotEnum);
+            this.saveState();
+
+            await self.updateQuickBar();
+        });
+
+        this.#loadOutContainer?.delegateEventListener('click', '.blueberryLoadoutSlot', async (e) => {
+            const slotElement = e.target as HTMLButtonElement;
                 const slotElementId = slotElement.id;
                 const slotEnum = this.#getSlotEnumBySlotId(slotElementId);
 
@@ -226,7 +232,6 @@ export class HSAmbrosia extends HSModule implements HSPersistable {
                 }
 
                 await self.#updateCurrentLoadout(slotEnum);
-            });
         });
 
         this.isInitialized = true;

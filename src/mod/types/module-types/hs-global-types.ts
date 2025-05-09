@@ -1,5 +1,6 @@
 import { HSAmbrosiaLoadoutIconMapping } from "./hs-ambrosia-types";
 import { HSWatcherOptions } from "./hs-elementhooker-types";
+import { HSViewProperties, MAIN_VIEW } from "./hs-gamestate-types";
 import { ELogLevel } from "./hs-logger-types";
 
 interface IStoreable {
@@ -42,7 +43,8 @@ export interface HSGlobalStorage {
 }
 
 export interface HSGlobalSettings extends IStoreable {
-
+    serializationBlackList: string[];
+    gameDataRequiredTooltip: string;
 }
 
 export interface HSGlobalMouse {
@@ -55,12 +57,24 @@ export interface HSGlobalAmbrosia extends IStoreable {
     quickBarLoadoutIdPrefix: string;
 }
 
+export interface HSGlobalGameState {
+    viewProperties: Map<MAIN_VIEW, HSViewProperties>;
+}
+
 export interface HSGlobalGameData {
+    saveDataHashing: boolean;
     saveDataWatchInterval: number;
+    turboModeSpeedMs: number;
+    turboCSSId: string;
 }
 
 export interface HSGlobalHSUI {
     injectedStylesDomId: string;
+}
+
+export interface HSGlobalHSUIC {
+    defaultImageWidth: number;
+    defaultImageHeight: number;
 }
 
 export interface IHSGlobal {
@@ -75,4 +89,6 @@ export interface IHSGlobal {
     HSAmbrosia: HSGlobalAmbrosia;
     HSGameData: HSGlobalGameData;
     HSUI: HSGlobalHSUI;
+    HSUIC: HSGlobalHSUIC;
+    HSGameState: HSGlobalGameState;
 }

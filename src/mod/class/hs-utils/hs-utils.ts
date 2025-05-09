@@ -295,11 +295,21 @@ export class HSUtils {
         };
     }
 
+    static #cachedBG: HTMLElement | null = null;
+    static #cachedConfirmBox: HTMLElement | null = null;
+    static #cachedAlertWrapper: HTMLElement | null = null;
+
     // This might be very volatile, but it works for now and hides alert/confirmation boxes
-    static async hiddenAction(action: (...args: any[]) => any, needConfirm = false, waitMs = 25) {
-        const bg = await HSElementHooker.HookElement('#transparentBG') as HTMLElement;
-        const confirmBox = await HSElementHooker.HookElement('#confirmationBox') as HTMLElement;
-        const alertWrapper = await HSElementHooker.HookElement('#alertWrapper') as HTMLElement;
+    static async hiddenAction(action: (...args: any[]) => any, alertOrConfirm: "alert" | "confirm" = "alert", isDoubleModal = false, waitMs = 25) {
+
+        const bg = !this.#cachedBG ? await HSElementHooker.HookElement('#transparentBG') as HTMLElement : this.#cachedBG;
+        const confirmBox = !this.#cachedConfirmBox ? await HSElementHooker.HookElement('#confirmationBox') as HTMLElement : this.#cachedConfirmBox;
+        const alertWrapper = !this.#cachedAlertWrapper ? await HSElementHooker.HookElement('#alertWrapper') as HTMLElement : this.#cachedAlertWrapper;
+
+        this.#cachedBG = bg;
+        this.#cachedConfirmBox = confirmBox;
+        this.#cachedAlertWrapper = alertWrapper;
+
         const okAlert = document.querySelector('#ok_alert') as HTMLButtonElement;
         const okConfirm = document.querySelector('#ok_confirm') as HTMLButtonElement;
 
@@ -310,15 +320,25 @@ export class HSUtils {
         await action();
         await HSUtils.wait(waitMs);
 
-        if(needConfirm) {
+        if(isDoubleModal) {
             okConfirm.click();
             await HSUtils.wait(waitMs);
-        }
 
-        killedBg.restore();
-        killedConfirm.restore();
-        killedAlertWrapper.restore();
-        okAlert.click();
-        
+            killedBg.restore();
+            killedConfirm.restore();
+            killedAlertWrapper.restore();
+
+            okAlert.click();
+        } else {
+            killedBg.restore();
+            killedConfirm.restore();
+            killedAlertWrapper.restore();
+
+            if(alertOrConfirm === "alert") {
+                okAlert.click();
+            } else {
+                okConfirm.click();
+            }
+        }      
     }
 }

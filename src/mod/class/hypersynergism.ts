@@ -186,16 +186,40 @@ export class Hypersynergism {
             if(settingsTabContents.didBuild) {
                 hsui.replaceTabContents(3, 
                     HSUIC.Grid({ 
+                        id: 'hs-panel-settings-grid',
                         html: settingsTabContents.htmlString
                     })
                 );
+
+                document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
+                    const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement;
+                    gameDataSettingBlock.scrollIntoView({
+                        block: 'start',
+                        behavior: 'smooth',
+                    })
+                });
             }
 
             // BUILD DEBUG TAB
             hsui.replaceTabContents(4, 
                 HSUIC.Grid({ 
                     html: [
+                        HSUIC.Div({ 
+                            html: 'Mouse',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
                         HSUIC.Div({ id: 'hs-panel-debug-mousepos' }),
+                        HSUIC.Div({ 
+                            html: 'Game Data',
+                            styles: {
+                                borderBottom: '1px solid limegreen',
+                                gridColumn: 'span 2'
+                            }
+                        }),
+                        HSUIC.Div({ id: 'hs-panel-debug-gamedata-currentambrosia' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',

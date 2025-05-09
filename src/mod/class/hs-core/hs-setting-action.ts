@@ -5,6 +5,8 @@ import { HSGameData } from "./hs-gamedata";
 import { HSLogger } from "./hs-logger";
 import { HSModuleManager } from "./hs-module-manager";
 import { HSMouse } from "./hs-mouse";
+import { HSBooleanSetting } from "./hs-setting";
+import { HSSettings } from "./hs-settings";
 
 /*
     Class: HSSettingActions
@@ -103,9 +105,29 @@ export class HSSettingActions {
 
             if(gameDataMod) {
                 if(params.disable && params.disable === true) {
+                    const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
+                    
+                    if(gameDataTurboSetting && gameDataTurboSetting.isEnabled()) {
+                        gameDataTurboSetting.disable();
+                    }
+                    
                     gameDataMod.stopSaveDataWatch();
                 } else {
                     gameDataMod.startSaveDataWatch();
+                }
+            }
+        },
+
+        gameDataTurbo: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+            if(gameDataMod) {
+                if(params.disable && params.disable === true) {
+                    gameDataMod.disableTurbo();
+                } else {
+                    gameDataMod.enableTurbo();
                 }
             }
         },

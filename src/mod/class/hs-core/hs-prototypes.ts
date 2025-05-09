@@ -1,4 +1,5 @@
 import { CSSEasingFunction } from "../../types/hs-css-types";
+import { EventMap } from "../../types/hs-event-types";
 import { DelegateEventListener, RemoveDelegateEventListener } from "../../types/module-types/hs-proto-types";
 import { TransitionProperties } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
@@ -106,7 +107,13 @@ export class HSPrototypes extends HSModule {
     #createDelegateEventListener<T extends Node & ParentNode>(): DelegateEventListener<T> {
         const self = this;
 
-        return function(this: T, eventType: string, selector: string, callback: (this: HTMLElement, event: Event) => void, singleton?: boolean): T {
+        return function<K extends keyof EventMap>(
+            this: T, 
+            eventType: K, 
+            selector: string, 
+            callback: (this: HTMLElement, event: EventMap[K]) => void, 
+            singleton?: boolean
+        ): T {
             const element = this;
 
             // Create the _delegateListeners Map on the element if it doesn't exist
@@ -132,13 +139,13 @@ export class HSPrototypes extends HSModule {
                 const target = event.target as HTMLElement;
 
                 if (target.matches(selector)) {
-                    callback.call(target, event);
+                    callback.call(target, event as EventMap[K]);
                 } else {
                     const potentialTargets = element.querySelectorAll(selector) as NodeListOf<HTMLElement>;
 
                     for (const matchingElement of Array.from(potentialTargets)) {
                         if (matchingElement.contains(target)) {
-                            callback.call(matchingElement, event);
+                            callback.call(matchingElement, event as EventMap[K]);
                             break;
                         }
                     }
@@ -158,7 +165,13 @@ export class HSPrototypes extends HSModule {
     #createRemoveDelegateEventListener<T extends Node & ParentNode>(): RemoveDelegateEventListener<T> {
         const self = this;
 
-        return function(this: T, eventType: string, selector: string, callback: (this: HTMLElement, event: Event) => void): T {
+        return function<K extends keyof EventMap>(
+            this: T, 
+            eventType: K, 
+            selector: string, 
+            callback: (this: HTMLElement, event: EventMap[K]) => void, 
+            singleton?: boolean
+        ): T {
             const element = this;
 
             if (!element._delegateListeners) {

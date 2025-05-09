@@ -11,6 +11,7 @@ import { HSBooleanSetting, HSNumericSetting, HSSelectNumericSetting, HSSelectStr
 import { HSModuleManager } from "./hs-module-manager";
 import { HSStorage } from "./hs-storage";
 import { HSGlobal } from "./hs-global";
+import sIconB64 from "inline:../../resource/txt/s_icon.txt";
 
 /*
     Class: HSSettings
@@ -269,6 +270,19 @@ export class HSSettings extends HSModule {
         for (const [key, settingObj] of sortedSettings) {
             const setting = settingObj.getDefinition();
             const controls = setting.settingControl;
+            const settingBlockId = setting.settingBlockId || undefined;
+
+            let gameDataIcon = "";
+
+            if(setting.usesGameData) {
+                gameDataIcon = HSUIC.Image({ 
+                    class: 'hs-panel-setting-block-gamedata-icon',
+                    src: sIconB64,
+                    width: 18,
+                    height: 18,
+                    props: { title: HSGlobal.HSSettings.gameDataRequiredTooltip },
+                });
+            }
 
             if(controls) {
                 let components : string[] = [];
@@ -292,7 +306,23 @@ export class HSSettings extends HSModule {
 
                 if(controls.controlType === "switch") {
                     components = [
-                        HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } }),
+                        HSUIC.Div({
+                            class: 'hs-panel-setting-block-text-wrapper', 
+                            styles: {
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                            },
+                            html: [
+                                HSUIC.P({
+                                    class: 'hs-panel-setting-block-text', 
+                                    props: { title: setting.settingHelpText },
+                                    text: setting.settingDescription, 
+                                    styles: { margin: '0' } 
+                                }), 
+                                gameDataIcon
+                            ] 
+                        }),
                     ]
 
                     if(controls.controlEnabledId) {
@@ -321,7 +351,23 @@ export class HSSettings extends HSModule {
                     if(convertedType) {
                         // Setting header
                         components = [ 
-                            HSUIC.Div({ class: 'hs-panel-setting-block-text', html: setting.settingDescription, props: { title: setting.settingHelpText } })
+                            HSUIC.Div({ 
+                                class: 'hs-panel-setting-block-text-wrapper', 
+                                styles: {
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                },
+                                html: [
+                                    HSUIC.P({ 
+                                        class: 'hs-panel-setting-block-text', 
+                                        props: { title: setting.settingHelpText },
+                                        text: setting.settingDescription, 
+                                        styles: { margin: '0' } 
+                                    }), 
+                                    gameDataIcon
+                                ] 
+                            })
                         ];
 
                         // Setting value input
@@ -355,6 +401,7 @@ export class HSSettings extends HSModule {
 
                 // Create setting block which contains the setting header, value input and on/off toggle
                 settingsBlocks.push(HSUIC.Div({ 
+                    id: settingBlockId,
                     class: 'hs-panel-setting-block',
                     html: components
                 }));
@@ -458,13 +505,11 @@ export class HSSettings extends HSModule {
             const definition = { ...setting.getDefinition() as Partial<HSSettingBase<HSSettingType>> };
 
             // Remove properties that should not be saved into localStorage
-            if(definition.settingDescription)       delete definition.settingDescription;
-            if(definition.settingHelpText)          delete definition.settingHelpText;
-            if(definition.settingValueMultiplier)   delete definition.settingValueMultiplier;
-            if(definition.defaultValue)             delete definition.defaultValue;
-            if(definition.settingControl)           delete definition.settingControl;
-            if(definition.settingAction)            delete definition.settingAction;
-            if(definition.patchConfig)              delete definition.patchConfig;
+            const blackList = HSGlobal.HSSettings.serializationBlackList;
+
+            for(const blackListKey of blackList) {
+                if((definition as any)[blackListKey]) delete (definition as any)[blackListKey];
+            }
 
             (serializeableSettings as any)[key] = definition;
         }

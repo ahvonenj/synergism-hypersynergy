@@ -4,5 +4,20 @@
     Author: Swiffy
 */
 
-export type DelegateEventListener<T extends Node> = (this: T, eventType: string, selector: string, callback: (this: HTMLElement, event: Event) => void, singleton?: boolean) => T;
-export type RemoveDelegateEventListener<T extends Node> =  (this: T, eventType: string, selector: string, callback: (event: Event) => void, singleton?: boolean) => T;
+import { EventMap } from "../hs-event-types";
+
+export type DelegateEventListener<T extends Node> = <K extends keyof EventMap>(
+    this: T, 
+    eventType: K, 
+    selector: string, 
+    callback: (this: HTMLElement, event: EventMap[K]) => void, 
+    singleton?: boolean
+  ) => T;
+  
+  export type RemoveDelegateEventListener<T extends Node> = <K extends keyof EventMap>(
+    this: T, 
+    eventType: K, 
+    selector: string, 
+    callback: (event: EventMap[K]) => void, 
+    singleton?: boolean
+  ) => T;

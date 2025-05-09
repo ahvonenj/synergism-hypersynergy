@@ -1,4 +1,5 @@
 import { AMBROSIA_ICON, HSAmbrosiaLoadoutIcon } from "../../types/module-types/hs-ambrosia-types";
+import { HSViewProperties, MAIN_VIEW } from "../../types/module-types/hs-gamestate-types";
 import { IHSGlobal } from "../../types/module-types/hs-global-types";
 import { ELogLevel } from "../../types/module-types/hs-logger-types";
 
@@ -62,7 +63,6 @@ export const HSGlobal: IHSGlobal = class {
 
     // --- HSLogger ---
 
-    // Log level
     static HSLogger = {
         logLevel: ELogLevel.ALL,
         logSize: 100
@@ -70,23 +70,38 @@ export const HSGlobal: IHSGlobal = class {
 
     // --- HSStorage ---
 
-    // Log level
     static HSStorage = {
         storagePrefix: 'hs-',
     }
 
     // --- HSUI ---
 
-    // Log level
     static HSUI = {
         injectedStylesDomId: 'hs-injected-styles',
     }
 
+    // --- HSUIC ---
+
+    static HSUIC = {
+        defaultImageWidth: 32,
+        defaultImageHeight: 32,
+    }
+
     // --- HSSettings ---
 
-    // Log level
     static HSSettings = {
         storageKey: 'settings',
+        serializationBlackList: [
+            'settingDescription',
+            'settingHelpText',
+            'settingValueMultiplier',
+            'defaultValue',
+            'settingControl',
+            'settingAction',
+            'patchConfig',
+            'usesGameData',
+        ],
+        gameDataRequiredTooltip: 'This feature requires Game Data Sniffing to be enabled.',
     }
 
     static HSMouse = {
@@ -422,8 +437,45 @@ export const HSGlobal: IHSGlobal = class {
         ])
     }
 
+    // HSGameState
+    static HSGameState = {
+        viewProperties: new Map<MAIN_VIEW, HSViewProperties>([
+            [MAIN_VIEW.CUBES, {
+                subViewIds: [
+                    'cubeTab1',
+                    'cubeTab2',
+                    'cubeTab3',
+                    'cubeTab4',
+                    'cubeTab5',
+                    'cubeTab6',
+                    'cubeTab7'
+                ],
+                subViewsSelector: '.cubeTab',
+                viewClassName: 'CubeView'
+            }],
+            [MAIN_VIEW.SINGULARITY, {
+                subViewIds: [
+                    'singularityContainer1',
+                    'singularityContainer2',
+                    'singularityContainer3',
+                    'singularityContainer4'
+                ],
+                subViewsSelector: [
+                    '#singularityContainer1',
+                    '#singularityContainer2',
+                    '#singularityContainer3',
+                    '#singularityContainer4',
+                ],
+                viewClassName: 'SingularityView'
+            }]
+        ])
+    }
+
     // HSGameData
     static HSGameData = {
+        saveDataHashing: false,
         saveDataWatchInterval: 500,
+        turboModeSpeedMs: 50,
+        turboCSSId: 'hs-game-data-turbo-css'
     }
 }

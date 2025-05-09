@@ -409,7 +409,7 @@
     margin-bottom: 10px;*/
 }
 
-.hs-panel-setting-block-text {
+.hs-panel-setting-block-text-wrapper {
     grid-column: 1 / span 2;
     box-sizing: border-box;
 }
@@ -457,6 +457,15 @@
 
 .hs-panel-settings-block-btn-standalone {
     grid-column: 1 / 1;
+}
+
+.hs-panel-setting-block-gamedata-icon {
+    margin-left: 5px;
+}
+
+.hs-panel-setting-block-gamedata-icon:hover {
+    cursor: help;
+    filter: brightness(150%);
 }
 
 .hs-disabled {

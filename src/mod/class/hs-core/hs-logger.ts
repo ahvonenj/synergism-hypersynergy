@@ -184,7 +184,7 @@ export class HSLogger {
         const debugLog = HSSettings.getSetting('showDebugLogs') as HSSetting<boolean>;
 
         if(debugLog && debugLog.getValue()) {
-            console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
+            console.log(`DBG [${context}]: ${HSUtils.removeColorTags(msg)}`);
             this.#logToUi(msg, context, ELogType.DEBUG);
         }
     }

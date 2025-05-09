@@ -242,6 +242,71 @@
         }
     },
 
+    "ambrosiaIdleSwap": {
+        "settingName": "ambrosiaIdleSwap",
+        "settingDescription": "Ambrosia AFK swapper",
+        "settingHelpText": "When enabled, automatically switches ambrosia loadouts depending on the ambrosia bar progress. IMPORTANT: BY DESIGN, THE AUTO SWAPPER WILL ONLY WORK WHEN IN THE AMBROSIA VIEW, SO NO 'SWAPPING IN THE BACKGROUND'",
+        "settingType": "boolean",
+        "enabled": true,
+        "usesGameData": true,
+        "settingAction": "ambrosiaIdleSwapAction",
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "ambrosia2",
+            "controlEnabledId": "hs-setting-ambrosia-idle-swap-btn"
+        }
+    },
+
+    "idleSwapLoadoutNormal": {
+        "settingName": "idleSwapLoadoutNormal",
+        "settingDescription": "Normal loadout",
+        "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is not full.",
+        "settingType": "selectnumeric",
+        "enabled": true,
+        "settingValue": "",
+        "settingControl": {
+            "controlId": "hs-setting-idle-swap-normal-loadout-value",
+            "controlType": "select",
+            "controlGroup": "ambrosia2",
+            "selectOptions": [
+                { "text": "None", "value": "" },
+                { "text": "Loadout 1", "value": "1" },
+                { "text": "Loadout 2", "value": "2" },
+                { "text": "Loadout 3", "value": "3" },
+                { "text": "Loadout 4", "value": "4" },
+                { "text": "Loadout 5", "value": "5" },
+                { "text": "Loadout 6", "value": "6" },
+                { "text": "Loadout 7", "value": "7" },
+                { "text": "Loadout 8", "value": "8" }
+            ]
+        }
+    },
+
+    "idleSwapLoadout100": {
+        "settingName": "idleSwapLoadout100",
+        "settingDescription": "100% loadout",
+        "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is about to hit 100%.",
+        "settingType": "selectnumeric",
+        "enabled": true,
+        "settingValue": "",
+        "settingControl": {
+            "controlId": "hs-setting-idle-swap-100-loadout-value",
+            "controlType": "select",
+            "controlGroup": "ambrosia2",
+            "selectOptions": [
+                { "text": "None", "value": "" },
+                { "text": "Loadout 1", "value": "1" },
+                { "text": "Loadout 2", "value": "2" },
+                { "text": "Loadout 3", "value": "3" },
+                { "text": "Loadout 4", "value": "4" },
+                { "text": "Loadout 5", "value": "5" },
+                { "text": "Loadout 6", "value": "6" },
+                { "text": "Loadout 7", "value": "7" },
+                { "text": "Loadout 8", "value": "8" }
+            ]
+        }
+    },
+
     "patch_ambrosiaViewOverflow": {
         "settingName": "patch_ambrosiaViewOverflow",
         "settingDescription": "Fix ambrosia view overflow",
@@ -277,8 +342,9 @@
     },
 
     "useGameData": {
+        "settingBlockId": "hs-setting-block-gamedata",
         "settingName": "useGameData",
-        "settingDescription": "Game data sniffing",
+        "settingDescription": "Game Data Sniffing (GDS)",
         "settingHelpText": "Enables game data sniffing by continuously scanning localStorage save data in the background. Enabling this gives the mod vastly enhanced functionality, but may cause performance issues on some systems.",
         "settingType": "boolean",
         "enabled": true,
@@ -300,6 +366,21 @@
             "controlType": "switch",
             "controlGroup": "gamedata",
             "controlEnabledId": "hs-setting-stop-sniff-on-error-btn"
+        }
+    },
+
+    "gameDataTurbo": {
+        "settingName": "gameDataTurbo",
+        "settingDescription": "Turbo mode",
+        "settingHelpText": "When enabled, the mod will exploit the manual save feature to read game data faster. NOTE: ENABLING THIS WILL HIDE THE MANUAL SAVE BUTTON.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingAction": "gameDataTurbo",
+        "usesGameData": true,
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "gamedata",
+            "controlEnabledId": "hs-setting-gamedata-turbo-btn"
         }
     }
 }

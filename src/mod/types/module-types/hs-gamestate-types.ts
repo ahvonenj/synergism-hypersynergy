@@ -1,3 +1,14 @@
+import { CubeView, GameView, MainView, SingularityView } from "../../class/hs-core/hs-gamestate";
+
+export type VIEW_TYPE = MAIN_VIEW | CUBE_VIEW | SINGULARITY_VIEW;
+export type VIEW_KEY = 'MAIN_VIEW' | 'CUBE_VIEW' | 'SINGULARITY_VIEW';
+
+export interface View {
+    MAIN_VIEW: MainView;
+    CUBE_VIEW: CubeView;
+    SINGULARITY_VIEW: SingularityView;
+}
+
 export enum MAIN_VIEW {
     UNKNOWN = -1,
 
@@ -30,7 +41,33 @@ export enum CUBE_VIEW {
     HEPTERACT_FORGE = 7,
 }
 
+export enum SINGULARITY_VIEW {
+    UNKNOWN = -1,
+
+    SHOP = 1,
+    PERKS = 2,
+    OCTERACTS = 3,
+    AMBROSIA = 4
+}
+
 export enum GAME_STATE_CHANGE {
     MAIN_VIEW = 1,
     CUBE_VIEW = 2,
+    SINGULARITY_VIEW = 3,
+}
+
+export interface HSViewProperties {
+    subViewIds: string[];
+    subViewsSelector: string | string[];
+    viewClassName: string;
+}
+
+export interface HSViewState<V extends GameView<VIEW_TYPE>> {
+    currentView: V;
+    previousView: V;
+    viewChangeSubscribers: Map<string, (previousView: V, currentView: V) => void>;
+}
+
+export interface HSViewStateRecord {
+    [key: string]: HSViewState<GameView<VIEW_TYPE>>;
 }

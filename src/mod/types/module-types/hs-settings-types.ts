@@ -35,6 +35,9 @@ export interface HSSettingsDefinition {
     autoLoadoutState: AutoLoadoutStateSetting;
     autoLoadoutAdd: AutoLoadoutAddSetting;
     autoLoadoutTime: AutoLoadoutTimeSetting;
+    ambrosiaIdleSwap: AmbrosiaIdleSwapSetting;
+    ambrosiaIdleSwapNormalLoadout: AmbrosiaIdleSwapNormalLoadoutSetting;
+    ambrosiaIdleSwap100Loadout: AmbrosiaIdleSwap100LoadoutSetting;
 
     // Patch Settings
     patch_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
@@ -43,6 +46,7 @@ export interface HSSettingsDefinition {
     // Game Data Settings
     useGameData: UseGameDataSetting;
     stopSniffOnError: StopSniffOnErrorSetting;
+    gameDataTurbo: GameDataTurboSetting;
 }
 
 export interface HSSettingControlOptions {
@@ -83,6 +87,7 @@ export interface HSPatchConfig {
 export interface HSSettingBase<T> {
     enabled: boolean;
     settingName: string;
+    settingBlockId?: string;
     settingDescription: string;
     settingHelpText?: string;
     settingType: HSSettingJSONType;
@@ -93,6 +98,7 @@ export interface HSSettingBase<T> {
     settingControl?: HSSettingControl;
     settingAction?: string;
     patchConfig?: HSPatchConfig;
+    usesGameData?: boolean;
 }
 
 // Expand Cost Protection Settings
@@ -119,6 +125,10 @@ export interface AutoLoadoutStateSetting extends HSSettingBase<string> {}
 export interface AutoLoadoutAddSetting extends HSSettingBase<string> {}
 export interface AutoLoadoutTimeSetting extends HSSettingBase<string> {}
 
+export interface AmbrosiaIdleSwapSetting extends HSSettingBase<boolean> {}
+export interface AmbrosiaIdleSwapNormalLoadoutSetting extends HSSettingBase<string> {}
+export interface AmbrosiaIdleSwap100LoadoutSetting extends HSSettingBase<string> {}
+
 
 // Patch Settings
 export interface PATCH_ambrosiaViewOverflow extends HSSettingBase<boolean> {}
@@ -127,3 +137,4 @@ export interface PATCH_TestPatch extends HSSettingBase<boolean> {}
 // Game Data Settings
 export interface UseGameDataSetting extends HSSettingBase<boolean> {}
 export interface StopSniffOnErrorSetting extends HSSettingBase<boolean> {}
+export interface GameDataTurboSetting extends HSSettingBase<boolean> {}

@@ -66,6 +66,12 @@ export interface HSUICDivOptions extends HSOptional<HSUICOptions, 'id'> {
     html?: string | string[];
 }
 
+export interface HSUICImageOptions extends HSOptional<HSUICOptions, 'id'> {
+    src: string;
+    width?: number;
+    height?: number;
+}
+
 export interface HSUICPOptions extends HSOptional<HSUICOptions, 'id'> {
     text?: string | string[];
 }

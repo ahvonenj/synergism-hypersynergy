@@ -19,12 +19,16 @@
         "groupName": "Ambrosia settings",
         "order": 5
     },
+    "ambrosia2": {
+        "groupName": "Ambrosia settings 2",
+        "order": 6
+    },
     "patch": {
         "groupName": "Patch settings",
-        "order": 6
+        "order": 7
     },
     "gamedata": {
         "groupName": "Game data settings",
-        "order": 6
+        "order": 8
     }
 }
