@@ -341,6 +341,23 @@
         }
     },
 
+    "patch_shopItemNameMapping": {
+        "settingName": "patch_shopItemNameMapping",
+        "settingDescription": "Display shop item names",
+        "settingHelpText": "Populates the shop items with their names.",
+        "settingType": "boolean",
+        "enabled": true,
+        "settingAction": "patch",
+        "patchConfig": {
+            "patchName": "ShopItemNameMapping"
+        },
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "patch",
+            "controlEnabledId": "hs-setting-patch-shopnames-btn"
+        }
+    },
+
     "useGameData": {
         "settingBlockId": "hs-setting-block-gamedata",
         "settingName": "useGameData",

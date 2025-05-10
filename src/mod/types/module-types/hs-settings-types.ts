@@ -42,6 +42,7 @@ export interface HSSettingsDefinition {
     // Patch Settings
     patch_ambrosiaViewOverflow: PATCH_ambrosiaViewOverflow;
     patch_testPatch: PATCH_TestPatch;
+    patch_shopItemNameMapping: PATCH_shopItemNameMapping;
 
     // Game Data Settings
     useGameData: UseGameDataSetting;
@@ -133,6 +134,7 @@ export interface AmbrosiaIdleSwap100LoadoutSetting extends HSSettingBase<string>
 // Patch Settings
 export interface PATCH_ambrosiaViewOverflow extends HSSettingBase<boolean> {}
 export interface PATCH_TestPatch extends HSSettingBase<boolean> {}
+export interface PATCH_shopItemNameMapping extends HSSettingBase<boolean> {}
 
 // Game Data Settings
 export interface UseGameDataSetting extends HSSettingBase<boolean> {}

@@ -2,6 +2,7 @@ import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 import { PATCH_AmbrosiaViewOverflow } from "../patches/ambrosiaViewOverflow";
 import { HSPatch } from "../patches/hs-patch";
+import { PATCH_ShopItemNameMapping } from "../patches/shopItemNameMapping";
 import { PATCH_TestPatch } from "../patches/test";
 
 export class HSPatches extends HSModule {
@@ -9,6 +10,7 @@ export class HSPatches extends HSModule {
     #patchCollection: Record<string, new (patchName: string) => HSPatch> = {
         "AmbrosiaViewOverflow": PATCH_AmbrosiaViewOverflow,
         "TestPatch": PATCH_TestPatch,
+        "ShopItemNameMapping": PATCH_ShopItemNameMapping,
     };
 
     #instantiatedPatches: Record<string, HSPatch> = {};
