@@ -128,7 +128,7 @@ export class HSGameState extends HSModule {
 
                         const viewKey = subViewInstance.getViewKey() as VIEW_KEY;
 
-                        console.log(subViewId, viewElement, state, viewKey, subViewInstance, subViewInstance.getId())
+                        //console.log(subViewId, viewElement, state, viewKey, subViewInstance, subViewInstance.getId())
                         
                         if(subViewInstance.getId() !== self.#UNKNOWN_VIEW) {
 

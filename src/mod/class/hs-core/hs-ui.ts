@@ -87,7 +87,7 @@ export class HSUI extends HSModule {
         HSUI.injectStyle(this.#staticPanelCss, 'hs-panel-css');
 
         // Create temp div, inject UI panel HTML and append the contents to body
-        HSUI.injectHTML(this.#staticPanelHtml);
+        HSUI.injectHTMLString(this.#staticPanelHtml);
 
         // Find the UI elements in DOM and store the refs
         this.#uiPanel = await HSElementHooker.HookElement('#hs-panel') as HTMLDivElement;
@@ -340,7 +340,7 @@ export class HSUI extends HSModule {
 
     // Can be used to inject arbitrary HTML
     // injectFunction can be supplied to control where the HTML is injected
-    static injectHTML(htmlString: string, injectFunction?: (node: ChildNode) => void) {
+    static injectHTMLString(htmlString: string, injectFunction?: (node: ChildNode) => void) {
         const div = document.createElement('div');
         div.innerHTML = htmlString;
 
@@ -352,6 +352,13 @@ export class HSUI extends HSModule {
             }
         };
 
+        HSLogger.debug(`Injected new HTML`, this.#staticContext);
+    }
+
+    // Can be used to inject arbitrary HTML
+    // injectFunction can be supplied to control where the HTML is injected
+    static injectHTMLElement(element: HTMLElement, injectFunction: (htmlElement: HTMLElement) => void) {
+        injectFunction(element);
         HSLogger.debug(`Injected new HTML`, this.#staticContext);
     }
 
@@ -434,7 +441,7 @@ export class HSUI extends HSModule {
         });	
 
         // Create temp div, inject UI panel HTML and append the contents to body
-        HSUI.injectHTML(html);
+        HSUI.injectHTMLString(html);
 
         const modal = document.querySelector(`#${uuid}`) as HTMLDivElement;
         const modalHead = document.querySelector(`#${uuid} > .hs-modal-head`) as HTMLDivElement;

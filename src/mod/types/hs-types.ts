@@ -4,7 +4,9 @@
     Author: Swiffy
 */
 
+import { GameView } from "../class/hs-core/hs-gamestate";
 import { PlayerData } from "./hs-player-savedata";
+import { VIEW_TYPE, VIEW_KEY } from "./module-types/hs-gamestate-types";
 
 // Used when listing and loading modules
 export type HSModuleDefinition = {
@@ -28,8 +30,15 @@ export interface HSPersistable {
 }
 
 export interface HSGameDataSubscriber {
-    subscriptionId?: string;
+    gameDataSubscriptionId?: string;
     gameDataCallback: (data: PlayerData) => Promise<void>;
     subscribeGameDataChanges: () => void;
     unsubscribeGameDataChanges: () => void;
 }
+
+/*export interface HSGameStateSubscriber<T extends GameView<VIEW_TYPE>> {
+    gameStatesubscriptionId?: string;
+    gameStateCallback: (previousView: T, currentView: T) => void;
+    subscribeGameStateChanges: (viewKey: VIEW_KEY) => string | undefined;
+    unsubscribeGameStateChanges: () => void;
+}*/

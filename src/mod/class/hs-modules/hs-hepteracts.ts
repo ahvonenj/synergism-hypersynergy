@@ -459,7 +459,7 @@ export class HSHepteracts extends HSModule {
 
         HSUI.injectStyle(this.#ratioElementStyle);
 
-        HSUI.injectHTML(this.#ratioElementHtml, (node) => {
+        HSUI.injectHTMLString(this.#ratioElementHtml, (node) => {
             const heptGridParent = self.#heptGrid?.parentNode;
             heptGridParent?.insertBefore(node, self.#heptGrid as Node);
         });

@@ -1,22 +1,27 @@
 import { PlayerData } from "../../types/hs-player-savedata";
 import { HSGameDataSubscriber, HSPersistable } from "../../types/hs-types";
 import { AMBROSIA_ICON, AMBROSIA_LOADOUT_SLOT, HSAmbrosiaLoadoutIcon, HSAmbrosiaLoadoutState } from "../../types/module-types/hs-ambrosia-types";
+import { CUBE_VIEW, MAIN_VIEW, SINGULARITY_VIEW, VIEW_KEY, VIEW_TYPE } from "../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSGameData } from "../hs-core/hs-gamedata";
+import { GameView, HSGameState } from "../hs-core/hs-gamestate";
 import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/hs-module";
 import { HSModuleManager } from "../hs-core/hs-module-manager";
-import { HSSetting } from "../hs-core/hs-setting";
+import { HSSelectNumericSetting, HSSelectStringSetting, HSSetting } from "../hs-core/hs-setting";
 import { HSSettings } from "../hs-core/hs-settings";
 import { HSShadowDOM } from "../hs-core/hs-shadowdom";
 import { HSStorage } from "../hs-core/hs-storage";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 
-export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSubscriber {
+export class HSAmbrosia extends HSModule 
+implements HSPersistable, HSGameDataSubscriber {
 
-    subscriptionId?: string;
+    gameDataSubscriptionId?: string;
+    #gameStateMainViewSubscriptionId?: string;
+    #gameStateSubViewSubscriptionId?: string;
 
     #ambrosiaGrid: HTMLElement | null = null;
     #loadOutsSlots: HTMLElement[] = [];
@@ -70,9 +75,40 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
             initial-value: 0deg;
             inherits: false;
         }
-    `
+    `;
 
     #quickbarCSSId = 'hs-ambrosia-quickbar-css';
+
+    #idleLoadoutCSS = `
+        #hs-ambrosia-loadout-idle-swap-indicator {
+            margin-bottom: 10px;
+            font-family: fantasy;
+            letter-spacing: 3px;
+
+            background: linear-gradient(to right, #774ed1 20%, #00affa 30%, #0190cd 70%, #774ed1 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 500% auto;
+            animation: loadout-ind-glow 3.5s ease-in-out infinite alternate;
+        }
+
+        @-webkit-keyframes loadout-ind-glow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+    `;
+
+    #idleLoadoutCSSId = 'hs-ambrosia-idle-loadout-css';
+
+    #isIdleSwapEnabled = false;
+    #blueAmbrosiaProgressBar?: HTMLDivElement;
+    #redAmbrosiaProgressBar?: HTMLDivElement;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -539,11 +575,11 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
 
     async #addCodeButtonHandler(e: Event) {
         const currentLoadout = this.#currentLoadout;
-        const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSetting<string>;
+        const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSelectStringSetting;
 
         if(currentLoadout && addLoadoutSetting) {
-            const addLoadout = addLoadoutSetting.getValue();
-            const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${addLoadout}`) as HTMLButtonElement;
+            const addLoadout = this.#convertSettingLoadoutToSlot(addLoadoutSetting.getValue());
+            const loadoutSlot = await HSElementHooker.HookElement(`#${addLoadout}`) as HTMLButtonElement;
 
             await this.#maybeTurnLoadoutModeToLoad();
 
@@ -555,11 +591,11 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
 
     async #timeCodeButtonHandler(e: Event) {
         const currentLoadout = this.#currentLoadout;
-        const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSetting<string>;
+        const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSelectStringSetting;
 
         if(currentLoadout && timeLoadoutSetting) {
-            const timeLoadout = timeLoadoutSetting.getValue();
-            const loadoutSlot = await HSElementHooker.HookElement(`#blueberryLoadout${timeLoadout}`) as HTMLButtonElement;
+            const timeLoadout = this.#convertSettingLoadoutToSlot(timeLoadoutSetting.getValue());
+            const loadoutSlot = await HSElementHooker.HookElement(`#${timeLoadout}`) as HTMLButtonElement;
 
             await this.#maybeTurnLoadoutModeToLoad();
 
@@ -597,20 +633,32 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
         }
     }
 
+    #convertSettingLoadoutToSlot(loadoutNumber: string): AMBROSIA_LOADOUT_SLOT | undefined {
+        const loadoutEnum = Object.values(AMBROSIA_LOADOUT_SLOT).find(
+            slot => slot === `blueberryLoadout${loadoutNumber}`
+        ) as AMBROSIA_LOADOUT_SLOT | undefined;
+
+        if(!loadoutEnum) {
+            HSLogger.warn(`Could not convert loadout ${loadoutNumber} to slot`, this.context);
+        }
+
+        return loadoutEnum;
+    }
+
     subscribeGameDataChanges() {
         const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
 
         if(gameDataMod) {
-            this.subscriptionId = gameDataMod.subscribeGameDataChange(this.gameDataCallback.bind(this));
+            this.gameDataSubscriptionId = gameDataMod.subscribeGameDataChange(this.gameDataCallback.bind(this));
         }
     }
 
     unsubscribeGameDataChanges() {
         const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
 
-        if(gameDataMod && this.subscriptionId) {
-            gameDataMod.unsubscribeGameDataChange(this.subscriptionId);
-            this.subscriptionId = undefined;
+        if(gameDataMod && this.gameDataSubscriptionId) {
+            gameDataMod.unsubscribeGameDataChange(this.gameDataSubscriptionId);
+            this.gameDataSubscriptionId = undefined;
         }
     }
 
@@ -624,11 +672,57 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
             const redAmbrosiaBarValue = data.redAmbrosiaTime;
             const blueAmbrosiaBarMax = this.#calculateRequiredBlueberryTime(data.lifetimeAmbrosia);
             const redAmbrosiaBarMax = this.#calculateRequiredRedAmbrosiaTime(data.lifetimeRedAmbrosia, redBarRequirementMultiplier);
-            console.log(blueAmbrosiaBarValue, blueAmbrosiaBarMax, redAmbrosiaBarValue, redAmbrosiaBarMax);
+            const blueAmbrosiaPercent = ((blueAmbrosiaBarValue / blueAmbrosiaBarMax) * 100);
+            const redAmbrosiaPercent = ((redAmbrosiaBarValue / redAmbrosiaBarMax) * 100);
+
+            if(this.#isIdleSwapEnabled) {
+                if(this.#blueAmbrosiaProgressBar && this.#redAmbrosiaProgressBar) {
+                    const idleSwapLoadoutNormalSetting = HSSettings.getSetting('ambrosiaIdleSwapNormalLoadout') as HSSelectStringSetting;
+                    const idleSwapLoadout100Setting = HSSettings.getSetting('ambrosiaIdleSwap100Loadout') as HSSelectStringSetting;
+  
+                    if(idleSwapLoadoutNormalSetting && idleSwapLoadout100Setting) {
+                        const normalLoadout = this.#convertSettingLoadoutToSlot(idleSwapLoadoutNormalSetting.getValue());
+                        const loadout100 = this.#convertSettingLoadoutToSlot(idleSwapLoadout100Setting.getValue());
+                        
+                        if(blueAmbrosiaPercent >= HSGlobal.HSAmbrosia.idleSwapMaxBlueTreshold || 
+                            redAmbrosiaPercent >= HSGlobal.HSAmbrosia.idleSwapMaxRedTreshold) {
+                            if(this.#currentLoadout !== loadout100) {
+                                const loadoutSlot = await HSElementHooker.HookElement(`#${loadout100}`) as HTMLButtonElement;
+
+                                await this.#maybeTurnLoadoutModeToLoad();
+
+                                await HSUtils.hiddenAction(async () => {
+                                    loadoutSlot.click();
+                                });
+                            }
+                        } else if((blueAmbrosiaPercent > 0 && blueAmbrosiaPercent <= HSGlobal.HSAmbrosia.idleSwapMinBlueTreshold) ||
+                            (redAmbrosiaPercent > 0 && redAmbrosiaPercent <= HSGlobal.HSAmbrosia.idleSwapMinRedTreshold)) {
+                            if(this.#currentLoadout !== normalLoadout) {
+                                const loadoutSlot = await HSElementHooker.HookElement(`#${normalLoadout}`) as HTMLButtonElement;
+
+                                await this.#maybeTurnLoadoutModeToLoad();
+
+                                await HSUtils.hiddenAction(async () => {
+                                    loadoutSlot.click();
+                                });
+                            }
+                        }
+                    }
+
+                    const debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
+
+                    if(debugElement) {
+                        debugElement.innerHTML = `BLUE - Value: ${blueAmbrosiaBarValue.toFixed(2)}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent.toFixed(2)}<br>
+                        RED - Value: ${redAmbrosiaBarValue.toFixed(2)}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent.toFixed(2)}`;
+                    }
+                    //console.log(`BLUE - Value: ${blueAmbrosiaBarValue}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent}`);
+                    //console.log(`RED - Value: ${redAmbrosiaBarValue}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent}`);
+                }
+            }
         }
     };
 
-    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts#
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
     #calculateNumberOfThresholds = (lifetimeAmbrosia: number) => {
         const numDigits = lifetimeAmbrosia > 0 ? 1 + Math.floor(Math.log10(lifetimeAmbrosia)) : 0
         const matissa = Math.floor(lifetimeAmbrosia / Math.pow(10, numDigits - 1))
@@ -656,7 +750,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
         }
     }
 
-    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts#
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
     #calculateRequiredBlueberryTime = (lifetimeAmbrosia: number) => {
         let val = HSGlobal.HSAmbrosia.R_TIME_PER_AMBROSIA // Currently 30
         val += Math.floor(lifetimeAmbrosia / 500)
@@ -666,6 +760,7 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
         return Math.pow(thresholdBase, thresholds) * val
     }
 
+    // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
     #calculateRequiredRedAmbrosiaTime = (lifetimeRedAmbrosia: number, barRequirementMultiplier: number) => {
         let val = HSGlobal.HSAmbrosia.R_TIME_PER_RED_AMBROSIA // Currently 100,000
         val += 200 * lifetimeRedAmbrosia
@@ -676,11 +771,101 @@ export class HSAmbrosia extends HSModule implements HSPersistable, HSGameDataSub
         return Math.min(max, val)
     }
 
-    enableIdleSwap() {
+    async enableIdleSwap() {
+        const self = this;
+        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+
+        if(gameStateMod) {
+            this.#gameStateMainViewSubscriptionId = gameStateMod.subscribeGameStateChange('MAIN_VIEW', this.#gameStateCallbackMain.bind(this));
+
+            this.#gameStateSubViewSubscriptionId = gameStateMod.subscribeGameStateChange('SINGULARITY_VIEW', async (previousView: GameView<VIEW_TYPE>, currentView: GameView<VIEW_TYPE>) => {
+                if(currentView.getId() === SINGULARITY_VIEW.AMBROSIA) {
+                    this.#blueAmbrosiaProgressBar = await HSElementHooker.HookElement('#ambrosiaProgressBar') as HTMLDivElement;
+                    this.#redAmbrosiaProgressBar = await HSElementHooker.HookElement('#pixelProgressBar') as HTMLDivElement;
+                    this.#isIdleSwapEnabled = true;
+                    this.#maybeInsertIdleLoadoutIndicator();
+                } else {
+                    this.#isIdleSwapEnabled = false;
+                    this.#removeIdleLoadoutIndicator();
+                }
+            });
+
+            // If we're already in the ambrosia view
+            if(gameStateMod.getCurrentUIView("SINGULARITY_VIEW").getId() === SINGULARITY_VIEW.AMBROSIA &&
+                gameStateMod.getCurrentUIView("MAIN_VIEW").getId() === MAIN_VIEW.SINGULARITY) {
+                    this.#blueAmbrosiaProgressBar = await HSElementHooker.HookElement('#ambrosiaProgressBar') as HTMLDivElement;
+                    this.#redAmbrosiaProgressBar = await HSElementHooker.HookElement('#pixelProgressBar') as HTMLDivElement;
+                    this.#isIdleSwapEnabled = true;
+                    this.#maybeInsertIdleLoadoutIndicator();
+            }
+        } else {
+            HSLogger.warn(`Could not find game state module`, this.context);
+        }
+
         this.subscribeGameDataChanges();
     }
 
     disableIdleSwap() {
         this.unsubscribeGameDataChanges();
+
+        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+        
+        if(gameStateMod) {
+            if(this.#gameStateMainViewSubscriptionId) {
+                gameStateMod.unsubscribeGameStateChange('MAIN_VIEW', this.#gameStateMainViewSubscriptionId);
+                this.#gameStateMainViewSubscriptionId = undefined;
+            }
+
+            if(this.#gameStateSubViewSubscriptionId) {
+                gameStateMod.unsubscribeGameStateChange('SINGULARITY_VIEW', this.#gameStateSubViewSubscriptionId);
+                this.#gameStateSubViewSubscriptionId = undefined;
+            }
+        }
+
+        this.#removeIdleLoadoutIndicator();
+        this.#isIdleSwapEnabled = false;
+    }
+
+    #gameStateCallbackMain(previousView: GameView<VIEW_TYPE>, currentView: GameView<VIEW_TYPE>) {
+        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+        
+        if(gameStateMod) {
+            if(previousView.getId() === MAIN_VIEW.SINGULARITY && 
+                currentView.getId() !== MAIN_VIEW.SINGULARITY && 
+                gameStateMod.getCurrentUIView("SINGULARITY_VIEW").getId() === SINGULARITY_VIEW.AMBROSIA
+            ) {
+                this.#isIdleSwapEnabled = false;
+            }
+        }
+    }
+
+    #maybeInsertIdleLoadoutIndicator() {
+        const indicatorExists = document.querySelector(`#${HSGlobal.HSAmbrosia.idleSwapIndicatorId}`) as HTMLElement;
+
+        if(indicatorExists)
+            return;
+
+        const loadoutIndicator = document.createElement('div') as HTMLDivElement;
+        loadoutIndicator.id = HSGlobal.HSAmbrosia.idleSwapIndicatorId;
+        loadoutIndicator.innerText = "IDLE SWAP ENABLED WHILE IN THIS VIEW";
+
+        HSUI.injectHTMLElement(loadoutIndicator, (element) => {
+            const parent = document.querySelector('#singularityAmbrosia') as HTMLElement;
+            const child = document.querySelector('#ambrosiaProgressBar') as HTMLElement;
+
+            parent?.insertBefore(element, child as Node);
+        });
+
+        HSUI.injectStyle(this.#idleLoadoutCSS, this.#idleLoadoutCSSId);
+    }
+
+    #removeIdleLoadoutIndicator() {
+        const loadoutIndicator = document.querySelector(`#${HSGlobal.HSAmbrosia.idleSwapIndicatorId}`) as HTMLElement;
+
+        if(loadoutIndicator) {
+            loadoutIndicator.remove();
+        }
+
+        HSUI.removeInjectedStyle(this.#idleLoadoutCSSId);
     }
 }

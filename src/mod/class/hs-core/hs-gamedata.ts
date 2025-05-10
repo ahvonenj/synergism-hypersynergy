@@ -281,6 +281,8 @@ export class HSGameData extends HSModule {
     }
 
     #updateDebug() {
+        if(!HSGlobal.Debug.gameDataDebugMode) return;
+        
         let ambrosia = null;
         let ant = null;
         let dbg = '';

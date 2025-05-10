@@ -196,7 +196,7 @@
         "settingName": "autoLoadoutAdd",
         "settingDescription": "ADD Loadout",
         "settingHelpText": "Configures to loadout to use when ADD button is clicked.",
-        "settingType": "selectnumeric",
+        "settingType": "selectstring",
         "enabled": true,
         "settingValue": "",
         "settingControl": {
@@ -221,7 +221,7 @@
         "settingName": "autoLoadoutTime",
         "settingDescription": "TIME loadout",
         "settingHelpText": "Configures to loadout to use when TIME button is clicked.",
-        "settingType": "selectnumeric",
+        "settingType": "selectstring",
         "enabled": true,
         "settingValue": "",
         "settingControl": {
@@ -257,11 +257,11 @@
         }
     },
 
-    "idleSwapLoadoutNormal": {
-        "settingName": "idleSwapLoadoutNormal",
+    "ambrosiaIdleSwapNormalLoadout": {
+        "settingName": "ambrosiaIdleSwapNormalLoadout",
         "settingDescription": "Normal loadout",
         "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is not full.",
-        "settingType": "selectnumeric",
+        "settingType": "selectstring",
         "enabled": true,
         "settingValue": "",
         "settingControl": {
@@ -282,11 +282,11 @@
         }
     },
 
-    "idleSwapLoadout100": {
-        "settingName": "idleSwapLoadout100",
+    "ambrosiaIdleSwap100Loadout": {
+        "settingName": "ambrosiaIdleSwap100Loadout",
         "settingDescription": "100% loadout",
         "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is about to hit 100%.",
-        "settingType": "selectnumeric",
+        "settingType": "selectstring",
         "enabled": true,
         "settingValue": "",
         "settingControl": {

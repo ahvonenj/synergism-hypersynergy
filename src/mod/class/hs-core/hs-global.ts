@@ -13,6 +13,7 @@ export const HSGlobal: IHSGlobal = class {
     static Debug = {
         debugMode: false,
         performanceDebugMode: false,
+        gameDataDebugMode: false,
     }
 
     // --- GENERAL ---
@@ -435,6 +436,12 @@ export const HSGlobal: IHSGlobal = class {
                 draggableIconId: AMBROSIA_ICON.RA_REGLUCK2
             }],
         ]),
+
+        idleSwapIndicatorId: 'hs-ambrosia-loadout-idle-swap-indicator',
+        idleSwapMaxBlueTreshold: 97,
+        idleSwapMinBlueTreshold: 3,
+        idleSwapMaxRedTreshold: 97,
+        idleSwapMinRedTreshold: 3,
 
         // Constants ripped from the game code
         R_TIME_PER_AMBROSIA: 30,

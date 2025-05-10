@@ -219,7 +219,7 @@ export class Hypersynergism {
                                 gridColumn: 'span 2'
                             }
                         }),
-                        HSUIC.Div({ id: 'hs-panel-debug-gamedata-currentambrosia' }),
+                        HSUIC.Div({ id: 'hs-panel-debug-gamedata-currentambrosia', styles: { gridColumn: 'span 2' } }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',

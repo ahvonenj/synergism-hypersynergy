@@ -10,6 +10,7 @@ interface IStoreable {
 export interface HSGlobalDebug {
     debugMode: boolean;
     performanceDebugMode: boolean;
+    gameDataDebugMode: boolean;
 }
 
 export interface HSGlobalGeneral {
@@ -55,6 +56,14 @@ export interface HSGlobalAmbrosia extends IStoreable {
     ambrosiaLoadoutIcons: HSAmbrosiaLoadoutIconMapping;
     quickBarId: string;
     quickBarLoadoutIdPrefix: string;
+
+    idleSwapIndicatorId: string;
+    idleSwapMaxBlueTreshold: number;
+    idleSwapMinBlueTreshold: number;
+
+    idleSwapMaxRedTreshold: number;
+    idleSwapMinRedTreshold: number;
+
     R_TIME_PER_AMBROSIA: number;
     R_TIME_PER_RED_AMBROSIA: number;
     R_digitReduction: number;
