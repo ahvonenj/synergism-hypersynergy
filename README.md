@@ -53,7 +53,7 @@ Quick overview:
 
 ## Latest update(s)
 
-### Hypersynergism version 2.6.3 - Game Data goes Brrr
+### Hypersynergism version 2.7.0 - Game Data goes Brrr
 
 Released: 12.5.2025
 
