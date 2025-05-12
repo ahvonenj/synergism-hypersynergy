@@ -119,11 +119,27 @@ export abstract class HSSetting<T extends HSSettingType> {
     }
 
     #handleManualToggle(newState: boolean) {
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${newState}`, this.context);
-
         const hasStateChanged = this.definition.enabled !== newState;
-
         if(!hasStateChanged) return;
+
+        if(this.definition.settingName === 'useGameData') {
+            if(hasStateChanged && !newState) {
+                const settings = HSSettings.getSettings();
+                    
+                for(const [settingKey, setting] of Object.entries(settings)) {
+                    const def = setting.getDefinition();
+
+                    if(HSGlobal.HSSettings.gameDataCheckBlacklist.includes(settingKey))
+                        continue;
+
+                    if("usesGameData" in def && def.usesGameData === true && setting.isEnabled()) {
+                        setting.disable();
+                    }
+                }
+            }
+        }
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${newState}`, this.context);
 
         this.definition.enabled = newState;
 

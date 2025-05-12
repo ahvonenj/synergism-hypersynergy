@@ -47,7 +47,6 @@ export interface HSSettingsDefinition {
     // Game Data Settings
     useGameData: UseGameDataSetting;
     stopSniffOnError: StopSniffOnErrorSetting;
-    gameDataTurbo: GameDataTurboSetting;
 }
 
 export interface HSSettingControlOptions {
@@ -139,4 +138,3 @@ export interface PATCH_shopItemNameMapping extends HSSettingBase<boolean> {}
 // Game Data Settings
 export interface UseGameDataSetting extends HSSettingBase<boolean> {}
 export interface StopSniffOnErrorSetting extends HSSettingBase<boolean> {}
-export interface GameDataTurboSetting extends HSSettingBase<boolean> {}

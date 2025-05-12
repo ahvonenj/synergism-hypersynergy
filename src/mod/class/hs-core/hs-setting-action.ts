@@ -106,29 +106,9 @@ export class HSSettingActions {
 
             if(gameDataMod) {
                 if(params.disable && params.disable === true) {
-                    /*const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
-                    
-                    if(gameDataTurboSetting && gameDataTurboSetting.isEnabled()) {
-                        gameDataTurboSetting.disable();
-                    }*/
-                    
-                    gameDataMod.stopSaveDataWatch();
+                    gameDataMod.disableGDS();
                 } else {
-                    gameDataMod.startSaveDataWatch();
-                }
-            }
-        },
-
-        gameDataTurbo: async (params: HSSettingActionParams) => {
-            const context = params.contextName ?? "HSSettings";
-
-            const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
-
-            if(gameDataMod) {
-                if(params.disable && params.disable === true) {
-                    gameDataMod.disableTurbo();
-                } else {
-                    gameDataMod.enableTurbo();
+                    gameDataMod.enableGDS();
                 }
             }
         },

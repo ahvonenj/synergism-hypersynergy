@@ -384,20 +384,5 @@
             "controlGroup": "gamedata",
             "controlEnabledId": "hs-setting-stop-sniff-on-error-btn"
         }
-    },
-
-    "gameDataTurbo": {
-        "settingName": "gameDataTurbo",
-        "settingDescription": "Turbo mode",
-        "settingHelpText": "When enabled, the mod will exploit the manual save feature to read game data faster. NOTE: ENABLING THIS WILL HIDE THE MANUAL SAVE BUTTON.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingAction": "gameDataTurbo",
-        "usesGameData": true,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "gamedata",
-            "controlEnabledId": "hs-setting-gamedata-turbo-btn"
-        }
     }
 }
