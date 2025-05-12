@@ -47,8 +47,55 @@ Quick overview:
 - Ambrosia Loadout Quickbar (with equipped loadout indicator)
 - Ambrosia loadout auto switcher when using ADD or TIME codes
 - Toggleable patches (such as overflow fix on ambrosia page)
+- Patch to add visible names for Quark Shop items
+- Ambrosia Loadout Idle Swapper
+- Game data access via GDS™
 
 ## Latest update(s)
+
+### Hypersynergism version 2.6.3 - Game Data goes Brrr
+
+Released: 12.5.2025
+
+**Game Data Sniffing (GDS)**
+
+Game Data Sniffing should be fully functional now.
+When enabled from the settings, GDS uses some tricky trickery to give the mod access to vast array of game data.
+Some of the mod features will only work when GDS is turned on; such settings are marked with an icon.
+
+The mod will not allow features requiring GDS to be enabled if GDS is not enabled first.
+Furthermore, the mod will automatically disable GDS temporarily when it detects that the user
+is trying to enter a new singularity or leave or exit any singularity challenges.
+
+Everything would work even without this, but I noticed that it can sometimes result in small freezes etc.
+if it is left on when going to a singularity, thus the automatic disable and re-enable.
+
+**Other features**
+
+- Added a small "S" icon to settings which require Game Data Sniffing (GDS) to be enabled
+- Implemented GDS with turbo mode (forcing the game to save into localstorage at high speeds)
+- Implemented Idle Loadout Swapper (GDS) - You can configure two loadouts for it (oct. and luck basically) and the mod will automatically swap between them if you are in the Ambrosia view
+- RE'd the exact ambrosia bar value calculations for Idle Loadout Swapper (It's super accurate!)
+- Implementeda a toggleable patch to display Quark Shop item names
+- Implementeda a notification system (Didn't want to. Had to.)
+- Added a warning about GDS auto-disable when player presses singularity button
+- Added a new INFO tab to the mod's panel. I'll be writing important info about the mod here.
+- The mod now automatically disables all settings which use GDS if GDS is disabled
+- The mod now automatically checks if a setting uses GDS and doesn't allow enabling them if GDS is not enabled
+
+**Boring features**
+
+- DeletegateEventListeners now work for all events
+- Implemented Image ui component
+- Added a couple of debug values (ants, ambrosia bar) to test GDS
+- Massively reworked HSGameState module - should be way more generic now (but tbh it's pretty shitty, I went into a rabbit hole with TS... it probably needs another pass of changes)
+- HSUtils.hiddenAction is a lot better now
+- Finishing touches to HSHepteracts cost protection... still needs some work I think
+- Optimized HSAmbrosia event bindings to use delegateEventListener
+- Non-serialized setting keys are now defined with a blacklist in HSGlobal
+- Disabled save data hashing for now, might not be needed
+- Deprecated the crappy slow implementation of GDS
+- Added a couple of buttons to Tools tab to test notifications
 
 ### Hypersynergism version 2.6.2 - Auto Ambrosia Loadout & Bugfixes
 
@@ -72,25 +119,6 @@ Quick overview:
 - Added `HSUtils.unfuckNumericString()` which, when used on any string presentation of a number, should make sure that nothing will parse the number in a ridiculous way afterwards
 - Added STATE type setting
 - Added SELECT type setting
-
-### Hypersynergism version 2.6.1 - The Statistics and Ambrosia Update
-
-<picture>
-  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/ambrosia_icons_2.gif?raw=true" width="400" />
-</picture>
-
-**Features**
-
-- Compability changes to support the new update
-- Added support for new ambrosia icons to be used in loadouts
-- Fixed issue with how settings are saved
-- Made quick expand and max automatically toggle hepteract confirmation notifications OFF.
-- Fixed issue with how settings are saved
-- Optimized element watcher(s) in HSHepteracts module. (hepteract quick expand can now be spammed more robustly and faster)
-- Hepteracts will now show their "next max hepteract cost" in the UI when hovered
-- Quark Hepteract shows the "next max quark cost" instead of hepteract cost
-- Added "Patch settings"
-- Added toggleable patch to fix overflow issues with the ambrosia page which made the page jump around
 
 # Using the mod
 
