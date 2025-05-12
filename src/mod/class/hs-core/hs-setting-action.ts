@@ -1,11 +1,12 @@
-import { HSSettingActionParams } from "../../types/module-types/hs-settings-types";
+import { HSSettingActionParams, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
 import { HSPatches } from "../hs-modules/hs-patches";
 import { HSGameData } from "./hs-gamedata";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModuleManager } from "./hs-module-manager";
 import { HSMouse } from "./hs-mouse";
-import { HSBooleanSetting } from "./hs-setting";
+import { HSBooleanSetting, HSSetting } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
 
 /*
@@ -105,11 +106,11 @@ export class HSSettingActions {
 
             if(gameDataMod) {
                 if(params.disable && params.disable === true) {
-                    const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
+                    /*const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
                     
                     if(gameDataTurboSetting && gameDataTurboSetting.isEnabled()) {
                         gameDataTurboSetting.disable();
-                    }
+                    }*/
                     
                     gameDataMod.stopSaveDataWatch();
                 } else {

@@ -11,6 +11,7 @@ import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
 import { HSGameData } from "./hs-core/hs-gamedata";
+import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
 
 /*
     Class: Hypersynergism
@@ -101,6 +102,8 @@ export class Hypersynergism {
                         HSUIC.Button({ id: 'hs-panel-test-get-save-data-btn', text: 'SData test' }),
                         HSUIC.Button({ id: 'hs-panel-test-get-save-data-jit-btn', text: 'SData test (JIT)' }),
                         HSUIC.Button({ id: 'hs-panel-test-sniff-error-btn', text: 'Sniff err test' }),
+                        HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
+                        HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -179,6 +182,44 @@ export class Hypersynergism {
                     HSLogger.info('Performed save data sniff error test. Game data sniffing should get auto disabled.', this.#context);
                 }
             });
+
+            let positions: HSNotifyPosition[] = ["topLeft", "top", "topRight", "right", "bottomRight", "bottom", "bottomLeft", "left"]
+            let colors: HSNotifyType[] = ["default", "warning", "error", "success"];
+            let p_idx = -1;
+            let c_idx = -1;
+
+            document.querySelector('#hs-panel-test-notify-btn')?.addEventListener('click', async () => {
+                p_idx++;
+                c_idx++;
+
+                if(p_idx > positions.length - 1)
+                    p_idx = 0;
+
+                if(c_idx > colors.length - 1)
+                    c_idx = 0;
+
+                await HSUI.Notify('Test notification', {
+                    position: positions[p_idx],
+                    notificationType: colors[c_idx]
+                });
+            });
+
+            document.querySelector('#hs-panel-test-notify-long-btn')?.addEventListener('click', async () => {
+                p_idx++;
+                c_idx++;
+
+                if(p_idx > positions.length - 1)
+                    p_idx = 0;
+
+                if(c_idx > colors.length - 1)
+                    c_idx = 0;
+
+                await HSUI.Notify('This is a really very extremely long test notification which tests if the notification works with a long notification test notification ',{
+                    position: positions[p_idx],
+                    notificationType: colors[c_idx]
+                })
+            });
+            
 
             // BUILD SETTINGS TAB
             const settingsTabContents = HSSettings.autoBuildSettingsUI();

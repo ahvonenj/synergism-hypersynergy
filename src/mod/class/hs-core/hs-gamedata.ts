@@ -38,6 +38,8 @@ export class HSGameData extends HSModule {
 
     #gameDataSubscribers: Map<string, (data: PlayerData) => void> = new Map<string, (data: PlayerData) => void>();
 
+    #singularityButton?: HTMLImageElement;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -45,6 +47,8 @@ export class HSGameData extends HSModule {
     async init() {
         const self = this;
         HSLogger.log(`Initializing HSGameData module`, this.context);
+
+        this.#singularityButton = document.querySelector('#singularitybtn') as HTMLImageElement;
 
         this.isInitialized = true;
     }
@@ -72,10 +76,14 @@ export class HSGameData extends HSModule {
         }
     }
 
-    startSaveDataWatch() {
+    startSaveDataWatch(forTurbo = false) {
         const self = this;
 
-        HSLogger.info(`Starting save data watch`, this.context);
+        if(forTurbo) {
+            HSLogger.debug(`Started save data watch because turbo was disabled`, this.context);
+        } else {
+            HSLogger.info(`Starting save data watch`, this.context);
+        }
 
         if (this.#saveDataCheckInterval) {
             clearInterval(this.#saveDataCheckInterval);
@@ -112,7 +120,7 @@ export class HSGameData extends HSModule {
         }, HSGlobal.HSGameData.saveDataWatchInterval);
     }
 
-    stopSaveDataWatch() {
+    stopSaveDataWatch(forTurbo = false) {
         if (this.#saveDataCheckInterval) {
             clearInterval(this.#saveDataCheckInterval);
 
@@ -120,7 +128,11 @@ export class HSGameData extends HSModule {
             this.#saveData = undefined;
             this.#lastSaveDataHash = undefined;
 
-            HSLogger.info(`Stopped save data watch`, this.context);
+            if(forTurbo) {
+                HSLogger.debug(`Stopped save data watch for turbo`, this.context);
+            } else {
+                HSLogger.info(`Stopped save data watch`, this.context);
+            }
         }
     }
 
@@ -198,26 +210,13 @@ export class HSGameData extends HSModule {
 
         if(this.#turboEnabled) return;
 
-        const gameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
-
-        if(gameDataSetting && !gameDataSetting.isEnabled()) {
-            const gameDataTurboSetting = HSSettings.getSetting('gameDataTurbo') as HSBooleanSetting;
-
-            if(gameDataTurboSetting) {
-                gameDataTurboSetting.disable();
-            }
-
-            HSLogger.warn(`Please enable game data sniffing before enabling turbo mode.`, this.context); 
-            return;
-        }
-
         HSUI.injectStyle(this.#turboCSS, HSGlobal.HSGameData.turboCSSId);
 
         if(this.#turboInterval) {
             clearInterval(this.#turboInterval);
         }
 
-        this.stopSaveDataWatch();
+        this.stopSaveDataWatch(true);
 
         if(!this.#manualSaveButton) {
             this.#manualSaveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
@@ -234,7 +233,30 @@ export class HSGameData extends HSModule {
             }
         }, HSGlobal.HSGameData.turboModeSpeedMs);
 
+        if(!this.#singularityButton)
+            this.#singularityButton = await HSElementHooker.HookElement('#singularitybtn') as HTMLImageElement;
+
+            this.#singularityButton.addEventListener('click', this.#singularityHandler.bind(this), { capture: true });
+
+        HSLogger.info(`GDS turbo = ON`, this.context);
         this.#turboEnabled = true;
+    }
+
+    async #singularityHandler(e: MouseEvent) {
+        const target = e.target as HTMLImageElement;
+
+        console.log(target)
+        if(target) {
+            const styleString = target.getAttribute('style');
+            const isSingularityButtonGrey = styleString?.toLowerCase().includes('grayscale');
+
+            if(!isSingularityButtonGrey) {
+                await HSUI.Notify('GDS needs to be re-enabled after Sinularity!', {
+                    position: 'topRight',
+                    notificationType: 'warning'
+                });
+            }
+        }
     }
 
     async disableTurbo() {
@@ -246,11 +268,17 @@ export class HSGameData extends HSModule {
         const gameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
 
         if(gameDataSetting && gameDataSetting.isEnabled()) {
-            this.startSaveDataWatch();
+            this.startSaveDataWatch(true);
         }
 
         HSUI.removeInjectedStyle(HSGlobal.HSGameData.turboCSSId);
 
+        if(!this.#singularityButton)
+            this.#singularityButton = await HSElementHooker.HookElement('#singularitybtn') as HTMLImageElement;
+        
+            this.#singularityButton.removeEventListener('click', this.#singularityHandler.bind(this), { capture: true });
+
+        HSLogger.info(`GDS turbo = OFF`, this.context);
         this.#turboEnabled = false;
     }
 
@@ -282,7 +310,7 @@ export class HSGameData extends HSModule {
 
     #updateDebug() {
         if(!HSGlobal.Debug.gameDataDebugMode) return;
-        
+
         let ambrosia = null;
         let ant = null;
         let dbg = '';

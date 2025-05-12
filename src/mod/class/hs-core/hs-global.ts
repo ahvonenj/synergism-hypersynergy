@@ -79,6 +79,8 @@ export const HSGlobal: IHSGlobal = class {
 
     static HSUI = {
         injectedStylesDomId: 'hs-injected-styles',
+        notifyClassName: 'hs-notification',
+        notifyTextClassName: 'hs-notification-text',
     }
 
     // --- HSUIC ---
@@ -103,7 +105,18 @@ export const HSGlobal: IHSGlobal = class {
             'usesGameData',
         ],
         gameDataRequiredTooltip: 'This feature requires Game Data Sniffing to be enabled.',
+
+        // When game data is disabled, we will auto-disable all features that use it
+        // This blacklist is to ensure that auto-disable ignores these features even if they use game data
+        gameDataCheckBlacklist: [
+            'useGameData',
+            'stopSniffOnError'
+        ]
     }
+
+    /*static HSSettingAction = {
+        
+    }*/
 
     static HSMouse = {
         autoClickIgnoredElements: [
@@ -440,8 +453,8 @@ export const HSGlobal: IHSGlobal = class {
         idleSwapIndicatorId: 'hs-ambrosia-loadout-idle-swap-indicator',
         idleSwapMaxBlueTreshold: 97,
         idleSwapMinBlueTreshold: 3,
-        idleSwapMaxRedTreshold: 97,
-        idleSwapMinRedTreshold: 3,
+        idleSwapMaxRedTreshold: 99,
+        idleSwapMinRedTreshold: 1,
 
         // Constants ripped from the game code
         R_TIME_PER_AMBROSIA: 30,

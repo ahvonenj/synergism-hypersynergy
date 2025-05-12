@@ -63,13 +63,31 @@ export class HSSettings extends HSModule {
             // Parse and resolve the settings from hs-settings.json and localStorage
             // This will also validate the settings and figure out things like 
             // if some settings are missing from localStorage (happens when new settings are added)
-            const resulvedSettings = this.#resolveSettings();
+            const resolvedSettings = this.#resolveSettings();
+
+            let gameDataSettingState;
+
+            if("useGameData" in resolvedSettings) {
+                const gameDataSetting = resolvedSettings.useGameData;
+                gameDataSettingState = gameDataSetting.enabled;
+            } else {
+                gameDataSettingState = false;
+            }
 
             // Set default values for each setting
-            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(resulvedSettings)) {
+            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(resolvedSettings)) {
                 
                 if(setting.settingType === 'boolean' || HSUtils.isBoolean(setting.settingValue)) {
                     (setting as any).settingValue = false;
+                }
+
+                // If somehow we're loading a setting that uses game data, but game data is disabled in the loaded settings
+                // We disable this setting too
+                if(setting.usesGameData && setting.enabled && !gameDataSettingState) {
+                    if(!HSGlobal.HSSettings.gameDataCheckBlacklist.includes(key)) {
+                        HSLogger.info(`Disabled ${setting.settingDescription} on load because GDS is not on`, this.context);
+                        setting.enabled = false;
+                    }
                 }
 
                 this.#validateSetting(setting, HSSettings.#settingsControlGroups);

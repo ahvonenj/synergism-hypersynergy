@@ -46,7 +46,12 @@ export interface HSGlobalStorage {
 export interface HSGlobalSettings extends IStoreable {
     serializationBlackList: string[];
     gameDataRequiredTooltip: string;
+    gameDataCheckBlacklist: string[];
 }
+
+/*export interface HSGlobalSettingActionSettings {
+    
+}*/
 
 export interface HSGlobalMouse {
     autoClickIgnoredElements: string[];
@@ -82,6 +87,8 @@ export interface HSGlobalGameData {
 
 export interface HSGlobalHSUI {
     injectedStylesDomId: string;
+    notifyClassName: string;
+    notifyTextClassName: string;
 }
 
 export interface HSGlobalHSUIC {
@@ -103,4 +110,5 @@ export interface IHSGlobal {
     HSUI: HSGlobalHSUI;
     HSUIC: HSGlobalHSUIC;
     HSGameState: HSGlobalGameState;
+    //HSSettingAction: HSGlobalSettingActionSettings;
 }

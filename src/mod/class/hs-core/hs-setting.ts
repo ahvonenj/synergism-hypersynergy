@@ -1,5 +1,6 @@
 import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSSettings } from "./hs-settings";
 
@@ -52,10 +53,48 @@ export abstract class HSSetting<T extends HSSettingType> {
     // Toggles the setting's state and updates the UI accordingly
     // This is generic for all (toggleable) settings
     async handleToggle(e: MouseEvent) {
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
-        
         const newState = !this.definition.enabled;
         const hasStateChanged = this.definition.enabled !== newState;
+
+        const gameDataSetting = HSSettings.getSetting("useGameData") as HSSetting<boolean>;
+
+        // 1. Check if the setting is blacklisted from this check in general
+        // 2. Check if game data is enabled
+        // 3. Check if we are trying to ENABLE some setting
+        // 4. Check if the setting we are trying to enable uses game data
+        // 5. Allow or disallow enabling the setting
+        // We're trying to prevent enabling settings which use game data when game data is not enabled
+        if(!HSGlobal.HSSettings.gameDataCheckBlacklist.includes(this.definition.settingName)) {
+            if(gameDataSetting) {
+                if(this.definition.usesGameData && 
+                    hasStateChanged &&
+                    newState &&
+                    !gameDataSetting.isEnabled()) {
+                        HSLogger.warn(`Enable GDS before enabling ${this.definition.settingDescription}!`);
+                        return;
+                    }
+            }
+        }
+
+        // If we are disabling GDS, we will auto-disable all features that use it
+        if(this.definition.settingName === 'useGameData') {
+            if(hasStateChanged && !newState) {
+                const settings = HSSettings.getSettings();
+                    
+                for(const [settingKey, setting] of Object.entries(settings)) {
+                    const def = setting.getDefinition();
+
+                    if(HSGlobal.HSSettings.gameDataCheckBlacklist.includes(settingKey))
+                        continue;
+
+                    if("usesGameData" in def && def.usesGameData === true && setting.isEnabled()) {
+                        setting.disable();
+                    }
+                }
+            }
+        }
+        
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
 
         if(!hasStateChanged) return;
 

@@ -1,4 +1,4 @@
-import { EPredefinedPosition, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
+import { EPredefinedPosition, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
@@ -64,6 +64,12 @@ export class HSUI extends HSModule {
             tabId: 4,
             tabBodySel: '.hs-panel-body-4',
             tabSel: '#hs-panel-tab-4',
+            panelDisplayType: 'block'
+        },
+        {
+            tabId: 5,
+            tabBodySel: '.hs-panel-body-5',
+            tabSel: '#hs-panel-tab-5',
             panelDisplayType: 'block'
         }
     ];
@@ -497,5 +503,80 @@ export class HSUI extends HSModule {
                 }
             })
         }
+    }
+
+    static async Notify(text: string, notifyOptions?: Partial<HSNotifyOptions>) {
+        const options: HSNotifyOptions = {
+            position: notifyOptions?.position ?? "bottomRight",
+            popDuration: notifyOptions?.popDuration ?? 400,
+            displayDuration: notifyOptions?.displayDuration ?? 4000,
+            hideDuration: notifyOptions?.hideDuration ?? 2300,
+            notificationType: notifyOptions?.notificationType ?? "default"
+        }
+
+        const notificationDiv = document.createElement('div');
+        const notificationText = document.createElement('div');
+
+        notificationDiv.className = HSGlobal.HSUI.notifyClassName;
+        notificationText.className = HSGlobal.HSUI.notifyTextClassName;
+
+        const width = 300;
+        const height = 50;
+
+        const bgColor = {
+            'default': '#192a56',
+            'warning': '#cd6133',
+            'error': '#b33939',
+            'success': '#009432',
+        }
+
+        const positions = {
+            'topLeft': { top: `-${height}px`, left: `15px` },
+            'top': { top: `-${height}px`, left: `calc(50vw - ${width / 2}px)` },
+            'topRight': { top: `-${height}px`, right: `15px` },
+            'right': { top: `calc(50vh - ${height / 2}px)`, right: `-${width}px` },
+            'bottomRight': { bottom: `-${height}px`, right: `15px` },
+            'bottom': { bottom: `-${height}px`, left: `calc(50vw - ${width / 2}px)` },
+            'bottomLeft': { bottom: `-${height}px`, left: `15px` },
+            'left': { top: `calc(50vh - ${height / 2}px)`, left: `-${width}px` },
+        }
+
+        const transitions = {
+            'topLeft': { top: `15px` },
+            'top': { top: `15px` },
+            'topRight': { top: `15px` },
+            'right': { right: `15px` },
+            'bottomRight': { bottom: `15px` },
+            'bottom': { bottom: `15px` },
+            'bottomLeft': { bottom: `15px` },
+            'left': { left: `15px` },
+        }
+
+        notificationDiv.style = HSUtils.objectToCSS({
+            ...positions[options.position],
+            opacity: '1',
+            backgroundColor: bgColor[options.notificationType]
+        });
+
+        notificationText.innerText = text;
+        notificationDiv.appendChild(notificationText);
+
+        document.body.querySelectorAll(`.${HSGlobal.HSUI.notifyClassName}`).forEach(n => {
+            n.remove();
+        });
+
+        document.body.appendChild(notificationDiv);
+
+        await notificationDiv.transition({
+            ...transitions[options.position],
+        }, options.popDuration, `linear(0, 0.408 26.7%, 0.882 50.9%, 0.999 57.7%, 0.913 65.3%, 0.893 68.8%, 0.886 72.4%, 0.903 78.5%, 0.986 92.3%, 1)`);
+
+        await HSUtils.wait(options.displayDuration);
+
+        await notificationDiv.transition({
+            'opacity': '0'
+        }, options.hideDuration, `linear`);
+
+        notificationDiv.remove();
     }
 }

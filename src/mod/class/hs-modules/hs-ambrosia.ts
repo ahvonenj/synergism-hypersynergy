@@ -684,8 +684,13 @@ implements HSPersistable, HSGameDataSubscriber {
                         const normalLoadout = this.#convertSettingLoadoutToSlot(idleSwapLoadoutNormalSetting.getValue());
                         const loadout100 = this.#convertSettingLoadoutToSlot(idleSwapLoadout100Setting.getValue());
                         
-                        if(blueAmbrosiaPercent >= HSGlobal.HSAmbrosia.idleSwapMaxBlueTreshold || 
-                            redAmbrosiaPercent >= HSGlobal.HSAmbrosia.idleSwapMaxRedTreshold) {
+                        const minBlue = HSGlobal.HSAmbrosia.idleSwapMinBlueTreshold;
+                        const maxBlue = HSGlobal.HSAmbrosia.idleSwapMaxBlueTreshold;
+                        const minRed = HSGlobal.HSAmbrosia.idleSwapMinRedTreshold;
+                        const maxRed = HSGlobal.HSAmbrosia.idleSwapMaxRedTreshold;
+
+                        if(blueAmbrosiaPercent >= maxBlue || 
+                            redAmbrosiaPercent >= maxRed) {
                             if(this.#currentLoadout !== loadout100) {
                                 const loadoutSlot = await HSElementHooker.HookElement(`#${loadout100}`) as HTMLButtonElement;
 
@@ -695,8 +700,8 @@ implements HSPersistable, HSGameDataSubscriber {
                                     loadoutSlot.click();
                                 });
                             }
-                        } else if((blueAmbrosiaPercent > 0 && blueAmbrosiaPercent <= HSGlobal.HSAmbrosia.idleSwapMinBlueTreshold) ||
-                            (redAmbrosiaPercent > 0 && redAmbrosiaPercent <= HSGlobal.HSAmbrosia.idleSwapMinRedTreshold)) {
+                        } else if((blueAmbrosiaPercent >= minBlue && blueAmbrosiaPercent <= minBlue + 3) ||
+                            (redAmbrosiaPercent >= minRed && redAmbrosiaPercent <= minRed + 1)) {
                             if(this.#currentLoadout !== normalLoadout) {
                                 const loadoutSlot = await HSElementHooker.HookElement(`#${normalLoadout}`) as HTMLButtonElement;
 

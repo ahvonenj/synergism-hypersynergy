@@ -5,6 +5,7 @@
     </div>
     <div class="hs-panel-tabs">
         <div class="hs-panel-tab hs-tab-selected" id="hs-panel-tab-1" data-tab="1">Log</div>
+        <div class="hs-panel-tab" id="hs-panel-tab-5" data-tab="5">Info</div>
         <div class="hs-panel-tab" id="hs-panel-tab-2" data-tab="2">Tools</div>
         <div class="hs-panel-tab" id="hs-panel-tab-3" data-tab="3">Settings</div>
         <div class="hs-panel-tab" id="hs-panel-tab-4" data-tab="4">Debug</div>
@@ -18,4 +19,15 @@
     <div class="hs-panel-body hs-panel-body-2" id="hs-tools-panel">Tools</div>
     <div class="hs-panel-body hs-panel-body-3" id="hs-settings-panel">Setting</div>
     <div class="hs-panel-body hs-panel-body-4" id="hs-debug-panel"></div>
+    <div class="hs-panel-body hs-panel-body-5" id="hs-info-panel">
+        <h1 class="hs-panel-info-h1">Important information about the mod can be found here</h1>
+        <h2 class="hs-panel-info-h2">12.5.2025 - Game Data Sniffing (GDS) and Singularity</h2>
+        <p class="hs-panel-info-p">
+            The mod will automatically disable GDS and Turbo Mode when the player enters a new Singularity.</br></br>
+            This is because GDS reads and writes to localStorage heavily, which is fine otherwise,
+            but results in stuttering and other issues if it is enabled when starting a new singularity.
+            Both can be freely enabled again right after without issues.</br></br>
+            <span style = "color: chartreuse">So remember to turn GDS (and Turbo) back on after Singularity!</span>
+        </p>
+    </div>
 </div>
