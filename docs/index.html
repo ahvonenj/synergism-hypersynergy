@@ -145,10 +145,60 @@
                         <li>Ambrosia Loadout Quickbar (with equipped loadout indicator)</li>
                         <li>Ambrosia loadout auto switcher when using ADD or TIME codes</li>
                         <li>Toggleable patches (such as overflow fix on ambrosia page)</li>
+                        <li>Patch to add visible names for Quark Shop items</li>
+                        <li>Ambrosia Loadout Idle Swapper</li>
+                        <li>Game data access via GDS™</li>
                     </ul>
                 </div>
                 <div class="page-wrapper" id="changelog" data-color="purple">
                     <h1>Changelog</h1>
+
+                    <h2>Hypersynergism version 2.6.3 - Game Data goes Brrr</h2>
+                    <p class="sm">Released: 12.5.2025</p><br/>
+
+                    <h3 style="margin-left: 30px">Game Data Sniffing (GDS)</h3>
+                    <p>
+                        Game Data Sniffing should be fully functional now.</br>
+                        When enabled from the settings, GDS uses some tricky trickery to give the mod access to vast array of game data.
+                        Some of the mod features will only work when GDS is turned on; such settings are marked with an icon.</br></br>
+
+                        The mod will not allow features requiring GDS to be enabled if GDS is not enabled first.
+                        Furthermore, the mod will automatically disable GDS temporarily when it detects that the user
+                        is trying to enter a new singularity or leave or exit any singularity challenges.</br></br>
+
+                        Everything would work even without this, but I noticed that it can sometimes result in small freezes etc.
+                        if it is left on when going to a singularity, thus the automatic disable and re-enable.
+                    </p>
+
+                    <h3 style="margin-left: 30px">Other features</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>Added a small "S" icon to settings which require Game Data Sniffing (GDS) to be enabled</li>
+                        <li>Implemented GDS with turbo mode (forcing the game to save into localstorage at high speeds)</li>
+                        <li>Implemented Idle Loadout Swapper (GDS) - You can configure two loadouts for it (oct. and luck basically) and the mod will automatically swap between them if you are in the Ambrosia view</li>
+                        <li>RE'd the exact ambrosia bar value calculations for Idle Loadout Swapper (It's super accurate!)</li>
+                        <li>Implementeda a toggleable patch to display Quark Shop item names</li>
+                        <li>Implementeda a notification system (Didn't want to. Had to.)</li>
+                        <li>Added a warning about GDS auto-disable when player presses singularity button</li>
+                        <li>Added a new INFO tab to the mod's panel. I'll be writing important info about the mod here.</li>
+                        <li>The mod now automatically disables all settings which use GDS if GDS is disabled</li>
+                        <li>The mod now automatically checks if a setting uses GDS and doesn't allow enabling them if GDS is not enabled</li>
+                    </ul>
+
+
+                    <h3 style="margin-left: 30px">Boring features</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>DeletegateEventListeners now work for all events</li>
+                        <li>Implemented Image ui component</li>
+                        <li>Added a couple of debug values (ants, ambrosia bar) to test GDS</li>
+                        <li>Massively reworked HSGameState module - should be way more generic now (but tbh it's pretty shitty, I went into a rabbit hole with TS... it probably needs another pass of changes)</li>
+                        <li>HSUtils.hiddenAction is a lot better now/li>
+                        <li>Finishing touches to HSHepteracts cost protection... still needs some work I think</li>
+                        <li>Optimized HSAmbrosia event bindings to use delegateEventListener</li>
+                        <li>Non-serialized setting keys are now defined with a blacklist in HSGlobal</li>
+                        <li>Disabled save data hashing for now, might not be needed</li>
+                        <li>Deprecated the crappy slow implementation of GDS</li>
+                        <li>Added a couple of buttons to Tools tab to test notifications</li>
+                    </ul>
 
                     <h2>Hypersynergism version 2.6.2 - Auto Ambrosia Loadout & Bugfixes</h2>
                     <p class="sm">Released: 6.5.2025</p><br/>

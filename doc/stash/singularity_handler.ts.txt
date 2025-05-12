@@ -1,0 +1,130 @@
+async #singularityHandler(e: MouseEvent) {
+        const target = e.target as HTMLElement;
+
+        const challengeTargets = [
+            'noSingularityUpgrades',
+            'oneChallengeCap',
+            'limitedAscensions',
+            'noOcteracts',
+            'noAmbrosiaUpgrades',
+            'limitedTime',
+            'sadisticPrequel',
+        ];
+        
+        if(target) {
+            let canSingularity;
+
+            if(target.id && challengeTargets.includes(target.id)) {
+                canSingularity = true;
+                this.#singularityTargetType = "challenge";
+            } else {
+                const styleString = target.getAttribute('style');
+                canSingularity = !styleString?.toLowerCase().includes('grayscale');
+                this.#singularityTargetType = "normal";
+            }
+
+            if(canSingularity) {
+                const gameDataSetting = HSSettings.getSetting("useGameData") as HSSetting<boolean>;
+
+                if(gameDataSetting && gameDataSetting.isEnabled()) {
+                    this.#wasUsingGDS = true;
+                    this.#afterSingularityCheckerIntervalElapsed = 0;
+                    clearInterval(this.#afterSingularityCheckerInterval);
+
+                    this.#afterSingularityCheckerInterval = setInterval(() => {
+                        if(this.#afterSingularityCheckerIntervalElapsed > 15000) {
+                            HSLogger.debug(`Stopping afterSingularityCheck (elapsed > 15000)`, this.context);
+                            this.#wasUsingGDS = false;
+                            this.#afterSingularityCheckerIntervalElapsed = 0;
+                            this.#singularityTargetType = undefined;
+                            clearInterval(this.#afterSingularityCheckerInterval);
+                            return;
+                        }
+
+                        if(!this.#wasUsingGDS) {
+                            HSLogger.debug(`Stopping afterSingularityCheck (GDS wasn't enabled)`, this.context);
+                            this.#wasUsingGDS = false;
+                            this.#afterSingularityCheckerIntervalElapsed = 0;
+                            this.#singularityTargetType = undefined;
+                            clearInterval(this.#afterSingularityCheckerInterval);
+                            return;
+                        }
+
+                        const singularityTimerEl = this.#singularityTargetType === "challenge" 
+                        ? document.querySelector('#ascSingChallengeLen') as HTMLSpanElement
+                        : document.querySelector('#ascSingLen') as HTMLSpanElement;
+
+                        if(singularityTimerEl) {
+                            const regex = /(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/;
+                            const timerValueRaw = singularityTimerEl.innerText;
+
+                            if(timerValueRaw && timerValueRaw.length > 0) {
+                                const match = timerValueRaw.match(regex);
+
+                                if (match) {
+                                    const hours = parseInt(match[1] || "null", 10);
+                                    const minutes = parseInt(match[2] || "null", 10);
+                                    const seconds = parseInt(match[3] || "null", 10);
+
+                                    console.log(hours, minutes, seconds)
+
+                                    if(this.#singularityTargetType === "challenge" && Number.isNaN(seconds)) {
+                                        return;
+                                    } else if (this.#singularityTargetType === "normal" && 
+                                        (Number.isNaN(hours) || Number.isNaN(minutes)  || Number.isNaN(seconds))) {
+                                            return;
+                                        }
+
+                                    // I guess we want to do something between seconds 2 and 60
+                                    if(this.#singularityTargetType === "challenge") {
+                                        if(seconds > 5 && seconds < 60) {
+                                            clearInterval(this.#afterSingularityCheckerInterval);
+    
+                                            const gdsSetting = HSSettings.getSetting('useGameData') as HSSetting<boolean>;
+    
+                                            if(gdsSetting && this.#wasUsingGDS) {
+    
+                                                HSLogger.debug(`Re-enabled GDS after ${this.#afterSingularityCheckerIntervalElapsed}ms`, this.context);
+                                                gdsSetting.enable();
+                                            }
+    
+                                            this.#wasUsingGDS = false;
+                                            this.#afterSingularityCheckerIntervalElapsed = 0;
+                                            this.#singularityTargetType = undefined;
+                                            return;
+                                        }
+                                    } else {
+                                        if((hours >= 0 && hours <= 1) && (minutes >= 0 && minutes <= 1) && (seconds > 5 && seconds < 60)) {
+                                            clearInterval(this.#afterSingularityCheckerInterval);
+    
+                                            const gdsSetting = HSSettings.getSetting('useGameData') as HSSetting<boolean>;
+    
+                                            if(gdsSetting && this.#wasUsingGDS) {
+    
+                                                HSLogger.debug(`Re-enabled GDS after ${this.#afterSingularityCheckerIntervalElapsed}ms`, this.context);
+                                                gdsSetting.enable();
+                                            }
+    
+                                            this.#wasUsingGDS = false;
+                                            this.#afterSingularityCheckerIntervalElapsed = 0;
+                                            this.#singularityTargetType = undefined;
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        this.#afterSingularityCheckerIntervalElapsed += 100;
+                    }, 100);
+
+                    gameDataSetting.disable();
+                }
+
+                await HSUI.Notify('GDS temporarily disabled and will be re-enabled soon', {
+                    position: 'topRight',
+                    notificationType: 'warning'
+                });
+            }
+        }
+    }

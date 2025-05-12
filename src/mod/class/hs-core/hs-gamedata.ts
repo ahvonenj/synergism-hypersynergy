@@ -39,7 +39,16 @@ export class HSGameData extends HSModule {
     #gameDataSubscribers: Map<string, (data: PlayerData) => void> = new Map<string, (data: PlayerData) => void>();
 
     #singularityButton?: HTMLImageElement;
+    #singularityChallengeButtons?: HTMLDivElement[];
     #singularityEventHandler?: (e: MouseEvent) => Promise<void>;
+
+    // These are not used
+    #afterSingularityCheckerIntervalElapsed = 0;
+    #afterSingularityCheckerInterval?: number;
+    #wasUsingGDS = false;
+
+    // Used maybe
+    #singularityTargetType?: "challenge" | "normal";
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -50,6 +59,7 @@ export class HSGameData extends HSModule {
         HSLogger.log(`Initializing HSGameData module`, this.context);
 
         this.#singularityButton = document.querySelector('#singularitybtn') as HTMLImageElement;
+        this.#singularityChallengeButtons = Array.from(document.querySelectorAll('#singularityChallenges > div.singularityChallenges > div'));
 
         this.isInitialized = true;
     }
@@ -235,33 +245,101 @@ export class HSGameData extends HSModule {
         if(!this.#singularityButton)
             this.#singularityButton = await HSElementHooker.HookElement('#singularitybtn') as HTMLImageElement;
 
+        if(!this.#singularityChallengeButtons)
+            this.#singularityChallengeButtons = Array.from(document.querySelectorAll('#singularityChallenges > div.singularityChallenges > div'));
+
         if(!this.#singularityEventHandler)
             this.#singularityEventHandler = async (e: MouseEvent) => { self.#singularityHandler(e); } 
 
         this.#singularityButton.addEventListener('click', this.#singularityEventHandler, { capture: true });
+
+        this.#singularityChallengeButtons.forEach((btn) => {
+            btn.addEventListener('click', self.#singularityEventHandler!, { capture: true });
+        })
 
         HSLogger.info(`GDS turbo = ON`, this.context);
         this.#turboEnabled = true;
     }
 
     async #singularityHandler(e: MouseEvent) {
-        const target = e.target as HTMLImageElement;
+        const target = e.target as HTMLElement;
 
+        const challengeTargets = [
+            'noSingularityUpgrades',
+            'oneChallengeCap',
+            'limitedAscensions',
+            'noOcteracts',
+            'noAmbrosiaUpgrades',
+            'limitedTime',
+            'sadisticPrequel',
+        ];
+        
         if(target) {
+            let canSingularity;
             const styleString = target.getAttribute('style');
-            const isSingularityButtonGrey = styleString?.toLowerCase().includes('grayscale');
 
-            if(!isSingularityButtonGrey) {
+            // User pressed singularity challenge button
+            if(target.id && challengeTargets.includes(target.id)) {
+                this.#singularityTargetType = "challenge";
+
+                // User pressed active sing challenge button (is trying to quit or complete it)
+                if(styleString?.includes('orchid')) {
+                    canSingularity = true;
+                } else {
+                    // User pressed non-active sing challenge button
+                    // If any challenge is active, user can't sing
+                    const anyChallengeActive = challengeTargets
+                    .map((t) => document.querySelector(`#${t}`)?.getAttribute('style')?.includes('orchid'))
+                    .some((b => b === true));
+
+                    // User can't sing because they're trying to swap sing challenge
+                    if(anyChallengeActive) {
+                        canSingularity = false;
+                    } else {
+                        canSingularity = true;
+                    }
+                }
+            } else {
+                // User pressed the normal sing button
+                // Check if the button is grayed out
+                if(!styleString?.toLowerCase().includes('grayscale')) {
+                    canSingularity = true;
+                } else {
+                    canSingularity = false;
+                }
+            }
+
+            if(canSingularity) {
                 const gameDataSetting = HSSettings.getSetting("useGameData") as HSSetting<boolean>;
 
-                if(gameDataSetting) {
-                    gameDataSetting.disable();
-                }
+                if(gameDataSetting && gameDataSetting.isEnabled()) {
+                    this.#wasUsingGDS = true;
+                    //this.#afterSingularityCheckerIntervalElapsed = 0;
+                    //clearInterval(this.#afterSingularityCheckerInterval);
 
-                await HSUI.Notify('GDS needs to be re-enabled after Sinularity!', {
-                    position: 'topRight',
-                    notificationType: 'warning'
-                });
+                    // From here on these are used
+                    gameDataSetting.disable();
+
+                    await HSUI.Notify('GDS temporarily disabled for Sing and will be re-enabled soon', {
+                        position: 'topRight',
+                        notificationType: 'warning'
+                    });
+
+                    await HSUtils.wait(4000);
+
+                    const gdsSetting = HSSettings.getSetting('useGameData') as HSSetting<boolean>;
+    
+                    if(gdsSetting && this.#wasUsingGDS && !gdsSetting.isEnabled()) {
+                        HSLogger.debug(`Re-enabled GDS`, this.context);
+                        gdsSetting.enable();
+                    } else {
+                        HSLogger.debug(`GDS was already enabled (WoW fast!)`, this.context);
+                    }
+
+                    this.#wasUsingGDS = false;
+                    //this.#afterSingularityCheckerIntervalElapsed = 0;
+                    this.#singularityTargetType = undefined;  
+                }
             }
         }
     }
@@ -284,11 +362,18 @@ export class HSGameData extends HSModule {
 
         if(!this.#singularityButton)
             this.#singularityButton = await HSElementHooker.HookElement('#singularitybtn') as HTMLImageElement;
+
+        if(!this.#singularityChallengeButtons)
+            this.#singularityChallengeButtons = await HSElementHooker.HookElements('#singularityChallenges > div.singularityChallenges > div') as HTMLDivElement[];
         
         if(!this.#singularityEventHandler)
             this.#singularityEventHandler = async (e: MouseEvent) => { self.#singularityHandler(e); } 
 
         this.#singularityButton.removeEventListener('click', this.#singularityEventHandler, { capture: true });
+
+        this.#singularityChallengeButtons.forEach((btn) => {
+            btn.removeEventListener('click', self.#singularityEventHandler!, { capture: true });
+        })
 
         HSLogger.info(`GDS turbo = OFF`, this.context);
         this.#turboEnabled = false;
