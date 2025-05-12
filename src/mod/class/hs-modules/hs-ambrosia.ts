@@ -681,6 +681,20 @@ implements HSPersistable, HSGameDataSubscriber {
                     const idleSwapLoadout100Setting = HSSettings.getSetting('ambrosiaIdleSwap100Loadout') as HSSelectStringSetting;
   
                     if(idleSwapLoadoutNormalSetting && idleSwapLoadout100Setting) {
+                        const normalLoadoutValue = idleSwapLoadoutNormalSetting.getValue();
+                        const loadout100Value = idleSwapLoadout100Setting.getValue();
+
+                        if(!Number.isInteger(parseInt(normalLoadoutValue, 10)) || !Number.isInteger(parseInt(loadout100Value, 10))) {
+                            const idleSwapSetting = HSSettings.getSetting("ambrosiaIdleSwap") as HSSetting<boolean>;
+
+                            if(idleSwapSetting) {
+                                idleSwapSetting.disable();
+                            }
+                            
+                            HSLogger.log(`Idle swap was disabled due to unconfigured loadouts`, this.context);
+                            return;
+                        }
+
                         const normalLoadout = this.#convertSettingLoadoutToSlot(idleSwapLoadoutNormalSetting.getValue());
                         const loadout100 = this.#convertSettingLoadoutToSlot(idleSwapLoadout100Setting.getValue());
                         
