@@ -684,6 +684,59 @@ export interface RedAmbrosiaUpgrades {
     redAmbrosiaAccelerator: number;
 }
 
+export interface Campaigns {
+    first: number;
+    second: number;
+    third: number;
+    fourth: number;
+    fifth: number;
+    sixth: number;
+    seventh: number;
+    eighth: number;
+    ninth: number;
+    tenth: number;
+    eleventh: number;
+    twelfth: number;
+    thirteenth: number;
+    fourteenth: number;
+    fifteenth: number;
+    sixteenth: number;
+    seventeenth: number;
+    eighteenth: number;
+    nineteenth: number;
+    twentieth: number;
+    twentyFirst: number;
+    twentySecond: number;
+    twentyThird: number;
+    twentyFourth: number;
+    twentyFifth: number;
+    twentySixth: number;
+    twentySeventh: number;
+    twentyEighth: number;
+    twentyNinth: number;
+    thirtieth: number;
+    thirtyFirst: number;
+    thirtySecond: number;
+    thirtyThird: number;
+    thirtyFourth: number;
+    thirtyFifth: number;
+    thirtySixth: number;
+    thirtySeventh: number;
+    thirtyEighth: number;
+    thirtyNinth: number;
+    fortieth: number;
+    fortyFirst: number;
+    fortySecond: number;
+    fortyThird: number;
+    fortyFourth: number;
+    fortyFifth: number;
+    fortySixth: number;
+    fortySeventh: number;
+    fortyEighth: number;
+    fortyNinth: number;
+    fiftieth: number;
+  }
+
 
 /**
  * The main interface representing the entire player save data structure.
@@ -725,6 +778,8 @@ export interface PlayerData {
 
     antPoints: string; // Very large number stored as string
     antSacrificePoints: number;
+
+    campaigns: Campaigns;
 
     researchPoints: number; // Represented as number, potentially large (e+)
     runeshards: number; // Represented as number, potentially large (e+)

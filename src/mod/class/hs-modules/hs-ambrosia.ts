@@ -662,6 +662,401 @@ implements HSPersistable, HSGameDataSubscriber {
         }
     }
 
+    #calculateAmbrosiaSpeed(data: PlayerData) {
+        const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+        if(!gameDataMod) return 0;
+        if(!data) return 0;
+
+        const pseudoData = gameDataMod.getPseudoData();
+        const meBonuses = gameDataMod.getMeBonuses();
+
+        const P_GEN_BUFF_LVL = pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level;
+        const P_GEN_BUFF = P_GEN_BUFF_LVL ? 1 + P_GEN_BUFF_LVL * 0.05 : 0;
+
+        const TOKEN_EL = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
+        let tokens = 0;
+
+        if(TOKEN_EL) {
+            const match = TOKEN_EL.innerText.match(/You have (\d+)/);
+
+            if (match && match[1]) {
+                const leftValue = parseInt(match[1], 10);
+                tokens = leftValue;
+            }
+        }
+
+        let campaignBlueberrySpeedBonus;
+        
+        if(tokens < 2000) {
+            campaignBlueberrySpeedBonus = 1;
+        } else {
+            campaignBlueberrySpeedBonus = 1 + 0.05 * 1 / 2000 * Math.min(tokens - 2000, 2000) + 0.05 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2000));
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2340
+        const R_calculateAmbrosiaGenerationShopUpgrade = () => {
+            const multipliers = [
+                1 + data.shopUpgrades.shopAmbrosiaGeneration1 / 100,
+                1 + data.shopUpgrades.shopAmbrosiaGeneration2 / 100,
+                1 + data.shopUpgrades.shopAmbrosiaGeneration3 / 100,
+                1 + data.shopUpgrades.shopAmbrosiaGeneration4 / 1000
+            ]
+            
+            return multipliers.reduce((a, b) => a * b);
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2362
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/singularity.ts#L1515
+        const R_calculateAmbrosiaGenerationSingularityUpgrade = () => {
+            const vals = [
+              1 + data.singularityUpgrades.singAmbrosiaGeneration.level / 100,
+              1 + data.singularityUpgrades.singAmbrosiaGeneration2.level / 100,
+              1 + data.singularityUpgrades.singAmbrosiaGeneration3.level / 100,
+              1 + data.singularityUpgrades.singAmbrosiaGeneration4.level / 100,
+            ]
+          
+            return vals.reduce((a, b) => a * b);
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2384
+        const R_calculateAmbrosiaGenerationOcteractUpgrade = () => {
+            const vals = [
+              1 + data.octeractUpgrades.octeractAmbrosiaGeneration.level / 100,
+              1 + data.octeractUpgrades.octeractAmbrosiaGeneration2.level / 100,
+              1 + data.octeractUpgrades.octeractAmbrosiaGeneration3.level / 100,
+              1 + 2 * data.octeractUpgrades.octeractAmbrosiaGeneration4.level / 100
+            ]
+          
+            return vals.reduce((a, b) => a * b);
+        }
+
+        const QUARK_BONUS = 100 * (1 + meBonuses.globalBonus / 100) * (1 + meBonuses.personalBonus / 100) - 100;
+
+        const RED_AMB_GEN_1 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.blueberryGenerationSpeed,
+            1,
+            100,
+            (n: number, cpl: number) => cpl * (n + 1),
+            (n: number) => 1 + n / 500
+        );
+
+        const RED_AMB_GEN_2 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.blueberryGenerationSpeed2,
+            2000,
+            500,
+            (n: number, cpl: number) => cpl + 0 * n,
+            (n: number) => 1 + n / 1000
+        );
+
+        const cube76 = data.cubeUpgrades[76] ?? 0;
+
+        const speedComponents = [
+            +(data.visitedAmbrosiaSubtab),
+            P_GEN_BUFF,
+            campaignBlueberrySpeedBonus,
+            R_calculateAmbrosiaGenerationShopUpgrade(),
+            R_calculateAmbrosiaGenerationSingularityUpgrade(),
+            R_calculateAmbrosiaGenerationOcteractUpgrade(),
+            1 + (data.blueberryUpgrades.ambrosiaPatreon.level * QUARK_BONUS) / 100,
+            (1 + data.singularityChallenges.oneChallengeCap.completions / 100),
+            (1 + data.singularityChallenges.noAmbrosiaUpgrades.completions / 50),
+            RED_AMB_GEN_1,
+            RED_AMB_GEN_2,
+            1 + 0.01 * cube76 * this.#R_calculateNumberOfThresholds(data.lifetimeAmbrosia),
+            // event
+        ];
+
+        return speedComponents.reduce((a, b) => a * b, 1);
+    }
+
+    #calculateBlueBerries(data: PlayerData) {
+        if(!data) return 0;
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2453
+        const R_calculateSingularityMilestoneBlueberries = () => {
+            let val = 0
+            if (data.highestSingularityCount >= 270) val = 5
+            else if (data.highestSingularityCount >= 256) val = 4
+            else if (data.highestSingularityCount >= 192) val = 3
+            else if (data.highestSingularityCount >= 128) val = 2
+            else if (data.highestSingularityCount >= 64) val = 1
+            return val;
+        }
+
+        let noAmbrosiaFactor = 0;
+        if(data.singularityChallenges.noAmbrosiaUpgrades.completions >= 10)
+            noAmbrosiaFactor = 2;
+        else if(data.singularityChallenges.noAmbrosiaUpgrades.completions > 0)
+            noAmbrosiaFactor = 1;
+
+        const blueberryComponents = [
+            +(data.singularityChallenges.noSingularityUpgrades.completions > 0),
+            +(data.singularityUpgrades.blueberries.level),
+            +(data.octeractUpgrades.octeractBlueberries.level),
+            R_calculateSingularityMilestoneBlueberries(),
+            noAmbrosiaFactor
+        ]
+
+        return blueberryComponents.reduce((a, b) => a + b, 0);
+    }
+
+    #calculateLuck(data: PlayerData, blueberries: number) : { additive: number, raw: number, total: number } {
+        const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
+        if(!gameDataMod) return { additive: 0, raw: 0, total: 0 };
+        if(!data) return { additive: 0, raw: 0, total: 0 };
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2539
+        const R_calculateDilatedFiveLeafBonus = () => {
+            const singThresholds = [100, 150, 200, 225, 250, 255, 260, 265, 269, 272]
+            for (let i = 0; i < singThresholds.length; i++) {
+                if (data.highestSingularityCount < singThresholds[i]) return i / 100
+            }
+
+            return singThresholds.length / 100
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2320
+        const R_calculateSingularityAmbrosiaLuckMilestoneBonus = () => {
+            let bonus = 0
+            const singThresholds1 = [35, 42, 49, 56, 63, 70, 77]
+            const singThresholds2 = [135, 142, 149, 156, 163, 170, 177]
+
+            for (const sing of singThresholds1) {
+                if (data.highestSingularityCount >= sing) {
+                    bonus += 5
+                }
+            }
+
+            for (const sing of singThresholds2) {
+                if (data.highestSingularityCount >= sing) {
+                    bonus += 6
+                }
+            }
+
+            return bonus
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2351
+        const R_calculateAmbrosiaLuckShopUpgrade = () => {
+            const vals = [
+                2 * data.shopUpgrades.shopAmbrosiaLuck1,
+                2 * data.shopUpgrades.shopAmbrosiaLuck2,
+                2 * data.shopUpgrades.shopAmbrosiaLuck3,
+                0.6 * data.shopUpgrades.shopAmbrosiaLuck4
+            ]
+
+            return vals.reduce((a, b) => a + b, 0)
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2373
+        const R_calculateAmbrosiaLuckSingularityUpgrade = () => {
+            const vals = [
+                +data.singularityUpgrades.singAmbrosiaLuck.level * 4,
+                +data.singularityUpgrades.singAmbrosiaLuck2.level * 2,
+                +data.singularityUpgrades.singAmbrosiaLuck3.level * 3,
+                +data.singularityUpgrades.singAmbrosiaLuck4.level * 5
+            ]
+
+            return vals.reduce((a, b) => a + b, 0);
+        }
+
+        const R_calculateAmbrosiaLuckOcteractUpgrade = () => {
+            const vals = [
+                +data.octeractUpgrades.octeractAmbrosiaLuck.level * 4,
+                +data.octeractUpgrades.octeractAmbrosiaLuck2.level * 2,
+                +data.octeractUpgrades.octeractAmbrosiaLuck3.level * 3,
+                +data.octeractUpgrades.octeractAmbrosiaLuck4.level * 5
+            ]
+
+            return vals.reduce((a, b) => a + b, 0);
+        }
+
+        const cube77 = data.cubeUpgrades[77] ?? 0
+
+        const additiveComponents = [
+            1,
+            data.singularityChallenges.noSingularityUpgrades.completions >= 30 ? 0.05 : 0,
+            R_calculateDilatedFiveLeafBonus(),
+            data.shopUpgrades.shopAmbrosiaLuckMultiplier4 / 100,
+            data.singularityChallenges.noAmbrosiaUpgrades.completions / 200,
+            0.001 * cube77,
+            // event
+        ]
+
+        const pseudoData = gameDataMod.getPseudoData();
+        const P_BUFF_LVL = pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_LUCK_BUFF")?.level;
+        const P_BUFF = P_BUFF_LVL ?  P_BUFF_LVL * 20 : 0;
+        let campaignBonus = 0;
+
+        const TOKEN_EL = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
+        let tokens = 0;
+
+        if(TOKEN_EL) {
+            const match = TOKEN_EL.innerText.match(/You have (\d+)/);
+
+            if (match && match[1]) {
+                const leftValue = parseInt(match[1], 10);
+                tokens = leftValue;
+            }
+        }
+
+        if (tokens < 2000) {
+            campaignBonus = 0;
+        } else {
+            campaignBonus = 10
+            + 40 * 1 / 2000 * Math.min(tokens - 2000, 2000)
+            + 50 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2500));
+        }
+
+        const RED_AMB_FREE_ROW_2 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.freeLevelsRow2,
+            10,
+            5,
+            (n: number, cpl: number) => cpl * Math.pow(2, n),
+            (n: number) => n
+        );
+
+        const RED_AMB_FREE_ROW_3 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.freeLevelsRow3,
+            250,
+            5,
+            (n: number, cpl: number) => cpl * Math.pow(2, n),
+            (n: number) => n
+        );
+
+        const RED_AMB_FREE_ROW_4 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.freeLevelsRow4,
+            5000,
+            5,
+            (n: number, cpl: number) => cpl * Math.pow(2, n),
+            (n: number) => n
+        );
+
+        const RED_AMB_FREE_ROW_5 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.freeLevelsRow5,
+            50000,
+            5,
+            (n: number, cpl: number) => cpl * Math.pow(2, n),
+            (n: number) => n
+        );
+
+        const RED_AMB_FREE_ROWS : { [key: number]: number } = {
+            2: RED_AMB_FREE_ROW_2,
+            3: RED_AMB_FREE_ROW_3,
+            4: RED_AMB_FREE_ROW_4,
+            5: RED_AMB_FREE_ROW_5,
+        }
+
+        const effLevel = (level: number, rowNum: number) => {
+            return level + RED_AMB_FREE_ROWS[rowNum]
+        }
+
+        const blueLuck1 = data.blueberryUpgrades.ambrosiaLuck1.level;
+        const blueLuck2 = data.blueberryUpgrades.ambrosiaLuck2.level;
+        const blueLuck3 = data.blueberryUpgrades.ambrosiaLuck3.level;
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/BlueberryUpgrades.ts#L564
+        const totalCubes = () => {
+            return (Math.floor(Math.log10(Number(data.wowCubes) + 1))
+            + Math.floor(Math.log10(Number(data.wowTesseracts) + 1))
+            + Math.floor(Math.log10(Number(data.wowHypercubes) + 1))
+            + Math.floor(Math.log10(Number(data.wowPlatonicCubes) + 1))
+            + Math.floor(Math.log10(data.wowAbyssals + 1))
+            + Math.floor(Math.log10(data.wowOcteracts + 1))
+            + 6);
+        }
+
+        const blueCubeLuck = data.blueberryUpgrades.ambrosiaCubeLuck1.level;
+        const blueQuarkLuck = data.blueberryUpgrades.ambrosiaQuarkLuck1.level;
+
+        const RED_AMB_LUCK1 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.regularLuck,
+            1,
+            100,
+            (n: number, cpl: number) => cpl * (n + 1),
+            (n: number) => 2 * n
+        );
+
+        const RED_AMB_LUCK2 = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.regularLuck2,
+            2000,
+            500,
+            (n: number, cpl: number) => cpl + 0 * n,
+            (n: number) => 2 * n
+        );
+
+        const RED_AMB_VISCOUNT = HSUtils.investStonks(
+            data.redAmbrosiaUpgrades.viscount,
+            99999,
+            1,
+            (n: number, cpl: number) => cpl * (n + 1),
+            (n: number) => 125 * n
+        );
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2753
+        const R_calculateCookieUpgrade29Luck = () => {
+            if (data.cubeUpgrades[79] === 0 || data.lifetimeRedAmbrosia === 0) {
+                return 0
+            } else {
+                return 10 * Math.pow(Math.log10(data.lifetimeRedAmbrosia), 2)
+            }
+        }
+
+        // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2652
+        const R_sumOfExaltCompletions = () => {
+            let sum = 0
+            for (const challenge of Object.values(data.singularityChallenges)) {
+                sum += challenge.completions
+            }
+            return sum
+        }
+
+        const rawLuckComponents = [
+            100,
+            P_BUFF,
+            campaignBonus,
+            R_calculateSingularityAmbrosiaLuckMilestoneBonus(),
+            R_calculateAmbrosiaLuckShopUpgrade(),
+            R_calculateAmbrosiaLuckSingularityUpgrade(),
+            R_calculateAmbrosiaLuckOcteractUpgrade(),
+            // 1
+            2 * effLevel(blueLuck1, 2) + 12 * Math.floor(effLevel(blueLuck1, 2) / 10),
+            // 2
+            (3 + 0.3 * Math.floor(effLevel(blueLuck1, 2) / 10))
+            * effLevel(blueLuck2, 4) + 40 * Math.floor(effLevel(blueLuck2, 4) / 10),
+            // 3
+            blueberries * effLevel(blueLuck3, 5),
+            // cubeluck
+            totalCubes() * 0.02 * effLevel(blueCubeLuck, 3),
+            // quarkluck
+            0.02 * effLevel(blueQuarkLuck, 3) * 
+            Math.floor(Math.pow(Math.log10(Number(data.worlds) + 1) + 1, 2)),
+            // sing 131
+            data.highestSingularityCount >= 131 ? 131 : 0,
+            // sing 269
+            data.highestSingularityCount >= 269 ? 269 : 0,
+            // shop
+            data.shopUpgrades.shopOcteractAmbrosiaLuck * (1 + Math.floor(Math.log10(data.totalWowOcteracts + 1))),
+            // sing challenge
+            data.singularityChallenges.noAmbrosiaUpgrades.completions * 15,
+            RED_AMB_LUCK1,
+            RED_AMB_LUCK2,
+            RED_AMB_VISCOUNT,
+            2 * cube77,
+            R_calculateCookieUpgrade29Luck(),
+            data.shopUpgrades.shopAmbrosiaUltra * R_sumOfExaltCompletions()
+        ]
+
+        const additivesTotal = additiveComponents.reduce((a, b) => a + b, 0);
+        const rawTotal = rawLuckComponents.reduce((a, b) => a + b, 0);
+
+        return {
+            additive: additivesTotal,
+            raw: rawTotal,
+            total: additivesTotal * rawTotal
+        }
+    }
+
     async gameDataCallback(data: PlayerData) {
         if(!data) return;
 
@@ -670,10 +1065,29 @@ implements HSPersistable, HSGameDataSubscriber {
 
             const blueAmbrosiaBarValue = data.blueberryTime;
             const redAmbrosiaBarValue = data.redAmbrosiaTime;
-            const blueAmbrosiaBarMax = this.#calculateRequiredBlueberryTime(data.lifetimeAmbrosia);
-            const redAmbrosiaBarMax = this.#calculateRequiredRedAmbrosiaTime(data.lifetimeRedAmbrosia, redBarRequirementMultiplier);
+            const blueAmbrosiaBarMax = this.#R_calculateRequiredBlueberryTime(data.lifetimeAmbrosia);
+            const redAmbrosiaBarMax = this.#R_calculateRequiredRedAmbrosiaTime(data.lifetimeRedAmbrosia, redBarRequirementMultiplier);
             const blueAmbrosiaPercent = ((blueAmbrosiaBarValue / blueAmbrosiaBarMax) * 100);
             const redAmbrosiaPercent = ((redAmbrosiaBarValue / redAmbrosiaBarMax) * 100);
+
+            const blueberrySpeedMults = this.#calculateAmbrosiaSpeed(data);
+            const blueberries = this.#calculateBlueBerries(data);
+            const ambrosiaSpeed = blueberrySpeedMults * blueberries;
+            const ambrosiaAcceleratorCount = data.shopUpgrades.shopAmbrosiaAccelerator;
+            const ambrosiaLuck = this.#calculateLuck(data, blueberries);
+            const ambrosiaGainPerGen = ambrosiaLuck.total / 100;
+            const ambrosiaGainChance = (ambrosiaLuck.total - 100 * Math.floor(ambrosiaLuck.total / 100)) / 100;
+            let accelerationSeconds = 0;
+            let accelerationAmount = 0;
+            let accelerationPercent = 0;
+            const bluePercentageSpeed = (ambrosiaSpeed / blueAmbrosiaBarMax) * 100;
+            const bluePercentageSafeThreshold = bluePercentageSpeed + 3;
+
+            if(ambrosiaAcceleratorCount > 0) {
+                accelerationSeconds = (0.2 * ambrosiaAcceleratorCount) * ambrosiaGainPerGen;
+                accelerationAmount = accelerationSeconds * ambrosiaSpeed;
+                accelerationPercent = (accelerationAmount / blueAmbrosiaBarMax) * 100;
+            }
 
             if(this.#isIdleSwapEnabled) {
                 if(this.#blueAmbrosiaProgressBar && this.#redAmbrosiaProgressBar) {
@@ -690,7 +1104,7 @@ implements HSPersistable, HSGameDataSubscriber {
                             if(idleSwapSetting) {
                                 idleSwapSetting.disable();
                             }
-                            
+
                             HSLogger.log(`Idle swap was disabled due to unconfigured loadouts`, this.context);
                             return;
                         }
@@ -698,13 +1112,20 @@ implements HSPersistable, HSGameDataSubscriber {
                         const normalLoadout = this.#convertSettingLoadoutToSlot(idleSwapLoadoutNormalSetting.getValue());
                         const loadout100 = this.#convertSettingLoadoutToSlot(idleSwapLoadout100Setting.getValue());
                         
-                        const minBlue = HSGlobal.HSAmbrosia.idleSwapMinBlueTreshold;
-                        const maxBlue = HSGlobal.HSAmbrosia.idleSwapMaxBlueTreshold;
-                        const minRed = HSGlobal.HSAmbrosia.idleSwapMinRedTreshold;
-                        const maxRed = HSGlobal.HSAmbrosia.idleSwapMaxRedTreshold;
+                        let blueSwapTresholdNormalMin = bluePercentageSafeThreshold + accelerationPercent;
+                        let blueSwapTresholdNormalMax = blueSwapTresholdNormalMin + bluePercentageSafeThreshold;
 
-                        if(blueAmbrosiaPercent >= maxBlue || 
-                            redAmbrosiaPercent >= maxRed) {
+                        let blueSwapTreshold100Min = 100 - bluePercentageSafeThreshold;
+                        let blueSwapTreshold100Max = 100;
+
+                        let redSwapTresholdNormalMin = HSGlobal.HSAmbrosia.idleSwapMinRedTreshold;
+                        let redSwapTresholdNormalMax = redSwapTresholdNormalMin + HSGlobal.HSAmbrosia.idleSwapMinRedTreshold;
+
+                        let redSwapTreshold100Min = HSGlobal.HSAmbrosia.idleSwapMaxRedTreshold;
+                        let redSwapTreshold100Max = 100;
+
+                        if((blueAmbrosiaPercent >= blueSwapTreshold100Min && blueAmbrosiaPercent <= blueSwapTreshold100Max) || 
+                            (redAmbrosiaPercent >= redSwapTreshold100Min && redAmbrosiaPercent <= redSwapTreshold100Max)) {
                             if(this.#currentLoadout !== loadout100) {
                                 const loadoutSlot = await HSElementHooker.HookElement(`#${loadout100}`) as HTMLButtonElement;
 
@@ -714,8 +1135,8 @@ implements HSPersistable, HSGameDataSubscriber {
                                     loadoutSlot.click();
                                 });
                             }
-                        } else if((blueAmbrosiaPercent >= minBlue && blueAmbrosiaPercent <= minBlue + 3) ||
-                            (redAmbrosiaPercent >= minRed && redAmbrosiaPercent <= minRed + 1)) {
+                        } else if((blueAmbrosiaPercent >= blueSwapTresholdNormalMin && blueAmbrosiaPercent <= blueSwapTresholdNormalMax) ||
+                            (redAmbrosiaPercent >= redSwapTresholdNormalMin && redAmbrosiaPercent <= redSwapTresholdNormalMax)) {
                             if(this.#currentLoadout !== normalLoadout) {
                                 const loadoutSlot = await HSElementHooker.HookElement(`#${normalLoadout}`) as HTMLButtonElement;
 
@@ -731,8 +1152,21 @@ implements HSPersistable, HSGameDataSubscriber {
                     const debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
 
                     if(debugElement) {
-                        debugElement.innerHTML = `BLUE - Value: ${blueAmbrosiaBarValue.toFixed(2)}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent.toFixed(2)}<br>
-                        RED - Value: ${redAmbrosiaBarValue.toFixed(2)}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent.toFixed(2)}`;
+                        debugElement.innerHTML = `
+                        BLUE - Value: ${blueAmbrosiaBarValue.toFixed(2)}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent.toFixed(2)}<br>
+                        RED - Value: ${redAmbrosiaBarValue.toFixed(2)}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent.toFixed(2)}<br>
+                        BLUE SPD MLT: ${blueberrySpeedMults.toFixed(2)}<br>
+                        BLUE SPD %: ${bluePercentageSpeed.toFixed(2)}<br>
+                        BERRY: ${blueberries}</br>
+                        TOT BLU: ${(blueberrySpeedMults * blueberries).toFixed(2)}</br>
+                        ------------------------</br>
+                        ADD LUK: ${ambrosiaLuck.additive.toFixed(2)}</br>
+                        RAW LUK: ${ambrosiaLuck.raw.toFixed(2)}</br>
+                        TOT LUK: ${ambrosiaLuck.total.toFixed(2)}</br>
+                        ------------------------</br>
+                        ACCEL AMOUNT: ${accelerationAmount.toFixed(2)}</br>
+                        ACCEL %: ${accelerationPercent.toFixed(2)}</br>
+                        `;
                     }
                     //console.log(`BLUE - Value: ${blueAmbrosiaBarValue}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent}`);
                     //console.log(`RED - Value: ${redAmbrosiaBarValue}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent}`);
@@ -742,7 +1176,7 @@ implements HSPersistable, HSGameDataSubscriber {
     };
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
-    #calculateNumberOfThresholds = (lifetimeAmbrosia: number) => {
+    #R_calculateNumberOfThresholds = (lifetimeAmbrosia: number) => {
         const numDigits = lifetimeAmbrosia > 0 ? 1 + Math.floor(Math.log10(lifetimeAmbrosia)) : 0
         const matissa = Math.floor(lifetimeAmbrosia / Math.pow(10, numDigits - 1))
 
@@ -753,8 +1187,8 @@ implements HSPersistable, HSGameDataSubscriber {
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
-    #calculateToNextThreshold = (lifetimeAmbrosia: number) => {
-        const numThresholds = this.#calculateNumberOfThresholds(lifetimeAmbrosia);
+    #R_calculateToNextThreshold = (lifetimeAmbrosia: number) => {
+        const numThresholds = this.#R_calculateNumberOfThresholds(lifetimeAmbrosia);
 
         if (numThresholds === 0) {
             return 10000 - lifetimeAmbrosia
@@ -770,17 +1204,17 @@ implements HSPersistable, HSGameDataSubscriber {
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
-    #calculateRequiredBlueberryTime = (lifetimeAmbrosia: number) => {
+    #R_calculateRequiredBlueberryTime = (lifetimeAmbrosia: number) => {
         let val = HSGlobal.HSAmbrosia.R_TIME_PER_AMBROSIA // Currently 30
         val += Math.floor(lifetimeAmbrosia / 500)
 
-        const thresholds = this.#calculateNumberOfThresholds(lifetimeAmbrosia)
+        const thresholds = this.#R_calculateNumberOfThresholds(lifetimeAmbrosia)
         const thresholdBase = 2
         return Math.pow(thresholdBase, thresholds) * val
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/0ffbd184938677cf8137a404cffb2f4b5b5d3ab9/src/Calculate.ts
-    #calculateRequiredRedAmbrosiaTime = (lifetimeRedAmbrosia: number, barRequirementMultiplier: number) => {
+    #R_calculateRequiredRedAmbrosiaTime = (lifetimeRedAmbrosia: number, barRequirementMultiplier: number) => {
         let val = HSGlobal.HSAmbrosia.R_TIME_PER_RED_AMBROSIA // Currently 100,000
         val += 200 * lifetimeRedAmbrosia
 

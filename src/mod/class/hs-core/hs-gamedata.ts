@@ -1,4 +1,6 @@
+import { MeData } from "../../types/hs-me-data";
 import { PlayerData } from "../../types/hs-player-savedata";
+import { PseudoGameData } from "../../types/hs-pseudo-data";
 import { HSPerformance } from "../hs-utils/hs-performance";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSElementHooker } from "./hs-elementhooker";
@@ -50,6 +52,9 @@ export class HSGameData extends HSModule {
     // Used maybe
     #singularityTargetType?: "challenge" | "normal";
 
+    #playerPseudoUpgrades?: PseudoGameData;
+    #meBonuses?: MeData;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -61,7 +66,47 @@ export class HSGameData extends HSModule {
         this.#singularityButton = document.querySelector('#singularitybtn') as HTMLImageElement;
         this.#singularityChallengeButtons = Array.from(document.querySelectorAll('#singularityChallenges > div.singularityChallenges > div'));
 
+        try {
+            const upgradesQuery = await fetch('https://synergism.cc/stripe/upgrades');
+            const data = await upgradesQuery.json() as PseudoGameData; 
+
+            this.#playerPseudoUpgrades = data;
+        } catch (err) {
+            HSLogger.error(`Could not fetch pseudo data`, this.context);
+        }
+
+        try {
+            const meQuery = await fetch('https://synergism.cc/api/v1/users/me');
+            const data = await meQuery.json() as MeData; 
+
+            this.#meBonuses = data;
+        } catch (err) {
+            HSLogger.error(`Could not fetch me data`, this.context);
+        }
+
         this.isInitialized = true;
+    }
+
+    getPseudoData(): PseudoGameData | undefined {
+        return this.#playerPseudoUpgrades;
+    }
+
+    getMeBonuses(): MeData {
+        if(this.#meBonuses) {
+            return this.#meBonuses;
+        } else {
+            return {
+                bonus: {
+                    quarkBonus: 0
+                },
+                globalBonus: 0,
+                personalBonus: 0,
+            }
+        }
+    }
+
+    getCurrentData(): PlayerData | undefined {
+        return this.#saveData;
     }
 
     async getSaveData(updateFirst = false, storageKey = this.#saveDataLocalStorageKey): Promise<PlayerData | undefined> {

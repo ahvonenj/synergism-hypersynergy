@@ -91,6 +91,7 @@ export class Hypersynergism {
                             }
                         }),
                         HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
+                        HSUIC.Button({ id: 'hs-panel-dump-gamedata-btn', text: 'Dump Game vars' }),
                         HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
                         HSUIC.Div({ 
                             html: 'Testing tools',
@@ -143,6 +144,17 @@ export class Hypersynergism {
 
             document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
                 HSSettings.dumpToConsole();
+            });
+
+            document.querySelector('#hs-panel-dump-gamedata-btn')?.addEventListener('click', () => {
+                const dataModule = HSModuleManager.getModule<HSGameData>('HSGameData');
+
+                if(dataModule) {
+                    console.log(`----- GAME DATA -----`);
+                    console.log(dataModule.getCurrentData());
+                    console.log(`----- PSEUDO DATA -----`);
+                    console.log(dataModule.getPseudoData());
+                }
             });
 
             document.querySelector('#hs-panel-clear-settings-btn')?.addEventListener('click', () => {
