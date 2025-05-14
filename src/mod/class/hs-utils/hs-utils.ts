@@ -341,28 +341,4 @@ export class HSUtils {
             }
         }      
     }
-
-    static investStonks(
-        budget: number, 
-        costPerLevel: number, 
-        maxLevel: number, 
-        stonksFunction: (n: number, cpl: number) => number,
-        shareHoldersFunction: (n: number) => number) {
-
-        let level = 0
-
-        let nextCost = stonksFunction(level, costPerLevel)
-
-        while (budget >= nextCost) {
-            budget -= nextCost
-            level += 1
-            nextCost = stonksFunction(level, costPerLevel)
-
-            if (level >= maxLevel) {
-                break;
-            }
-        }
-
-        return shareHoldersFunction(level);
-    }
 }

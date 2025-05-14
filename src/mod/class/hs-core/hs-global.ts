@@ -14,6 +14,7 @@ export const HSGlobal: IHSGlobal = class {
         debugMode: false,
         performanceDebugMode: false,
         gameDataDebugMode: false,
+        calculationCacheDebugMode: false,
     }
 
     // --- GENERAL ---

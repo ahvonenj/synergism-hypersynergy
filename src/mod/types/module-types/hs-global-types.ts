@@ -11,6 +11,7 @@ export interface HSGlobalDebug {
     debugMode: boolean;
     performanceDebugMode: boolean;
     gameDataDebugMode: boolean;
+    calculationCacheDebugMode: boolean;
 }
 
 export interface HSGlobalGeneral {

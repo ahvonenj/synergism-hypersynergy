@@ -7,11 +7,10 @@ import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
 import corruption_ref_b64_2 from "inline:../resource/txt/corruption_ref_onemind.txt";
 import { HSSettings } from "./hs-core/settings/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
-import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
-import { HSGameData } from "./hs-core/gds/hs-gamedata";
 import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
+import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
 
 /*
     Class: Hypersynergism
@@ -144,11 +143,11 @@ export class Hypersynergism {
             });
 
             document.querySelector('#hs-panel-dump-gamedata-btn')?.addEventListener('click', () => {
-                const dataModule = HSModuleManager.getModule<HSGameData>('HSGameData');
+                const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
 
                 if(dataModule) {
                     console.log(`----- GAME DATA -----`);
-                    console.log(dataModule.getCurrentData());
+                    console.log(dataModule.getGameData());
                     console.log(`----- PSEUDO DATA -----`);
                     console.log(dataModule.getPseudoData());
                 }

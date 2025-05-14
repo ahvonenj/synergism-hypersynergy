@@ -124,28 +124,6 @@ export class HSGameData extends HSModule {
         }
     }
 
-    getPseudoData(): PseudoGameData | undefined {
-        return this.#playerPseudoUpgrades;
-    }
-
-    getMeBonuses(): MeData {
-        if(this.#meBonuses) {
-            return this.#meBonuses;
-        } else {
-            return {
-                bonus: {
-                    quarkBonus: 0
-                },
-                globalBonus: 0,
-                personalBonus: 0,
-            }
-        }
-    }
-
-    getCurrentData(): PlayerData | undefined {
-        return this.#saveData;
-    }
-
     #processSaveData(storageKey: string = this.#saveDataLocalStorageKey) {
         try {
             const saveDataB64 = localStorage.getItem(storageKey);
