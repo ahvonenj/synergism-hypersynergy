@@ -1,13 +1,10 @@
-import { HSSettingActionParams, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
-import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
-import { HSPatches } from "../hs-modules/hs-patches";
-import { HSGameData } from "./hs-gamedata";
-import { HSGlobal } from "./hs-global";
-import { HSLogger } from "./hs-logger";
-import { HSModuleManager } from "./hs-module-manager";
-import { HSMouse } from "./hs-mouse";
-import { HSBooleanSetting, HSSetting } from "./hs-setting";
-import { HSSettings } from "./hs-settings";
+import { HSSettingActionParams, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
+import { HSAmbrosia } from "../../hs-modules/hs-ambrosia";
+import { HSPatches } from "../../hs-modules/hs-patches";
+import { HSGameData } from "../gds/hs-gamedata";
+import { HSLogger } from "../hs-logger";
+import { HSModuleManager } from "../module/hs-module-manager";
+import { HSMouse } from "../hs-mouse";
 
 /*
     Class: HSSettingActions

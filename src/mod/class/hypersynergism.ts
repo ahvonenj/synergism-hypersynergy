@@ -1,16 +1,16 @@
 import { HSModuleDefinition } from "../types/hs-types";
 import { HSLogger } from "./hs-core/hs-logger";
-import { HSModuleManager } from "./hs-core/hs-module-manager";
+import { HSModuleManager } from "./hs-core/module/hs-module-manager";
 import { HSUI } from "./hs-core/hs-ui";
 import { HSUIC } from "./hs-core/hs-ui-components";
 import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
 import corruption_ref_b64_2 from "inline:../resource/txt/corruption_ref_onemind.txt";
-import { HSSettings } from "./hs-core/hs-settings";
+import { HSSettings } from "./hs-core/settings/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSShadowDOM } from "./hs-core/hs-shadowdom";
 import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
-import { HSGameData } from "./hs-core/hs-gamedata";
+import { HSGameData } from "./hs-core/gds/hs-gamedata";
 import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
 
 /*
@@ -100,9 +100,6 @@ export class Hypersynergism {
                                 gridColumn: 'span 2'
                             }
                         }),
-                        HSUIC.Button({ id: 'hs-panel-test-get-save-data-btn', text: 'SData test' }),
-                        HSUIC.Button({ id: 'hs-panel-test-get-save-data-jit-btn', text: 'SData test (JIT)' }),
-                        HSUIC.Button({ id: 'hs-panel-test-sniff-error-btn', text: 'Sniff err test' }),
                         HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
                         HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
                     ],
@@ -163,35 +160,6 @@ export class Hypersynergism {
                 if(storageMod) {
                     storageMod.clearData(HSGlobal.HSSettings.storageKey);
                     HSLogger.info('Stored settings cleared', this.#context);
-                }
-            });
-
-            document.querySelector('#hs-panel-test-get-save-data-btn')?.addEventListener('click', async () => {
-                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
-                
-                if(gameDataMod) {
-                    const saveData = await gameDataMod.getSaveData();
-                    HSLogger.info('Performed save data test, results in dev console (if any)', this.#context);
-                    console.log(saveData);
-                }
-            });
-
-            document.querySelector('#hs-panel-test-get-save-data-jit-btn')?.addEventListener('click', async () => {
-                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
-                
-                if(gameDataMod) {
-                    const saveData = await gameDataMod.getSaveData(true);
-                    HSLogger.info('Performed save data test (JIT), results in dev console (if any)', this.#context);
-                    console.log(saveData);
-                }
-            });
-
-            document.querySelector('#hs-panel-test-sniff-error-btn')?.addEventListener('click', async () => {
-                const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
-                
-                if(gameDataMod) {
-                    await gameDataMod.getSaveData(true, 'Synergysave_WONTEXIST');
-                    HSLogger.info('Performed save data sniff error test. Game data sniffing should get auto disabled.', this.#context);
                 }
             });
 

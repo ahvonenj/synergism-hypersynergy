@@ -5,7 +5,7 @@
 */
 
 import { GameView } from "../class/hs-core/hs-gamestate";
-import { PlayerData } from "./hs-player-savedata";
+import { PlayerData } from "./data-types/hs-player-savedata";
 import { VIEW_TYPE, VIEW_KEY } from "./module-types/hs-gamestate-types";
 
 // Used when listing and loading modules

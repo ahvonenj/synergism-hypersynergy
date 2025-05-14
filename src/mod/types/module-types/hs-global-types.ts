@@ -79,8 +79,7 @@ export interface HSGlobalGameState {
 }
 
 export interface HSGlobalGameData {
-    saveDataHashing: boolean;
-    saveDataWatchInterval: number;
+    fetchedDataRefreshInterval: number;
     turboModeSpeedMs: number;
     turboCSSId: string;
 }

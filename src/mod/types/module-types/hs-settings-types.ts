@@ -4,8 +4,7 @@
     Author: Swiffy
 */
 
-import { HSSetting } from "../../class/hs-core/hs-setting";
-import { HSPatch } from "../../class/patches/hs-patch";
+import { HSSetting } from "../../class/hs-core/settings/hs-setting";
 import { HSUICSelectOption } from "./hs-ui-types";
 
 export type HSSettingType = number | string | boolean;

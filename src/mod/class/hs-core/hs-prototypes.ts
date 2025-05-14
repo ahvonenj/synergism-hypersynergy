@@ -1,11 +1,11 @@
-import { CSSEasingFunction } from "../../types/hs-css-types";
-import { EventMap } from "../../types/hs-event-types";
+import { CSSEasingFunction } from "../../types/dom-types/hs-css-types";
+import { EventMap } from "../../types/dom-types/hs-event-types";
 import { DelegateEventListener, RemoveDelegateEventListener } from "../../types/module-types/hs-proto-types";
 import { TransitionProperties } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
+import { HSModule } from "./module/hs-module";
 
 // Must do these global declarations for TypeScript
 declare global {

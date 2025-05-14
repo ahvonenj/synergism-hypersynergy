@@ -1,7 +1,7 @@
-import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../types/module-types/hs-settings-types";
-import { HSUtils } from "../hs-utils/hs-utils";
-import { HSGlobal } from "./hs-global";
-import { HSLogger } from "./hs-logger";
+import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../../types/module-types/hs-settings-types";
+import { HSUtils } from "../../hs-utils/hs-utils";
+import { HSGlobal } from "../hs-global";
+import { HSLogger } from "../hs-logger";
 import { HSSettings } from "./hs-settings";
 
 /* 

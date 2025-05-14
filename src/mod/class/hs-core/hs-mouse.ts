@@ -1,9 +1,9 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
-import { HSSetting } from "./hs-setting";
-import { HSSettings } from "./hs-settings";
+import { HSModule } from "./module/hs-module";
+import { HSSetting } from "./settings/hs-setting";
+import { HSSettings } from "./settings/hs-settings";
 
 export class HSMouse extends HSModule {
 

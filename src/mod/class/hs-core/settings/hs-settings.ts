@@ -1,17 +1,17 @@
-import { HSSettingBase, HSSettingControlGroup, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../types/module-types/hs-settings-types";
-import { HSUtils } from "../hs-utils/hs-utils";
-import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
-import settings from "inline:../../resource/json/hs-settings.json";
-import settings_control_groups from "inline:../../resource/json/hs-settings-control-groups.json";
-import { HSUIC } from "./hs-ui-components";
-import { HSInputType } from "../../types/module-types/hs-ui-types";
+import { HSSettingBase, HSSettingControlGroup, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
+import { HSUtils } from "../../hs-utils/hs-utils";
+import { HSLogger } from "../hs-logger";
+import { HSModule } from "../module/hs-module";
+import settings from "inline:../../../resource/json/hs-settings.json";
+import settings_control_groups from "inline:../../../resource/json/hs-settings-control-groups.json";
+import { HSUIC } from "../hs-ui-components";
+import { HSInputType } from "../../../types/module-types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
 import { HSBooleanSetting, HSNumericSetting, HSSelectNumericSetting, HSSelectStringSetting, HSSetting, HSStateSetting, HSStringSetting } from "./hs-setting";
-import { HSModuleManager } from "./hs-module-manager";
-import { HSStorage } from "./hs-storage";
-import { HSGlobal } from "./hs-global";
-import sIconB64 from "inline:../../resource/txt/s_icon.txt";
+import { HSModuleManager } from "../module/hs-module-manager";
+import { HSStorage } from "../hs-storage";
+import { HSGlobal } from "../hs-global";
+import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
 
 /*
     Class: HSSettings

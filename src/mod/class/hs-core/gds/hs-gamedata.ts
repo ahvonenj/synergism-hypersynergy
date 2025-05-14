@@ -1,15 +1,16 @@
-import { MeData } from "../../types/hs-me-data";
-import { PlayerData } from "../../types/hs-player-savedata";
-import { PseudoGameData } from "../../types/hs-pseudo-data";
-import { HSPerformance } from "../hs-utils/hs-performance";
-import { HSUtils } from "../hs-utils/hs-utils";
-import { HSElementHooker } from "./hs-elementhooker";
-import { HSGlobal } from "./hs-global";
-import { HSLogger } from "./hs-logger";
-import { HSModule } from "./hs-module";
-import { HSBooleanSetting, HSSetting } from "./hs-setting";
-import { HSSettings } from "./hs-settings";
-import { HSUI } from "./hs-ui";
+import { MeData } from "../../../types/data-types/hs-me-data";
+import { PlayerData } from "../../../types/data-types/hs-player-savedata";
+import { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
+import { HSUtils } from "../../hs-utils/hs-utils";
+import { HSElementHooker } from "../hs-elementhooker";
+import { HSGameDataAPI } from "./hs-gamedata-api";
+import { HSGlobal } from "../hs-global";
+import { HSLogger } from "../hs-logger";
+import { HSModule } from "../module/hs-module";
+import { HSModuleManager } from "../module/hs-module-manager";
+import { HSBooleanSetting, HSSetting } from "../settings/hs-setting";
+import { HSSettings } from "../settings/hs-settings";
+import { HSUI } from "../hs-ui";
 
 export class HSGameData extends HSModule {
     #saveDataLocalStorageKey = 'Synergysave2';
@@ -41,8 +42,10 @@ export class HSGameData extends HSModule {
     #gameDataSubscribers: Map<string, (data: PlayerData) => void> = new Map<string, (data: PlayerData) => void>();
 
     #singularityButton?: HTMLImageElement;
+    #importSaveButton?: HTMLLabelElement;
     #singularityChallengeButtons?: HTMLDivElement[];
     #singularityEventHandler?: (e: MouseEvent) => Promise<void>;
+    #loadFromFileEventHandler?: (e: MouseEvent) => Promise<void>;
 
     // These are not used
     #afterSingularityCheckerIntervalElapsed = 0;
@@ -55,6 +58,9 @@ export class HSGameData extends HSModule {
     #playerPseudoUpgrades?: PseudoGameData;
     #meBonuses?: MeData;
 
+    #gameDataAPI?: HSGameDataAPI;
+    #fetchedDataRefreshInterval?: number;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -65,12 +71,14 @@ export class HSGameData extends HSModule {
 
         this.#singularityButton = document.querySelector('#singularitybtn') as HTMLImageElement;
         this.#singularityChallengeButtons = Array.from(document.querySelectorAll('#singularityChallenges > div.singularityChallenges > div'));
+        this.#importSaveButton = document.querySelector('#importFileButton') as HTMLLabelElement;
 
         try {
             const upgradesQuery = await fetch('https://synergism.cc/stripe/upgrades');
             const data = await upgradesQuery.json() as PseudoGameData; 
 
             this.#playerPseudoUpgrades = data;
+            this.#pseudoDataUpdated();
         } catch (err) {
             HSLogger.error(`Could not fetch pseudo data`, this.context);
         }
@@ -80,11 +88,40 @@ export class HSGameData extends HSModule {
             const data = await meQuery.json() as MeData; 
 
             this.#meBonuses = data;
+            this.#meDataUpdated();
         } catch (err) {
             HSLogger.error(`Could not fetch me data`, this.context);
         }
 
+        this.#gameDataAPI = HSModuleManager.getModule('HSGameDataAPI') as HSGameDataAPI;
+
+        this.#fetchedDataRefreshInterval = setInterval(() => { self.#refreshFetchedData(); }, HSGlobal.HSGameData.fetchedDataRefreshInterval);
+
         this.isInitialized = true;
+    }
+
+    async #refreshFetchedData() {
+        HSLogger.debug(`Refreshing fetched data`, this.context);
+
+        try {
+            const upgradesQuery = await fetch('https://synergism.cc/stripe/upgrades');
+            const data = await upgradesQuery.json() as PseudoGameData; 
+
+            this.#playerPseudoUpgrades = data;
+            this.#pseudoDataUpdated();
+        } catch (err) {
+            HSLogger.error(`Could not fetch pseudo data`, this.context);
+        }
+
+        try {
+            const meQuery = await fetch('https://synergism.cc/api/v1/users/me');
+            const data = await meQuery.json() as MeData; 
+
+            this.#meBonuses = data;
+            this.#meDataUpdated();
+        } catch (err) {
+            HSLogger.error(`Could not fetch me data`, this.context);
+        }
     }
 
     getPseudoData(): PseudoGameData | undefined {
@@ -109,89 +146,6 @@ export class HSGameData extends HSModule {
         return this.#saveData;
     }
 
-    async getSaveData(updateFirst = false, storageKey = this.#saveDataLocalStorageKey): Promise<PlayerData | undefined> {
-        try {
-            if(updateFirst) {
-                const useGameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
-
-                if(useGameDataSetting && useGameDataSetting.isEnabled()) {
-                    const hasChanged = await this.#hasDataChanged(storageKey);
-        
-                    if (hasChanged) {
-                        this.#processSaveData(storageKey);
-                    }
-                } else {
-                    return undefined;
-                }
-            }
-
-            return this.#saveData;
-        } catch (error) {
-            HSLogger.warn(`getSaveData() - Could not process save data`, this.context);
-            this.#maybeStopSniffOnError();
-        }
-    }
-
-    /*startSaveDataWatch(forTurbo = false) {
-        const self = this;
-
-        if(forTurbo) {
-            HSLogger.debug(`Started save data watch because turbo was disabled`, this.context);
-        } else {
-            HSLogger.info(`Starting save data watch`, this.context);
-        }
-
-        if (this.#saveDataCheckInterval) {
-            clearInterval(this.#saveDataCheckInterval);
-        }
-
-        this.#saveDataCheckInterval = setInterval(async () => {
-            if(HSGlobal.Debug.performanceDebugMode) {
-                try {
-                    HSPerformance.beginMeasure('saveDataChangedMeasure');
-                    const hasChanged = await self.#hasDataChanged();
-                    const saveDataChangedMeasure = HSPerformance.endMeasure('saveDataChangedMeasure');
-                    let saveDataProcessMeasure;
-
-                    if (hasChanged) {
-                        HSPerformance.beginMeasure('saveDataProcessMeasure');
-                        self.#processSaveData();
-                        saveDataProcessMeasure = HSPerformance.endMeasure('saveDataProcessMeasure');
-                    }
-
-                    saveDataChangedMeasure.logToConsole();
-                    if (saveDataProcessMeasure) saveDataProcessMeasure.logToConsole();
-                } catch (error) {
-                    HSLogger.debug(`<red>Error in save data check interval:</red> ${error}`, self.context);
-                    this.#maybeStopSniffOnError();
-                }
-            } else {
-                const hasChanged = await self.#hasDataChanged();
-                
-                if (hasChanged) {
-                    self.#processSaveData();
-                }
-            }
-            
-        }, HSGlobal.HSGameData.saveDataWatchInterval);
-    }
-
-    stopSaveDataWatch(forTurbo = false) {
-        if (this.#saveDataCheckInterval) {
-            clearInterval(this.#saveDataCheckInterval);
-
-            this.#saveDataCheckInterval = undefined;
-            this.#saveData = undefined;
-            this.#lastSaveDataHash = undefined;
-
-            if(forTurbo) {
-                HSLogger.debug(`Stopped save data watch for turbo`, this.context);
-            } else {
-                HSLogger.info(`Stopped save data watch`, this.context);
-            }
-        }
-    }*/
-
     #processSaveData(storageKey: string = this.#saveDataLocalStorageKey) {
         try {
             const saveDataB64 = localStorage.getItem(storageKey);
@@ -203,44 +157,11 @@ export class HSGameData extends HSModule {
             }
             
             this.#saveData = JSON.parse(atob(saveDataB64)) as PlayerData;
-            this.#saveDataChanged();
+            this.#saveDataUpdated();
         } catch (error) {
             HSLogger.debug(`<red>Error processing save data:</red> ${error}`, this.context);
             this.#maybeStopSniffOnError();
         }
-    }
-
-    async #hasDataChanged(storageKey: string = this.#saveDataLocalStorageKey): Promise<boolean> {
-        // If hashing is disabled, we just say that the data has always changed
-        if(!HSGlobal.HSGameData.saveDataHashing)
-            return true;
-
-        const currentSaveDataB64 = localStorage.getItem(storageKey);
-        
-        // If both are null, no change
-        if (currentSaveDataB64 === null && this.#lastSaveDataHash === null) {
-            return false;
-        }
-        
-        // If one is null but not the other, there's a change
-        if ((currentSaveDataB64 === null) !== (this.#lastSaveDataHash === null)) {
-            if (currentSaveDataB64) {
-                this.#lastSaveDataHash = await HSUtils.computeHash(currentSaveDataB64);
-            } else {
-                this.#lastSaveDataHash = undefined;
-            }
-
-            return true;
-        }
-        
-        // Compute hash of current data
-        const currentHash = await HSUtils.computeHash(currentSaveDataB64!);
-        const hasChanged = currentHash !== this.#lastSaveDataHash;
-        
-        // Update the reference hash
-        this.#lastSaveDataHash = currentHash;
-        
-        return hasChanged;
     }
 
     #maybeStopSniffOnError() {
@@ -293,8 +214,14 @@ export class HSGameData extends HSModule {
         if(!this.#singularityChallengeButtons)
             this.#singularityChallengeButtons = Array.from(document.querySelectorAll('#singularityChallenges > div.singularityChallenges > div'));
 
+        if(!this.#importSaveButton)
+            this.#importSaveButton = await HSElementHooker.HookElement('#importFileButton') as HTMLLabelElement;
+
         if(!this.#singularityEventHandler)
             this.#singularityEventHandler = async (e: MouseEvent) => { self.#singularityHandler(e); } 
+
+        if(!this.#loadFromFileEventHandler)
+            this.#loadFromFileEventHandler = async (e: MouseEvent) => { self.#loadFromFileHandler(e); } 
 
         this.#singularityButton.addEventListener('click', this.#singularityEventHandler, { capture: true });
 
@@ -302,8 +229,23 @@ export class HSGameData extends HSModule {
             btn.addEventListener('click', self.#singularityEventHandler!, { capture: true });
         })
 
+        this.#importSaveButton.addEventListener('click', this.#loadFromFileEventHandler, { capture: true });
+
         HSLogger.info(`GDS turbo = ON`, this.context);
         this.#turboEnabled = true;
+    }
+
+    async #loadFromFileHandler(e: MouseEvent) {
+        const gameDataSetting = HSSettings.getSetting("useGameData") as HSSetting<boolean>;
+
+        if(gameDataSetting && gameDataSetting.isEnabled()) {
+            gameDataSetting.disable();
+
+            await HSUI.Notify('GDS has been disabled for save file import', {
+                position: 'top',
+                notificationType: 'warning'
+            });
+        }
     }
 
     async #singularityHandler(e: MouseEvent) {
@@ -411,14 +353,23 @@ export class HSGameData extends HSModule {
         if(!this.#singularityChallengeButtons)
             this.#singularityChallengeButtons = await HSElementHooker.HookElements('#singularityChallenges > div.singularityChallenges > div') as HTMLDivElement[];
         
-        if(!this.#singularityEventHandler)
-            this.#singularityEventHandler = async (e: MouseEvent) => { self.#singularityHandler(e); } 
+        if(!this.#importSaveButton)
+            this.#importSaveButton = await HSElementHooker.HookElement('#importFileButton') as HTMLLabelElement;
 
-        this.#singularityButton.removeEventListener('click', this.#singularityEventHandler, { capture: true });
+        if(this.#singularityEventHandler) {
+            this.#singularityButton.removeEventListener('click', this.#singularityEventHandler, { capture: true });
 
-        this.#singularityChallengeButtons.forEach((btn) => {
-            btn.removeEventListener('click', self.#singularityEventHandler!, { capture: true });
-        })
+            this.#singularityChallengeButtons.forEach((btn) => {
+                btn.removeEventListener('click', self.#singularityEventHandler!, { capture: true });
+            });
+
+            this.#singularityEventHandler = undefined;
+        }
+        
+        if(this.#loadFromFileEventHandler) {
+            this.#importSaveButton.addEventListener('click', this.#loadFromFileEventHandler, { capture: true });
+            this.#loadFromFileEventHandler = undefined;
+        }
 
         HSLogger.info(`GDS turbo = OFF`, this.context);
         this.#turboEnabled = false;
@@ -438,8 +389,12 @@ export class HSGameData extends HSModule {
         }
     }
 
-    #saveDataChanged() {
+    #saveDataUpdated() {
         this.#updateDebug();
+
+        if(this.#gameDataAPI && this.#saveData) {
+            this.#gameDataAPI._updateGameData(this.#saveData);
+        }
 
         this.#gameDataSubscribers.forEach((callback) => {
             if(this.#saveData) {
@@ -448,6 +403,18 @@ export class HSGameData extends HSModule {
                 HSLogger.debug(`Could not call game data change callback. No save data found`, this.context);
             }
         });
+    }
+
+    #pseudoDataUpdated() {
+        if(this.#gameDataAPI && this.#playerPseudoUpgrades) {
+            this.#gameDataAPI._updatePseudoData(this.#playerPseudoUpgrades);
+        }
+    }
+
+    #meDataUpdated() {
+        if(this.#gameDataAPI && this.#meBonuses) {
+            this.#gameDataAPI._updateMeData(this.#meBonuses);
+        }
     }
 
     #updateDebug() {

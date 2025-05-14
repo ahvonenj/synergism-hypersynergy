@@ -1,4 +1,4 @@
-import { HSLogger } from "./hs-logger";
+import { HSLogger } from "../hs-logger";
 
 /*
     Class: HSModule

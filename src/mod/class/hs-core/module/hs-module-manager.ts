@@ -1,23 +1,24 @@
-import { HSLogger } from "./hs-logger";
+import { HSLogger } from "../hs-logger";
 import { HSModule } from "./hs-module";
 
 // Explicit imports required because I don't know better...
-import { HSPotions } from "../hs-modules/hs-potions"; 
-import { HSCodes } from "../hs-modules/hs-codes";
-import { HSHepteracts } from "../hs-modules/hs-hepteracts";
-import { HSTalismans } from "../hs-modules/hs-talismans";
-import { HSUI } from "./hs-ui";
-import { HSSettings } from "./hs-settings";
-import { HSModuleDefinition } from "../../types/hs-types";
-import { HSPrototypes } from "./hs-prototypes";
-import { HSMouse } from "./hs-mouse";
-import { HSShadowDOM } from "./hs-shadowdom";
-import { HSStorage } from "./hs-storage";
-import { HSAmbrosia } from "../hs-modules/hs-ambrosia";
-import { HSStats } from "../hs-modules/hs-stats";
-import { HSGameState } from "./hs-gamestate";
-import { HSPatches } from "../hs-modules/hs-patches";
-import { HSGameData } from "./hs-gamedata";
+import { HSPotions } from "../../hs-modules/hs-potions"; 
+import { HSCodes } from "../../hs-modules/hs-codes";
+import { HSHepteracts } from "../../hs-modules/hs-hepteracts";
+import { HSTalismans } from "../../hs-modules/hs-talismans";
+import { HSUI } from "../hs-ui";
+import { HSSettings } from "../settings/hs-settings";
+import { HSModuleDefinition } from "../../../types/hs-types";
+import { HSPrototypes } from "../hs-prototypes";
+import { HSMouse } from "../hs-mouse";
+import { HSShadowDOM } from "../hs-shadowdom";
+import { HSStorage } from "../hs-storage";
+import { HSAmbrosia } from "../../hs-modules/hs-ambrosia";
+import { HSStats } from "../../hs-modules/hs-stats";
+import { HSGameState } from "../hs-gamestate";
+import { HSPatches } from "../../hs-modules/hs-patches";
+import { HSGameData } from "../gds/hs-gamedata";
+import { HSGameDataAPI } from "../gds/hs-gamedata-api";
 
 /*
     Class: HSModuleManager
@@ -49,6 +50,7 @@ export class HSModuleManager {
         "HSGameState": HSGameState,
         "HSPatches": HSPatches,
         "HSGameData": HSGameData,
+        "HSGameDataAPI": HSGameDataAPI,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {

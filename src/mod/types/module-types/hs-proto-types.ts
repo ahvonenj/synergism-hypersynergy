@@ -4,7 +4,7 @@
     Author: Swiffy
 */
 
-import { EventMap } from "../hs-event-types";
+import { EventMap } from "../dom-types/hs-event-types";
 
 export type DelegateEventListener<T extends Node> = <K extends keyof EventMap>(
     this: T, 

@@ -2,10 +2,10 @@ import { CUBE_VIEW, GAME_STATE_CHANGE, MAIN_VIEW } from "../../types/module-type
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSGameState } from "../hs-core/hs-gamestate";
 import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/hs-module";
-import { HSModuleManager } from "../hs-core/hs-module-manager";
-import { HSSetting } from "../hs-core/hs-setting";
-import { HSSettings } from "../hs-core/hs-settings";
+import { HSModule } from "../hs-core/module/hs-module";
+import { HSModuleManager } from "../hs-core/module/hs-module-manager";
+import { HSSetting } from "../hs-core/settings/hs-setting";
+import { HSSettings } from "../hs-core/settings/hs-settings";
 import { HSShadowDOM } from "../hs-core/hs-shadowdom";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";

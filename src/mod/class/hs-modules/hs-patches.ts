@@ -1,5 +1,5 @@
 import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/hs-module";
+import { HSModule } from "../hs-core/module/hs-module";
 import { PATCH_AmbrosiaViewOverflow } from "../patches/ambrosiaViewOverflow";
 import { HSPatch } from "../patches/hs-patch";
 import { PATCH_ShopItemNameMapping } from "../patches/shopItemNameMapping";

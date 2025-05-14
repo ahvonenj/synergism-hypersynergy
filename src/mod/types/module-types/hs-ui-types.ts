@@ -4,7 +4,7 @@
     Author: Swiffy
 */
 
-import { TransitionableCSSProperty, HSUICCSSProperties } from "../hs-css-types";
+import { TransitionableCSSProperty, HSUICCSSProperties } from "../dom-types/hs-css-types";
 import { HSOptional } from "../hs-typescript-functions";
 
 export enum EPredefinedPosition {

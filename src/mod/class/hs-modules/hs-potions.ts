@@ -1,5 +1,5 @@
 import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/hs-module";
+import { HSModule } from "../hs-core/module/hs-module";
 
 /*
     Class: HSPotions

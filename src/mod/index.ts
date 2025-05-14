@@ -99,6 +99,11 @@ declare global {
             className: 'HSGameData',
             context: 'HSGameData',
             moduleColor: '#fbc531',
+        },
+        {
+            className: 'HSGameDataAPI',
+            context: 'HSGameDataAPI',
+            moduleColor: '#fbc531',
         }
     ];
 

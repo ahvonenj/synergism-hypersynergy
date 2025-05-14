@@ -1,10 +1,10 @@
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
-import { HSModuleManager } from "./hs-module-manager";
+import { HSModuleManager } from "./module/hs-module-manager";
 import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
-import { HSSetting } from "./hs-setting";
-import { HSSettings } from "./hs-settings";
+import { HSSetting } from "./settings/hs-setting";
+import { HSSettings } from "./settings/hs-settings";
 import { ShowDebugLogsSetting } from "../../types/module-types/hs-settings-types";
 
 /*
