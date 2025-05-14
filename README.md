@@ -53,6 +53,24 @@ Quick overview:
 
 ## Latest update(s)
 
+### Hypersynergism version 2.7.1-2.7.3 - Pirates and Caching
+
+Released: 14.5.2025
+
+**Caching**
+
+The game itself implements caching for most of it's calculations.
+Many of these calculations have been pirated into the mod (v2.7.0) which meant pulling them out of the game's caching system.
+The mod now implements it's own caching for all the stolen calculations.
+
+**Fixes and stuff**
+
+- Loadout Idle Swapper should now work with Ambrosia Acceleration
+- Loadout Idle Swapper will turn itself off, if one or both of the loadouts for it are unconfigured
+- Restructured the project a bit for this new data-driven era
+- GDS will be auto disabled on save file import
+- Mod now displays a very cool notification when it has loaded and initialized
+
 ### Hypersynergism version 2.7.0 - Game Data goes Brrr
 
 Released: 12.5.2025
@@ -96,29 +114,6 @@ if it is left on when going to a singularity, thus the automatic disable and re-
 - Disabled save data hashing for now, might not be needed
 - Deprecated the crappy slow implementation of GDS
 - Added a couple of buttons to Tools tab to test notifications
-
-### Hypersynergism version 2.6.2 - Auto Ambrosia Loadout & Bugfixes
-
-<picture>
-  <img src="https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/hd/quickbar_equipped.png?raw=true" width="400" />
-</picture>
-
-**Features**
-
-- Implemented ambrosia loadout auto switcher when using ADD or TIME codes
-- Ambrosia loadout quickbar now shows the currently equipped loadout
-- Fixed multi event binding bug with quickbar
-- FIXED REMAINING HEPTERACT COST PROTECTION BUGS ONCE AND FOR ALL (there should be no more random expands anymore when they can't be afforded, like... at all, ever.)
-- Made cost protection calculation with 2x cap more accurate
-- Made cost protection info log shorter. Was 200 kilometers long.
-
-**Boring features**
-
-- Injected styles are now batched under single style tag
-- Added `HSUtils.hiddenAction()` which can be used to perform actions "silently" which would otherwise pop an alert modal
-- Added `HSUtils.unfuckNumericString()` which, when used on any string presentation of a number, should make sure that nothing will parse the number in a ridiculous way afterwards
-- Added STATE type setting
-- Added SELECT type setting
 
 # Using the mod
 

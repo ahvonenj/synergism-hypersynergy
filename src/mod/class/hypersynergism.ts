@@ -35,6 +35,7 @@ export class Hypersynergism {
         await this.#moduleManager.preprocessModules();
     }
 
+    // Called from loader
     async init() {
         HSLogger.log("Initialising Hypersynergism modules", this.#context);
         await this.#moduleManager.initModules();
@@ -48,6 +49,11 @@ export class Hypersynergism {
         // Do this after UI Panel stuff is ready, because
         // syncing basically means syncing the UI with the settings
         await HSSettings.syncSettings();
+
+        await HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
+            position: 'top',
+            notificationType: "success"
+        });
     }
 
     #buildUIPanelContents() {
