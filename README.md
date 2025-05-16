@@ -53,6 +53,24 @@ Quick overview:
 
 ## Latest update(s)
 
+### Hypersynergism version 2.7.4
+Released: 17.5.2025
+
+**WebSocket connections**
+
+Implemented a HSWebSocket module for WebSocket connections. A WebSocket connection is needed for the mod to be able to receive e.g. event data such as when (and how many) HAPPY HOURS are up.
+
+This is to say that the mod can now take HAPPY HOUR event(s) into account with it's calculations. Luck and ambrosia generation speed calculations have been updated accordingly.
+
+Note that this is a bit experimental for now, but worry not, if the WebSocket fails, the mod
+will just ignore the event buffs like it has done thus far.
+
+**Changes**
+
+- New feature: Ambrosia minibars
+- Heavily optimized campaign token fetching for game data related tasks
+- Optimized game data display and debug rendering
+
 ### Hypersynergism version 2.7.1-2.7.3 - Pirates and Caching
 
 Released: 14.5.2025

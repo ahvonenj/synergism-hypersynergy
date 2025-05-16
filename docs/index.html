@@ -148,10 +148,32 @@
                         <li>Patch to add visible names for Quark Shop items</li>
                         <li>Ambrosia Loadout Idle Swapper</li>
                         <li>Game data access via GDS™</li>
+                        <li>Ambrosia minibars</li>
                     </ul>
                 </div>
                 <div class="page-wrapper" id="changelog" data-color="purple">
                     <h1>Changelog</h1>
+
+                    <h2>Hypersynergism version 2.7.4</h2>
+                    <p class="sm">Released: 17.5.2025</p><br/>
+
+                    <h3 style="margin-left: 30px">WebSocket connections</h3>
+                    <p>
+                        Implemented a HSWebSocket module for WebSocket connections.</br></br>
+                        A WebSocket connection is needed for the mod to be able to receive e.g. event data
+                        such as when (and how many) HAPPY HOURS are up.</br></br>
+                        This is to say that the mod can now take HAPPY HOUR event(s) into account with it's calculations.
+                        Luck and ambrosia generation speed calculations have been updated accordingly.</br></br>
+                        Note that this is a bit experimental for now, but worry not, if the WebSocket fails, the mod
+                        will just ignore the event buffs like it has done thus far.
+                    </p>
+
+                    <h3 style="margin-left: 30px">Changes</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>New feature: Ambrosia minibars</li>
+                        <li>Heavily optimized campaign token fetching for game data related tasks</li>
+                        <li>Optimized game data display and debug rendering</li>
+                    </ul>
 
                     <h2>Hypersynergism version 2.7.1-2.7.3 - Pirates and Caching</h2>
                     <p class="sm">Released: 14.5.2025</p><br/>
