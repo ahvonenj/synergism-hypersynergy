@@ -1,6 +1,7 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
+import { HSUI } from "./hs-ui";
 import { HSModule } from "./module/hs-module";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
@@ -110,6 +111,8 @@ export class HSMouse extends HSModule {
 
     // This updates the mouse position in the debug tab of the mod's panel
     static #updateDebug() {
+        if(!HSUI.isModPanelOpen()) return;
+        
         if(!this.#mousePositionDebugElement || this.#mousePositionDebugElement === undefined) {
             const debugElement = document.querySelector('#hs-panel-debug-mousepos') as HTMLDivElement;
 

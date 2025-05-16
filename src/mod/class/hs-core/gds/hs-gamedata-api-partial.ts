@@ -1,3 +1,4 @@
+import { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import { MeData } from "../../../types/data-types/hs-me-data";
 import { PlayerData } from "../../../types/data-types/hs-player-savedata";
 import { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
@@ -28,6 +29,8 @@ export abstract class HSGameDataAPIPartial extends HSModule {
     protected gameData: PlayerData | undefined;
     protected meData: MeData | undefined;
     protected pseudoData: PseudoGameData | undefined;
+    protected campaignData: CampaignData | undefined;
+
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -50,6 +53,14 @@ export abstract class HSGameDataAPIPartial extends HSModule {
 
     _updatePseudoData(data: PseudoGameData) {
         this.pseudoData = data;
+    }
+
+    _updateCampaignData(data: CampaignData) {
+        this.campaignData = data;
+    }
+
+    getCampaignData(): CampaignData | undefined {
+        return this.campaignData;
     }
 
     getGameData(): PlayerData | undefined {

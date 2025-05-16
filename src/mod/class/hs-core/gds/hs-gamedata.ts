@@ -11,11 +11,11 @@ import { HSModuleManager } from "../module/hs-module-manager";
 import { HSBooleanSetting, HSSetting } from "../settings/hs-setting";
 import { HSSettings } from "../settings/hs-settings";
 import { HSUI } from "../hs-ui";
+import { CampaignData } from "../../../types/data-types/hs-campaign-data";
 
 export class HSGameData extends HSModule {
     #saveDataLocalStorageKey = 'Synergysave2';
     
-    #lastSaveDataHash?: string;
     #saveDataCheckInterval?: number;
 
     #saveData?: PlayerData;
@@ -35,7 +35,7 @@ export class HSGameData extends HSModule {
         }
     `;
 
-    #turboInterval?: number;
+    #saveInterval?: number;
 
     #gameDataDebugElement?: HTMLDivElement;
 
@@ -48,12 +48,7 @@ export class HSGameData extends HSModule {
     #loadFromFileEventHandler?: (e: MouseEvent) => Promise<void>;
 
     // These are not used
-    #afterSingularityCheckerIntervalElapsed = 0;
-    #afterSingularityCheckerInterval?: number;
     #wasUsingGDS = false;
-
-    // Used maybe
-    #singularityTargetType?: "challenge" | "normal";
 
     #playerPseudoUpgrades?: PseudoGameData;
     #meBonuses?: MeData;
@@ -61,8 +56,20 @@ export class HSGameData extends HSModule {
     #gameDataAPI?: HSGameDataAPI;
     #fetchedDataRefreshInterval?: number;
 
+    #lastB64Save?: string;
+
+    #campaignTokenElement?: HTMLHeadingElement;
+    #campaignTokenRefreshInterval?: number;
+
+    #campaignData: CampaignData = {
+        tokens: 0,
+        maxTokens: 0,
+        isAtMaxTokens: false,
+    }
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
+        this.#campaignTokenElement = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
     }
     
     async init() {
@@ -95,8 +102,6 @@ export class HSGameData extends HSModule {
 
         this.#gameDataAPI = HSModuleManager.getModule('HSGameDataAPI') as HSGameDataAPI;
 
-        this.#fetchedDataRefreshInterval = setInterval(() => { self.#refreshFetchedData(); }, HSGlobal.HSGameData.fetchedDataRefreshInterval);
-
         this.isInitialized = true;
     }
 
@@ -124,22 +129,24 @@ export class HSGameData extends HSModule {
         }
     }
 
-    #processSaveData(storageKey: string = this.#saveDataLocalStorageKey) {
-        try {
-            const saveDataB64 = localStorage.getItem(storageKey);
-            
-            if (!saveDataB64) {
-                HSLogger.debug(`<red>No save data found in localStorage</red>`, this.context);
+    #processSaveDataWithRAF() {
+        if (!this.#turboEnabled) return;
+
+        const saveDataB64 = localStorage.getItem(this.#saveDataLocalStorageKey);
+    
+        if (saveDataB64 && saveDataB64 !== this.#lastB64Save) {
+            this.#lastB64Save = saveDataB64;
+
+            try {    
+                this.#saveData = JSON.parse(atob(saveDataB64)) as PlayerData;
+                this.#saveDataUpdated();
+            } catch (error) {
+                HSLogger.debug(`<red>Error processing save data:</red> ${error}`, this.context);
                 this.#maybeStopSniffOnError();
-                return;
             }
-            
-            this.#saveData = JSON.parse(atob(saveDataB64)) as PlayerData;
-            this.#saveDataUpdated();
-        } catch (error) {
-            HSLogger.debug(`<red>Error processing save data:</red> ${error}`, this.context);
-            this.#maybeStopSniffOnError();
         }
+    
+        requestAnimationFrame(this.#processSaveDataWithRAF.bind(this));
     }
 
     #maybeStopSniffOnError() {
@@ -165,11 +172,23 @@ export class HSGameData extends HSModule {
 
         HSUI.injectStyle(this.#turboCSS, HSGlobal.HSGameData.turboCSSId);
 
-        if(this.#turboInterval) {
-            clearInterval(this.#turboInterval);
+        if(this.#saveInterval) clearInterval(this.#saveInterval);
+
+        await this.#refreshFetchedData();
+
+        if(this.#fetchedDataRefreshInterval)
+            clearInterval(this.#fetchedDataRefreshInterval);
+
+        this.#fetchedDataRefreshInterval = setInterval(() => { self.#refreshFetchedData(); }, HSGlobal.HSGameData.fetchedDataRefreshInterval);
+
+        this.#refreshCampaignTokens();
+
+        if(this.#campaignTokenRefreshInterval) {
+            clearInterval(this.#campaignTokenRefreshInterval);
         }
 
-        //this.stopSaveDataWatch(true);
+        if(!this.#campaignData.isAtMaxTokens)
+            this.#campaignTokenRefreshInterval = setInterval(() => { self.#refreshCampaignTokens(); }, HSGlobal.HSGameData.campaignTokenRefreshInterval);
 
         if(!this.#manualSaveButton) {
             this.#manualSaveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
@@ -177,14 +196,12 @@ export class HSGameData extends HSModule {
 
         if(!this.#saveinfoElement) {
             this.#saveinfoElement = await HSElementHooker.HookElement('#saveinfo') as HTMLParagraphElement;
-        }
+        }  
 
-        this.#turboInterval = setInterval(() => {
-            if(self.#manualSaveButton && self.#saveinfoElement) {
-                self.#manualSaveButton.click();
-                self.#processSaveData();
-            }
-        }, HSGlobal.HSGameData.turboModeSpeedMs);
+        this.#saveInterval = setInterval(() => {
+            if(this.#manualSaveButton && this.#saveinfoElement)
+                this.#manualSaveButton.click();
+        }, HSGlobal.HSGameData.turboModeSpeedMs)
 
         if(!this.#singularityButton)
             this.#singularityButton = await HSElementHooker.HookElement('#singularitybtn') as HTMLImageElement;
@@ -209,8 +226,9 @@ export class HSGameData extends HSModule {
 
         this.#importSaveButton.addEventListener('click', this.#loadFromFileEventHandler, { capture: true });
 
-        HSLogger.info(`GDS turbo = ON`, this.context);
+        HSLogger.info(`GDS = ON`, this.context);
         this.#turboEnabled = true;
+        this.#processSaveDataWithRAF();
     }
 
     async #loadFromFileHandler(e: MouseEvent) {
@@ -245,8 +263,6 @@ export class HSGameData extends HSModule {
 
             // User pressed singularity challenge button
             if(target.id && challengeTargets.includes(target.id)) {
-                this.#singularityTargetType = "challenge";
-
                 // User pressed active sing challenge button (is trying to quit or complete it)
                 if(styleString?.includes('orchid')) {
                     canSingularity = true;
@@ -302,8 +318,6 @@ export class HSGameData extends HSModule {
                     }
 
                     this.#wasUsingGDS = false;
-                    //this.#afterSingularityCheckerIntervalElapsed = 0;
-                    this.#singularityTargetType = undefined;  
                 }
             }
         }
@@ -312,16 +326,16 @@ export class HSGameData extends HSModule {
     async disableGDS() {
         const self = this;
 
-        if(this.#turboInterval) {
-            clearInterval(this.#turboInterval);
-            this.#turboInterval = undefined;
+        if(this.#saveInterval) {
+            clearInterval(this.#saveInterval);
+            this.#saveInterval = undefined;
         }
 
-        /*const gameDataSetting = HSSettings.getSetting('useGameData') as HSBooleanSetting;
+        if(this.#fetchedDataRefreshInterval)
+            clearInterval(this.#fetchedDataRefreshInterval);
 
-        if(gameDataSetting && gameDataSetting.isEnabled()) {
-            this.startSaveDataWatch(true);
-        }*/
+        if(this.#campaignTokenRefreshInterval)
+            clearInterval(this.#campaignTokenRefreshInterval);
 
         HSUI.removeInjectedStyle(HSGlobal.HSGameData.turboCSSId);
 
@@ -345,7 +359,7 @@ export class HSGameData extends HSModule {
         }
         
         if(this.#loadFromFileEventHandler) {
-            this.#importSaveButton.addEventListener('click', this.#loadFromFileEventHandler, { capture: true });
+            this.#importSaveButton.removeEventListener('click', this.#loadFromFileEventHandler, { capture: true });
             this.#loadFromFileEventHandler = undefined;
         }
 
@@ -368,8 +382,6 @@ export class HSGameData extends HSModule {
     }
 
     #saveDataUpdated() {
-        this.#updateDebug();
-
         if(this.#gameDataAPI && this.#saveData) {
             this.#gameDataAPI._updateGameData(this.#saveData);
         }
@@ -395,27 +407,43 @@ export class HSGameData extends HSModule {
         }
     }
 
-    #updateDebug() {
-        if(!HSGlobal.Debug.gameDataDebugMode) return;
+    #campaignDataUpdated() {
+        if(this.#gameDataAPI) {
+            this.#gameDataAPI._updateCampaignData(this.#campaignData);
+        }
+    }
 
-        let ambrosia = null;
-        let ant = null;
-        let dbg = '';
+    #refreshCampaignTokens() {
+        HSLogger.debug(`Refreshing campaign data`, this.context);
 
-        if(this.#saveData) {
-            ambrosia = Math.round(this.#saveData.blueberryTime);
-            ant = this.#saveData.antPoints;
+        if(!this.#campaignTokenElement) {
+            const el = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
+
+            if(el) {
+                this.#campaignTokenElement = el;
+            } else {
+                return;
+            }
         }
 
-        if(!this.#gameDataDebugElement || this.#gameDataDebugElement === undefined) {
-            const debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
+        const TOKEN_EL = this.#campaignTokenElement;
 
-            if(debugElement) {
-                this.#gameDataDebugElement = debugElement;
-                this.#gameDataDebugElement.innerHTML = `Current ambrosia: ${ambrosia ? ambrosia : 'null'}<br>Current ant: ${ant ? ant : 'null'}`;
+        if(TOKEN_EL) {
+            const match = TOKEN_EL.innerText.match(/^You have (\d+) \/ (\d+) .+$/);
+
+            if (match && match[1] && match[2]) {
+                const leftValue = parseInt(match[1], 10);
+                const rightValue = parseInt(match[2], 10);
+                this.#campaignData.tokens = leftValue;
+                this.#campaignData.maxTokens = rightValue;
+                this.#campaignData.isAtMaxTokens = ((leftValue > 0 && rightValue > 0) && (leftValue === rightValue));
+                this.#campaignDataUpdated();
             }
-        } else {
-            this.#gameDataDebugElement.innerHTML = `Current ambrosia: ${ambrosia ? ambrosia : 'null'}<br>Current ant: ${ant ? ant : 'null'}`;
+        }
+
+        if(this.#campaignData.isAtMaxTokens && this.#campaignTokenRefreshInterval) {
+            HSLogger.debug(`Dynamic clear of campaign token refresh interval, player is at max`, this.context);
+            clearInterval(this.#campaignTokenRefreshInterval);
         }
     }
 }

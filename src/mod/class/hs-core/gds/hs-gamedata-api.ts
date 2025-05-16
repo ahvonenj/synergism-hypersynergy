@@ -79,23 +79,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return levelFunction(level);
     }
 
-    #getCurrentCampaignTokens() {
-        const TOKEN_EL = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
-        let tokens = 0;
-
-        if(TOKEN_EL) {
-            const match = TOKEN_EL.innerText.match(/You have (\d+)/);
-
-            if (match && match[1]) {
-                const leftValue = parseInt(match[1], 10);
-                tokens = leftValue;
-                return tokens;
-            }
-        }
-
-        return 0;
-    }
-
     #checkCache(cacheName: keyof CalculationCache, checkCacheAgainst: number[]) {
         if(!(cacheName in this.#calculationCache)) {
             HSLogger.debug(`Could not find cache for '${cacheName}'`);
@@ -497,7 +480,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     R_calculateCampaignAmbrosiaSpeedBonus() {
         const cacheName = 'R_CampaignAmbrosiaSpeedBonus' as keyof CalculationCache;
 
-        const tokens = this.#getCurrentCampaignTokens();
+        const tokens = this.campaignData?.tokens ?? 0;
 
         const calculationVars : number[] = [
             tokens
@@ -525,7 +508,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     R_calculateCampaignLuckBonus() {
         const cacheName = 'R_CampaignLuckBonus' as keyof CalculationCache;
 
-        const tokens = this.#getCurrentCampaignTokens();
+        const tokens = this.campaignData?.tokens ?? 0;
 
         const calculationVars : number[] = [
             tokens

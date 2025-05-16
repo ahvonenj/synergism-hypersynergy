@@ -36,7 +36,7 @@ export class HSUI extends HSModule {
     #loggerElement?: HTMLTextAreaElement;
     #logClearBtn? : HTMLButtonElement;
 
-    #modPanelOpen = false;
+    static #modPanelOpen = false;
 
     static #injectedStyles = new Map<string, string>();
     static #injectedStylesHolder?: HTMLStyleElement;
@@ -108,12 +108,12 @@ export class HSUI extends HSModule {
 
         // Make the HS UI panel closeable
         this.#uiPanelCloseBtn.addEventListener('click', async () => {
-            if(self.#modPanelOpen &&self.#uiPanel) {
+            if(HSUI.#modPanelOpen && self.#uiPanel) {
                 await self.#uiPanel.transition({
                     opacity: 0
                 });
 
-                self.#modPanelOpen = false;
+                HSUI.#modPanelOpen = false;
                 self.#uiPanel?.classList.add('hs-panel-closed');
             }
         });
@@ -180,8 +180,8 @@ export class HSUI extends HSModule {
 
         // Open button opens the panel
         this.#uiPanelOpenBtn.addEventListener('click', async () => {
-            if(!self.#modPanelOpen && self.#uiPanel) {
-                self.#modPanelOpen = true;
+            if(!HSUI.#modPanelOpen && self.#uiPanel) {
+                HSUI.#modPanelOpen = true;
                 self.#uiPanel.style.opacity = '0';
                 self.#uiPanel.classList.remove('hs-panel-closed');
 
@@ -201,6 +201,10 @@ export class HSUI extends HSModule {
 
         this.uiReady = true;
         this.isInitialized = true;
+    }
+
+    static isModPanelOpen() {
+        return HSUI.#modPanelOpen;
     }
 
     // Makes element draggable with mouse

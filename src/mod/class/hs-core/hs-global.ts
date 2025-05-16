@@ -499,8 +499,9 @@ export const HSGlobal: IHSGlobal = class {
 
     // HSGameData
     static HSGameData = {
-        fetchedDataRefreshInterval: 15000,
-        turboModeSpeedMs: 50,
+        fetchedDataRefreshInterval: 60000,
+        campaignTokenRefreshInterval: 60000,
+        turboModeSpeedMs: 66,
         turboCSSId: 'hs-game-data-turbo-css'
     }
 }

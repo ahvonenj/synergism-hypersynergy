@@ -81,6 +81,7 @@ export interface HSGlobalGameState {
 
 export interface HSGlobalGameData {
     fetchedDataRefreshInterval: number;
+    campaignTokenRefreshInterval: number;
     turboModeSpeedMs: number;
     turboCSSId: string;
 }

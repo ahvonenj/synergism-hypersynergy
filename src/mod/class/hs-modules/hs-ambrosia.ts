@@ -110,6 +110,8 @@ implements HSPersistable, HSGameDataSubscriber {
     #blueAmbrosiaProgressBar?: HTMLDivElement;
     #redAmbrosiaProgressBar?: HTMLDivElement;
 
+    #debugElement?: HTMLDivElement;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
     }
@@ -122,6 +124,8 @@ implements HSPersistable, HSGameDataSubscriber {
         this.#ambrosiaGrid = await HSElementHooker.HookElement('#blueberryUpgradeContainer');
         this.#loadOutsSlots = await HSElementHooker.HookElements('.blueberryLoadoutSlot');
         this.#loadOutContainer = await HSElementHooker.HookElement('#bbLoadoutContainer');
+
+        this.#debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
 
         this.loadState();
 
@@ -759,10 +763,10 @@ implements HSPersistable, HSGameDataSubscriber {
                         }
                     }
 
-                    const debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
+                    if(this.#debugElement && HSUI.isModPanelOpen()) {
+                        const newDebugElement = document.createElement('div');
 
-                    if(debugElement) {
-                        debugElement.innerHTML = `
+                        newDebugElement.innerHTML = `
                         BLUE - Value: ${blueAmbrosiaBarValue.toFixed(2)}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent.toFixed(2)}<br>
                         RED - Value: ${redAmbrosiaBarValue.toFixed(2)}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent.toFixed(2)}<br>
                         BLUE SPD MLT: ${blueberrySpeedMults.toFixed(2)}<br>
@@ -777,6 +781,11 @@ implements HSPersistable, HSGameDataSubscriber {
                         ACCEL AMOUNT: ${accelerationAmount.toFixed(2)}</br>
                         ACCEL %: ${accelerationPercent.toFixed(2)}</br>
                         `;
+
+                        this.#debugElement.innerHTML = '';
+                        while (newDebugElement.firstChild) {
+                            this.#debugElement.appendChild(newDebugElement.firstChild);
+                        }
                     }
                     //console.log(`BLUE - Value: ${blueAmbrosiaBarValue}, Max: ${blueAmbrosiaBarMax}, Percent: ${blueAmbrosiaPercent}`);
                     //console.log(`RED - Value: ${redAmbrosiaBarValue}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent}`);
@@ -817,6 +826,9 @@ implements HSPersistable, HSGameDataSubscriber {
         } else {
             HSLogger.warn(`Could not find game state module`, this.context);
         }
+
+        if(!this.#debugElement)
+            this.#debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
 
         this.subscribeGameDataChanges();
     }
