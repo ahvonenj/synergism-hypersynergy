@@ -75,6 +75,20 @@ export class HSSettingActions {
             }
         },
 
+        ambrosiaMinibarAction: async (params: HSSettingActionParams) => {
+            const context = params.contextName ?? "HSSettings";
+
+            const ambrosiaMod = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+
+            if(ambrosiaMod) {
+                if(params.disable && params.disable === true) {
+                    await ambrosiaMod.disableBerryMinibars();
+                } else {
+                    await ambrosiaMod.enableBerryMinibars();
+                }
+            }
+        },
+
         patch: async (params: HSSettingActionParams) => {
             const context = params.contextName ?? "HSSettings";
 

@@ -1,0 +1,40 @@
+#hs-minibar-wrapper {
+    width: 281px;
+    display: flex;
+    padding: 0px;
+    gap: 4px;
+    flex-direction: column;
+    align-self: flex-end;
+    margin-right: 71px;
+    margin-bottom: 5px;
+}
+
+#hs-blue-progress-bar,
+#hs-red-progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: black;
+    border: 1px solid white;
+    border-radius: 0px;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+    position: relative;
+}
+
+#hs-blue-progress {
+    height: 100%;
+    background: linear-gradient(to right, navy, darkturquoise);
+    border-radius: 0px;
+    transition: width 0.4s ease;
+}
+
+#hs-red-progress {
+    height: 100%;
+    background: linear-gradient(to right, maroon, red);
+    border-radius: 0px;
+    transition: width 0.4s ease;
+}
+
+#hs-blue-progress-text,
+#hs-red-progress-text {
+    display: none;
+}

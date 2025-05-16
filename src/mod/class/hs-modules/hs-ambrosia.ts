@@ -15,6 +15,7 @@ import { HSStorage } from "../hs-core/hs-storage";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGameDataAPI } from "../hs-core/gds/hs-gamedata-api";
+import minibarCSS from "inline:../../resource/css/module/hs-ambrosia.css";
 
 export class HSAmbrosia extends HSModule 
 implements HSPersistable, HSGameDataSubscriber {
@@ -105,12 +106,17 @@ implements HSPersistable, HSGameDataSubscriber {
     `;
 
     #idleLoadoutCSSId = 'hs-ambrosia-idle-loadout-css';
+    #minibarCSSId = 'hs-ambrosia-minibar-css';
 
     #isIdleSwapEnabled = false;
     #blueAmbrosiaProgressBar?: HTMLDivElement;
     #redAmbrosiaProgressBar?: HTMLDivElement;
 
     #debugElement?: HTMLDivElement;
+
+    #berryMinibarsEnabled = false;
+    #blueProgressMinibarElement?: HTMLDivElement;
+    #redProgressMinibarElement?: HTMLDivElement;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -652,7 +658,7 @@ implements HSPersistable, HSGameDataSubscriber {
     subscribeGameDataChanges() {
         const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
 
-        if(gameDataMod) {
+        if(gameDataMod && !this.gameDataSubscriptionId) {
             this.gameDataSubscriptionId = gameDataMod.subscribeGameDataChange(this.gameDataCallback.bind(this));
         }
     }
@@ -661,8 +667,11 @@ implements HSPersistable, HSGameDataSubscriber {
         const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
 
         if(gameDataMod && this.gameDataSubscriptionId) {
-            gameDataMod.unsubscribeGameDataChange(this.gameDataSubscriptionId);
-            this.gameDataSubscriptionId = undefined;
+            // Only actually unsubscribe if all ambrosia feature which use GDS are disabled
+            if(!this.#isIdleSwapEnabled && !this.#berryMinibarsEnabled) {
+                gameDataMod.unsubscribeGameDataChange(this.gameDataSubscriptionId);
+                this.gameDataSubscriptionId = undefined;
+            }
         }
     }
 
@@ -791,10 +800,15 @@ implements HSPersistable, HSGameDataSubscriber {
                     //console.log(`RED - Value: ${redAmbrosiaBarValue}, Max: ${redAmbrosiaBarMax}, Percent: ${redAmbrosiaPercent}`);
                 }
             }
+
+            if(this.#berryMinibarsEnabled) {
+                if(this.#blueProgressMinibarElement && this.#redProgressMinibarElement) {
+                    this.#blueProgressMinibarElement.style.width = `${blueAmbrosiaPercent}%`;
+                    this.#redProgressMinibarElement.style.width = `${redAmbrosiaPercent}%`;
+                }
+            }
         }
     };
-
-    
 
     async enableIdleSwap() {
         const self = this;
@@ -834,6 +848,7 @@ implements HSPersistable, HSGameDataSubscriber {
     }
 
     disableIdleSwap() {
+        this.#isIdleSwapEnabled = false;
         this.unsubscribeGameDataChanges();
 
         const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
@@ -851,7 +866,6 @@ implements HSPersistable, HSGameDataSubscriber {
         }
 
         this.#removeIdleLoadoutIndicator();
-        this.#isIdleSwapEnabled = false;
     }
 
     #gameStateCallbackMain(previousView: GameView<VIEW_TYPE>, currentView: GameView<VIEW_TYPE>) {
@@ -895,5 +909,76 @@ implements HSPersistable, HSGameDataSubscriber {
         }
 
         HSUI.removeInjectedStyle(this.#idleLoadoutCSSId);
+    }
+
+    async enableBerryMinibars() {
+        if(!this.#pageHeader)
+            this.#pageHeader = await HSElementHooker.HookElement('header');
+
+        if(!this.#pageHeader) return;
+
+        // Blue bar
+        const blueBarOriginal = await HSElementHooker.HookElement('#ambrosiaProgressBar');
+        const blueBarClone = blueBarOriginal.cloneNode(true) as HTMLDivElement;
+        const blueBarProgress = blueBarClone.querySelector('#ambrosiaProgress') as HTMLDivElement;
+        const blueBarProgressText = blueBarClone.querySelector('#ambrosiaProgressText') as HTMLDivElement;
+
+        blueBarClone.id = HSGlobal.HSAmbrosia.blueBarId;
+        blueBarProgress.id = HSGlobal.HSAmbrosia.blueBarProgressId;
+        blueBarProgressText.id = HSGlobal.HSAmbrosia.blueBarProgressTextId;
+
+        // Red bar
+        const redBarOriginal = await HSElementHooker.HookElement('#pixelProgressBar');
+        const redBarClone = redBarOriginal.cloneNode(true) as HTMLDivElement;
+        const redBarProgress = redBarClone.querySelector('#pixelProgress') as HTMLDivElement;
+        const redBarProgressText = redBarClone.querySelector('#pixelProgressText') as HTMLDivElement;
+        
+        redBarClone.id = HSGlobal.HSAmbrosia.redBarId;  
+        redBarProgress.id = HSGlobal.HSAmbrosia.redBarProgressId;
+        redBarProgressText.id = HSGlobal.HSAmbrosia.redBarProgressTextId;
+
+        // Wrapper for both
+        const barWrapper = document.createElement('div') as HTMLDivElement;
+        barWrapper.id = HSGlobal.HSAmbrosia.barWrapperId;
+        barWrapper.appendChild(blueBarClone);
+        barWrapper.appendChild(redBarClone);
+
+        // Check if quick bar is enabled
+        const quickBarSetting = HSSettings.getSetting('ambrosiaQuickBar') as HSSetting<boolean>;
+
+        let referenceElement: HTMLElement;
+
+        if(quickBarSetting && quickBarSetting.isEnabled()) {
+            referenceElement = this.#pageHeader.querySelector('#hs-ambrosia-quick-loadout-container') as HTMLDivElement;
+        } else {
+            referenceElement = this.#pageHeader.querySelector('nav.navbar') as HTMLElement;
+        }
+
+        // Insert bars
+        this.#pageHeader.insertBefore(barWrapper, referenceElement);
+        HSUI.injectStyle(minibarCSS, this.#minibarCSSId);
+
+        this.#blueProgressMinibarElement = blueBarProgress;
+        this.#redProgressMinibarElement = redBarProgress;
+
+
+        this.#berryMinibarsEnabled = true;
+    }
+
+    async disableBerryMinibars() {
+        if(!this.#pageHeader)
+            this.#pageHeader = await HSElementHooker.HookElement('header');
+
+        const barWrapper = this.#pageHeader.querySelector(`#${HSGlobal.HSAmbrosia.barWrapperId}`) as HTMLElement;
+
+        if(barWrapper) {
+            barWrapper.remove();
+        } else {
+            HSLogger.warn(`Could not find bar wrapper element`, this.context);
+        }
+
+        HSUI.removeInjectedStyle(this.#minibarCSSId);
+
+        this.#berryMinibarsEnabled = false;
     }
 }

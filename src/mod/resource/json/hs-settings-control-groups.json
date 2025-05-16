@@ -16,23 +16,27 @@
         "order": 4
     },
     "ambrosia": {
-        "groupName": "Ambrosia settings",
+        "groupName": "Ambrosia quickbar settings",
         "order": 5
     },
     "ambrosia2": {
-        "groupName": "Ambrosia settings 2",
+        "groupName": "Idle Swapper settings",
         "order": 6
+    },
+    "ambrosia3": {
+        "groupName": "Minibar settings",
+        "order": 7
     },
     "patch": {
         "groupName": "Patch settings",
-        "order": 7
+        "order": 8
     },
     "gamedata": {
         "groupName": "Game data settings",
-        "order": 8
+        "order": 9
     },
     "shop": {
         "groupName": "Shop settings",
-        "order": 9
+        "order": 10
     }
 }

@@ -307,6 +307,21 @@
         }
     },
 
+    "ambrosiaMinibars": {
+        "settingName": "ambrosiaMinibars",
+        "settingDescription": "Ambrosia minibars",
+        "settingHelpText": "Displays small blue- and red ambrosia progress bars in the page header",
+        "settingType": "boolean",
+        "enabled": true,
+        "usesGameData": true,
+        "settingAction": "ambrosiaMinibarAction",
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "ambrosia3",
+            "controlEnabledId": "hs-setting-ambrosia-minibar-btn"
+        }
+    },
+
     "patch_ambrosiaViewOverflow": {
         "settingName": "patch_ambrosiaViewOverflow",
         "settingDescription": "Fix ambrosia view overflow",
@@ -355,6 +370,23 @@
             "controlType": "switch",
             "controlGroup": "patch",
             "controlEnabledId": "hs-setting-patch-shopnames-btn"
+        }
+    },
+
+    "patch_iconSetCaching": {
+        "settingName": "patch_iconSetCaching",
+        "settingDescription": "IconSet Caching",
+        "settingHelpText": "Use an alternative method of caching for certain icons to prevent excessive fetching when using DevTools. This probably doesn't matter for most players. Leave it off if you don't know what it does.",
+        "settingType": "boolean",
+        "enabled": false,
+        "settingAction": "patch",
+        "patchConfig": {
+            "patchName": "IconSetCaching"
+        },
+        "settingControl": {
+            "controlType": "switch",
+            "controlGroup": "patch",
+            "controlEnabledId": "hs-setting-patch-iconsets-btn"
         }
     },
 

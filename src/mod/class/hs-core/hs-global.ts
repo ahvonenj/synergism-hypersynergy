@@ -460,7 +460,15 @@ export const HSGlobal: IHSGlobal = class {
         // Constants ripped from the game code
         R_TIME_PER_AMBROSIA: 30,
         R_TIME_PER_RED_AMBROSIA: 100000,
-        R_digitReduction: 4
+        R_digitReduction: 4,
+
+        blueBarId: 'hs-blue-progress-bar',
+        blueBarProgressId: 'hs-blue-progress',
+        blueBarProgressTextId: 'hs-blue-progress-text',
+        redBarId: 'hs-red-progress-bar',
+        redBarProgressId: 'hs-red-progress',
+        redBarProgressTextId: 'hs-red-progress-text',
+        barWrapperId: 'hs-minibar-wrapper',
     }
 
     // HSGameState

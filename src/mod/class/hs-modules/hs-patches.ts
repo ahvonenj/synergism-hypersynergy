@@ -2,6 +2,7 @@ import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
 import { PATCH_AmbrosiaViewOverflow } from "../patches/ambrosiaViewOverflow";
 import { HSPatch } from "../patches/hs-patch";
+import { PATCH_IconSetCaching } from "../patches/iconSetCaching";
 import { PATCH_ShopItemNameMapping } from "../patches/shopItemNameMapping";
 import { PATCH_TestPatch } from "../patches/test";
 
@@ -11,6 +12,7 @@ export class HSPatches extends HSModule {
         "AmbrosiaViewOverflow": PATCH_AmbrosiaViewOverflow,
         "TestPatch": PATCH_TestPatch,
         "ShopItemNameMapping": PATCH_ShopItemNameMapping,
+        "IconSetCaching": PATCH_IconSetCaching,
     };
 
     #instantiatedPatches: Record<string, HSPatch> = {};

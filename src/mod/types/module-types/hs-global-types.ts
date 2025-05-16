@@ -73,6 +73,14 @@ export interface HSGlobalAmbrosia extends IStoreable {
     R_TIME_PER_AMBROSIA: number;
     R_TIME_PER_RED_AMBROSIA: number;
     R_digitReduction: number;
+
+    blueBarId: string;
+    blueBarProgressId: string;
+    blueBarProgressTextId: string;
+    redBarId: string;
+    redBarProgressId: string;
+    redBarProgressTextId: string;
+    barWrapperId: string;
 }
 
 export interface HSGlobalGameState {
