@@ -52,9 +52,51 @@ Quick overview:
 - Game data access via GDS™
 - Ambrosia minibars
 
-## Latest update(s)
+# Using the mod
 
-### Hypersynergism version 2.7.4
+## Create a bookmark
+
+Using the mod is simple. Just create a new bookmark in your browser and name it as you wish. For the URL, copy and paste the following:
+
+```JavaScript
+javascript:(function() {
+    if('hypersynergism' in window) {
+        alert('Hypersynergism is already loaded on the page, please refresh if you want to reload the mod');
+        return;
+    };
+
+    const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+
+    script.onload = function() {
+        console.log('[HSMain] Script loaded successfully!');
+        window.hypersynergism.init();
+    };
+
+    script.onerror = function() {
+        console.error('[HSMain] Failed to load the mod!');
+    };
+
+    document.head.appendChild(script);
+})();
+```
+
+Alertnatively the same loader code can be found in [here](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/release/loader/loader.js).
+
+**Example:**
+
+![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/bookmark_v2.png?raw=true)  
+
+## Enable the mod
+
+Now just load up the game in your browser (or refresh the page if it's already running) and click on the bookmark **after** you've clicked away the "Since you were away" box.
+
+The bookmark will always load up the latest version of the mod, so once you're set up on your end, you're set for life!
+
+# Latest update(s)
+
+## Hypersynergism version 2.7.4
 Released: 17.5.2025
 
 **WebSocket connections**
@@ -72,7 +114,7 @@ will just ignore the event buffs like it has done thus far.
 - Heavily optimized campaign token fetching for game data related tasks
 - Optimized game data display and debug rendering
 
-### Hypersynergism version 2.7.1-2.7.3 - Pirates and Caching
+## Hypersynergism version 2.7.1-2.7.3 - Pirates and Caching
 
 Released: 14.5.2025
 
@@ -90,7 +132,7 @@ The mod now implements it's own caching for all the stolen calculations.
 - GDS will be auto disabled on save file import
 - Mod now displays a very cool notification when it has loaded and initialized
 
-### Hypersynergism version 2.7.0 - Game Data goes Brrr
+## Hypersynergism version 2.7.0 - Game Data goes Brrr
 
 Released: 12.5.2025
 
@@ -133,48 +175,6 @@ if it is left on when going to a singularity, thus the automatic disable and re-
 - Disabled save data hashing for now, might not be needed
 - Deprecated the crappy slow implementation of GDS
 - Added a couple of buttons to Tools tab to test notifications
-
-# Using the mod
-
-## Create a bookmark
-
-Using the mod is simple. Just create a new bookmark in your browser and name it as you wish. For the URL, copy and paste the following:
-
-```JavaScript
-javascript:(function() {
-    if('hypersynergism' in window) {
-        alert('Hypersynergism is already loaded on the page, please refresh if you want to reload the mod');
-        return;
-    };
-
-    const scriptSrc = `https://cdn.jsdelivr.net/gh/ahvonenj/synergism-hypersynergy@latest/release/mod/hypersynergism_release.js?r=${Math.floor(Math.random() * 1000000)}`;
-    const script = document.createElement('script');
-    script.src = scriptSrc;
-
-    script.onload = function() {
-        console.log('[HSMain] Script loaded successfully!');
-        window.hypersynergism.init();
-    };
-
-    script.onerror = function() {
-        console.error('[HSMain] Failed to load the mod!');
-    };
-
-    document.head.appendChild(script);
-})();
-```
-
-Alertnatively the same loader code can be found in [here](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/release/loader/loader.js).
-
-**Example:**
-
-![image](https://github.com/ahvonenj/synergism-hypersynergy/blob/master/doc/img/bookmark_v2.png?raw=true)  
-
-## Enable the mod
-
-Now just load up the game in your browser (or refresh the page if it's already running) and click on the bookmark **after** you've clicked away the "Since you were away" box.
-
-The bookmark will always load up the latest version of the mod, so once you're set up on your end, you're set for life!
 
 # For developers
 
