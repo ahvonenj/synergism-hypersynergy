@@ -341,4 +341,8 @@ export class HSUtils {
             }
         }      
     }
+
+    static async Noop() {
+        return;
+    }
 }

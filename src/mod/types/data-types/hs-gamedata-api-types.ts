@@ -29,6 +29,8 @@ export interface CalculationCache {
     R_ToNextThreshold: CachedValue;
     R_RequiredBlueberryTime: CachedValue;
     R_RequiredRedAmbrosiaTime: CachedValue;
+
+    R_ConsumableEventBuff: CachedValue;
 }
 
 export interface CachedValue {

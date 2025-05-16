@@ -22,6 +22,12 @@ export interface HSGlobalGeneral {
     modWebsiteUrl: string;
 }
 
+export interface HSGlobalCommon {
+    eventAPIUrl: string;
+    pseudoAPIurl: string;
+    meAPIurl: string;
+}
+
 export interface HSGlobalPrototypes {
     defaultTransitionTiming: number;
 }
@@ -108,6 +114,7 @@ export interface HSGlobalHSUIC {
 export interface IHSGlobal {
     Debug: HSGlobalDebug;
     General: HSGlobalGeneral;
+    Common: HSGlobalCommon;
     HSPrototypes: HSGlobalPrototypes;
     HSElementHooker: HSGlobalElementHooker;
     HSLogger: HSGlobalLogger;

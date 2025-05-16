@@ -104,6 +104,12 @@ declare global {
             className: 'HSGameDataAPI',
             context: 'HSGameDataAPI',
             moduleColor: '#fbc531',
+        },
+        {
+            className: 'HSWebSocket',
+            context: 'HSWebSocket',
+            moduleColor: '#FC427B',
+            loadOrder: 5,
         }
     ];
 

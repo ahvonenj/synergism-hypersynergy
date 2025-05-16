@@ -12,6 +12,8 @@ import { HSBooleanSetting, HSSetting } from "../settings/hs-setting";
 import { HSSettings } from "../settings/hs-settings";
 import { HSUI } from "../hs-ui";
 import { CampaignData } from "../../../types/data-types/hs-campaign-data";
+import { GameEventResponse, GameEventType, ConsumableGameEvent, ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
+import { HSWebSocket } from "../hs-websocket";
 
 export class HSGameData extends HSModule {
     #saveDataLocalStorageKey = 'Synergysave2';
@@ -67,6 +69,14 @@ export class HSGameData extends HSModule {
         isAtMaxTokens: false,
     }
 
+    #gameEvents: ConsumableGameEvents = {
+        HAPPY_HOUR_BELL: {
+            amount: 0,
+            ends: [],
+            displayName: "Happy Hour Bell",
+        },
+    };
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
         this.#campaignTokenElement = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
@@ -81,7 +91,7 @@ export class HSGameData extends HSModule {
         this.#importSaveButton = document.querySelector('#importFileButton') as HTMLLabelElement;
 
         try {
-            const upgradesQuery = await fetch('https://synergism.cc/stripe/upgrades');
+            const upgradesQuery = await fetch(HSGlobal.Common.pseudoAPIurl);
             const data = await upgradesQuery.json() as PseudoGameData; 
 
             this.#playerPseudoUpgrades = data;
@@ -91,7 +101,7 @@ export class HSGameData extends HSModule {
         }
 
         try {
-            const meQuery = await fetch('https://synergism.cc/api/v1/users/me');
+            const meQuery = await fetch(HSGlobal.Common.meAPIurl);
             const data = await meQuery.json() as MeData; 
 
             this.#meBonuses = data;
@@ -101,8 +111,55 @@ export class HSGameData extends HSModule {
         }
 
         this.#gameDataAPI = HSModuleManager.getModule('HSGameDataAPI') as HSGameDataAPI;
-
+        this.#registerWebSocket();
         this.isInitialized = true;
+    }
+
+    #registerWebSocket() {
+        const self = this;
+        const wsMod = HSModuleManager.getModule<HSWebSocket>('HSWebSocket');
+        
+        if(wsMod) {
+            wsMod.registerWebSocket<GameEventResponse>('consumable-event-socket', {
+                url: HSGlobal.Common.eventAPIUrl,
+                onMessage: async (msg) => {
+                    if(msg?.type === GameEventType.INFO_ALL) {
+                        HSLogger.debug(`Caught INFO_ALL, but no active events`, this.context);
+
+                        if(msg.active && msg.active.length > 0) {
+                            HSLogger.debug(`Caught WS event: ${msg.type} - event count: ${msg.active.length}, active[0]: ${JSON.stringify(msg.active[0])}`, 'WebSocket');
+
+                            for (const { internalName, endsAt, name } of msg.active) {
+                                self.#resetEventData();
+
+                                const consumable = self.#gameEvents[internalName as keyof ConsumableGameEvents];
+                                
+                                consumable.ends.push(endsAt);
+                                consumable.amount++;
+                                consumable.displayName = name;
+                            }
+
+                            self.#eventDataUpdated();
+                        }
+                    }
+                },
+
+                onRetriesFailed: async () => {
+                    self.#resetEventData();
+                    self.#eventDataUpdated();
+                }
+            })
+        }
+    }
+
+    #resetEventData() {
+        for (const key of Object.keys(this.#gameEvents)) {
+            this.#gameEvents[key as keyof ConsumableGameEvents] = {
+                amount: 0,
+                ends: [],
+                displayName: ''
+            }
+        }
     }
 
     async #refreshFetchedData() {
@@ -408,8 +465,14 @@ export class HSGameData extends HSModule {
     }
 
     #campaignDataUpdated() {
-        if(this.#gameDataAPI) {
+        if(this.#gameDataAPI && this.#campaignData) {
             this.#gameDataAPI._updateCampaignData(this.#campaignData);
+        }
+    }
+
+    #eventDataUpdated() {
+        if(this.#gameDataAPI && this.#gameEvents) {
+            this.#gameDataAPI._updateEventData(this.#gameEvents);
         }
     }
 

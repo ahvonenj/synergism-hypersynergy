@@ -11,6 +11,8 @@ import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
 import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
 import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
+import { HSWebSocket } from "./hs-core/hs-websocket";
+import { GameEventResponse, GameEventType } from "../types/data-types/hs-event-data";
 
 /*
     Class: Hypersynergism
@@ -107,6 +109,8 @@ export class Hypersynergism {
                         }),
                         HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
                         HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
+                        HSUIC.Button({ id: 'hs-panel-test-register-sock-btn', text: 'Register WS' }),
+                        HSUIC.Button({ id: 'hs-panel-test-unregister-sock-btn', text: 'Unregister WS' }),
                     ],
                     styles: {
                         gridTemplateColumns: 'repeat(2, 1fr)',
@@ -204,7 +208,33 @@ export class Hypersynergism {
                     notificationType: colors[c_idx]
                 })
             });
-            
+
+            document.querySelector('#hs-panel-test-register-sock-btn')?.addEventListener('click', async () => {
+                const wsMod = HSModuleManager.getModule<HSWebSocket>('HSWebSocket');
+
+                if(wsMod) {
+                    wsMod.registerWebSocket<GameEventResponse>('testSocket', {
+                        url: HSGlobal.Common.eventAPIUrl,
+                        onMessage: async (msg) => {
+                            if(msg?.type === GameEventType.INFO_ALL) {
+                                HSLogger.log(`Caught INFO_ALL, but no active events`, 'WebSocket');
+
+                                if(msg.active && msg.active.length > 0) {
+                                    HSLogger.log(`Caught WS event: ${msg.type} - event count: ${msg.active.length}, active[0]: ${JSON.stringify(msg.active[0])}`, 'WebSocket');
+                                }
+                            }
+                        }
+                    })
+                }
+            });
+
+            document.querySelector('#hs-panel-test-unregister-sock-btn')?.addEventListener('click', async () => {
+                const wsMod = HSModuleManager.getModule<HSWebSocket>('HSWebSocket');
+
+                if(wsMod) {
+                    wsMod.unregisterWebSocket('testSocket');
+                }
+            });
 
             // BUILD SETTINGS TAB
             const settingsTabContents = HSSettings.autoBuildSettingsUI();

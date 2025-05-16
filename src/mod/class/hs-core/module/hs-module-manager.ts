@@ -19,6 +19,7 @@ import { HSGameState } from "../hs-gamestate";
 import { HSPatches } from "../../hs-modules/hs-patches";
 import { HSGameData } from "../gds/hs-gamedata";
 import { HSGameDataAPI } from "../gds/hs-gamedata-api";
+import { HSWebSocket } from "../hs-websocket";
 
 /*
     Class: HSModuleManager
@@ -51,6 +52,7 @@ export class HSModuleManager {
         "HSPatches": HSPatches,
         "HSGameData": HSGameData,
         "HSGameDataAPI": HSGameDataAPI,
+        "HSWebSocket": HSWebSocket,
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {

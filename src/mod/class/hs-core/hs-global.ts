@@ -19,7 +19,6 @@ export const HSGlobal: IHSGlobal = class {
 
     // --- GENERAL ---
 
-    // Current mod version string
     static General = {
         currentModVersion: '2.7.3',
         modGithubUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/',
@@ -28,6 +27,13 @@ export const HSGlobal: IHSGlobal = class {
         modWebsiteUrl: 'https://ahvonenj.github.io/synergism-hypersynergy/',
     };
 
+    // --- COMMON ---
+
+    static Common = {
+        eventAPIUrl: 'wss://synergism.cc/consumables/connect',
+        pseudoAPIurl: 'https://synergism.cc/stripe/upgrades',
+        meAPIurl: 'https://synergism.cc/api/v1/users/me'
+    }
 
     // --- HSPrototypes ---
     

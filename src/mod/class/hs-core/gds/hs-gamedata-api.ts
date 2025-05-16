@@ -1,3 +1,4 @@
+import { EventBuffType } from "../../../types/data-types/hs-event-data";
 import { CachedValue, CalculationCache, RedAmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/data-types/hs-player-savedata";
 import { HSGlobal } from "../hs-global";
@@ -47,6 +48,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_ToNextThreshold:                         { value: undefined, cachedBy: [] },
         R_RequiredBlueberryTime:                   { value: undefined, cachedBy: [] },
         R_RequiredRedAmbrosiaTime:                 { value: undefined, cachedBy: [] },
+        R_ConsumableEventBuff:                     { value: undefined, cachedBy: [] },
     }
 
     #redAmbrosiaCalculationCollection = redAmbrosiaUpgradeCalculationCollection;
@@ -126,6 +128,67 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
             
         this.#calculationCache[cacheName] = newCachedValue;
+    }
+
+    R_calculateConsumableEventBuff (buff: EventBuffType) {
+        if(!this.eventData) return 0;
+
+        const data = this.eventData;
+        const cacheName = 'R_ConsumableEventBuff' as keyof CalculationCache;
+
+        const calculationVars : number[] = [
+            data.HAPPY_HOUR_BELL.amount
+        ]
+
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        const { HAPPY_HOUR_BELL } = this.eventData;
+
+        const happyHourInterval = HAPPY_HOUR_BELL.amount - 1
+
+        if (HAPPY_HOUR_BELL.amount === 0) {
+            this.#updateCache(cacheName, { value: 0, cachedBy: calculationVars });
+            return 0;
+        }
+
+        let val = 0;
+
+        switch (buff) {
+            case EventBuffType.Quark:
+            val = HAPPY_HOUR_BELL ? 0.25 + 0.025 * happyHourInterval : 0
+            case EventBuffType.GoldenQuark:
+            val = 0
+            case EventBuffType.Cubes:
+            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+            case EventBuffType.PowderConversion:
+            val = 0
+            case EventBuffType.AscensionSpeed:
+            val = 0
+            case EventBuffType.GlobalSpeed:
+            val = 0
+            case EventBuffType.AscensionScore:
+            val = 0
+            case EventBuffType.AntSacrifice:
+            val = 0
+            case EventBuffType.Offering:
+            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+            case EventBuffType.Obtainium:
+            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+            case EventBuffType.Octeract:
+            val = 0
+            case EventBuffType.OneMind:
+            val = 0
+            case EventBuffType.BlueberryTime:
+            val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0
+            case EventBuffType.AmbrosiaLuck:
+            val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0
+        }
+
+        this.#updateCache(cacheName, { value: val, cachedBy: calculationVars });
+
+        return val;
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2340
@@ -767,7 +830,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             RED_AMB_GEN_1,
             RED_AMB_GEN_2,
             1 + 0.01 * cube76 * this.R_calculateNumberOfThresholds(),
-            // event
+            this.isEvent ? 1 + this.R_calculateConsumableEventBuff(EventBuffType.BlueberryTime) : 1
         ];
 
         return speedComponents.reduce((a, b) => a * b, 1);
@@ -812,7 +875,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             gameData.shopUpgrades.shopAmbrosiaLuckMultiplier4 / 100,
             gameData.singularityChallenges.noAmbrosiaUpgrades.completions / 200,
             0.001 * cube77,
-            // event
+            this.isEvent ? this.R_calculateConsumableEventBuff(EventBuffType.AmbrosiaLuck) : 0
         ]
 
         const P_BUFF_LVL = pseudoData.playerUpgrades.find(u => u.internalName === "AMBROSIA_LUCK_BUFF")?.level;
@@ -882,7 +945,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             RED_AMB_VISCOUNT,
             2 * cube77,
             this.R_calculateCookieUpgrade29Luck(),
-            gameData.shopUpgrades.shopAmbrosiaUltra * this.R_calculateSumOfExaltCompletions()
+            gameData.shopUpgrades.shopAmbrosiaUltra * this.R_calculateSumOfExaltCompletions(),
         ]
 
         const additivesTotal = additiveComponents.reduce((a, b) => a + b, 0);
