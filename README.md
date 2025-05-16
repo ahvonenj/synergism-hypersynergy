@@ -97,6 +97,7 @@ The bookmark will always load up the latest version of the mod, so once you're s
 # Latest update(s)
 
 ## Hypersynergism version 2.7.4
+
 Released: 17.5.2025
 
 **WebSocket connections**
