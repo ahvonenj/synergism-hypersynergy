@@ -50,6 +50,7 @@ Quick overview:
 - Patch to add visible names for Quark Shop items
 - Ambrosia Loadout Idle Swapper
 - Game data access via GDS™
+- Ambrosia minibars
 
 ## Latest update(s)
 
