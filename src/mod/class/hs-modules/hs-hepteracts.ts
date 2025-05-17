@@ -217,8 +217,6 @@ export class HSHepteracts extends HSModule {
                             const isQuarkHepteract = targetId.toLowerCase().includes('quark');
 
                             if(self.#ownedHepteracts !== null && self.#ownedHepteracts !== undefined) {
-                                if(self.#ownedHepteracts === 0) return;
-
                                 const currentMax = (self.#boxCounts as any)[id];
                                 const cubeCost = (self.#hepteractCosts as any)[id];
 
@@ -233,9 +231,12 @@ export class HSHepteracts extends HSModule {
                                     buyCost = currentMax * 2 * cubeCost;
                                 }
 
-                                const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
-
-                                self.#updateCraftText(buyCost, percentOwned, isQuarkHepteract);
+                                if(self.#ownedHepteracts === 0) {
+                                    self.#updateCraftText(buyCost, '∞', isQuarkHepteract);
+                                } else {
+                                    const percentOwned = self.#ownedHepteracts > 0 ? buyCost / self.#ownedHepteracts : 1;
+                                    self.#updateCraftText(buyCost, percentOwned, isQuarkHepteract);
+                                }
                             }
                         });
 
@@ -563,9 +564,17 @@ export class HSHepteracts extends HSModule {
         }
     }
 
-    #updateCraftText(buyCost: number, percentOwned: number, isQuarkHepteract: boolean = false) {
+    #updateCraftText(buyCost: number, percentOwned: number | string, isQuarkHepteract: boolean = false) {
         if(this.#hepteractCraftTexts) {
             const hasCostText = this.#hepteractCraftTexts.querySelector(`#hs-costText`) as HTMLDivElement;
+
+            let persOwn;
+
+            if(HSUtils.isNumeric(percentOwned)) {
+                persOwn = HSUtils.N(percentOwned as number * 100);
+            } else {
+                persOwn = percentOwned as string;
+            }
 
             if(!hasCostText) {
                 const costText = document.createElement('div');
@@ -574,14 +583,14 @@ export class HSHepteracts extends HSModule {
                 if(isQuarkHepteract)
                     costText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    costText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${HSUtils.N(percentOwned * 100)}% of owned)`;
+                    costText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${persOwn}% of owned)`;
 
                 this.#hepteractCraftTexts.appendChild(costText);
             } else {
                 if(isQuarkHepteract)
                     hasCostText.innerText = `[${this.context}]: Total QUARK cost to max after next expand: ${HSUtils.N(buyCost)} (ESTIMATE!)`;
                 else
-                    hasCostText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${HSUtils.N(percentOwned * 100)}% of owned)`;
+                    hasCostText.innerText = `[${this.context}]: Total HEPT cost to max after next expand: ${HSUtils.N(buyCost)} (${persOwn}% of owned)`;
             }
         }
     }

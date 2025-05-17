@@ -315,6 +315,20 @@ implements HSPersistable, HSGameDataSubscriber {
         } else {
             HSLogger.warn(`Could not find quick bar element`, this.context);
         }
+
+        const originalQuickBar = document.querySelector('#bbLoadoutContainer');
+
+        if(originalQuickBar) {
+            originalQuickBar.querySelectorAll('.blueberryLoadoutSlot').forEach((slot) => {
+                slot.classList.remove('hs-ambrosia-active-slot');
+            });
+
+            const activeSlot = originalQuickBar.querySelector(`#${slotEnum}`) as HTMLElement;
+
+            if(activeSlot) {
+                activeSlot.classList.add('hs-ambrosia-active-slot');
+            }
+        }
     }
 
     #getIconEnumById(iconId: string): AMBROSIA_ICON | undefined {
@@ -464,6 +478,14 @@ implements HSPersistable, HSGameDataSubscriber {
             HSUI.removeInjectedStyle(this.#quickbarCSSId);
         } else {
             HSLogger.warn(`Could not find quick bar element`, this.context);
+        }
+
+        const originalQuickBar = document.querySelector('#bbLoadoutContainer');
+
+        if(originalQuickBar) {
+            originalQuickBar.querySelectorAll('.blueberryLoadoutSlot').forEach((slot) => {
+                slot.classList.remove('hs-ambrosia-active-slot');
+            });
         }
     }
 
