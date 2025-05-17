@@ -96,4 +96,23 @@ export abstract class HSGameDataAPIPartial extends HSModule {
     getPseudoData(): PseudoGameData | undefined {
         return this.pseudoData;
     }
+
+    dumpDataForHeater() {
+        /*const heaterData = {
+            lifeTimeAmbrosia:,
+            quarks:,
+            platonic4x4:,
+            baseLuck:,
+            luckMult:,
+            totalCubes:,
+            effectiveSingularity: gameData.highestSingularityCount,
+            transcription:,
+            ascSpeed:,
+            blueberries:,
+            bonusRow2:,
+            bonusRow3:,
+            bonusRow4:,
+            bonusRow5:,
+        }*/
+    }
 }

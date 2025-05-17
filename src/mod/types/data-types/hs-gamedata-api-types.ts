@@ -31,6 +31,10 @@ export interface CalculationCache {
     R_RequiredRedAmbrosiaTime: CachedValue;
 
     R_ConsumableEventBuff: CachedValue;
+
+    R_RawAscensionSpeedMult: CachedValue;
+    R_HepteractEffective: CachedValue;
+    R_AllShopTablets: CachedValue;
 }
 
 export interface CachedValue {
@@ -56,3 +60,16 @@ export interface RedAmbrosiaUpgradeCalculationCollection {
     regularLuck2: RedAmbrosiaUpgradeCalculationConfig;
     viscount: RedAmbrosiaUpgradeCalculationConfig;
 }
+
+export const hepteractTypeList = [
+  'chronos',
+  'hyperrealism',
+  'quark',
+  'challenge',
+  'abyss',
+  'accelerator',
+  'acceleratorBoost',
+  'multiplier'
+] as const
+
+export type HepteractType = typeof hepteractTypeList[number];

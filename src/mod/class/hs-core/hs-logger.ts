@@ -24,6 +24,9 @@ export class HSLogger {
     static #lastLogHash = -1;
     static #displayTimestamp : boolean = false;
 
+    static #oneShotLogHistory : Map<string, { logged: boolean, timestamp: number, level: ELogType, count: number }> = new Map();
+    static #oneShotLogHistoryIvl?: number;
+
     // Integrates the logger to the mod's UI panel's Log tab
     static async integrateToUI(hsui: HSUI) {
         const logElement = await hsui.getLogElement();
@@ -195,6 +198,54 @@ export class HSLogger {
             HSLogger.log(`Log cleared`, this.#staticContext);
         }
     }
+
+    static logOnce(msg: string, logId: string) {
+        if(!this.#oneShotLogHistory.has(logId) || !this.#oneShotLogHistory.get(logId)?.logged) {
+            this.#oneShotLogHistory.set(logId, { logged: true, timestamp: Date.now(), level: ELogType.LOG, count: 0 });
+            this.log(msg, "Once", true);
+        } else {
+            this.#oneShotLogHistory.get(logId)!.count++;
+        }
+
+        this.#maybeStartOneShotIvl();
+    }
+
+    static warnOnce(msg: string, logId: string) {
+        if(!this.#oneShotLogHistory.has(logId) || !this.#oneShotLogHistory.get(logId)?.logged) {
+            this.#oneShotLogHistory.set(logId, { logged: true, timestamp: Date.now(), level: ELogType.WARN, count: 0 });
+            this.warn(msg, "Once", true);
+        } else {
+            this.#oneShotLogHistory.get(logId)!.count++;
+        }
+
+        this.#maybeStartOneShotIvl();
+    }
+
+    static errorOnce(msg: string, logId: string) {
+        if(!this.#oneShotLogHistory.has(logId) || !this.#oneShotLogHistory.get(logId)?.logged) {
+            this.#oneShotLogHistory.set(logId, { logged: true, timestamp: Date.now(), level: ELogType.ERROR, count: 0 });
+            this.error(msg, "Once", true);
+        } else {
+            this.#oneShotLogHistory.get(logId)!.count++;
+        }
+
+        this.#maybeStartOneShotIvl();
+    }
+
+    static #maybeStartOneShotIvl() {
+        /*if(!this.#oneShotLogHistoryIvl) {
+            this.#oneShotLogHistoryIvl = setInterval(() => {
+                this.#oneShotLogHistory.forEach((value, key) => {
+                    if(value.logged) {
+                        if(Date.now() - value.timestamp > 10 * 60 * 1000) {
+                            this.#oneShotLogHistory.delete(key);
+                        }
+                    }
+                });
+            }, 5 * 60 * 1000);
+        }*/
+    }
+
 
     // This gets called when the display timestamp setting is changed
     // It will add or remove the hs-log-ts-hidden class to all log lines

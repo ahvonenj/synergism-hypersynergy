@@ -682,6 +682,7 @@ implements HSPersistable, HSGameDataSubscriber {
 
         if(gameDataMod && !this.gameDataSubscriptionId) {
             this.gameDataSubscriptionId = gameDataMod.subscribeGameDataChange(this.gameDataCallback.bind(this));
+            HSLogger.debug('Subscribed to game data changes', this.context);
         }
     }
 
@@ -693,6 +694,7 @@ implements HSPersistable, HSGameDataSubscriber {
             if(!this.#isIdleSwapEnabled && !this.#berryMinibarsEnabled) {
                 gameDataMod.unsubscribeGameDataChange(this.gameDataSubscriptionId);
                 this.gameDataSubscriptionId = undefined;
+                HSLogger.debug('Unsubscribed from game data changes', this.context);
             }
         }
     }
@@ -827,7 +829,14 @@ implements HSPersistable, HSGameDataSubscriber {
                 if(this.#blueProgressMinibarElement && this.#redProgressMinibarElement) {
                     this.#blueProgressMinibarElement.style.width = `${blueAmbrosiaPercent}%`;
                     this.#redProgressMinibarElement.style.width = `${redAmbrosiaPercent}%`;
+                } else {
+                    HSLogger.warnOnce(`
+                        HSAmbrosia.gameDataCallback() - minibar element(s) undefined. 
+                        blue: ${this.#blueProgressMinibarElement}, 
+                        red: ${this.#redProgressMinibarElement}`, 'hs-minibars-undefined');
                 }
+            } else {
+                HSLogger.logOnce('HSAmbrosia.gameDataCallback() - berryMinibarsEnabled was false', 'hs-minibars-false');
             }
         }
     };
@@ -845,9 +854,12 @@ implements HSPersistable, HSGameDataSubscriber {
                     this.#redAmbrosiaProgressBar = await HSElementHooker.HookElement('#pixelProgressBar') as HTMLDivElement;
                     this.#isIdleSwapEnabled = true;
                     this.#maybeInsertIdleLoadoutIndicator();
+                    this.subscribeGameDataChanges();
+                    
                 } else {
                     this.#isIdleSwapEnabled = false;
                     this.#removeIdleLoadoutIndicator();
+                    this.unsubscribeGameDataChanges();
                 }
             });
 
@@ -858,15 +870,14 @@ implements HSPersistable, HSGameDataSubscriber {
                     this.#redAmbrosiaProgressBar = await HSElementHooker.HookElement('#pixelProgressBar') as HTMLDivElement;
                     this.#isIdleSwapEnabled = true;
                     this.#maybeInsertIdleLoadoutIndicator();
+                    this.subscribeGameDataChanges();
             }
         } else {
-            HSLogger.warn(`Could not find game state module`, this.context);
+            HSLogger.warn('HSAmbrosia.enableIdleSwap() - gameStateMod==undefined', 'hs-enable-idleswap-gamestate');
         }
 
         if(!this.#debugElement)
             this.#debugElement = document.querySelector('#hs-panel-debug-gamedata-currentambrosia') as HTMLDivElement;
-
-        this.subscribeGameDataChanges();
     }
 
     disableIdleSwap() {
@@ -885,6 +896,8 @@ implements HSPersistable, HSGameDataSubscriber {
                 gameStateMod.unsubscribeGameStateChange('SINGULARITY_VIEW', this.#gameStateSubViewSubscriptionId);
                 this.#gameStateSubViewSubscriptionId = undefined;
             }
+        } else {
+            HSLogger.warnOnce('HSAmbrosia.disableIdleSwap() - gameStateMod==undefined', 'hs-disable-idleswap-gamestate');
         }
 
         this.#removeIdleLoadoutIndicator();
@@ -900,6 +913,8 @@ implements HSPersistable, HSGameDataSubscriber {
             ) {
                 this.#isIdleSwapEnabled = false;
             }
+        } else {
+            HSLogger.warnOnce('HSAmbrosia.gameStateCallbackMain() - gameStateMod==undefined', 'hs-amb-gamestate-cb');
         }
     }
 
@@ -983,7 +998,7 @@ implements HSPersistable, HSGameDataSubscriber {
         this.#blueProgressMinibarElement = blueBarProgress;
         this.#redProgressMinibarElement = redBarProgress;
 
-
+        this.subscribeGameDataChanges();
         this.#berryMinibarsEnabled = true;
     }
 
@@ -1002,5 +1017,6 @@ implements HSPersistable, HSGameDataSubscriber {
         HSUI.removeInjectedStyle(this.#minibarCSSId);
 
         this.#berryMinibarsEnabled = false;
+        this.unsubscribeGameDataChanges();
     }
 }
