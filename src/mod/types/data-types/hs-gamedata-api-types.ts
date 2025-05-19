@@ -35,6 +35,10 @@ export interface CalculationCache {
     R_RawAscensionSpeedMult: CachedValue;
     R_HepteractEffective: CachedValue;
     R_AllShopTablets: CachedValue;
+    R_LimitedAscensionsDebuff: CachedValue;
+    R_SingularityDebuff: CachedValue;
+    R_SingularityReductions: CachedValue;
+    R_EffectiveSingularities: CachedValue;
 }
 
 export interface CachedValue {
@@ -80,3 +84,15 @@ export const hepteractTypeList = [
 ] as const
 
 export type HepteractType = typeof hepteractTypeList[number];
+
+//https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/singularity.ts#L2680
+export type SingularityDebuffs =
+  | 'Offering'
+  | 'Obtainium'
+  | 'Global Speed'
+  | 'Researches'
+  | 'Ascension Speed'
+  | 'Cubes'
+  | 'Cube Upgrades'
+  | 'Platonic Costs'
+  | 'Hepteract Costs';

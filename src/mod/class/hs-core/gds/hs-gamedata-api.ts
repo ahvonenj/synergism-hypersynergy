@@ -1,10 +1,10 @@
 import { EventBuffType } from "../../../types/data-types/hs-event-data";
-import { CachedValue, CalculationCache, HepteractType, RedAmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
+import { CachedValue, CalculationCache, HepteractType, RedAmbrosiaUpgradeCalculationConfig, SingularityDebuffs } from "../../../types/data-types/hs-gamedata-api-types";
 import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/data-types/hs-player-savedata";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
-import { hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
+import { challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
 
 /*
     If this looks silly, check details in hs-gamedata-api-partial.ts
@@ -69,6 +69,11 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_RawAscensionSpeedMult:                   { value: undefined, cachedBy: [] },
         R_HepteractEffective:                      { value: undefined, cachedBy: [] },
         R_AllShopTablets:                          { value: undefined, cachedBy: [] },
+        R_LimitedAscensionsDebuff:                 { value: undefined, cachedBy: [] },
+        R_SingularityDebuff:                       { value: undefined, cachedBy: [] },
+        R_SingularityReductions:                   { value: undefined, cachedBy: [] },
+        R_EffectiveSingularities:                  { value: undefined, cachedBy: [] },
+
     }
 
     // These are imported from stored-vars-and-calculationss.ts
@@ -838,19 +843,19 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         let exponentBoost = 0;
 
         if (heptType === 'chronos') {
-            exponentBoost += 1 / 750 * data.platonicUpgrades[19]
+            exponentBoost += 1 / 750 * data.platonicUpgrades[19];
         }
 
-        /*if (heptType === 'quark') {
-            exponentBoost += +data.singularityUpgrades.singQuarkHepteract.getEffect().bonus
-            exponentBoost += +data.singularityUpgrades.singQuarkHepteract2.getEffect().bonus
-            exponentBoost += +data.singularityUpgrades.singQuarkHepteract3.getEffect().bonus
-            exponentBoost += +data.octeractUpgrades.octeractImprovedQuarkHept.getEffect().bonus
-            exponentBoost += data.shopUpgrades.improveQuarkHept / 100
-            exponentBoost += data.shopUpgrades.improveQuarkHept2 / 100
-            exponentBoost += data.shopUpgrades.improveQuarkHept3 / 100
-            exponentBoost += data.shopUpgrades.improveQuarkHept4 / 100
-            exponentBoost += data.shopUpgrades.improveQuarkHept5 / 5000
+        if (heptType === 'quark') {
+            exponentBoost += +data.singularityUpgrades.singQuarkHepteract.level / 100;
+            exponentBoost += +data.singularityUpgrades.singQuarkHepteract2.level / 100;
+            exponentBoost += +data.singularityUpgrades.singQuarkHepteract3.level / 100;
+            exponentBoost += +data.octeractUpgrades.octeractImprovedQuarkHept.level / 100;
+            exponentBoost += data.shopUpgrades.improveQuarkHept / 100;
+            exponentBoost += data.shopUpgrades.improveQuarkHept2 / 100;
+            exponentBoost += data.shopUpgrades.improveQuarkHept3 / 100;
+            exponentBoost += data.shopUpgrades.improveQuarkHept4 / 100;
+            exponentBoost += data.shopUpgrades.improveQuarkHept5 / 5000;
 
             const amount = data.hepteractCrafts[heptType].BAL;
             let val;
@@ -875,13 +880,13 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
             this.#updateCache(cacheName, { value: val, cachedBy: calculationVars });
             return val;
-        }*/
+        }
 
         if (data.hepteractCrafts[heptType].BAL > this.#hepteractEffectiveValues[heptType].LIMIT) {
             effectiveValue *= Math.pow(
                 data.hepteractCrafts[heptType].BAL / this.#hepteractEffectiveValues[heptType].LIMIT,
                 this.#hepteractEffectiveValues[heptType].DR + exponentBoost
-            )
+            );
         }
 
         this.#updateCache(cacheName, { value: effectiveValue, cachedBy: calculationVars });
@@ -931,6 +936,223 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return reduced;
     }
 
+    R_calculateLimitedAscensionsDebuff() {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+        const cacheName = 'R_LimitedAscensionsDebuff' as keyof CalculationCache;
+
+        if (!data.singularityChallenges.limitedAscensions.enabled)
+            return 1;
+
+        const calculationVars : number[] = [
+            data.ascensionCount,
+            data.singularityChallenges.limitedAscensions.completions
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        let exponent = data.ascensionCount
+            - Math.max(
+            0,
+            20 - data.singularityChallenges.limitedAscensions.completions
+        )
+
+        exponent = Math.max(0, exponent)
+        const val = Math.pow(2, exponent);
+
+        this.#updateCache(cacheName, { value: val, cachedBy: calculationVars });
+
+        return val;
+    }
+
+    R_calculateSingularityReductions () {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+        const cacheName = 'R_SingularityReductions' as keyof CalculationCache;
+
+        const calculationVars : number[] = [
+            data.insideSingularityChallenge ? 1 : 0,
+            data.blueberryUpgrades.ambrosiaSingReduction2.level,
+            data.blueberryUpgrades.ambrosiaSingReduction1.level,
+            data.shopUpgrades.shopSingularityPenaltyDebuff
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        let redu;
+
+        if(data.insideSingularityChallenge) {
+            redu = data.blueberryUpgrades.ambrosiaSingReduction2.level
+        } else {
+            redu = data.blueberryUpgrades.ambrosiaSingReduction1.level
+        }
+
+        const arr = [
+            data.shopUpgrades.shopSingularityPenaltyDebuff,
+            redu
+        ]
+
+        const reduced = arr.reduce((a, b) => a + b, 0)
+
+        this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
+
+        return reduced;
+    }
+
+    R_calculateEffectiveSingularities (singularityCount: number = -1): number {
+         if(!this.gameData) return 0;
+        const data = this.gameData;
+
+        const cacheName = 'R_EffectiveSingularities' as keyof CalculationCache;
+
+        const calculationVars : number[] = [
+            singularityCount,
+            data.insideSingularityChallenge ? 1 : 0,
+            data.singularityChallenges.noOcteracts.completions
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        let effectiveSingularities = singularityCount === -1 ? data.singularityCount : singularityCount;
+
+        effectiveSingularities *= Math.min(4.75, (0.75 * singularityCount) / 10 + 1)
+
+        if (data.insideSingularityChallenge) {
+            if (data.singularityChallenges.noOcteracts.enabled) {
+                effectiveSingularities *= Math.pow(data.singularityChallenges.noOcteracts.completions + 1, 3);
+            }
+        }
+
+        if (singularityCount > 10) {
+            effectiveSingularities *= 1.5;
+            effectiveSingularities *= Math.min(4, (1.25 * singularityCount) / 10 - 0.25);
+        }
+
+        if (singularityCount > 25) {
+            effectiveSingularities *= 2.5;
+            effectiveSingularities *= Math.min(6, (1.5 * singularityCount) / 25 - 0.5);
+        }
+
+        if (singularityCount > 36) {
+            effectiveSingularities *= 4;
+            effectiveSingularities *= Math.min(5, singularityCount / 18 - 1);
+            effectiveSingularities *= Math.pow(1.1, Math.min(singularityCount - 36, 64));
+        }
+
+        if (singularityCount > 50) {
+            effectiveSingularities *= 5;
+            effectiveSingularities *= Math.min(8, (2 * singularityCount) / 50 - 1);
+            effectiveSingularities *= Math.pow(1.1, Math.min(singularityCount - 50, 50));
+        }
+
+        if (singularityCount > 100) {
+            effectiveSingularities *= 2;
+            effectiveSingularities *= singularityCount / 25;
+            effectiveSingularities *= Math.pow(1.1, singularityCount - 100);
+        }
+
+        if (singularityCount > 150) {
+            effectiveSingularities *= 2;
+            effectiveSingularities *= Math.pow(1.05, singularityCount - 150);
+        }
+
+        if (singularityCount > 200) {
+            effectiveSingularities *= 1.5;
+            effectiveSingularities *= Math.pow(1.275, singularityCount - 200);
+        }
+
+        if (singularityCount > 215) {
+            effectiveSingularities *= 1.25;
+            effectiveSingularities *= Math.pow(1.2, singularityCount - 215);
+        }
+
+        if (singularityCount > 230) {
+            effectiveSingularities *= 2;
+        }
+
+        if (singularityCount > 269) {
+            effectiveSingularities *= 3;
+            effectiveSingularities *= Math.pow(3, singularityCount - 269);
+        }
+
+        this.#updateCache(cacheName, { value: effectiveSingularities, cachedBy: calculationVars });
+
+        return effectiveSingularities;
+    }
+
+    R_calculateSingularityDebuff(debuff: SingularityDebuffs, singularityCount: number = -1) {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+
+        if(singularityCount === -1) {
+            singularityCount = data.singularityCount;
+        }
+
+        if (singularityCount === 0) {
+            return 1;
+        }
+
+        if (data.runelevels[6] > 0) {
+            return 1;
+        }
+
+        const constitutiveSingularityCount = singularityCount - calculateSingularityReductions()
+
+        if (constitutiveSingularityCount < 1) {
+            return 1;
+        }
+
+        const effectiveSingularities = calculateEffectiveSingularities(
+            constitutiveSingularityCount
+        )
+
+        let val;
+
+        if (debuff === 'Offering') {
+            val = constitutiveSingularityCount < 150
+                ? Math.sqrt(effectiveSingularities) + 1
+                : Math.pow(effectiveSingularities, 2 / 3) / 400
+        } else if (debuff === 'Global Speed') {
+            val = 1 + Math.sqrt(effectiveSingularities) / 4
+        } else if (debuff === 'Obtainium') {
+            val = constitutiveSingularityCount < 150
+                ? Math.sqrt(effectiveSingularities) + 1
+                : Math.pow(effectiveSingularities, 2 / 3) / 400
+        } else if (debuff === 'Researches') {
+            val = 1 + Math.sqrt(effectiveSingularities) / 2
+        } else if (debuff === 'Ascension Speed') {
+            val = constitutiveSingularityCount < 150
+                ? 1 + Math.sqrt(effectiveSingularities) / 5
+                : 1 + Math.pow(effectiveSingularities, 0.75) / 10000
+        } else if (debuff === 'Cubes') {
+            const extraMult = constitutiveSingularityCount > 100
+                ? Math.pow(1.02, constitutiveSingularityCount - 100)
+                : 1;
+
+            val = constitutiveSingularityCount < 150
+                ? 1 + (Math.sqrt(effectiveSingularities) * extraMult) / 4
+                : 1 + (Math.pow(effectiveSingularities, 0.75) * extraMult) / 1000
+        } else if (debuff === 'Platonic Costs') {
+            val = constitutiveSingularityCount > 36
+                ? 1 + Math.pow(effectiveSingularities, 3 / 10) / 12
+                : 1
+        } else if (debuff === 'Hepteract Costs') {
+            val = constitutiveSingularityCount > 50
+                ? 1 + Math.pow(effectiveSingularities, 11 / 50) / 25
+                : 1
+        } else {
+            val = Math.cbrt(effectiveSingularities + 1)
+        }
+
+        return val;
+    }
+
     R_calculateRawAscensionSpeedMult() {
         if(!this.gameData) return 0;
         const data = this.gameData;
@@ -954,7 +1176,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.shopUpgrades.shopChronometerS,
             cube59
         ];
-        /*
+        
         const cached = this.#checkCache(cacheName, calculationVars);
 
         if(cached) return cached;
@@ -975,7 +1197,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // PlatonicOMEGA
             1 + 0.002 * this.getCorruptionTotalLevel() * data.platonicUpgrades[15],
             // Challenge15
-            G.challenge15Rewards.ascensionSpeed.value,
+            challenge15Rewards.ascensionSpeed.value,
             // CookieUpgrade9
             1 + (1 / 400) * cube59,
             // IntermediatePack
@@ -987,18 +1209,18 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // AbstractExokinetics
             1 + (+data.octeractUpgrades.octeractImprovedAscensionSpeed2.level / 2000) * data.singularityCount,
             // ChronometerINF
-            Math.pow(1.006, data.shopUpgrades.chronometerInfinity + calculateFreeShopInfinityUpgrades()),
+            Math.pow(1.006, data.shopUpgrades.chronometerInfinity + this.R_calculateAllShopTablets()),
             // LimitedAscensionsBuff
             Math.pow(
-            1 + +data.singularityChallenges.limitedAscensions.rewards.ascensionSpeedMult,
+            1 + ((0.1 * data.singularityChallenges.limitedAscensions.completions) / 100),
             1 + Math.max(0, Math.floor(Math.log10(data.ascensionCount))),
-            )
+            ),
             // LimitedTimeChallenge
-            1 + +data.singularityChallenges.limitedTime.rewards.ascensionSpeed,
+            1 + ( 0.06 * data.singularityChallenges.limitedTime.completions),
             // ChronometerS
-            Math.max(Math.pow(1.01, (data.singularityCount - 200) * data.shopUpgrades.shopChronometerS), 1)
+            Math.max(Math.pow(1.01, (data.singularityCount - 200) * data.shopUpgrades.shopChronometerS), 1),
             // LimitedAscensionsDebuff
-            1 / calculateLimitedAscensionsDebuff(),
+            1 / this.R_calculateLimitedAscensionsDebuff(),
             // SingularityDebuff
             1 / calculateSingularityDebuff('Ascension Speed'),
             // Event
@@ -1011,7 +1233,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;*/
+        return reduced;
     }
 
     calculateAmbrosiaSpeed() {
