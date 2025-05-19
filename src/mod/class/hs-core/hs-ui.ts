@@ -102,9 +102,13 @@ export class HSUI extends HSModule {
         this.#loggerElement = await HSElementHooker.HookElement('#hs-ui-log') as HTMLTextAreaElement;
         this.#logClearBtn = await HSElementHooker.HookElement('#hs-ui-log-clear') as HTMLButtonElement;
         const panelHandle = await HSElementHooker.HookElement('.hs-panel-header') as HTMLDivElement;
+        const panelResizeHandle = await HSElementHooker.HookElement('.hs-resizer') as HTMLDivElement;
 
         // Make the HS UI panel draggable
         this.#makeDraggable(this.#uiPanel, panelHandle);
+
+        // Make the HS UI panel resizable
+        this.#makeResizable(this.#uiPanel, panelResizeHandle);
 
         // Make the HS UI panel closeable
         this.#uiPanelCloseBtn.addEventListener('click', async () => {
@@ -241,6 +245,54 @@ export class HSUI extends HSModule {
         function closeDragElement() {
             document.onmouseup = null;
             document.onmousemove = null;
+        }
+    }
+
+    #makeResizable(element: HTMLElement, resizeHandle : HTMLElement) {
+        const resizable = element;
+        const resizer = resizeHandle;
+        let isResizing = false;
+        let startX: number;
+        let startY: number;
+        let startWidth: number;
+        let startHeight: number;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = resizable.offsetWidth;
+            startHeight = resizable.offsetHeight;
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        });
+
+        function resize(e: MouseEvent) {
+            if (!isResizing) return;
+
+            let newWidth = startWidth + (e.clientX - startX);
+            let newHeight = startHeight + (e.clientY - startY);
+
+            if(newWidth <= 500)
+                newWidth = 500;
+
+            if(newHeight <= 400)
+                newHeight = 400;
+
+            if(newWidth >= 1000)
+                newWidth = 1000;
+
+            if(newHeight >= 700)
+                newHeight = 700;
+
+            resizable.style.width = newWidth + 'px';
+            resizable.style.height = newHeight + 'px';
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
         }
     }
 

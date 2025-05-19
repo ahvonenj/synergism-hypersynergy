@@ -1087,7 +1087,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     }
 
     R_calculateSingularityDebuff(debuff: SingularityDebuffs, singularityCount: number = -1) {
-        if(!this.gameData) return 0;
+        if(!this.gameData) return 1;
         const data = this.gameData;
 
         if(singularityCount === -1) {
@@ -1102,13 +1102,13 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             return 1;
         }
 
-        const constitutiveSingularityCount = singularityCount - calculateSingularityReductions()
+        const constitutiveSingularityCount = singularityCount - this.R_calculateSingularityReductions()
 
         if (constitutiveSingularityCount < 1) {
             return 1;
         }
 
-        const effectiveSingularities = calculateEffectiveSingularities(
+        const effectiveSingularities = this.R_calculateEffectiveSingularities(
             constitutiveSingularityCount
         )
 
@@ -1174,7 +1174,8 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.singularityChallenges.limitedAscensions.completions,
             data.singularityChallenges.limitedTime.completions,
             data.shopUpgrades.shopChronometerS,
-            cube59
+            cube59,
+            data.insideSingularityChallenge ? 1 : 0
         ];
         
         const cached = this.#checkCache(cacheName, calculationVars);
@@ -1212,8 +1213,8 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             Math.pow(1.006, data.shopUpgrades.chronometerInfinity + this.R_calculateAllShopTablets()),
             // LimitedAscensionsBuff
             Math.pow(
-            1 + ((0.1 * data.singularityChallenges.limitedAscensions.completions) / 100),
-            1 + Math.max(0, Math.floor(Math.log10(data.ascensionCount))),
+                1 + ((0.1 * data.singularityChallenges.limitedAscensions.completions) / 100),
+                1 + Math.max(0, Math.floor(Math.log10(data.ascensionCount))),
             ),
             // LimitedTimeChallenge
             1 + ( 0.06 * data.singularityChallenges.limitedTime.completions),
@@ -1222,14 +1223,12 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // LimitedAscensionsDebuff
             1 / this.R_calculateLimitedAscensionsDebuff(),
             // SingularityDebuff
-            1 / calculateSingularityDebuff('Ascension Speed'),
+            1 / this.R_calculateSingularityDebuff('Ascension Speed'),
             // Event
             1 + this.R_calculateConsumableEventBuff(EventBuffType.AscensionSpeed),
         ]
 
-        
-
-        const reduced = Math.min(max, val);
+        const reduced = vals.reduce((a, b) => a * b, 1)
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
