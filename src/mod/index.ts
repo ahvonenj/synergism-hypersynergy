@@ -46,6 +46,19 @@ declare global {
             loadOrder: 4,
         },
         {
+            className: 'HSDebug',
+            context: 'HSDebug',
+            moduleColor: '#ff2020',
+            loadOrder: 5,
+            initImmediate: true
+        },
+        {
+            className: 'HSWebSocket',
+            context: 'HSWebSocket',
+            moduleColor: '#FC427B',
+            loadOrder: 6,
+        },
+        {
             className: 'HSShadowDOM',
             context: 'HSShadowDOM',
             moduleColor: 'hotpink',
@@ -104,12 +117,6 @@ declare global {
             className: 'HSGameDataAPI',
             context: 'HSGameDataAPI',
             moduleColor: '#fbc531',
-        },
-        {
-            className: 'HSWebSocket',
-            context: 'HSWebSocket',
-            moduleColor: '#FC427B',
-            loadOrder: 5,
         }
     ];
 

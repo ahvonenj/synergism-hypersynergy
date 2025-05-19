@@ -20,6 +20,7 @@ import { HSPatches } from "../../hs-modules/hs-patches";
 import { HSGameData } from "../gds/hs-gamedata";
 import { HSGameDataAPI } from "../gds/hs-gamedata-api";
 import { HSWebSocket } from "../hs-websocket";
+import { HSDebug } from "../hs-debug";
 
 /*
     Class: HSModuleManager
@@ -53,6 +54,7 @@ export class HSModuleManager {
         "HSGameData": HSGameData,
         "HSGameDataAPI": HSGameDataAPI,
         "HSWebSocket": HSWebSocket,
+        "HSDebug": HSDebug
     };
 
     constructor(context: string, modulesToEnable : HSModuleDefinition[]) {
@@ -72,7 +74,7 @@ export class HSModuleManager {
     async preprocessModules() {
         const seenModules: string[] = [];
 
-        this.#modules.forEach(async def => {
+        for(const def of this.#modules) {
             if(seenModules.includes(def.className)) {
                 HSLogger.warn(`Module "${def.className}" is already enabled - there is probably a duplicate module in enabledModules (index.ts)!`, this.#context);
                 return;
@@ -82,7 +84,7 @@ export class HSModuleManager {
 
             if(def.initImmediate !== undefined && def.initImmediate === true) {
                 if(module) {
-                    module.init();
+                    await module.init();
 
                     // We want / try to init HSUI module as early as possible so that we can integrate HSLogger to it
                     // This is so that HSLogger starts to write log inside the Log tab in the mod's panel instead of just the devtools console
@@ -94,7 +96,7 @@ export class HSModuleManager {
             }
 
             seenModules.push(def.className);
-        });
+        }
     }
 
     // Adds module to the manager and instantiates the module's class (looks very unorthodox, but really isn't, I promise)

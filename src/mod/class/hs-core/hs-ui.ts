@@ -518,8 +518,8 @@ export class HSUI extends HSModule {
             notificationType: notifyOptions?.notificationType ?? "default"
         }
 
-        const notificationDiv = document.createElement('div');
-        const notificationText = document.createElement('div');
+        let notificationDiv: HTMLDivElement | null = document.createElement('div');
+        let notificationText: HTMLDivElement | null = document.createElement('div');
 
         notificationDiv.className = HSGlobal.HSUI.notifyClassName;
         notificationText.className = HSGlobal.HSUI.notifyTextClassName;
@@ -566,6 +566,7 @@ export class HSUI extends HSModule {
         notificationDiv.appendChild(notificationText);
 
         document.body.querySelectorAll(`.${HSGlobal.HSUI.notifyClassName}`).forEach(n => {
+            (n as HTMLElement).clearTransitions();
             n.remove();
         });
 
@@ -581,6 +582,9 @@ export class HSUI extends HSModule {
             'opacity': '0'
         }, options.hideDuration, `linear`);
 
+        notificationText.remove();
         notificationDiv.remove();
+        notificationText = null;
+        notificationDiv = null;
     }
 }

@@ -20,6 +20,7 @@ declare global {
 
     interface HTMLElement {
         transition(properties: TransitionProperties, duration?: number, timingFunction?: string): Promise<void>;
+        clearTransitions(): void
         textNodes(): string[];
     }
 
@@ -74,6 +75,7 @@ export class HSPrototypes extends HSModule {
 
         // Extend HTMLElement prototype with transition method
         HTMLElement.prototype.transition = this.#createTransition();
+        HTMLElement.prototype.clearTransitions = this.#createClearTransitions();
 
         // Extend Object with typedEntries method
         // This method is a type-safe version of Object.entries
@@ -233,12 +235,20 @@ export class HSPrototypes extends HSModule {
                 
                 // Keep track of whether we've resolved yet
                 let hasResolved = false;
+
+                const cleanup = () => {
+                    if(!hasResolved) {
+                        element.removeEventListener('transitionend', handleTransitionEnd as EventListener);
+                        delete (element as any)._hsTransitionEndHandler;
+                        style.transition = originalTransition;
+                        hasResolved = true;
+                        resolve();
+                    }
+                };
                 
                 const checkCompletion = () => {
                     if (!hasResolved && pendingTransitions.size === 0) {
-                        hasResolved = true;
-                        style.transition = originalTransition;
-                        resolve();
+                        cleanup();
                     }
                 };
                 
@@ -251,19 +261,21 @@ export class HSPrototypes extends HSModule {
                     // Only process events for properties we're animating
                     if (pendingTransitions.has(camelCaseProp)) {
                         pendingTransitions.delete(camelCaseProp);
-                        checkCompletion();
+
+                        if (pendingTransitions.size === 0) {
+                            cleanup();
+                        }
                     }
                 };
+
+                (this as any)._hsTransitionEndHandler = handleTransitionEnd;
                 
                 element.addEventListener('transitionend', handleTransitionEnd as EventListener);
                 
                 // Fallback (50ms buffer)
                 const timeoutId = setTimeout(() => {
                     if (!hasResolved) {
-                        element.removeEventListener('transitionend', handleTransitionEnd as EventListener);
-                        hasResolved = true;
-                        style.transition = originalTransition;
-                        resolve();
+                        cleanup();
                     }
                 }, duration + 50);
                 
@@ -304,15 +316,34 @@ export class HSPrototypes extends HSModule {
                 // If no properties will actually transition, resolve immediately
                 if (!willTransition || pendingTransitions.size === 0) {
                     clearTimeout(timeoutId);
-                    element.removeEventListener('transitionend', handleTransitionEnd as EventListener);
-                    style.transition = originalTransition;
-                    resolve();
+                    cleanup();
                     return;
+                }
+
+                if (pendingTransitions.size === 0) {
+                    cleanup(); // Resolve immediately if all were skipped
                 }
                 
                 // Check completion immediately in case some properties were removed from pending
                 checkCompletion();
             });
+        };
+    }
+
+    #createClearTransitions(): () => void {
+        return function(this: HTMLElement): void {
+            this.style.transition = 'none';
+
+            if ((this as any)._hsTransitionEndHandler) {
+                this.removeEventListener('transitionend', (this as any)._hsTransitionEndHandler);
+                delete (this as any)._hsTransitionEndHandler; // Clean up the stored reference
+            }
+
+            // for (const prop in this.style) {
+            //     if (this.style.hasOwnProperty(prop) && prop !== 'transition') {
+            //         this.style[prop] = ''; // Or perhaps remove the property
+            //     }
+            // }
         };
     }
 
