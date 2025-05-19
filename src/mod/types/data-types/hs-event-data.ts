@@ -24,6 +24,8 @@ export interface GameEvent {
 export enum GameEventType {
     INFO_ALL = "info-all",
     JOIN = "join",
+    ERROR = "error",
+    EVENT_ENDED = "consumable-ended"
 }
 
 export enum GameEventID {
@@ -33,7 +35,8 @@ export enum GameEventID {
 export interface GameEventResponse {
     type: string, // "info-all" | "join"
     active?: GameEvent[],
-    tips?: number
+    tips?: number,
+    consumable: GameEventID
 }
 
 export interface ConsumableGameEvent {

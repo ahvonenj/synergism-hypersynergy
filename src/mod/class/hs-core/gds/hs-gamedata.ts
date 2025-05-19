@@ -77,9 +77,15 @@ export class HSGameData extends HSModule {
         },
     };
 
+    #mitm_gamedata?: string;
+
+    #saveTriggerEvent?: Event;
+
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
         this.#campaignTokenElement = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
+
+        this.#saveTriggerEvent = new Event('click');
     }
     
     async init() {
@@ -124,14 +130,12 @@ export class HSGameData extends HSModule {
                 url: HSGlobal.Common.eventAPIUrl,
                 onMessage: async (msg) => {
                     if(msg?.type === GameEventType.INFO_ALL) {
-                        HSLogger.debug(`Caught INFO_ALL, but no active events`, this.context);
+                        self.#resetEventData();
 
                         if(msg.active && msg.active.length > 0) {
-                            HSLogger.debug(`Caught WS event: ${msg.type} - event count: ${msg.active.length}, active[0]: ${JSON.stringify(msg.active[0])}`, 'WebSocket');
+                            HSLogger.debug(`Caught WS event: ${msg.type} - event count: ${msg.active.length}}`, 'WebSocket');
 
                             for (const { internalName, endsAt, name } of msg.active) {
-                                self.#resetEventData();
-
                                 const consumable = self.#gameEvents[internalName as keyof ConsumableGameEvents];
                                 
                                 consumable.ends.push(endsAt);
@@ -140,8 +144,22 @@ export class HSGameData extends HSModule {
                             }
 
                             self.#eventDataUpdated();
+                        } else {
+                            HSLogger.debug(`Caught INFO_ALL, but no active events`, this.context);
                         }
+                    } else if(msg?.type === GameEventType.ERROR) {
+                        HSLogger.debug(`Caught ERROR`, this.context);
+                        self.#resetEventData();
+                    } else if(msg?.type === GameEventType.EVENT_ENDED) {
+                        HSLogger.debug(`Caught EVENT_ENDED`, this.context);
+                        const consumable = self.#gameEvents[msg?.consumable as keyof ConsumableGameEvents];
+                        consumable.ends.shift();
+                        consumable.amount--;
+                        self.#eventDataUpdated();
+                    } else if(msg?.type === GameEventType.JOIN) {
+                        HSLogger.debug(`Caught JOIN (connection established)`, this.context);
                     }
+
                 },
 
                 onRetriesFailed: async () => {
@@ -160,6 +178,8 @@ export class HSGameData extends HSModule {
                 displayName: ''
             }
         }
+
+        this.#eventDataUpdated();
     }
 
     async #refreshFetchedData() {
@@ -204,6 +224,22 @@ export class HSGameData extends HSModule {
         }
     
         requestAnimationFrame(this.#processSaveDataWithRAF.bind(this));
+    }
+
+    #processSaveDataWithRAFExperimental() {
+        if (!this.#turboEnabled) return;
+
+        if (this.#mitm_gamedata) {
+            try {    
+                this.#saveData = JSON.parse(this.#mitm_gamedata) as PlayerData;
+                this.#saveDataUpdated();
+            } catch (error) {
+                HSLogger.debug(`<red>Error processing save data:</red> ${error}`, this.context);
+                this.#maybeStopSniffOnError();
+            }
+        }
+    
+        requestAnimationFrame(this.#processSaveDataWithRAFExperimental.bind(this));
     }
 
     #maybeStopSniffOnError() {
@@ -256,8 +292,9 @@ export class HSGameData extends HSModule {
         }  
 
         this.#saveInterval = setInterval(() => {
-            if(this.#manualSaveButton && this.#saveinfoElement)
-                this.#manualSaveButton.click();
+            if(this.#manualSaveButton && this.#saveinfoElement && this.#saveTriggerEvent) {
+                this.#manualSaveButton.dispatchEvent(this.#saveTriggerEvent);
+            }
         }, HSGlobal.HSGameData.turboModeSpeedMs)
 
         if(!this.#singularityButton)
@@ -285,7 +322,23 @@ export class HSGameData extends HSModule {
 
         HSLogger.info(`GDS = ON`, this.context);
         this.#turboEnabled = true;
-        this.#processSaveDataWithRAF();
+
+        if(HSGlobal.Common.experimentalGDS) {
+            this.#hackJSNativeatob();
+            this.#processSaveDataWithRAFExperimental();
+        } else {
+            this.#processSaveDataWithRAF();
+        }
+    }
+
+    #hackJSNativeatob() {
+        const self = this;
+        const _btoa = window.btoa;
+
+        window.btoa = function(s) {
+            self.#mitm_gamedata = s;
+            return _btoa(s);
+        }
     }
 
     async #loadFromFileHandler(e: MouseEvent) {

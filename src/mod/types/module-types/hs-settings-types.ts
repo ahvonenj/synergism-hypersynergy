@@ -74,9 +74,17 @@ export interface HSSettingControl {
     controlId: string;
     controlType: HSSettingsControlType;
     controlGroup: string;
+    controlPage: keyof HSSettingControlPage;
     controlEnabledId?: string;
     controlOptions?: HSSettingControlOptions;
     selectOptions?: HSUICSelectOption[];
+}
+
+export interface HSSettingControlPage {
+    page: string;
+    order: number;
+    pageName: string;
+    pageColor: string;
 }
 
 export interface HSPatchConfig {

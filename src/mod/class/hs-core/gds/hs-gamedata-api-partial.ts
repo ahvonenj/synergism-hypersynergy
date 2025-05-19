@@ -45,6 +45,8 @@ export abstract class HSGameDataAPIPartial extends HSModule {
         this.isInitialized = true;
     }
 
+    // All of these _update methods are called from HSGameData (hs-gamedata.ts)
+    // when the game data updates
     _updateGameData(data: PlayerData) {
         this.gameData = data;
     }
@@ -71,6 +73,7 @@ export abstract class HSGameDataAPIPartial extends HSModule {
         }
     }
 
+    // These get methods are meant to be the public methods to get data
     getCampaignData(): CampaignData | undefined {
         return this.campaignData;
     }
@@ -95,6 +98,10 @@ export abstract class HSGameDataAPIPartial extends HSModule {
 
     getPseudoData(): PseudoGameData | undefined {
         return this.pseudoData;
+    }
+
+    getEventData(): ConsumableGameEvents | undefined {
+        return this.eventData;
     }
 
     dumpDataForHeater() {

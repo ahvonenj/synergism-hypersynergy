@@ -398,6 +398,7 @@
 
 #hs-settings-panel {
     padding: 10px;
+    scrollbar-gutter: stable;
 }
 
 .hs-panel-setting-block {
@@ -526,4 +527,46 @@
 .hs-panel-info-p {
     font-size: 11pt;
     margin-left: 15px;
+}
+
+.hs-panel-subtabs {
+    width: 100%;
+    height: auto;
+    padding: 0px 0px 0px 0px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.hs-panel-subtab {
+    height: 25px;
+    width: 100px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    line-height: 25px;
+    margin: 0px 2px 0px 2px;
+    border-radius: 0px;
+    font-size: 11pt;
+}
+
+.hs-panel-subtab:hover {
+    background-color: #006;
+    cursor: pointer;
+}
+
+.hs-panel-settings-grid {
+    display: none;
+    margin-top: 15px;
+}
+
+.hs-panel-settings-grid.open {
+    display: block;
 }

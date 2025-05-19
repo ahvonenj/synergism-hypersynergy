@@ -26,6 +26,7 @@ export interface HSGlobalCommon {
     eventAPIUrl: string;
     pseudoAPIurl: string;
     meAPIurl: string;
+    experimentalGDS: boolean,
 }
 
 export interface HSGlobalPrototypes {

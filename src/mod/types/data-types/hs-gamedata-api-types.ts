@@ -61,6 +61,13 @@ export interface RedAmbrosiaUpgradeCalculationCollection {
     viscount: RedAmbrosiaUpgradeCalculationConfig;
 }
 
+export interface HepteractEffectiveValue {
+    LIMIT: number;
+    DR: number;
+}
+
+export type HepteractEffectiveValues = { [key in HepteractType]: HepteractEffectiveValue };
+    
 export const hepteractTypeList = [
   'chronos',
   'hyperrealism',

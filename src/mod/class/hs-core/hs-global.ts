@@ -32,7 +32,9 @@ export const HSGlobal: IHSGlobal = class {
     static Common = {
         eventAPIUrl: 'wss://synergism.cc/consumables/connect',
         pseudoAPIurl: 'https://synergism.cc/stripe/upgrades',
-        meAPIurl: 'https://synergism.cc/api/v1/users/me'
+        meAPIurl: 'https://synergism.cc/api/v1/users/me',
+
+        experimentalGDS: true
     }
 
     // --- HSPrototypes ---

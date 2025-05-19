@@ -158,8 +158,18 @@ export class Hypersynergism {
                 if(dataModule) {
                     console.log(`----- GAME DATA -----`);
                     console.log(dataModule.getGameData());
+
                     console.log(`----- PSEUDO DATA -----`);
                     console.log(dataModule.getPseudoData());
+
+                    console.log(`----- CAMPAIGN DATA -----`);
+                    console.log(dataModule.getCampaignData());
+
+                    console.log(`----- ME DATA -----`);
+                    console.log(dataModule.getMeData());
+
+                    console.log(`----- EVENT DATA -----`);
+                    console.log(dataModule.getEventData());
                 }
             });
 
@@ -217,8 +227,6 @@ export class Hypersynergism {
                         url: HSGlobal.Common.eventAPIUrl,
                         onMessage: async (msg) => {
                             if(msg?.type === GameEventType.INFO_ALL) {
-                                HSLogger.log(`Caught INFO_ALL, but no active events`, 'WebSocket');
-
                                 if(msg.active && msg.active.length > 0) {
                                     HSLogger.log(`Caught WS event: ${msg.type} - event count: ${msg.active.length}, active[0]: ${JSON.stringify(msg.active[0])}`, 'WebSocket');
                                 }
@@ -241,18 +249,67 @@ export class Hypersynergism {
 
             if(settingsTabContents.didBuild) {
                 hsui.replaceTabContents(3, 
-                    HSUIC.Grid({ 
-                        id: 'hs-panel-settings-grid',
-                        html: settingsTabContents.htmlString
-                    })
+                    [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
                 );
 
                 document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
+                    const subtab = document.querySelector(`#hs-panel-settings-subtab-gamedata`) as HTMLDivElement;
+                    const color = subtab.dataset.color;
+                    const subSettingsContainer = document.querySelector(`#settings-grid-gamedata`) as HTMLDivElement;
+                    const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
+                    const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+
+                    if(subtab && subSettingsContainer &&allSubSettingContainers && allSubTabs) {
+                        allSubSettingContainers.forEach(container => {
+                            container.classList.remove('open');
+                        });
+
+                        allSubTabs.forEach(subTab => {
+                            subTab.style.backgroundColor = '';
+                        });
+
+                        subSettingsContainer.classList.add('open');
+
+                        if(color && color.length > 0) {
+                            subtab.style.backgroundColor = color;
+                        }
+                    }
+
                     const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement;
+                    
                     gameDataSettingBlock.scrollIntoView({
                         block: 'start',
                         behavior: 'smooth',
                     })
+                });
+
+                document.delegateEventListener('click', '.hs-panel-subtab', (e) => {
+                    const target = e.target as HTMLDivElement;
+                    const subtab = target.dataset.subtab;
+                    const color = target.dataset.color;
+                    
+                    if(subtab) {
+                        const subtabSelector = `#settings-grid-${subtab}`;
+                        const subSettingsContainer = document.querySelector(subtabSelector) as HTMLDivElement;
+                        const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
+                        const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+
+                        if(subSettingsContainer && allSubSettingContainers && allSubTabs) {
+                            allSubSettingContainers.forEach(container => {
+                                container.classList.remove('open');
+                            });
+
+                            allSubTabs.forEach(subTab => {
+                                subTab.style.backgroundColor = '';
+                            });
+
+                            subSettingsContainer.classList.add('open');
+
+                            if(color && color.length > 0) {
+                                target.style.backgroundColor = color;
+                            }
+                        }
+                    }
                 });
             }
 

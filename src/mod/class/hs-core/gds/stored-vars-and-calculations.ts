@@ -1,4 +1,4 @@
-import { RedAmbrosiaUpgradeCalculationCollection } from "../../../types/data-types/hs-gamedata-api-types"
+import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection } from "../../../types/data-types/hs-gamedata-api-types"
 
 export const redAmbrosiaUpgradeCalculationCollection: RedAmbrosiaUpgradeCalculationCollection = {
     blueberryGenerationSpeed: {
@@ -64,3 +64,38 @@ export const redAmbrosiaUpgradeCalculationCollection: RedAmbrosiaUpgradeCalculat
         levelFunction: (n: number) => 125 * n
     }
 };
+
+export const hepteractEffectiveValues: HepteractEffectiveValues = {
+    chronos: {
+        LIMIT: 1000,
+        DR: 1 / 6
+    },
+    hyperrealism: {
+        LIMIT: 1000,
+        DR: 0.33
+    },
+    quark: {
+        LIMIT: 1000,
+        DR: 0.5
+    },
+    challenge: {
+        LIMIT: 1000,
+        DR: 1 / 6
+    },
+    abyss: {
+        LIMIT: 1,
+        DR: 0
+    },
+    accelerator: {
+        LIMIT: 1000,
+        DR: 0.2
+    },
+    acceleratorBoost: {
+        LIMIT: 1000,
+        DR: 0.2
+    },
+    multiplier: {
+        LIMIT: 1000,
+        DR: 0.2
+    }
+}

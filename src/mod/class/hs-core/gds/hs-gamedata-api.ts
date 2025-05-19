@@ -4,7 +4,7 @@ import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
-import { redAmbrosiaUpgradeCalculationCollection } from "./red-ambrosia-upgrades";
+import { hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
 
 /*
     If this looks silly, check details in hs-gamedata-api-partial.ts
@@ -13,10 +13,26 @@ import { redAmbrosiaUpgradeCalculationCollection } from "./red-ambrosia-upgrades
     calculation functions which use game data
 
     The main game data API class is HSGameDataAPIPartial.
-    Yes, they are basically wrong way around but it is what it is
+    Yes, they are basically wrong way around but it is what it is.
+
+    --
+
+    This file is also very long and will most likely get a lot longer still.
+    This is because this file mostly contains functions ripped from the game's code
+    and modified to work with the mod's own cache etc. (*) The big idea in the end is that
+    I'll try to expose everything in here in some sane way so nobody needs to look in here.
+
+    --
+
+    (*) All of the R_ methods are ripped from the game's code
 */
 export class HSGameDataAPI extends HSGameDataAPIPartial {
 
+    // Named caches for each heavy calculation dependent on multiple variables
+    // The idea is to cache calculations by the variables that make up the calculation
+    // If any of the variables change, the cache should update as well
+    // If the variables are the same, then it follows that the value should be the same too
+    // And we can return that cache value
     #calculationCache : CalculationCache = {
         R_AmbrosiaGenerationShopUpgrade:            { value: undefined, cachedBy: [] },
         R_AmbrosiaGenerationSingularityUpgrade:     { value: undefined, cachedBy: [] },
@@ -55,69 +71,12 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_AllShopTablets:                          { value: undefined, cachedBy: [] },
     }
 
+    // These are imported from stored-vars-and-calculationss.ts
     #redAmbrosiaCalculationCollection = redAmbrosiaUpgradeCalculationCollection;
-
-    #hepteractEffectiveValues = {
-        chronos: {
-            LIMIT: 1000,
-            DR: 1 / 6
-        },
-        hyperrealism: {
-            LIMIT: 1000,
-            DR: 0.33
-        },
-        quark: {
-            LIMIT: 1000,
-            DR: 0.5
-        },
-        challenge: {
-            LIMIT: 1000,
-            DR: 1 / 6
-        },
-        abyss: {
-            LIMIT: 1,
-            DR: 0
-        },
-        accelerator: {
-            LIMIT: 1000,
-            DR: 0.2
-        },
-        acceleratorBoost: {
-            LIMIT: 1000,
-            DR: 0.2
-        },
-        multiplier: {
-            LIMIT: 1000,
-            DR: 0.2
-        }
-    }
+    #hepteractEffectiveValues = hepteractEffectiveValues;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
-    }
-
-    #investToRedAmbrosiaUpgrade(
-        budget: number, 
-        costPerLevel: number, 
-        maxLevel: number, 
-        constFunction: (n: number, cpl: number) => number,
-        levelFunction: (n: number) => number) {
-
-        let level = 0
-
-        let nextCost = constFunction(level, costPerLevel)
-
-        while (budget >= nextCost) {
-            budget -= nextCost
-            level += 1
-            nextCost = constFunction(level, costPerLevel)
-
-            if (level >= maxLevel) {
-                break;
-            }
-        }
-
-        return levelFunction(level);
     }
 
     #checkCache(cacheName: keyof CalculationCache, checkCacheAgainst: number[]) {
@@ -167,6 +126,30 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
             
         this.#calculationCache[cacheName] = newCachedValue;
+    }
+
+    #investToRedAmbrosiaUpgrade(
+        budget: number, 
+        costPerLevel: number, 
+        maxLevel: number, 
+        constFunction: (n: number, cpl: number) => number,
+        levelFunction: (n: number) => number) {
+
+        let level = 0
+
+        let nextCost = constFunction(level, costPerLevel)
+
+        while (budget >= nextCost) {
+            budget -= nextCost
+            level += 1
+            nextCost = constFunction(level, costPerLevel)
+
+            if (level >= maxLevel) {
+                break;
+            }
+        }
+
+        return levelFunction(level);
     }
 
     R_calculateConsumableEventBuff (buff: EventBuffType) {

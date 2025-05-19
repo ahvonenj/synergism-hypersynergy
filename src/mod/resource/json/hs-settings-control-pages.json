@@ -1,0 +1,62 @@
+{
+    "hepteract": {
+        "page": "hepteract",
+        "pageName": "Hepteracts",
+        "pageColor": "mediumpurple",
+        "order": 1
+    },
+    "ui": {
+        "page": "ui",
+        "pageName": "UI",
+        "pageColor": "cyan",
+        "order": 2
+    },
+    "log": {
+        "page": "log",
+        "pageName": "Logging",
+        "pageColor": "orange",
+        "order": 3
+    },
+    "input": {
+        "page": "input",
+        "pageName": "Input",
+        "pageColor": "plum",
+        "order": 4
+    },
+    "ambrosia": {
+        "page": "ambrosia",
+        "pageName": "Ambrosia",
+        "pageColor": "gold",
+        "order": 5
+    },
+    "patch": {
+        "page": "patch",
+        "pageName": "Patch",
+        "pageColor": "fuchsia",
+        "order": 6
+    },
+    "gamedata": {
+        "page": "gamedata",
+        "pageName": "Game Data",
+        "pageColor": "crimson",
+        "order": 7
+    },
+    "shop": {
+        "page": "shop",
+        "pageName": "Shop",
+        "pageColor": "#b300b2",
+        "order": 8
+    },
+    "debug": {
+        "page": "debug",
+        "pageName": "Debugging",
+        "pageColor": "maroon",
+        "order": 9
+    },
+    "misc": {
+        "page": "misc",
+        "pageName": "Misc.",
+        "pageColor": "white",
+        "order": 9
+    }
+}

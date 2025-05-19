@@ -1,9 +1,10 @@
-import { HSSettingBase, HSSettingControlGroup, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
+import { HSSettingBase, HSSettingControlGroup, HSSettingControlPage, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
 import { HSModule } from "../module/hs-module";
 import settings from "inline:../../../resource/json/hs-settings.json";
 import settings_control_groups from "inline:../../../resource/json/hs-settings-control-groups.json";
+import settings_control_pages from "inline:../../../resource/json/hs-settings-control-pages.json";
 import { HSUIC } from "../hs-ui-components";
 import { HSInputType } from "../../../types/module-types/hs-ui-types";
 import { HSSettingActions } from "./hs-setting-action";
@@ -31,6 +32,7 @@ export class HSSettings extends HSModule {
 
     static #settings : HSSettingRecord = {} as HSSettingRecord;
     static #settingsControlGroups : Record<string, HSSettingControlGroup>;
+    static #settingsControlPages : Record<keyof HSSettingControlPage, HSSettingControlPage>;
 
     static #settingsParsed = false;
     static #settingsSynced = false;
@@ -54,6 +56,15 @@ export class HSSettings extends HSModule {
             HSSettings.#settingsControlGroups = JSON.parse(settings_control_groups) as Record<string, HSSettingControlGroup>;
         } catch(e) {
             HSLogger.error(`Error parsing control groups ${e}`, this.context);
+            HSSettings.#settingsParsed = false;
+        }
+
+        // Read hs-settings-control-pages.json and parse it
+        try {
+            HSLogger.log(`Parsing control pages`, this.context);
+            HSSettings.#settingsControlPages = JSON.parse(settings_control_pages) as Record<keyof HSSettingControlPage, HSSettingControlPage>;
+        } catch(e) {
+            HSLogger.error(`Error parsing control pages ${e}`, this.context);
             HSSettings.#settingsParsed = false;
         }
 
@@ -256,12 +267,12 @@ export class HSSettings extends HSModule {
     }
 
     // Builds the settings UI in the mod's panel
-    static autoBuildSettingsUI() : { didBuild: boolean, htmlString: string } {
+    static autoBuildSettingsUI() : { didBuild: boolean, navHTML: string, pagesHTML: string } {
         const self = this;
 
         if(!HSSettings.#settingsParsed) {
             HSLogger.error(`Could not sync settings - settings not parsed yet`, HSSettings.#staticContext);
-            return { didBuild: false, htmlString: '' };
+            return { didBuild: false, navHTML: '', pagesHTML: '' };
         }
 
         const settingsBlocks : string[] = [];
@@ -283,6 +294,47 @@ export class HSSettings extends HSModule {
             }
         });
 
+        // Sort the pages
+        const sortedPages = (Object.entries(HSSettings.#settingsControlPages) as [keyof HSSettingControlPage, HSSettingControlPage][]).sort((a, b) => {
+            const aPage = a[1].order;
+            const bPage = b[1].order;
+
+            if(aPage && bPage) {
+                return (aPage || 0) - (bPage || 0);
+            } else if(aPage) {
+                return -1;
+            } else if(bPage) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        const subTabs = [];
+
+        for (const [key, page] of sortedPages) {
+            const haveAnySettingsForPage = sortedSettings.some(setting => setting[1].getDefinition().settingControl?.controlPage === key);
+
+            if(!haveAnySettingsForPage) continue;
+
+            subTabs.push(HSUIC.Div({
+                class: 'hs-panel-subtab',
+                id: `hs-panel-settings-subtab-${key}`,
+                data: new Map([['subtab', key], ['color', page.pageColor || '']]),
+                styles: {
+                    border: page.pageColor ? `1px solid ${page.pageColor}` : `1px solid gray`
+                },
+                html: page.pageName
+            }));
+        }
+
+        let navHTML = HSUIC.Div({
+            class: 'hs-panel-subtabs',
+            html: subTabs
+        });
+
+        let pagesHTML: Map<keyof HSSettingControlPage, string[]> = new Map();
+
         let currentControlGroup : string | null = null;
 
         for (const [key, settingObj] of sortedSettings) {
@@ -303,6 +355,7 @@ export class HSSettings extends HSModule {
             }
 
             if(controls) {
+                const pageHTMLs = pagesHTML.get(controls.controlPage) || [];
                 let components : string[] = [];
 
                 // Check if the control group is different from the previous one
@@ -312,7 +365,7 @@ export class HSSettings extends HSModule {
                     const controlGroup = HSSettings.#settingsControlGroups[currentControlGroup];
 
                     // Create control group header
-                    settingsBlocks.push(HSUIC.Div({ 
+                    pageHTMLs.push(HSUIC.Div({ 
                         html: controlGroup.groupName,
                         styles: {
                             borderBottom: '1px solid limegreen',
@@ -418,11 +471,14 @@ export class HSSettings extends HSModule {
                 }
 
                 // Create setting block which contains the setting header, value input and on/off toggle
-                settingsBlocks.push(HSUIC.Div({ 
+                
+                pageHTMLs.push(HSUIC.Div({ 
                     id: settingBlockId,
                     class: 'hs-panel-setting-block',
                     html: components
                 }));
+
+                pagesHTML.set(controls.controlPage, pageHTMLs);
             } else {
                 HSLogger.error(`Error autobuilding settings UI, controls not defined for setting ${key}`, self.#staticContext);
                 didBuild = false;
@@ -430,9 +486,24 @@ export class HSSettings extends HSModule {
             }
         }
 
+        for(const [pageName, pages] of pagesHTML.entries()) {
+            pagesHTML.set(pageName, [HSUIC.Div({
+                class: 'hs-panel-settings-grid',
+                id: `settings-grid-${pageName}`,
+                html: pages
+            })]);
+        }
+
+        const flatPages = [];
+
+        for(const [pageName, pages] of pagesHTML.entries()) {
+            flatPages.push(pages.join(''));
+        }
+
         return {
             didBuild,
-            htmlString: settingsBlocks.join('\n')
+            navHTML: navHTML,
+            pagesHTML: flatPages.join('')
         };
     }
 

@@ -49,7 +49,7 @@ export type HTMLProps = { [key: string]: string | undefined };
 interface HSUICOptions {
     id: string;
     class?: string;
-    data?: HTMLData[];
+    data?: Map<string, string>;
     styles?: HSUICCSSProperties;
     props?: HTMLProps;
 }

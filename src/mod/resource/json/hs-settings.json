@@ -10,6 +10,7 @@
             "controlId": "hs-setting-expand-cost-protection-value",
             "controlType": "number",
             "controlGroup": "hepteracts",
+            "controlPage": "hepteract",
             "controlEnabledId": "hs-setting-expand-cost-protection-btn",
             "controlOptions": {
                 "min": 0,
@@ -28,6 +29,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "hepteracts",
+            "controlPage": "hepteract",
             "controlEnabledId": "hs-setting-hepteract-double-cap-btn"
         }
     },
@@ -41,6 +43,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "hepteracts",
+            "controlPage": "hepteract",
             "controlEnabledId": "hs-setting-hepteract-cost-protection-notifications-btn"
         }
     },
@@ -57,6 +60,7 @@
             "controlId": "hs-setting-notification-opacity-value",
             "controlType": "number",
             "controlGroup": "notifications",
+            "controlPage": "ui",
             "controlEnabledId": "hs-setting-notification-opacity-btn",
             "controlOptions": {
                 "min": 0,
@@ -76,6 +80,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "log",
+            "controlPage": "log",
             "controlEnabledId": "hs-setting-display-timestamp-btn"
         }
     },
@@ -88,7 +93,8 @@
         "enabled": false,
         "settingControl": {
             "controlType": "switch",
-            "controlGroup": "log",
+            "controlGroup": "debug",
+            "controlPage": "debug",
             "controlEnabledId": "hs-setting-display-debug-logs-btn"
         }
     },
@@ -106,6 +112,7 @@
             "controlId": "hs-setting-reactive-mouse-hover-value",
             "controlType": "number",
             "controlGroup": "mouse",
+            "controlPage": "input",
             "controlEnabledId": "hs-setting-reactive-mouse-hover-btn",
             "controlOptions": {
                 "min": 0,
@@ -128,6 +135,7 @@
             "controlId": "hs-setting-auto-click-value",
             "controlType": "number",
             "controlGroup": "mouse",
+            "controlPage": "input",
             "controlEnabledId": "hs-setting-auto-click-btn",
             "controlOptions": {
                 "min": 0,
@@ -146,6 +154,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "mouse",
+            "controlPage": "input",
             "controlEnabledId": "hs-setting-autoclick-ignore-btn"
         }
     },
@@ -160,6 +169,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "ambrosia",
+            "controlPage": "ambrosia",
             "controlEnabledId": "hs-setting-ambrosia-quickbar-btn"
         }
     },
@@ -174,6 +184,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "ambrosia",
+            "controlPage": "ambrosia",
             "controlEnabledId": "hs-setting-auto-loadout-btn"
         }
     },
@@ -188,7 +199,8 @@
         "settingControl": {
             "controlId": "hs-setting-auto-loadout-state-value",
             "controlType": "state",
-            "controlGroup": "ambrosia"
+            "controlGroup": "ambrosia",
+            "controlPage": "ambrosia"
         }
     },
 
@@ -203,6 +215,7 @@
             "controlId": "hs-setting-add-loadout-value",
             "controlType": "select",
             "controlGroup": "ambrosia",
+            "controlPage": "ambrosia",
             "selectOptions": [
                 { "text": "None", "value": "" },
                 { "text": "Loadout 1", "value": "1" },
@@ -228,6 +241,7 @@
             "controlId": "hs-setting-time-loadout-value",
             "controlType": "select",
             "controlGroup": "ambrosia",
+            "controlPage": "ambrosia",
             "selectOptions": [
                 { "text": "None", "value": "" },
                 { "text": "Loadout 1", "value": "1" },
@@ -253,6 +267,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "ambrosia2",
+            "controlPage": "ambrosia",
             "controlEnabledId": "hs-setting-ambrosia-idle-swap-btn"
         }
     },
@@ -268,6 +283,7 @@
             "controlId": "hs-setting-idle-swap-normal-loadout-value",
             "controlType": "select",
             "controlGroup": "ambrosia2",
+            "controlPage": "ambrosia",
             "selectOptions": [
                 { "text": "None", "value": "" },
                 { "text": "Loadout 1", "value": "1" },
@@ -293,6 +309,7 @@
             "controlId": "hs-setting-idle-swap-100-loadout-value",
             "controlType": "select",
             "controlGroup": "ambrosia2",
+            "controlPage": "ambrosia",
             "selectOptions": [
                 { "text": "None", "value": "" },
                 { "text": "Loadout 1", "value": "1" },
@@ -318,6 +335,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "ambrosia3",
+            "controlPage": "ambrosia",
             "controlEnabledId": "hs-setting-ambrosia-minibar-btn"
         }
     },
@@ -335,6 +353,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "patch",
+            "controlPage": "patch",
             "controlEnabledId": "hs-setting-patch-ambrosia-view-overflow-btn"
         }
     },
@@ -352,6 +371,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "patch",
+            "controlPage": "patch",
             "controlEnabledId": "hs-setting-patch-test-btn"
         }
     },
@@ -369,6 +389,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "patch",
+            "controlPage": "patch",
             "controlEnabledId": "hs-setting-patch-shopnames-btn"
         }
     },
@@ -386,6 +407,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "patch",
+            "controlPage": "patch",
             "controlEnabledId": "hs-setting-patch-iconsets-btn"
         }
     },
@@ -401,6 +423,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "gamedata",
+            "controlPage": "gamedata",
             "controlEnabledId": "hs-setting-use-game-data-btn"
         }
     },
@@ -414,6 +437,7 @@
         "settingControl": {
             "controlType": "switch",
             "controlGroup": "gamedata",
+            "controlPage": "gamedata",
             "controlEnabledId": "hs-setting-stop-sniff-on-error-btn"
         }
     }

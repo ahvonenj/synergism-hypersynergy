@@ -38,5 +38,9 @@
     "shop": {
         "groupName": "Shop settings",
         "order": 10
+    },
+    "debug": {
+        "groupName": "Debugging settings",
+        "order": 11
     }
 }
