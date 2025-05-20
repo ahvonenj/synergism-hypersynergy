@@ -30,7 +30,20 @@ export interface CalculationCache {
     R_RequiredBlueberryTime: CachedValue;
     R_RequiredRedAmbrosiaTime: CachedValue;
 
-    R_ConsumableEventBuff: CachedValue;
+    EVENTBUFF_Quark: CachedValue;
+    EVENTBUFF_GoldenQuark: CachedValue;
+    EVENTBUFF_Cubes: CachedValue;
+    EVENTBUFF_PowderConversion: CachedValue;
+    EVENTBUFF_AscensionSpeed: CachedValue;
+    EVENTBUFF_GlobalSpeed:      CachedValue;
+    EVENTBUFF_AscensionScore: CachedValue;
+    EVENTBUFF_AntSacrifice: CachedValue;
+    EVENTBUFF_Offering: CachedValue;
+    EVENTBUFF_Obtainium: CachedValue;
+    EVENTBUFF_Octeract: CachedValue;
+    EVENTBUFF_BlueberryTime: CachedValue;
+    EVENTBUFF_AmbrosiaLuck: CachedValue;
+    EVENTBUFF_OneMind: CachedValue;
 
     R_RawAscensionSpeedMult: CachedValue;
     R_HepteractEffective: CachedValue;
@@ -39,6 +52,7 @@ export interface CalculationCache {
     R_SingularityDebuff: CachedValue;
     R_SingularityReductions: CachedValue;
     R_EffectiveSingularities: CachedValue;
+    R_AscensionSpeedExponentSpread: CachedValue;
 }
 
 export interface CachedValue {
@@ -63,6 +77,19 @@ export interface RedAmbrosiaUpgradeCalculationCollection {
     regularLuck: RedAmbrosiaUpgradeCalculationConfig;
     regularLuck2: RedAmbrosiaUpgradeCalculationConfig;
     viscount: RedAmbrosiaUpgradeCalculationConfig;
+    tutorial: RedAmbrosiaUpgradeCalculationConfig;
+    conversionImprovement1: RedAmbrosiaUpgradeCalculationConfig;
+    conversionImprovement2: RedAmbrosiaUpgradeCalculationConfig;
+    conversionImprovement3: RedAmbrosiaUpgradeCalculationConfig;
+    freeTutorialLevels: RedAmbrosiaUpgradeCalculationConfig;
+    redGenerationSpeed: RedAmbrosiaUpgradeCalculationConfig;
+    redLuck: RedAmbrosiaUpgradeCalculationConfig;
+    redAmbrosiaCube: RedAmbrosiaUpgradeCalculationConfig;
+    redAmbrosiaObtainium: RedAmbrosiaUpgradeCalculationConfig;
+    redAmbrosiaOffering: RedAmbrosiaUpgradeCalculationConfig;
+    redAmbrosiaCubeImprover: RedAmbrosiaUpgradeCalculationConfig;
+    infiniteShopUpgrades: RedAmbrosiaUpgradeCalculationConfig;
+    redAmbrosiaAccelerator: RedAmbrosiaUpgradeCalculationConfig;
 }
 
 export interface HepteractEffectiveValue {

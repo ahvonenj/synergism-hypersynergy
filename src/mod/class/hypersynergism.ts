@@ -9,10 +9,11 @@ import { HSSettings } from "./hs-core/settings/hs-settings";
 import { HSGlobal } from "./hs-core/hs-global";
 import { HSStorage } from "./hs-core/hs-storage";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
-import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
+import { HSInputType, HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
 import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
 import { HSWebSocket } from "./hs-core/hs-websocket";
 import { GameEventResponse, GameEventType } from "../types/data-types/hs-event-data";
+import { HSUtils } from "./hs-utils/hs-utils";
 
 /*
     Class: Hypersynergism
@@ -132,6 +133,40 @@ export class Hypersynergism {
                     HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
                     HSUIC.Button({ id: 'hs-panel-test-register-sock-btn', text: 'Register WS' }),
                     HSUIC.Button({ id: 'hs-panel-test-unregister-sock-btn', text: 'Unregister WS' }),
+                    HSUIC.Div({ 
+                        html: 'Calculation tools',
+                        styles: {
+                            borderBottom: '1px solid limegreen',
+                            gridColumn: 'span 2'
+                        }
+                    }),
+                    HSUIC.Select({ 
+                        class: 'hs-panel-setting-block-select-input', 
+                        id: 'hs-panel-test-calc-sel', 
+                        type: HSInputType.TEXT,
+                        styles: {
+                            gridColumn: 'span 2'
+                        }
+                     }, 
+                    [
+                        { "text": "None", "value": "" },
+                        { "text": "LimitedAscensionsDebuff", "value": "R_calculateLimitedAscensionsDebuff" },
+                        { "text": "SingularityReductions (C)", "value": "R_calculateSingularityReductions|c" },
+                        { "text": "AscensionSpeedExponentSpread (C)", "value": "R_calculateAscensionSpeedExponentSpread|c" },
+                        { "text": "AscensionSpeedMult", "value": "R_calculateAscensionSpeedMult" },
+                        { "text": "RawAscensionSpeedMult (C)", "value": "R_calculateRawAscensionSpeedMult|c" },
+                        { "text": "AllShopTablets (C)", "value": "R_calculateAllShopTablets|c" },
+                    ]),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-redu-btn', text: 'Calc (redu)' }),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-comps-btn', text: 'Calc (comps)' }),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-cache-clear-btn', text: 'Clear cache' }),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-cache-dump-btn', text: 'Dump cache' }),
+                    HSUIC.Div({ 
+                        id: 'hs-panel-test-calc-latest', 
+                        styles: {
+                            gridColumn: 'span 2'
+                        }
+                    }),
                 ],
                 styles: {
                     gridTemplateColumns: 'repeat(2, 1fr)',
@@ -142,6 +177,8 @@ export class Hypersynergism {
                 }
             })
         );
+
+        
 
         // Bind corruption reference button to open a modal
         document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
@@ -200,6 +237,75 @@ export class Hypersynergism {
             if(storageMod) {
                 storageMod.clearData(HSGlobal.HSSettings.storageKey);
                 HSLogger.info('Stored settings cleared', this.#context);
+            }
+        });
+
+        document.querySelector('#hs-panel-test-calc-redu-btn')?.addEventListener('click', () => {
+            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+            const sel = document.querySelector('#hs-panel-test-calc-sel') as HTMLSelectElement;
+
+            if(dataModule && sel) {
+                const calcFnName = sel.value.split('|')[0];
+
+                if(typeof (dataModule as any)[calcFnName] === 'function') {
+                    const result = (dataModule as any)[calcFnName]() as number;
+                    console.log(`--- CALCULATED ${calcFnName} ---`);
+                    console.log(result);
+
+                    const latestDiv = document.querySelector('#hs-panel-test-calc-latest') as HTMLDivElement;
+
+                    if(latestDiv) {
+                        latestDiv.innerText = `Last calc result: ${HSUtils.N(result)}`;
+                    }
+                } else {
+                    HSLogger.warn(`${calcFnName} is not a function`, this.#context);
+                }
+            } else {
+                HSLogger.warn('dataModule or calculation select was null', this.#context);
+            }
+        });
+
+        document.querySelector('#hs-panel-test-calc-comps-btn')?.addEventListener('click', () => {
+            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+            const sel = document.querySelector('#hs-panel-test-calc-sel') as HTMLSelectElement;
+
+            if(dataModule && sel) {
+                const selVal = sel.value.split('|');
+                const calcFnName = selVal[0];
+                const comp = selVal.includes('c');
+
+                if(typeof (dataModule as any)[calcFnName] === 'function') {
+                    let result;
+                    if(comp) {
+                        result = (dataModule as any)[calcFnName](false) as number;
+                    } else {
+                        result = (dataModule as any)[calcFnName]() as number;
+                    }
+                    console.log(`--- CALCULATED ${calcFnName} ---`);
+                    console.log(result);
+                } else {
+                    HSLogger.warn(`${calcFnName} is not a function`, this.#context);
+                }
+            } else {
+                HSLogger.warn('dataModule or calculation select was null', this.#context);
+            }
+        });
+
+        document.querySelector('#hs-panel-test-calc-cache-clear-btn')?.addEventListener('click', () => {
+            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+
+            if(dataModule) {
+                HSLogger.info('Cleared calculation cache', this.#context);
+                dataModule.clearCache();
+            }
+        });
+
+        document.querySelector('#hs-panel-test-calc-cache-dump-btn')?.addEventListener('click', () => {
+            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+
+            if(dataModule) {
+                HSLogger.info('Calculation cache dump', this.#context);
+                dataModule.dumpCache();
             }
         });
 

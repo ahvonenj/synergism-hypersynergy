@@ -1,10 +1,11 @@
 import { EventBuffType } from "../../../types/data-types/hs-event-data";
 import { CachedValue, CalculationCache, HepteractType, RedAmbrosiaUpgradeCalculationConfig, SingularityDebuffs } from "../../../types/data-types/hs-gamedata-api-types";
 import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/data-types/hs-player-savedata";
+import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
-import { challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
+import { c15Functions, challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
 
 /*
     If this looks silly, check details in hs-gamedata-api-partial.ts
@@ -64,7 +65,21 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_ToNextThreshold:                         { value: undefined, cachedBy: [] },
         R_RequiredBlueberryTime:                   { value: undefined, cachedBy: [] },
         R_RequiredRedAmbrosiaTime:                 { value: undefined, cachedBy: [] },
-        R_ConsumableEventBuff:                     { value: undefined, cachedBy: [] },
+
+        EVENTBUFF_Quark:                           { value: undefined, cachedBy: [] },
+        EVENTBUFF_GoldenQuark:                     { value: undefined, cachedBy: [] },
+        EVENTBUFF_Cubes:                           { value: undefined, cachedBy: [] },
+        EVENTBUFF_PowderConversion:                { value: undefined, cachedBy: [] },
+        EVENTBUFF_AscensionSpeed:                  { value: undefined, cachedBy: [] },
+        EVENTBUFF_GlobalSpeed:                     { value: undefined, cachedBy: [] },
+        EVENTBUFF_AscensionScore:                  { value: undefined, cachedBy: [] },
+        EVENTBUFF_AntSacrifice:                    { value: undefined, cachedBy: [] },
+        EVENTBUFF_Offering:                        { value: undefined, cachedBy: [] },
+        EVENTBUFF_Obtainium:                       { value: undefined, cachedBy: [] },
+        EVENTBUFF_Octeract:                        { value: undefined, cachedBy: [] },
+        EVENTBUFF_BlueberryTime:                   { value: undefined, cachedBy: [] },
+        EVENTBUFF_AmbrosiaLuck:                    { value: undefined, cachedBy: [] },
+        EVENTBUFF_OneMind:                         { value: undefined, cachedBy: [] },
 
         R_RawAscensionSpeedMult:                   { value: undefined, cachedBy: [] },
         R_HepteractEffective:                      { value: undefined, cachedBy: [] },
@@ -73,8 +88,10 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_SingularityDebuff:                       { value: undefined, cachedBy: [] },
         R_SingularityReductions:                   { value: undefined, cachedBy: [] },
         R_EffectiveSingularities:                  { value: undefined, cachedBy: [] },
-
+        R_AscensionSpeedExponentSpread:           { value: undefined, cachedBy: [] },
     }
+
+    #calculationCacheTemplate : CalculationCache;
 
     // These are imported from stored-vars-and-calculationss.ts
     #redAmbrosiaCalculationCollection = redAmbrosiaUpgradeCalculationCollection;
@@ -82,6 +99,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
+        this.#calculationCacheTemplate = { ...this.#calculationCache };
     }
 
     #checkCache(cacheName: keyof CalculationCache, checkCacheAgainst: number[]) {
@@ -133,6 +151,14 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.#calculationCache[cacheName] = newCachedValue;
     }
 
+    clearCache() {
+        this.#calculationCache = { ...this.#calculationCacheTemplate };
+    }
+
+    dumpCache() {
+        console.table(this.#calculationCache);
+    }
+
     #investToRedAmbrosiaUpgrade(
         budget: number, 
         costPerLevel: number, 
@@ -161,10 +187,11 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         if(!this.eventData) return 0;
 
         const data = this.eventData;
-        const cacheName = 'R_ConsumableEventBuff' as keyof CalculationCache;
+        const cacheName = `EVENTBUFF_${HSUtils.eventBuffNumToName(buff)}` as keyof CalculationCache;
 
         const calculationVars : number[] = [
-            data.HAPPY_HOUR_BELL.amount
+            data.HAPPY_HOUR_BELL.amount,
+            buff
         ]
 
         const cached = this.#checkCache(cacheName, calculationVars);
@@ -184,33 +211,47 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         switch (buff) {
             case EventBuffType.Quark:
-            val = HAPPY_HOUR_BELL ? 0.25 + 0.025 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.25 + 0.025 * happyHourInterval : 0;
+                break;
             case EventBuffType.GoldenQuark:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.Cubes:
-            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                break;
             case EventBuffType.PowderConversion:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.AscensionSpeed:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.GlobalSpeed:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.AscensionScore:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.AntSacrifice:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.Offering:
-            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                break;
             case EventBuffType.Obtainium:
-            val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                break;
             case EventBuffType.Octeract:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.OneMind:
-            val = 0
+                val = 0;
+                break;
             case EventBuffType.BlueberryTime:
-            val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
+                break;
             case EventBuffType.AmbrosiaLuck:
-            val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0
+                val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
+                break;
         }
 
         this.#updateCache(cacheName, { value: val, cachedBy: calculationVars });
@@ -219,7 +260,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2340
-    R_calculateAmbrosiaGenerationShopUpgrade() {
+    R_calculateAmbrosiaGenerationShopUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaGenerationShopUpgrade' as keyof CalculationCache;
@@ -235,23 +276,23 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         if(cached) return cached;
         
-        const multipliers = [
+        const vals = [
             1 + data.shopUpgrades.shopAmbrosiaGeneration1 / 100,
             1 + data.shopUpgrades.shopAmbrosiaGeneration2 / 100,
             1 + data.shopUpgrades.shopAmbrosiaGeneration3 / 100,
             1 + data.shopUpgrades.shopAmbrosiaGeneration4 / 1000
         ]
 
-        const reduced = multipliers.reduce((a, b) => a * b);
+        const reduced = vals.reduce((a, b) => a * b);
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2362
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/singularity.ts#L1515
-    R_calculateAmbrosiaGenerationSingularityUpgrade() {
+    R_calculateAmbrosiaGenerationSingularityUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaGenerationSingularityUpgrade' as keyof CalculationCache;
@@ -278,11 +319,11 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2384
-    R_calculateAmbrosiaGenerationOcteractUpgrade() {
+    R_calculateAmbrosiaGenerationOcteractUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaGenerationOcteractUpgrade' as keyof CalculationCache;
@@ -309,7 +350,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2453
@@ -410,7 +451,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2351
-    R_calculateAmbrosiaLuckShopUpgrade() {
+    R_calculateAmbrosiaLuckShopUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaLuckShopUpgrade' as keyof CalculationCache;
@@ -437,11 +478,11 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     // https://github.com/Pseudo-Corp/SynergismOfficial/blob/master/src/Calculate.ts#L2373
-    R_calculateAmbrosiaLuckSingularityUpgrade() {
+    R_calculateAmbrosiaLuckSingularityUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaLuckSingularityUpgrade' as keyof CalculationCache;
@@ -468,10 +509,10 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
-    R_calculateAmbrosiaLuckOcteractUpgrade() {
+    R_calculateAmbrosiaLuckOcteractUpgrade(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AmbrosiaLuckOcteractUpgrade' as keyof CalculationCache;
@@ -498,7 +539,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     R_calculateTotalCubes() {
@@ -817,7 +858,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return sum;
     }
 
-    R_CalculateHepteractEffective = (heptType: HepteractType) => {
+    R_calculateHepteractEffective = (heptType: HepteractType) => {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_HepteractEffective' as keyof CalculationCache;
@@ -893,7 +934,11 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return effectiveValue;
     }
 
-    R_calculateAllShopTablets() {
+    R_calculateFreeShopInfinityUpgrades(reduce_vals = true) {
+        return this.R_calculateAllShopTablets(reduce_vals);
+    }
+
+    R_calculateAllShopTablets(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_AllShopTablets' as keyof CalculationCache;
@@ -932,8 +977,10 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         ]
 
         const reduced = vals.reduce((a, b) => a + b, 0);
+
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+
+        return reduce_vals ? reduced : vals;
     }
 
     R_calculateLimitedAscensionsDebuff() {
@@ -967,7 +1014,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return val;
     }
 
-    R_calculateSingularityReductions () {
+    R_calculateSingularityReductions (reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_SingularityReductions' as keyof CalculationCache;
@@ -991,16 +1038,16 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             redu = data.blueberryUpgrades.ambrosiaSingReduction1.level
         }
 
-        const arr = [
+        const vals = [
             data.shopUpgrades.shopSingularityPenaltyDebuff,
             redu
         ]
 
-        const reduced = arr.reduce((a, b) => a + b, 0)
+        const reduced = vals.reduce((a, b) => a + b, 0)
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
     R_calculateEffectiveSingularities (singularityCount: number = -1): number {
@@ -1102,7 +1149,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             return 1;
         }
 
-        const constitutiveSingularityCount = singularityCount - this.R_calculateSingularityReductions()
+        const constitutiveSingularityCount = singularityCount - (this.R_calculateSingularityReductions() as number)
 
         if (constitutiveSingularityCount < 1) {
             return 1;
@@ -1153,7 +1200,52 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return val;
     }
 
-    R_calculateRawAscensionSpeedMult() {
+    R_calculateAscensionSpeedExponentSpread(reduce_vals = true) {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+        const cacheName = 'R_AscensionSpeedExponentSpread' as keyof CalculationCache;
+
+        const calculationVars : number[] = [
+            data.singularityUpgrades.singAscensionSpeed.level,
+            data.singularityUpgrades.singAscensionSpeed2.level,
+            data.shopUpgrades.chronometerInfinity
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        const vals = [
+            data.singularityUpgrades.singAscensionSpeed.level > 0 ? 0.03 : 0,
+            data.singularityUpgrades.singAscensionSpeed2.level * 0.001,
+            0.001 * Math.floor((data.shopUpgrades.chronometerInfinity + (this.R_calculateFreeShopInfinityUpgrades() as number)) / 40)
+        ]
+
+        const reduced = vals.reduce((a, b) => a + b, 0);
+
+        this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
+
+        return reduce_vals ? reduced : vals;
+    }
+
+    calculateChallenge15Reward(rewardName: keyof typeof challenge15Rewards) {
+        if(!this.gameData) {
+            HSLogger.errorOnce(`<red>calculateChallenge15Reward() GAMEDATA WAS NULL</red>`, this.context);
+            return 0;
+        } 
+
+        const data = this.gameData;
+
+        const exponent = data.challenge15Exponent 
+        ? data.challenge15Exponent 
+        : data.highestChallenge15Exponent 
+        ? data.highestChallenge15Exponent 
+        : 0;
+
+        return c15Functions[rewardName](exponent);
+    }
+
+    R_calculateRawAscensionSpeedMult(reduce_vals = true) {
         if(!this.gameData) return 0;
         const data = this.gameData;
         const cacheName = 'R_RawAscensionSpeedMult' as keyof CalculationCache;
@@ -1190,7 +1282,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // Chronometer3
             1 + (1.5 / 100) * data.shopUpgrades.chronometer3,
             // ChronosHepteract
-            1 + (0.6 / 1000) * this.R_CalculateHepteractEffective('chronos'),
+            1 + (0.6 / 1000) * this.R_calculateHepteractEffective('chronos'),
             // Achievement262
             1 + Math.min(0.1, (1 / 100) * Math.log10(data.ascensionCount + 1)) * data.achievements[262],
             // Achievement263
@@ -1198,7 +1290,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // PlatonicOMEGA
             1 + 0.002 * this.getCorruptionTotalLevel() * data.platonicUpgrades[15],
             // Challenge15
-            challenge15Rewards.ascensionSpeed.value,
+            this.calculateChallenge15Reward('ascensionSpeed'),
             // CookieUpgrade9
             1 + (1 / 400) * cube59,
             // IntermediatePack
@@ -1210,7 +1302,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             // AbstractExokinetics
             1 + (+data.octeractUpgrades.octeractImprovedAscensionSpeed2.level / 2000) * data.singularityCount,
             // ChronometerINF
-            Math.pow(1.006, data.shopUpgrades.chronometerInfinity + this.R_calculateAllShopTablets()),
+            Math.pow(1.006, data.shopUpgrades.chronometerInfinity + (this.R_calculateFreeShopInfinityUpgrades() as number)),
             // LimitedAscensionsBuff
             Math.pow(
                 1 + ((0.1 * data.singularityChallenges.limitedAscensions.completions) / 100),
@@ -1232,10 +1324,24 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
-        return reduced;
+        return reduce_vals ? reduced : vals;
     }
 
-    calculateAmbrosiaSpeed() {
+    R_calculateAscensionSpeedMult() {
+        let base = (this.R_calculateRawAscensionSpeedMult() as number)
+
+        const exponentSpread = (this.R_calculateAscensionSpeedExponentSpread() as number)
+
+        if (base < 1) {
+            base = Math.pow(base, 1 - exponentSpread)
+        } else {
+            base = Math.pow(base, 1 + exponentSpread)
+        }
+
+        return base;
+    }
+
+    calculateAmbrosiaSpeed(reduce_vals = true) {
         if(!this.gameData) return 0;
         const gameData = this.gameData;
 
@@ -1271,13 +1377,13 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         const cube76 = gameData.cubeUpgrades[76] ?? 0;
 
-        const speedComponents = [
+        const vals = [
             +(gameData.visitedAmbrosiaSubtab),
             P_GEN_BUFF,
             campaignBlueberrySpeedBonus,
-            this.R_calculateAmbrosiaGenerationShopUpgrade(),
-            this.R_calculateAmbrosiaGenerationSingularityUpgrade(),
-            this.R_calculateAmbrosiaGenerationOcteractUpgrade(),
+            (this.R_calculateAmbrosiaGenerationShopUpgrade() as number),
+            (this.R_calculateAmbrosiaGenerationSingularityUpgrade() as number),
+            (this.R_calculateAmbrosiaGenerationOcteractUpgrade() as number),
             1 + (gameData.blueberryUpgrades.ambrosiaPatreon.level * QUARK_BONUS) / 100,
             (1 + gameData.singularityChallenges.oneChallengeCap.completions / 100),
             (1 + gameData.singularityChallenges.noAmbrosiaUpgrades.completions / 50),
@@ -1287,10 +1393,12 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             this.isEvent ? 1 + this.R_calculateConsumableEventBuff(EventBuffType.BlueberryTime) : 1
         ];
 
-        return speedComponents.reduce((a, b) => a * b, 1);
+        const reduced = vals.reduce((a, b) => a * b, 1);
+
+        return reduce_vals ? reduced : vals;
     }
 
-    calculateBlueBerries() {
+    calculateBlueBerries(reduce_vals = true) {
         const gameData = this.getGameData();
 
         if(!gameData) return 0;
@@ -1302,7 +1410,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         else if(gameData.singularityChallenges.noAmbrosiaUpgrades.completions > 0)
             noAmbrosiaFactor = 1;
 
-        const blueberryComponents = [
+        const vals = [
             +(gameData.singularityChallenges.noSingularityUpgrades.completions > 0),
             +(gameData.singularityUpgrades.blueberries.level),
             +(gameData.octeractUpgrades.octeractBlueberries.level),
@@ -1310,10 +1418,14 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             noAmbrosiaFactor
         ]
 
-        return blueberryComponents.reduce((a, b) => a + b, 0);
+        const reduced = vals.reduce((a, b) => a + b, 0);
+
+        return reduce_vals ? reduced : vals;
     }
 
-    calculateLuck() : { additive: number, raw: number, total: number } {
+    calculateLuck(reduce_vals = true) : 
+    { additive: number, raw: number, total: number } |
+    { additive: number[], raw: number[] } {
         const gameData = this.getGameData();
         const pseudoData = this.getPseudoData();
 
@@ -1371,16 +1483,16 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             P_BUFF,
             campaignBonus,
             this.R_calculateSingularityAmbrosiaLuckMilestoneBonus(),
-            this.R_calculateAmbrosiaLuckShopUpgrade(),
-            this.R_calculateAmbrosiaLuckSingularityUpgrade(),
-            this.R_calculateAmbrosiaLuckOcteractUpgrade(),
+            (this.R_calculateAmbrosiaLuckShopUpgrade() as number),
+            (this.R_calculateAmbrosiaLuckSingularityUpgrade() as number),
+            (this.R_calculateAmbrosiaLuckOcteractUpgrade() as number),
             // 1
             2 * effLevel(blueLuck1, 2) + 12 * Math.floor(effLevel(blueLuck1, 2) / 10),
             // 2
             (3 + 0.3 * Math.floor(effLevel(blueLuck1, 2) / 10))
             * effLevel(blueLuck2, 4) + 40 * Math.floor(effLevel(blueLuck2, 4) / 10),
             // 3
-            this.calculateBlueBerries() * effLevel(blueLuck3, 5),
+            (this.calculateBlueBerries() as number) * effLevel(blueLuck3, 5),
             // cubeluck
             this.R_calculateTotalCubes() * 0.02 * effLevel(blueCubeLuck, 3),
             // quarkluck
@@ -1402,13 +1514,20 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             gameData.shopUpgrades.shopAmbrosiaUltra * this.R_calculateSumOfExaltCompletions(),
         ]
 
-        const additivesTotal = additiveComponents.reduce((a, b) => a + b, 0);
-        const rawTotal = rawLuckComponents.reduce((a, b) => a + b, 0);
+        if(reduce_vals) {
+            const additivesTotal = additiveComponents.reduce((a, b) => a + b, 0);
+            const rawTotal = rawLuckComponents.reduce((a, b) => a + b, 0);
 
-        return {
-            additive: additivesTotal,
-            raw: rawTotal,
-            total: additivesTotal * rawTotal
+            return {
+                additive: additivesTotal,
+                raw: rawTotal,
+                total: additivesTotal * rawTotal
+            }
+        } else {
+            return {
+                additive: additiveComponents,
+                raw: rawLuckComponents
+            }
         }
     }
 }
