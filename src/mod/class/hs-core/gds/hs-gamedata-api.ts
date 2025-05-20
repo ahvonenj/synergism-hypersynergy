@@ -1423,7 +1423,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return reduce_vals ? reduced : vals;
     }
 
-    calculateLuck(reduce_vals = true) : 
+    calculateLuck(reduce_vals = true, true_base = false) : 
     { additive: number, raw: number, total: number } |
     { additive: number[], raw: number[] } {
         const gameData = this.getGameData();
@@ -1461,7 +1461,10 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
 
         const effLevel = (level: number, rowNum: number) => {
-            return level + RED_AMB_FREE_ROWS[rowNum]
+            if(true_base)
+                return RED_AMB_FREE_ROWS[rowNum];
+             else
+                return level + RED_AMB_FREE_ROWS[rowNum];
         }
 
         const blueLuck1 = gameData.blueberryUpgrades.ambrosiaLuck1.level;
@@ -1478,7 +1481,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         const RED_AMB_LUCK2 = this.R_calculateRedAmbrosiaUpgradeValue('regularLuck2');
         const RED_AMB_VISCOUNT = this.R_calculateRedAmbrosiaUpgradeValue('viscount');
 
-        const rawLuckComponents = [
+        const rawLuckComponents1 = [
             100,
             P_BUFF,
             campaignBonus,
@@ -1514,6 +1517,18 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             gameData.shopUpgrades.shopAmbrosiaUltra * this.R_calculateSumOfExaltCompletions(),
         ]
 
+        const rawLuckComponents2 = [
+            0
+        ]
+
+        let rawLuckComponents = [];
+
+        if(true_base) {
+            rawLuckComponents = rawLuckComponents1;
+        } else {
+            rawLuckComponents = [...rawLuckComponents1, ...rawLuckComponents2];
+        }
+
         if(reduce_vals) {
             const additivesTotal = additiveComponents.reduce((a, b) => a + b, 0);
             const rawTotal = rawLuckComponents.reduce((a, b) => a + b, 0);
@@ -1529,5 +1544,56 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
                 raw: rawLuckComponents
             }
         }
+    }
+
+    dumpDataForHeater() {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+
+        const {additive, raw, total} = this.calculateLuck(true) as { additive: number, raw: number, total: number };
+        const true_luck = this.calculateLuck(true, true) as { additive: number, raw: number, total: number };
+
+        const heaterData = {
+            ...this.gameData,
+            hs_data: {
+                lifeTimeAmbrosia: data.lifetimeAmbrosia,
+                lifeTimeRedAmbrosia: data.lifetimeRedAmbrosia,
+                quarks: data.worlds,
+                platonic4x4: data.platonicUpgrades[19],
+                baseLuck: raw,
+                luckMult: additive,
+                totalLuck: total,
+                trueBaseLuck: true_luck.raw,
+                totalCubes: this.R_calculateTotalCubes(),
+                effectiveSingularity: data.highestSingularityCount,
+                transcription: 0.55 + data.octeractUpgrades.octeractOneMindImprover.level / 150,
+                ascSpeed: this.R_calculateAscensionSpeedMult(),
+                blueberries: this.calculateBlueBerries(),
+                bonusRow2: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow2'),
+                bonusRow3: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow3'),
+                bonusRow4: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow4'),
+                bonusRow5: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow5'),
+                spread: this.R_calculateAscensionSpeedExponentSpread(),
+                totalInfinityVouchers: this.R_calculateAllShopTablets(),
+                tokens: this.campaignData?.tokens,
+                maxTokens: this.campaignData?.maxTokens,
+                isAtMaxTokens: this.campaignData?.isAtMaxTokens,
+                isEvent: this.isEvent,
+                bellStacks: this.eventData?.HAPPY_HOUR_BELL.amount,
+                personalQuarkBonus: this.meData?.bonus.quarkBonus,
+                pseudoCoinUpgrades: {
+                    ambrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level,
+                    ambrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_LUCK_BUFF")?.level,
+                    baseObtainiumBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OBTAINIUM_BUFF")?.level,
+                    baseOfferingBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OFFERING_BUFF")?.level,
+                    cubeBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "CUBE_BUFF")?.level,
+                    redAmbrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_GENERATION_BUFF")?.level,
+                    redAmbrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_LUCK_BUFF")?.level,
+                },
+                isInsideSingularityChallenge: data.insideSingularityChallenge,
+            }
+        }
+
+        return heaterData;
     }
 }

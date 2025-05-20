@@ -103,23 +103,4 @@ export abstract class HSGameDataAPIPartial extends HSModule {
     getEventData(): ConsumableGameEvents | undefined {
         return this.eventData;
     }
-
-    dumpDataForHeater() {
-        /*const heaterData = {
-            lifeTimeAmbrosia:,
-            quarks:,
-            platonic4x4:,
-            baseLuck:,
-            luckMult:,
-            totalCubes:,
-            effectiveSingularity: gameData.highestSingularityCount,
-            transcription:,
-            ascSpeed:,
-            blueberries:,
-            bonusRow2:,
-            bonusRow3:,
-            bonusRow4:,
-            bonusRow5:,
-        }*/
-    }
 }

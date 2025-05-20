@@ -93,6 +93,14 @@ export class Hypersynergism {
             HSUIC.Grid({ 
                 html: [
                     HSUIC.Div({ 
+                        html: 'Export tools',
+                        styles: {
+                            borderBottom: '1px solid limegreen',
+                            gridColumn: 'span 2'
+                        }
+                    }),
+                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Ambrosia heater' }),
+                    HSUIC.Div({ 
                         html: 'References',
                         styles: {
                             borderBottom: '1px solid limegreen',
@@ -178,7 +186,14 @@ export class Hypersynergism {
             })
         );
 
-        
+        document.querySelector('#hs-panel-amb-heater-btn')?.addEventListener('click', async () => {
+            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+
+            if(dataModule) {
+                const heaterData = dataModule.dumpDataForHeater();
+                await navigator.clipboard.writeText(btoa(JSON.stringify(heaterData)));
+            }
+        });
 
         // Bind corruption reference button to open a modal
         document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
