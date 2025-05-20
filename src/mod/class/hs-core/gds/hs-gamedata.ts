@@ -77,6 +77,7 @@ export class HSGameData extends HSModule {
         },
     };
 
+    #stored_btoa?: typeof btoa;
     #mitm_gamedata?: string;
 
     #saveTriggerEvent?: Event;
@@ -324,19 +325,26 @@ export class HSGameData extends HSModule {
         this.#turboEnabled = true;
 
         if(HSGlobal.Common.experimentalGDS) {
-            this.#hackJSNativeatob();
+            this.#hackJSNativebtoa();
             this.#processSaveDataWithRAFExperimental();
         } else {
             this.#processSaveDataWithRAF();
         }
     }
 
-    #hackJSNativeatob() {
+    #hackJSNativebtoa() {
         const self = this;
+
+        // Store ref to native btoa
         const _btoa = window.btoa;
 
+        // Overwrite btoa
         window.btoa = function(s) {
-            self.#mitm_gamedata = s;
+            // Small check so we hopefully mitm just when we have the save
+            if(s && s.length > 0 && s[0] === '{')
+                self.#mitm_gamedata = s; // Snatch the save json before it is encoded
+
+            // Call the original btoa so everything still works normally
             return _btoa(s);
         }
     }
