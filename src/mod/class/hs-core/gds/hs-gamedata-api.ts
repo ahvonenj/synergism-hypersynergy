@@ -1564,6 +1564,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
                 luckMult: additive,
                 totalLuck: total,
                 trueBaseLuck: true_luck.raw,
+                redAmbrosiaLuck: 0,
                 totalCubes: this.R_calculateTotalCubes(),
                 effectiveSingularity: data.highestSingularityCount,
                 transcription: 0.55 + data.octeractUpgrades.octeractOneMindImprover.level / 150,

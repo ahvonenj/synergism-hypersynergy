@@ -584,3 +584,17 @@
     background-repeat: no-repeat;
     background-size: 5px 5px;
 }
+
+a.hs-link:visited {
+    color: #ff3d00;
+}
+
+a.hs-link:hover {
+    color: #ff3d00;
+    text-decoration: underline;
+}
+
+a.hs-link {
+    color: #ff3d00;
+    text-decoration: none;
+}

@@ -17,6 +17,15 @@ export const HSGlobal: IHSGlobal = class {
         calculationCacheDebugMode: false,
     }
 
+    // --- PrivateAPI ---
+
+    static PrivateAPI = {
+        base: 'https://jonah.fi',
+        latestRelease: '/hs-version',
+
+        checkIntervalMs: 900000 // 15min
+    }
+
     // --- GENERAL ---
 
     static General = {
@@ -25,6 +34,7 @@ export const HSGlobal: IHSGlobal = class {
         modWikiUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/wiki/',
         modWikiFeaturesUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features',
         modWebsiteUrl: 'https://ahvonenj.github.io/synergism-hypersynergy/',
+        heaterUrl: 'https://docs.google.com/spreadsheets/d/1v02fjAeAHtLBMB5-7Spz5OHVb-eEDg7m5ISi5Mk0YAY/edit?usp=sharing'
     };
 
     // --- COMMON ---

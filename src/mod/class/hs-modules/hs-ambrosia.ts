@@ -717,11 +717,11 @@ implements HSPersistable, HSGameDataSubscriber {
             const blueAmbrosiaPercent = ((blueAmbrosiaBarValue / blueAmbrosiaBarMax) * 100);
             const redAmbrosiaPercent = ((redAmbrosiaBarValue / redAmbrosiaBarMax) * 100);
 
-            const blueberrySpeedMults = gameDataAPI.calculateAmbrosiaSpeed();
-            const blueberries = gameDataAPI.calculateBlueBerries();
+            const blueberrySpeedMults = (gameDataAPI.calculateAmbrosiaSpeed() as number);
+            const blueberries = (gameDataAPI.calculateBlueBerries() as number);
             const ambrosiaSpeed = blueberrySpeedMults * blueberries;
             const ambrosiaAcceleratorCount = gameData.shopUpgrades.shopAmbrosiaAccelerator;
-            const ambrosiaLuck = gameDataAPI.calculateLuck();
+            const ambrosiaLuck = gameDataAPI.calculateLuck() as { additive: number; raw: number; total: number; };
             const ambrosiaGainPerGen = ambrosiaLuck.total / 100;
             const ambrosiaGainChance = (ambrosiaLuck.total - 100 * Math.floor(ambrosiaLuck.total / 100)) / 100;
             let accelerationSeconds = 0;

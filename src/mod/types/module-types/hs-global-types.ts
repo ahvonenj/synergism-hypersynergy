@@ -14,12 +14,19 @@ export interface HSGlobalDebug {
     calculationCacheDebugMode: boolean;
 }
 
+export interface HSGlobalPrivateAPI {
+    base: string;
+    latestRelease: string;
+    checkIntervalMs: number;
+}
+
 export interface HSGlobalGeneral {
     currentModVersion: string;
     modGithubUrl: string;
     modWikiUrl: string;
     modWikiFeaturesUrl: string;
     modWebsiteUrl: string;
+    heaterUrl: string;
 }
 
 export interface HSGlobalCommon {
@@ -114,6 +121,7 @@ export interface HSGlobalHSUIC {
 
 export interface IHSGlobal {
     Debug: HSGlobalDebug;
+    PrivateAPI: HSGlobalPrivateAPI;
     General: HSGlobalGeneral;
     Common: HSGlobalCommon;
     HSPrototypes: HSGlobalPrototypes;

@@ -1,4 +1,4 @@
-import { HSModuleDefinition } from "../types/hs-types";
+import { HSModuleDefinition, HSReleaseInfo } from "../types/hs-types";
 import { HSLogger } from "./hs-core/hs-logger";
 import { HSModuleManager } from "./hs-core/module/hs-module-manager";
 import { HSUI } from "./hs-core/hs-ui";
@@ -14,6 +14,7 @@ import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
 import { HSWebSocket } from "./hs-core/hs-websocket";
 import { GameEventResponse, GameEventType } from "../types/data-types/hs-event-data";
 import { HSUtils } from "./hs-utils/hs-utils";
+import { HSGithub } from "./hs-core/github/hs-github";
 
 /*
     Class: Hypersynergism
@@ -28,6 +29,9 @@ export class Hypersynergism {
 
     // HSModuleManager instance
     #moduleManager : HSModuleManager;
+
+    #versionCheckIvl? : number;
+    #latestRelease?: HSReleaseInfo;
 
     constructor(modulesToEnable : HSModuleDefinition[]) {
         // Instantiate the module manager
@@ -57,6 +61,14 @@ export class Hypersynergism {
             position: 'top',
             notificationType: "success"
         });
+
+        this.#versionCheckIvl = setInterval(async () => {
+            const latestRelease = await HSGithub.getLatestRelease();
+
+            if(latestRelease) {
+                HSLogger.info(`Latest release: ${latestRelease.name} (${latestRelease.version})`, this.#context);
+            }
+        }, HSGlobal.PrivateAPI.checkIntervalMs);
     }
 
     #buildUIPanelContents() {
@@ -96,6 +108,13 @@ export class Hypersynergism {
                         html: 'Export tools',
                         styles: {
                             borderBottom: '1px solid limegreen',
+                            gridColumn: 'span 2'
+                        }
+                    }),
+                    HSUIC.Div({ 
+                        id: 'hs-panel-amb-heater-p', 
+                        html: `Export an extended save file string for the <a href="${HSGlobal.General.heaterUrl}" class="hs-link" target="_blank">Ambrosia Heater.</a>`,
+                        styles: {
                             gridColumn: 'span 2'
                         }
                     }),
@@ -192,6 +211,10 @@ export class Hypersynergism {
             if(dataModule) {
                 const heaterData = dataModule.dumpDataForHeater();
                 await navigator.clipboard.writeText(btoa(JSON.stringify(heaterData)));
+                HSUI.Notify('Ambrosia heater data copied to clipboard', {
+                    position: 'top',
+                    notificationType: "success"
+                })
             }
         });
 

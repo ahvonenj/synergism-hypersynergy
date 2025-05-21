@@ -42,3 +42,15 @@ export interface HSGameDataSubscriber {
     subscribeGameStateChanges: (viewKey: VIEW_KEY) => string | undefined;
     unsubscribeGameStateChanges: () => void;
 }*/
+
+export interface PrivateAPIResponse {
+    data: { [key: string]: any },
+    status: string;
+    code: number;
+}
+
+export interface HSReleaseInfo {
+    version: string;
+    name: string;
+    published: Date;
+}
