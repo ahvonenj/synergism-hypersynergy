@@ -96,6 +96,55 @@ The bookmark will always load up the latest version of the mod, so once you're s
 
 # Latest update(s)
 
+## Hypersynergism version 2.8.0
+
+Released: 21.5.2025
+
+**Ambrosia Heater data export**
+
+You can now find a button in the mod panel's Tools-tab to export an extended
+version of your save data for the Ambrosia Heater.
+
+This extended version of save data contains various useful calculations done by the mod
+to make the Ambrosia Heater calculate even better results and with less effort from you!
+
+The data export button will automatically copy a Base64 save string to your clipboard, which you can
+then paste in to the heater.
+
+**GDS has gone rogue!**
+
+The mod's Game Data Sniffing (GDS) feature, which the mod uses to enable features like Ambrosia Minibars,
+no longer requires being violent with the browser's local storage system.
+
+While the... uhh... new hack still (unfortunately) has to perform writes to the local storage,
+the mod doesn't need it for anything anymore. Through the magic of some ""creative coding"",
+the mod is able to access the data it needs without having to read (or decode!) it from the local storage.
+
+This means that there is now vastly less overhead and performance cost with using GDS, so much so that
+I'll probably turn the update frequency up a notch later.
+
+**Automatic version check**
+
+The mod will now perform regular version check every 15 minutes or so.
+
+If a new version is detected, the mod's icon in the top right will shoot rainbows and the mod's panel's
+header will say that there is a new version available.
+
+There is also a new button in the Tools-tab should someone want to perform a manual version check.
+
+**Other changes**
+
+- Settings are now split into subtabs (was getting messy)
+- Dump game vars button now dumps event, campaign, etc. data as well
+- Fixed some bugs with (happy hour) event fetching and buff calculation
+- Fixed a potential memory leak issue with how custom prototype-based CSS-transitions were done (sorry!)
+- Fixed another potential memory leak issue with how notifications were disposed (sorry!)
+- The mod can now calculate a huge number of things from the game data (more on this in the wiki)
+- The mod's panel is now resizable! Look for the pink arrow thingy on the bottom-right corner
+- Fixed various (minor) bugs here and there with the GDS-based calculations
+- Added some tools into the mod's panel to test calculations with
+
+
 ## Hypersynergism version 2.7.4
 
 Released: 17.5.2025
@@ -132,50 +181,6 @@ The mod now implements it's own caching for all the stolen calculations.
 - Restructured the project a bit for this new data-driven era
 - GDS will be auto disabled on save file import
 - Mod now displays a very cool notification when it has loaded and initialized
-
-## Hypersynergism version 2.7.0 - Game Data goes Brrr
-
-Released: 12.5.2025
-
-**Game Data Sniffing (GDS)**
-
-Game Data Sniffing should be fully functional now.
-When enabled from the settings, GDS uses some tricky trickery to give the mod access to vast array of game data.
-Some of the mod features will only work when GDS is turned on; such settings are marked with an icon.
-
-The mod will not allow features requiring GDS to be enabled if GDS is not enabled first.
-Furthermore, the mod will automatically disable GDS temporarily when it detects that the user
-is trying to enter a new singularity or leave or exit any singularity challenges.
-
-Everything would work even without this, but I noticed that it can sometimes result in small freezes etc.
-if it is left on when going to a singularity, thus the automatic disable and re-enable.
-
-**Other features**
-
-- Added a small "S" icon to settings which require Game Data Sniffing (GDS) to be enabled
-- Implemented GDS with turbo mode (forcing the game to save into localstorage at high speeds)
-- Implemented Idle Loadout Swapper (GDS) - You can configure two loadouts for it (oct. and luck basically) and the mod will automatically swap between them if you are in the Ambrosia view
-- RE'd the exact ambrosia bar value calculations for Idle Loadout Swapper (It's super accurate!)
-- Implementeda a toggleable patch to display Quark Shop item names
-- Implementeda a notification system (Didn't want to. Had to.)
-- Added a warning about GDS auto-disable when player presses singularity button
-- Added a new INFO tab to the mod's panel. I'll be writing important info about the mod here.
-- The mod now automatically disables all settings which use GDS if GDS is disabled
-- The mod now automatically checks if a setting uses GDS and doesn't allow enabling them if GDS is not enabled
-
-**Boring features**
-
-- DeletegateEventListeners now work for all events
-- Implemented Image ui component
-- Added a couple of debug values (ants, ambrosia bar) to test GDS
-- Massively reworked HSGameState module - should be way more generic now (but tbh it's pretty shitty, I went into a rabbit hole with TS... it probably needs another pass of changes)
-- HSUtils.hiddenAction is a lot better now
-- Finishing touches to HSHepteracts cost protection... still needs some work I think
-- Optimized HSAmbrosia event bindings to use delegateEventListener
-- Non-serialized setting keys are now defined with a blacklist in HSGlobal
-- Disabled save data hashing for now, might not be needed
-- Deprecated the crappy slow implementation of GDS
-- Added a couple of buttons to Tools tab to test notifications
 
 # For developers
 

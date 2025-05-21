@@ -154,6 +154,53 @@
                 <div class="page-wrapper" id="changelog" data-color="purple">
                     <h1>Changelog</h1>
 
+                    <h2>Hypersynergism version 2.8.0</h2>
+                    <p class="sm">Released: 21.5.2025</p><br/>
+
+                    <h3 style="margin-left: 30px">Ambrosia Heater data export</h3>
+                    <p>
+                        You can now find a button in the mod panel's Tools-tab to export an extended
+                        version of your save data for the Ambrosia Heater.</br></br>
+                        This extended version of save data contains various useful calculations done by the mod
+                        to make the Ambrosia Heater calculate even better results and with less effort from you!</br></br>
+                        The data export button will automatically copy a Base64 save string to your clipboard, which you can
+                        then paste in to the heater.
+                    </p>
+
+                    <h3 style="margin-left: 30px">GDS has gone rogue!</h3>
+                    <p>
+                        The mod's Game Data Sniffing (GDS) feature, which the mod uses to enable features like Ambrosia Minibars,
+                        no longer requires being violent with the browser's local storage system.</br></br>
+                        While the... uhh... new hack still (unfortunately) has to perform writes to the local storage,
+                        the mod doesn't need it for anything anymore. Through the magic of some ""creative coding"",
+                        the mod is able to access the data it needs without having to read (or decode!) it from the local storage.</br></br>
+
+                        This means that there is now vastly less overhead and performance cost with using GDS, so much so that
+                        I'll probably turn the update frequency up a notch later.
+                    </p>
+
+                    <h3 style="margin-left: 30px">Automatic version check</h3>
+                    <p>
+                        The mod will now perform regular version check every 15 minutes or so.</br></br>
+                        If a new version is detected, the mod's icon in the top right will shoot rainbows and the mod's panel's
+                        header will say that there is a new version available.</br></br>
+
+                        There is also a new button in the Tools-tab should someone want to perform a manual version check.
+                    </p>
+
+                    <h3 style="margin-left: 30px">Other changes</h3>
+                    <ul style="margin-left: 60px;">
+                        <li>Settings are now split into subtabs (was getting messy)</li>
+                        <li>Dump game vars button now dumps event, campaign, etc. data as well</li>
+                        <li>Fixed some bugs with (happy hour) event fetching and buff calculation</li>
+                        <li>Fixed a potential memory leak issue with how custom prototype-based CSS-transitions were done (sorry!)</li>
+                        <li>Fixed another potential memory leak issue with how notifications were disposed (sorry!)</li>
+                        <li>The mod can now calculate a huge number of things from the game data (more on this in the wiki)</li>
+                        <li>The mod's panel is now resizable! Look for the pink arrow thingy on the bottom-right corner</li>
+                        <li>Fixed various (minor) bugs here and there with the GDS-based calculations</li>
+                        <li>Added some tools into the mod's panel to test calculations with</li>
+                    </ul>
+
                     <h2>Hypersynergism version 2.7.4</h2>
                     <p class="sm">Released: 17.5.2025</p><br/>
 
