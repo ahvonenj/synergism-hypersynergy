@@ -22,6 +22,7 @@ export interface HSGlobalPrivateAPI {
 
 export interface HSGlobalGeneral {
     currentModVersion: string;
+    isLatestVersion: boolean;
     modGithubUrl: string;
     modWikiUrl: string;
     modWikiFeaturesUrl: string;

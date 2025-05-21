@@ -91,10 +91,20 @@ implements HSPersistable, HSGameDataSubscriber {
             background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 500% auto;
-            animation: loadout-ind-glow 3.5s ease-in-out infinite alternate;
+            animation: hs-loadout-ind-glow 3.5s ease-in-out infinite alternate;
         }
 
-        @-webkit-keyframes loadout-ind-glow {
+        @keyframes hs-loadout-ind-glow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        @-webkit-keyframes hs-loadout-ind-glow {
             0% {
                 background-position: 0% 50%;
             }

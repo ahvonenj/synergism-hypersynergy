@@ -66,7 +66,22 @@ export class Hypersynergism {
             const latestRelease = await HSGithub.getLatestRelease();
 
             if(latestRelease) {
-                HSLogger.info(`Latest release: ${latestRelease.name} (${latestRelease.version})`, this.#context);
+                HSLogger.debug(`Latest release: ${latestRelease.name} (${latestRelease.version})`, this.#context);
+
+                if(latestRelease.version !== HSGlobal.General.currentModVersion) {
+                    HSGlobal.General.isLatestVersion = false;
+
+                    const modIcon = document.querySelector('#hs-panel-control') as HTMLDivElement;
+                    const modPanelHead = document.querySelector('#hs-panel-version') as HTMLDivElement;
+
+                    if(modIcon && modPanelHead) {
+                        modIcon.classList.add('hs-rainbowBorder');
+                        modPanelHead.innerHTML += ` - <span id="hs-panel-new-ver">New version available!</span>`;
+
+                        clearInterval(this.#versionCheckIvl);
+                        this.#versionCheckIvl = undefined;
+                    }
+                }
             }
         }, HSGlobal.PrivateAPI.checkIntervalMs);
     }
