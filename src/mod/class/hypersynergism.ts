@@ -164,6 +164,7 @@ export class Hypersynergism {
                     HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
                     HSUIC.Button({ id: 'hs-panel-dump-gamedata-btn', text: 'Dump Game vars' }),
                     HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
+                    HSUIC.Button({ id: 'hs-panel-check-version-btn', text: 'CHECK VERSION' }),
                     HSUIC.Div({ 
                         html: 'Testing tools',
                         styles: {
@@ -173,8 +174,6 @@ export class Hypersynergism {
                     }),
                     HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
                     HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
-                    HSUIC.Button({ id: 'hs-panel-test-register-sock-btn', text: 'Register WS' }),
-                    HSUIC.Button({ id: 'hs-panel-test-unregister-sock-btn', text: 'Unregister WS' }),
                     HSUIC.Div({ 
                         html: 'Calculation tools',
                         styles: {
@@ -224,12 +223,16 @@ export class Hypersynergism {
             const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
 
             if(dataModule) {
-                const heaterData = dataModule.dumpDataForHeater();
-                await navigator.clipboard.writeText(btoa(JSON.stringify(heaterData)));
-                HSUI.Notify('Ambrosia heater data copied to clipboard', {
-                    position: 'top',
-                    notificationType: "success"
-                })
+                const heaterData = await dataModule.dumpDataForHeater();
+
+                if(heaterData) {
+                    await navigator.clipboard.writeText(btoa(JSON.stringify(heaterData)));
+
+                    HSUI.Notify('Ambrosia heater data copied to clipboard', {
+                        position: 'top',
+                        notificationType: "success"
+                    });
+                }
             }
         });
 
@@ -290,6 +293,22 @@ export class Hypersynergism {
             if(storageMod) {
                 storageMod.clearData(HSGlobal.HSSettings.storageKey);
                 HSLogger.info('Stored settings cleared', this.#context);
+            }
+        });
+
+        document.querySelector('#hs-panel-check-version-btn')?.addEventListener('click', async() => {
+            const isLatest = await HSUtils.isLatestVersion();
+            
+            if(isLatest) {
+                HSUI.Notify('You are using the latest version of Hypersynergism!', {
+                    position: 'top',
+                    notificationType: "success"
+                });
+            } else {
+                HSUI.Notify('You are not using the latest version of Hypersynergism!', {
+                    position: 'top',
+                    notificationType: "warning"
+                });
             }
         });
 
@@ -397,31 +416,6 @@ export class Hypersynergism {
                 position: positions[p_idx],
                 notificationType: colors[c_idx]
             })
-        });
-
-        document.querySelector('#hs-panel-test-register-sock-btn')?.addEventListener('click', async () => {
-            const wsMod = HSModuleManager.getModule<HSWebSocket>('HSWebSocket');
-
-            if(wsMod) {
-                wsMod.registerWebSocket<GameEventResponse>('testSocket', {
-                    url: HSGlobal.Common.eventAPIUrl,
-                    onMessage: async (msg) => {
-                        if(msg?.type === GameEventType.INFO_ALL) {
-                            if(msg.active && msg.active.length > 0) {
-                                HSLogger.log(`Caught WS event: ${msg.type} - event count: ${msg.active.length}, active[0]: ${JSON.stringify(msg.active[0])}`, 'WebSocket');
-                            }
-                        }
-                    }
-                })
-            }
-        });
-
-        document.querySelector('#hs-panel-test-unregister-sock-btn')?.addEventListener('click', async () => {
-            const wsMod = HSModuleManager.getModule<HSWebSocket>('HSWebSocket');
-
-            if(wsMod) {
-                wsMod.unregisterWebSocket('testSocket');
-            }
         });
     }
 

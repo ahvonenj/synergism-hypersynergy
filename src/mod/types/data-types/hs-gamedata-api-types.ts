@@ -53,6 +53,9 @@ export interface CalculationCache {
     R_SingularityReductions: CachedValue;
     R_EffectiveSingularities: CachedValue;
     R_AscensionSpeedExponentSpread: CachedValue;
+
+    R_RedAmbrosiaLuck: CachedValue;
+    R_LuckConversion: CachedValue;
 }
 
 export interface CachedValue {

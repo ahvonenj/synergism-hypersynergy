@@ -77,10 +77,13 @@ export class HSGameData extends HSModule {
         },
     };
 
-    #stored_btoa?: typeof btoa;
+    #btoaHacked = false;
     #mitm_gamedata?: string;
 
-    #saveTriggerEvent?: Event;
+    #saveTriggerEvent: Event;
+
+    #lastForceFetch = 0;
+    #ForceFetchCooldown = 5000;
 
     constructor(moduleName: string, context: string, moduleColor?: string) {
         super(moduleName, context, moduleColor);
@@ -120,6 +123,36 @@ export class HSGameData extends HSModule {
         this.#gameDataAPI = HSModuleManager.getModule('HSGameDataAPI') as HSGameDataAPI;
         this.#registerWebSocket();
         this.isInitialized = true;
+    }
+
+    async forceUpdateAllData() {
+        const now = Date.now();
+
+        if (now - this.#lastForceFetch < this.#ForceFetchCooldown) {
+            HSLogger.warn("Forced data refresh on cooldown", this.context);
+            return;
+        }
+
+        this.#lastForceFetch = now;
+
+        await this.#refreshFetchedData();
+        await this.#refreshCampaignTokens();
+        await this.#refreshFetchedData();
+        this.#hackJSNativebtoa();
+
+        const saveBtn = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
+
+        if(saveBtn) {
+            saveBtn.dispatchEvent(this.#saveTriggerEvent);
+        }
+
+        if(this.#mitm_gamedata)
+            this.#saveData = JSON.parse(this.#mitm_gamedata) as PlayerData;
+
+        this.#pseudoDataUpdated();
+        this.#meDataUpdated();
+        this.#campaignDataUpdated();
+        this.#saveDataUpdated();
     }
 
     #registerWebSocket() {
@@ -333,6 +366,9 @@ export class HSGameData extends HSModule {
     }
 
     #hackJSNativebtoa() {
+        if(this.#btoaHacked)
+            return;
+
         const self = this;
 
         // Store ref to native btoa
@@ -347,6 +383,8 @@ export class HSGameData extends HSModule {
             // Call the original btoa so everything still works normally
             return _btoa(s);
         }
+
+        this.#btoaHacked = true;
     }
 
     async #loadFromFileHandler(e: MouseEvent) {

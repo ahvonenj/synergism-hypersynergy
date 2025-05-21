@@ -4,6 +4,9 @@ import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
+import { HSUI } from "../hs-ui";
+import { HSModuleManager } from "../module/hs-module-manager";
+import { HSGameData } from "./hs-gamedata";
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
 import { c15Functions, challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
 
@@ -89,6 +92,9 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         R_SingularityReductions:                   { value: undefined, cachedBy: [] },
         R_EffectiveSingularities:                  { value: undefined, cachedBy: [] },
         R_AscensionSpeedExponentSpread:           { value: undefined, cachedBy: [] },
+
+        R_RedAmbrosiaLuck:                         { value: undefined, cachedBy: [] },
+        R_LuckConversion:                          { value: undefined, cachedBy: [] },
     }
 
     #calculationCacheTemplate : CalculationCache;
@@ -1546,79 +1552,209 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
     }
 
-    dumpDataForHeater() {
+    R_calculateLuckConversion(reduce_vals = true) {
+        if(!this.gameData) return 0;
+
+        const data = this.gameData;
+
+        const cacheName = 'R_LuckConversion' as keyof CalculationCache;
+
+        const c1 = this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement1')
+        const c2 = this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement2')
+        const c3 = this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement3')
+
+        const calculationVars : number[] = [
+            data.shopUpgrades.shopRedLuck1,
+            data.shopUpgrades.shopRedLuck2,
+            data.shopUpgrades.shopRedLuck3,
+            c1,
+            c2,
+            c3,
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        const vals = [
+            20,
+            c1,
+            c2,
+            c3,
+            -0.01 * Math.floor(data.shopUpgrades.shopRedLuck1 / 20),
+            -0.01 * Math.floor(data.shopUpgrades.shopRedLuck2 / 20),
+            -0.01 * Math.floor(data.shopUpgrades.shopRedLuck3 / 20),
+        ]
+
+        const reduced = vals.reduce((a, b) => a + b, 0)
+
+        this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
+
+        return reduce_vals ? reduced : vals;
+    }
+
+    R_calculateRedAmbrosiaLuck(reduce_vals = true) {
+        if(!this.gameData) return 0;
+        if(!this.pseudoData) return 0;
+
+        const data = this.gameData;
+        const pseudoData = this.pseudoData;
+
+        const cacheName = 'R_RedAmbrosiaLuck' as keyof CalculationCache;
+
+        const pseudoLuck = pseudoData.playerUpgrades.find(u => u.internalName === "RED_LUCK_BUFF")?.level ?? 0;
+        const luck = this.calculateLuck() as { additive: number, raw: number, total: number };
+        const red1 = this.R_calculateRedAmbrosiaUpgradeValue('redLuck');
+        const red2 = this.R_calculateRedAmbrosiaUpgradeValue('viscount');
+
+        const calculationVars : number[] = [
+            pseudoLuck,
+            luck.total,
+            red1,
+            red2,
+            data.singularityChallenges.noAmbrosiaUpgrades.completions,
+            data.shopUpgrades.shopRedLuck1,
+            data.shopUpgrades.shopRedLuck2,
+            data.shopUpgrades.shopRedLuck3,
+        ];
+        
+        const cached = this.#checkCache(cacheName, calculationVars);
+
+        if(cached) return cached;
+
+        const vals = [
+            100,
+            pseudoLuck,
+            Math.floor((luck.total - 100) / (this.R_calculateLuckConversion() as number)),
+            red1,
+            data.singularityChallenges.noAmbrosiaUpgrades.completions * 4,
+            data.shopUpgrades.shopRedLuck1 * 0.05,
+            data.shopUpgrades.shopRedLuck2 * 0.075,
+            data.shopUpgrades.shopRedLuck3 * 0.1,
+            red2,
+        ]
+
+        const reduced = vals.reduce((a, b) => a + b, 0)
+
+        this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
+
+        return reduce_vals ? reduced : vals;
+    }
+
+    async dumpDataForHeater() {
+        const gameDataModule = HSModuleManager.getModule("HSGameData") as HSGameData;
+
+        if(gameDataModule) {
+            await gameDataModule.forceUpdateAllData();
+        } else {
+            HSLogger.error('Failed to acquire game data for heater export', this.context);
+
+            HSUI.Notify('Failed to acquire game data for heater export', {
+                position: 'top',
+                notificationType: "error"
+            });
+
+            return;
+        }
+
         if(!this.gameData) return 0;
         const data = this.gameData;
 
-        const {additive, raw, total} = this.calculateLuck(true) as { additive: number, raw: number, total: number };
-        const true_luck = this.calculateLuck(true, true) as { additive: number, raw: number, total: number };
+        try {
+            const {additive, raw, total} = this.calculateLuck(true) as { additive: number, raw: number, total: number };
+            const true_luck = this.calculateLuck(true, true) as { additive: number, raw: number, total: number };
+            const ambrosiaGainChance = (total - 100 * Math.floor(total / 100)) / 100;
+            const trueAmbrosiaGainChance = (true_luck.total - 100 * Math.floor(true_luck.total / 100)) / 100;
+            const blueberries = (this.calculateBlueBerries() as number);
+            const ambSpeedMult = (this.calculateAmbrosiaSpeed() as number);
+            const ambSpeed = blueberries * ambSpeedMult;
 
-        const heaterData = {
-            ...this.gameData,
-            hs_data: {
-                lifeTimeAmbrosia: data.lifetimeAmbrosia,
-                lifeTimeRedAmbrosia: data.lifetimeRedAmbrosia,
-                quarks: data.worlds,
-                platonic4x4: data.platonicUpgrades[19],
-                baseLuck: raw,
-                luckMult: additive,
-                totalLuck: total,
-                trueBaseLuck: true_luck.raw,
-                redAmbrosiaLuck: 0,
-                totalCubes: this.R_calculateTotalCubes(),
-                effectiveSingularity: data.highestSingularityCount,
-                transcription: 0.55 + data.octeractUpgrades.octeractOneMindImprover.level / 150,
-                ascSpeed: this.R_calculateAscensionSpeedMult(),
-                blueberries: this.calculateBlueBerries(),
-                bonusRow2: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow2'),
-                bonusRow3: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow3'),
-                bonusRow4: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow4'),
-                bonusRow5: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow5'),
-                spread: this.R_calculateAscensionSpeedExponentSpread(),
-                totalInfinityVouchers: this.R_calculateAllShopTablets(),
-                tokens: this.campaignData?.tokens,
-                maxTokens: this.campaignData?.maxTokens,
-                isAtMaxTokens: this.campaignData?.isAtMaxTokens,
-                isEvent: this.isEvent,
-                bellStacks: this.eventData?.HAPPY_HOUR_BELL.amount,
-                personalQuarkBonus: this.meData?.bonus.quarkBonus,
-                pseudoCoinUpgrades: {
-                    ambrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level,
-                    ambrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_LUCK_BUFF")?.level,
-                    baseObtainiumBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OBTAINIUM_BUFF")?.level,
-                    baseOfferingBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OFFERING_BUFF")?.level,
-                    cubeBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "CUBE_BUFF")?.level,
-                    redAmbrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_GENERATION_BUFF")?.level,
-                    redAmbrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_LUCK_BUFF")?.level,
-                },
-                redAmbrosiaUpgrades: {
-                    tutorial: this.R_calculateRedAmbrosiaUpgradeValue('tutorial'),
-                    conversionImprovement1: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement1'),
-                    conversionImprovement2: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement2'),
-                    conversionImprovement3: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement3'),
-                    freeTutorialLevels: this.R_calculateRedAmbrosiaUpgradeValue('freeTutorialLevels'),
-                    freeLevelsRow2: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow2'),
-                    freeLevelsRow3: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow3'),
-                    freeLevelsRow4: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow4'),
-                    freeLevelsRow5: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow5'),
-                    blueberryGenerationSpeed: this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed'),
-                    blueberryGenerationSpeed2: this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed2'),
-                    regularLuck: this.R_calculateRedAmbrosiaUpgradeValue('regularLuck'),
-                    regularLuck2: this.R_calculateRedAmbrosiaUpgradeValue('regularLuck2'),
-                    redGenerationSpeed: this.R_calculateRedAmbrosiaUpgradeValue('redGenerationSpeed'),
-                    redLuck: this.R_calculateRedAmbrosiaUpgradeValue('redLuck'),
-                    redAmbrosiaCube: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaCube'),
-                    redAmbrosiaObtainium: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaObtainium'),
-                    redAmbrosiaOffering: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaOffering'),
-                    redAmbrosiaCubeImprover: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaCubeImprover'),
-                    viscount: this.R_calculateRedAmbrosiaUpgradeValue('viscount'),
-                    infiniteShopUpgrades: this.R_calculateRedAmbrosiaUpgradeValue('infiniteShopUpgrades'),
-                    redAmbrosiaAccelerator: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaAccelerator'),
-                },
-                isInsideSingularityChallenge: data.insideSingularityChallenge,
+            const heaterData = {
+                ...this.gameData,
+                hs_data: {
+                    lifeTimeAmbrosia: data.lifetimeAmbrosia,
+                    lifeTimeRedAmbrosia: data.lifetimeRedAmbrosia,
+                    quarks: data.worlds,
+                    platonic4x4: data.platonicUpgrades[19],
+                    baseLuck: raw,
+                    luckMult: additive,
+                    totalLuck: total,
+                    trueBaseLuck: true_luck.raw,
+                    redAmbrosiaLuck: (this.R_calculateRedAmbrosiaLuck() as number),
+                    luckConversion: (this.R_calculateLuckConversion() as number),
+                    totalCubes: this.R_calculateTotalCubes(),
+                    effectiveSingularity: data.highestSingularityCount,
+                    transcription: 0.55 + data.octeractUpgrades.octeractOneMindImprover.level / 150,
+                    ascSpeed: this.R_calculateAscensionSpeedMult(),
+                    blueberries: blueberries,
+                    bonusRow2: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow2'),
+                    bonusRow3: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow3'),
+                    bonusRow4: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow4'),
+                    bonusRow5: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow5'),
+                    spread: this.R_calculateAscensionSpeedExponentSpread(),
+                    totalInfinityVouchers: this.R_calculateAllShopTablets(),
+                    tokens: this.campaignData?.tokens,
+                    maxTokens: this.campaignData?.maxTokens,
+                    isAtMaxTokens: this.campaignData?.isAtMaxTokens,
+                    isEvent: this.isEvent,
+                    bellStacks: this.eventData?.HAPPY_HOUR_BELL.amount,
+                    personalQuarkBonus: this.meData?.bonus.quarkBonus,
+                    blueAmbrosiaBarValue: data.blueberryTime,
+                    redAmbrosiaBarValue: data.redAmbrosiaTime,
+                    blueAmbrosiaBarMax: this.R_calculateRequiredBlueberryTime(),
+                    redAmbrosiaBarMax: this.R_calculateRequiredRedAmbrosiaTime(),
+                    ambrosiaSpeedMult: ambSpeedMult,
+                    ambrosiaSpeed: ambSpeed,
+                    ambrosiaGainChance: ambrosiaGainChance,
+                    trueAmbrosiaGainChance: trueAmbrosiaGainChance,
+                    ambrosiaAcceleratorCount: data.shopUpgrades.shopAmbrosiaAccelerator,
+                    pseudoCoinUpgrades: {
+                        ambrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level,
+                        ambrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_LUCK_BUFF")?.level,
+                        baseObtainiumBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OBTAINIUM_BUFF")?.level,
+                        baseOfferingBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "BASE_OFFERING_BUFF")?.level,
+                        cubeBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "CUBE_BUFF")?.level,
+                        redAmbrosiaGenerationBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_GENERATION_BUFF")?.level,
+                        redAmbrosiaLuckBuffLevel: this.pseudoData?.playerUpgrades.find(u => u.internalName === "RED_LUCK_BUFF")?.level,
+                    },
+                    redAmbrosiaUpgrades: {
+                        tutorial: this.R_calculateRedAmbrosiaUpgradeValue('tutorial'),
+                        conversionImprovement1: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement1'),
+                        conversionImprovement2: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement2'),
+                        conversionImprovement3: this.R_calculateRedAmbrosiaUpgradeValue('conversionImprovement3'),
+                        freeTutorialLevels: this.R_calculateRedAmbrosiaUpgradeValue('freeTutorialLevels'),
+                        freeLevelsRow2: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow2'),
+                        freeLevelsRow3: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow3'),
+                        freeLevelsRow4: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow4'),
+                        freeLevelsRow5: this.R_calculateRedAmbrosiaUpgradeValue('freeLevelsRow5'),
+                        blueberryGenerationSpeed: this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed'),
+                        blueberryGenerationSpeed2: this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed2'),
+                        regularLuck: this.R_calculateRedAmbrosiaUpgradeValue('regularLuck'),
+                        regularLuck2: this.R_calculateRedAmbrosiaUpgradeValue('regularLuck2'),
+                        redGenerationSpeed: this.R_calculateRedAmbrosiaUpgradeValue('redGenerationSpeed'),
+                        redLuck: this.R_calculateRedAmbrosiaUpgradeValue('redLuck'),
+                        redAmbrosiaCube: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaCube'),
+                        redAmbrosiaObtainium: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaObtainium'),
+                        redAmbrosiaOffering: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaOffering'),
+                        redAmbrosiaCubeImprover: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaCubeImprover'),
+                        viscount: this.R_calculateRedAmbrosiaUpgradeValue('viscount'),
+                        infiniteShopUpgrades: this.R_calculateRedAmbrosiaUpgradeValue('infiniteShopUpgrades'),
+                        redAmbrosiaAccelerator: this.R_calculateRedAmbrosiaUpgradeValue('redAmbrosiaAccelerator'),
+                    },
+                    isInsideSingularityChallenge: data.insideSingularityChallenge,
+                }
             }
-        }
 
-        return heaterData;
+            return heaterData;
+        } catch(err) {
+            HSLogger.error('Failed to calculate game data for heater export', this.context);
+
+            HSUI.Notify('Failed to calculate game data for heater export', {
+                position: 'top',
+                notificationType: "error"
+            });
+
+            return;
+        }
     }
 }
