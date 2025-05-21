@@ -186,9 +186,17 @@ The mod now implements it's own caching for all the stolen calculations.
 
 Developer documentation can be found in the wiki: https://github.com/ahvonenj/synergism-hypersynergy/wiki
 
-Quick Reference: https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Framework-Quick-Reference  
-Core Module Documentation: https://github.com/ahvonenj/synergism-hypersynergy/wiki/Project-structure-and-Modules#core-modules  
-Using Game Data (non-computed and computed): https://github.com/ahvonenj/synergism-hypersynergy/wiki/Game-Data-and-Calculations
+**Quick Reference**
+
+https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Framework-Quick-Reference
+
+**Core Module Documentation**
+
+https://github.com/ahvonenj/synergism-hypersynergy/wiki/Project-structure-and-Modules#core-modules  
+
+**Using Game Data (non-computed and computed)**
+
+https://github.com/ahvonenj/synergism-hypersynergy/wiki/Game-Data-and-Calculations
 
 In addition to the documentation in the wiki, the source code itself should be relatively well commented.
 
