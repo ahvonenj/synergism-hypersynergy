@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./module/hs-module";
@@ -11,8 +12,8 @@ import { HSModule } from "./module/hs-module";
 */
 export class HSStorage extends HSModule {
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init(): Promise<void> { 

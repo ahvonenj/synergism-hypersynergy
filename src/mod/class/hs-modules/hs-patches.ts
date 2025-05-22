@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
 import { PATCH_AmbrosiaViewOverflow } from "../patches/ambrosiaViewOverflow";
@@ -17,8 +18,8 @@ export class HSPatches extends HSModule {
 
     #instantiatedPatches: Record<string, HSPatch> = {};
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init() {

@@ -14,6 +14,7 @@ import { HSUI } from "../hs-ui";
 import { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import { GameEventResponse, GameEventType, ConsumableGameEvent, ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
 import { HSWebSocket } from "../hs-websocket";
+import { HSModuleOptions } from "../../../types/hs-types";
 
 export class HSGameData extends HSModule {
     #saveDataLocalStorageKey = 'Synergysave2';
@@ -85,8 +86,8 @@ export class HSGameData extends HSModule {
     #lastForceFetch = 0;
     #ForceFetchCooldown = 5000;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
         this.#campaignTokenElement = document.querySelector('#campaignTokenCount') as HTMLHeadingElement;
 
         this.#saveTriggerEvent = new Event('click');

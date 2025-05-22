@@ -13,6 +13,7 @@ import { HSModuleManager } from "../module/hs-module-manager";
 import { HSStorage } from "../hs-storage";
 import { HSGlobal } from "../hs-global";
 import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
+import { HSModuleOptions } from "../../../types/hs-types";
 
 /*
     Class: HSSettings
@@ -42,8 +43,8 @@ export class HSSettings extends HSModule {
 
     #settingActions : HSSettingActions;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
 
         HSSettings.#staticContext = this.context;
         this.#settingActions = new HSSettingActions();

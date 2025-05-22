@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
 
@@ -17,8 +18,8 @@ export class HSPotions extends HSModule {
     #offeringPotionObserver : MutationObserver;
     #obtainiumPotionObserver : MutationObserver;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
 
         this.#offeringPotion = document.getElementById("offeringPotionHide");
         this.#obtainiumPotion = document.getElementById("obtainiumPotionHide");

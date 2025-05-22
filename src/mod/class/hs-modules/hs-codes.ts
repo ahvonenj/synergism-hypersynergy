@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
@@ -17,8 +18,8 @@ export class HSCodes extends HSModule {
     #codeBoxLabelObserver? : MutationObserver;
     #codeSpanStyle = 'white-space: nowrap; user-select: all; -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all;';
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
 
         this.#config = { attributes: false, childList: true, subtree: true };
 

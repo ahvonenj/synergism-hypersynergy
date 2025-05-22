@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSWebSocketObject, HSWebSocketRegistrationParams } from "../../types/module-types/hs-websocket-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
@@ -8,8 +9,8 @@ export class HSWebSocket extends HSModule {
     #webSockets: Map<string, HSWebSocketObject<any>> = new Map();
     #exponentialBackoff = [5000, 15000, 30000, 60000];
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
     
     async init() {
@@ -22,7 +23,7 @@ export class HSWebSocket extends HSModule {
         this.registerWebSocket(name, socket);
     }
 
-    registerWebSocket<T>(name: string, socket: HSWebSocketRegistrationParams<T>) {
+    registerWebSocket<T>(name: string, regParams: HSWebSocketRegistrationParams<T>) {
         const self = this;
 
         if(this.#webSockets.has(name)) {
@@ -30,34 +31,49 @@ export class HSWebSocket extends HSModule {
             return;
         }
 
-        if(!socket.url) {
+        if(!regParams.url) {
             HSLogger.error(`Tried to register websocket ${name} without a URL`, this.context);
             return;
         }
 
         const webSocketObject : HSWebSocketObject<T> = {
-            socket: new WebSocket(socket.url),
+            socket: new WebSocket(regParams.url),
             reconnectionTries: 0,
-            onClose: socket.onClose ?? HSUtils.Noop,
-            onOpen: socket.onOpen ?? HSUtils.Noop,
-            onMessage: socket.onMessage ?? HSUtils.Noop,
-            onRetriesFailed: socket.onRetriesFailed ?? HSUtils.Noop,
+            onClose: regParams.onClose ?? HSUtils.Noop,
+            onOpen: regParams.onOpen ?? HSUtils.Noop,
+            onMessage: regParams.onMessage ?? HSUtils.Noop,
+            onRetriesFailed: regParams.onRetriesFailed ?? HSUtils.Noop,
+            regParams: regParams
         }
 
         const onCloseHandler = async (event: CloseEvent) => {
-            const delay = self.#exponentialBackoff[++webSocketObject.reconnectionTries];
+            const ws = self.#webSockets.get(name);
 
-            if (delay !== undefined) {
-                setTimeout(() => { self.#reRegisterWebSocket(name, socket)}, delay)
-            } else {
-                HSLogger.warn(`WebSocket ${name} failed to reconnect after ${webSocketObject.reconnectionTries} tries`);
-                await (socket.onRetriesFailed ?? HSUtils.Noop)();
+            if(!ws) {
+                HSLogger.warnOnce(`wsOnClose(): Socket ${name} not found`, self.context);
+                return;
             }
 
-            await (socket.onClose ?? HSUtils.Noop)();
+            const delay = self.#exponentialBackoff[++ws.reconnectionTries];
+
+            if (delay !== undefined) {
+                setTimeout(() => { self.#reRegisterWebSocket(name, ws.regParams)}, delay);
+            } else {
+                HSLogger.warn(`WebSocket ${name} failed to reconnect after ${webSocketObject.reconnectionTries} tries`);
+                await (ws.onRetriesFailed ?? HSUtils.Noop)();
+            }
+
+            await (ws.onClose ?? HSUtils.Noop)(event);
         };
 
         const onMessageHandler = async (event: MessageEvent) => {
+            const ws = self.#webSockets.get(name);
+
+            if(!ws) {
+                HSLogger.warnOnce(`wsOnOpen(): Socket ${name} not found`, self.context);
+                return;
+            }
+
             let parsedData: T | undefined;
 
             try {
@@ -67,11 +83,24 @@ export class HSWebSocket extends HSModule {
                 parsedData = undefined;
             }
 
-            await (socket.onMessage ?? HSUtils.Noop)(parsedData);
+            await (ws.onMessage ?? HSUtils.Noop)(parsedData);
+        };
+
+        const onOpenHandler = async (event: Event) => {
+            const ws = self.#webSockets.get(name);
+
+            if(!ws) {
+                HSLogger.warnOnce(`wsOnOpen(): Socket ${name} not found`, self.context);
+                return;
+            }
+
+            ws.reconnectionTries = 0;
+
+            await (ws.onOpen ?? HSUtils.Noop)(event);
         };
 
         webSocketObject.socket.onclose = onCloseHandler;
-        webSocketObject.socket.onopen = webSocketObject.onOpen;
+        webSocketObject.socket.onopen = onOpenHandler;
         webSocketObject.socket.onmessage = onMessageHandler;
 
         this.#webSockets.set(name, webSocketObject);

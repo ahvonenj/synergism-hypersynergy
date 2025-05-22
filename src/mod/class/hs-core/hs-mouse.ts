@@ -1,4 +1,5 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSUI } from "./hs-ui";
@@ -18,9 +19,9 @@ export class HSMouse extends HSModule {
 
     static #ignoredElements: string[] = [];
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
-        HSMouse.#staticContext = context;
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
+        HSMouse.#staticContext = moduleOptions.context;
     }
 
     async init() {

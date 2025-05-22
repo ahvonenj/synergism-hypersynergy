@@ -9,6 +9,7 @@ import { HSSettings } from "../hs-core/settings/hs-settings";
 import { HSShadowDOM } from "../hs-core/hs-shadowdom";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
+import { HSModuleOptions } from "../../types/hs-types";
 
 /*
     Class: HSHepteracts
@@ -101,8 +102,8 @@ export class HSHepteracts extends HSModule {
     #expandPending = false;
     #watchUpdatePending = false;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
 
         this.#hepteracts = this.#hepteractBaseNames.map(h => {
             return `${h}Hepteract`;

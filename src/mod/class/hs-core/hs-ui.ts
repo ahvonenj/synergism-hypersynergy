@@ -7,6 +7,7 @@ import { HSModule } from "./module/hs-module";
 import { HSUIC } from "./hs-ui-components";
 import panelCSS from "inline:../../resource/css/hs-panel.css";
 import panelHTML from "inline:../../resource/html/hs-panel.html";
+import { HSModuleOptions } from "../../types/hs-types";
 
 /*
     Class: HSUI
@@ -74,8 +75,8 @@ export class HSUI extends HSModule {
         }
     ];
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
         this.#staticPanelCss = panelCSS;
         this.#staticPanelHtml = panelHTML;
     }

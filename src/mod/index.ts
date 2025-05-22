@@ -1,5 +1,5 @@
 import { Hypersynergism } from "./class/hypersynergism";
-import { HSModuleDefinition } from "./types/hs-types";
+import { HSExternalModuleKind, HSModuleDefinition, HSModuleType } from "./types/hs-types";
 
 // Loader won't find the hypersynergism instance in window without this declaration
 declare global {
@@ -117,6 +117,16 @@ declare global {
             className: 'HSGameDataAPI',
             context: 'HSGameDataAPI',
             moduleColor: '#fbc531',
+        },
+        {
+            className: 'Chartist',
+            context: 'Chartist',
+            moduleColor: '#e8d7bf',
+            moduleType: HSModuleType.EXTMODULE,
+            moduleKind: HSExternalModuleKind.BOTH,
+            moduleScriptUrl: 'https://cdn.jsdelivr.net/npm/chartist@1.3.1/dist/index.umd.min.js',
+            moduleCSSUrl: 'https://cdn.jsdelivr.net/npm/chartist@1.3.1/dist/index.min.css',
+            scriptContext: 'Chartist'
         }
     ];
 

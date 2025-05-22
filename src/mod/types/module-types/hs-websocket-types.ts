@@ -5,6 +5,7 @@ export interface HSWebSocketObject<T> {
     onOpen: (...args: any[]) => Promise<void>;
     onMessage: (msg?: T | undefined) => Promise<void>;
     onRetriesFailed: (...args: any[]) => Promise<void>;
+    regParams: HSWebSocketRegistrationParams<T>;
 }
 
 export interface HSWebSocketRegistrationParams<T> {

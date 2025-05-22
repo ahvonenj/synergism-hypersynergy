@@ -1,10 +1,11 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
 
 export class HSStats extends HSModule {
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init() {

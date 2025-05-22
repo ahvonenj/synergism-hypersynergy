@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./module/hs-module";
@@ -12,8 +13,8 @@ export class HSShadowDOM extends HSModule {
 
     #shadows;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
         this.#shadows =  new Map<string, HSShadow>();
     }
 

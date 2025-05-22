@@ -1,5 +1,5 @@
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "./hs-module";
+import { HSExternalModule, HSModule } from "./hs-module";
 
 // Explicit imports required because I don't know better...
 import { HSPotions } from "../../hs-modules/hs-potions"; 
@@ -8,7 +8,7 @@ import { HSHepteracts } from "../../hs-modules/hs-hepteracts";
 import { HSTalismans } from "../../hs-modules/hs-talismans";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
-import { HSModuleDefinition } from "../../../types/hs-types";
+import { HSExternalModuleOptions, HSModuleDefinition, HSModuleOptions, HSModuleType } from "../../../types/hs-types";
 import { HSPrototypes } from "../hs-prototypes";
 import { HSMouse } from "../hs-mouse";
 import { HSShadowDOM } from "../hs-shadowdom";
@@ -33,10 +33,10 @@ import { HSDebug } from "../hs-debug";
 export class HSModuleManager {
     #context = "HSModuleManager";
     #modules : HSModuleDefinition[] = [];
-    static #enabledModules : Map<string, HSModule> = new Map<string, HSModule>();
+    static #enabledModules : Map<string, HSModule | HSExternalModule> = new Map<string, HSModule | HSExternalModule>();
 
     // This record is needed so that the modules can be instatiated properly and so that everything works nicely with TypeScript
-    #moduleClasses: Record<string, new (name: string, context: string, moduleColor?: string) => HSModule> = {
+    #moduleClasses: Record<string, new (moduleOptions : HSModuleOptions) => HSModule> = {
         "HSUI": HSUI,
         "HSPotions": HSPotions,
         "HSCodes": HSCodes, 
@@ -80,7 +80,7 @@ export class HSModuleManager {
                 return;
             }
 
-            const module =  this.addModule(def.className, def.context || def.className, def.moduleName || def.className, def.moduleColor);
+            const module =  this.addModule(def);
 
             if(def.initImmediate !== undefined && def.initImmediate === true) {
                 if(module) {
@@ -100,21 +100,73 @@ export class HSModuleManager {
     }
 
     // Adds module to the manager and instantiates the module's class (looks very unorthodox, but really isn't, I promise)
-    addModule(className: string, context: string, moduleName?: string, moduleColor?: string) {
-        try {
-            const ModuleClass = this.#moduleClasses[className];
+    addModule(moduleDefinition: HSModuleDefinition) {
+        if(moduleDefinition.moduleType === HSModuleType.EXTMODULE) {
+            try {
+                const modName = moduleDefinition.moduleName || moduleDefinition.context;
 
-            if (!ModuleClass) {
-                throw new Error(`Class "${className}" not found in module`);
+                if (!moduleDefinition.moduleKind) {
+                    throw new Error(`Failed to add module ${modName} because moduleKind is not defined`);
+                }
+
+                if (!moduleDefinition.scriptContext) {
+                    throw new Error(`Failed to add module ${modName} because scriptContext is not defined`);
+                }
+
+                const module = new HSExternalModule({
+                    moduleName: modName,
+                    context: moduleDefinition.context,
+                    moduleColor: moduleDefinition.moduleColor,
+                    moduleKind: moduleDefinition.moduleKind,
+                    moduleCSSUrl: moduleDefinition.moduleCSSUrl,
+                    moduleScriptUrl: moduleDefinition.moduleScriptUrl,
+                    scriptContext: moduleDefinition.scriptContext
+                });
+
+                HSModuleManager.#enabledModules.set(moduleDefinition.className, module);
+
+                // Checking that the colorTag prototype method exists just to be safe (it's defined by the HSPrototypes module)
+                if(moduleDefinition.moduleColor && typeof String.prototype.colorTag === 'function')
+                    HSLogger.log(`Enabled EXTERNAL module '${modName.colorTag(moduleDefinition.moduleColor)}'`, this.#context);
+                else
+                    HSLogger.log(`Enabled EXTERNAL module '${modName}'`, this.#context);
+
+                return HSModuleManager.#enabledModules.get(moduleDefinition.className);
+            } catch (error) {
+                HSLogger.warn(`Failed to add module ${moduleDefinition.className}:`, this.#context);
+                console.log(error);
+                return undefined;
             }
+        } else {
+            try {
+                const ModuleClass = this.#moduleClasses[moduleDefinition.className];
 
-            const module = new ModuleClass(moduleName || context, context, moduleColor);
-            HSModuleManager.#enabledModules.set(className, module);
-            return HSModuleManager.#enabledModules.get(className);
-        } catch (error) {
-            HSLogger.warn(`Failed to add module ${className}:`, this.#context);
-            console.log(error);
-            return undefined;
+                if (!ModuleClass) {
+                    throw new Error(`Class "${moduleDefinition.className}" not found in module`);
+                }
+                
+                const modName = moduleDefinition.moduleName || moduleDefinition.context;
+
+                const module = new ModuleClass({
+                    moduleName: modName,
+                    context: moduleDefinition.context,
+                    moduleColor: moduleDefinition.moduleColor
+                });
+
+                HSModuleManager.#enabledModules.set(moduleDefinition.className, module);
+
+                // Checking that the colorTag prototype method exists just to be safe (it's defined by the HSPrototypes module)
+                if(moduleDefinition.moduleColor && typeof String.prototype.colorTag === 'function')
+                    HSLogger.log(`Enabled module '${modName.colorTag(moduleDefinition.moduleColor)}'`, moduleDefinition.context);
+                else
+                    HSLogger.log(`Enabled module '${modName}'`, moduleDefinition.context);
+
+                return HSModuleManager.#enabledModules.get(moduleDefinition.className);
+            } catch (error) {
+                HSLogger.warn(`Failed to add module ${moduleDefinition.className}:`, this.#context);
+                console.log(error);
+                return undefined;
+            }
         }
     }
 

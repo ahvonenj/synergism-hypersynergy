@@ -1,3 +1,4 @@
+import { HSModuleOptions } from "../../types/hs-types";
 import { CUBE_VIEW, GAME_STATE_CHANGE, HSViewState, HSViewStateRecord, MAIN_VIEW, SINGULARITY_VIEW, View, VIEW_KEY, VIEW_TYPE } from "../../types/module-types/hs-gamestate-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSElementHooker } from "./hs-elementhooker";
@@ -38,8 +39,8 @@ export class HSGameState extends HSModule {
         'pseudoCoins',
     ];
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init() {

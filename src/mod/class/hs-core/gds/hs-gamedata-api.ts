@@ -1,6 +1,7 @@
 import { EventBuffType } from "../../../types/data-types/hs-event-data";
 import { CachedValue, CalculationCache, HepteractType, RedAmbrosiaUpgradeCalculationConfig, SingularityDebuffs } from "../../../types/data-types/hs-gamedata-api-types";
 import { RedAmbrosiaUpgrades, SingularityChallengeStatus } from "../../../types/data-types/hs-player-savedata";
+import { HSModuleOptions } from "../../../types/hs-types";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
@@ -103,8 +104,8 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     #redAmbrosiaCalculationCollection = redAmbrosiaUpgradeCalculationCollection;
     #hepteractEffectiveValues = hepteractEffectiveValues;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
         this.#calculationCacheTemplate = { ...this.#calculationCache };
     }
 

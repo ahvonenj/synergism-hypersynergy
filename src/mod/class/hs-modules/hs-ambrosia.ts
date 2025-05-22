@@ -1,5 +1,5 @@
 import { PlayerData } from "../../types/data-types/hs-player-savedata";
-import { HSGameDataSubscriber, HSPersistable } from "../../types/hs-types";
+import { HSGameDataSubscriber, HSModuleOptions, HSPersistable } from "../../types/hs-types";
 import { AMBROSIA_ICON, AMBROSIA_LOADOUT_SLOT, HSAmbrosiaLoadoutState } from "../../types/module-types/hs-ambrosia-types";
 import { MAIN_VIEW, SINGULARITY_VIEW, VIEW_TYPE } from "../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
@@ -128,8 +128,8 @@ implements HSPersistable, HSGameDataSubscriber {
     #blueProgressMinibarElement?: HTMLDivElement;
     #redProgressMinibarElement?: HTMLDivElement;
 
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init() {

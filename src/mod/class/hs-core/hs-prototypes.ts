@@ -1,5 +1,6 @@
 import { CSSEasingFunction } from "../../types/dom-types/hs-css-types";
 import { EventMap } from "../../types/dom-types/hs-event-types";
+import { HSModuleOptions } from "../../types/hs-types";
 import { DelegateEventListener, RemoveDelegateEventListener } from "../../types/module-types/hs-proto-types";
 import { TransitionProperties } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
@@ -58,8 +59,8 @@ declare global {
 */
 export class HSPrototypes extends HSModule {
     
-    constructor(moduleName: string, context: string, moduleColor?: string) {
-        super(moduleName, context, moduleColor);
+    constructor(moduleOptions : HSModuleOptions) {
+        super(moduleOptions);
     }
 
     async init(): Promise<void> {
