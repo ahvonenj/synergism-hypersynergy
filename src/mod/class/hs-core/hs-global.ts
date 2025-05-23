@@ -29,7 +29,7 @@ export const HSGlobal: IHSGlobal = class {
     // --- GENERAL ---
 
     static General = {
-        currentModVersion: '2.8.0',
+        currentModVersion: '2.8.1',
         isLatestVersion: true,
         
         modGithubUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/',
