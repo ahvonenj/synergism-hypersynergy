@@ -1,3 +1,5 @@
+import { HSGameDataAPI } from "../../class/hs-core/gds/hs-gamedata-api";
+
 export interface CalculationCache {
     R_AmbrosiaGenerationShopUpgrade: CachedValue;
     R_AmbrosiaGenerationSingularityUpgrade: CachedValue;
@@ -126,3 +128,17 @@ export type SingularityDebuffs =
   | 'Cube Upgrades'
   | 'Platonic Costs'
   | 'Hepteract Costs';
+
+export interface HSCalculationParams {
+    paramName: string;
+    paramType: string;
+    defaultValue?: any;
+}
+
+export interface HSCalculationDefinition {
+    calculationName: string;
+    fnName: keyof HSGameDataAPI;
+    fnParams: HSCalculationParams[];
+    supportsReduce: boolean;
+    toolingSupport: boolean;
+}

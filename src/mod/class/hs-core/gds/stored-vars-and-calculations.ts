@@ -1,5 +1,13 @@
 import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection } from "../../../types/data-types/hs-gamedata-api-types"
 
+export const CASH_GRAB_ULTRA_QUARK = 0.08;
+export const CASH_GRAB_ULTRA_CUBE = 1.2;
+export const CASH_GRAB_ULTRA_BLUEBERRY = 0.15;
+
+export const EX_ULTRA_OFFERING = 0.125;
+export const EX_ULTRA_OBTAINIUM = 0.125;
+export const EX_ULTRA_CUBES = 0.125;
+
 export const redAmbrosiaUpgradeCalculationCollection: RedAmbrosiaUpgradeCalculationCollection = {
     blueberryGenerationSpeed: {
         costPerLevel: 1,

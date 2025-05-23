@@ -732,7 +732,8 @@ implements HSPersistable, HSGameDataSubscriber {
             const ambrosiaSpeed = blueberrySpeedMults * blueberries;
             const ambrosiaAcceleratorCount = gameData.shopUpgrades.shopAmbrosiaAccelerator;
             const ambrosiaLuck = gameDataAPI.calculateLuck() as { additive: number; raw: number; total: number; };
-            const ambrosiaGainPerGen = ambrosiaLuck.total / 100;
+            const bonusAmbrosia = (gameData.singularityChallenges.noAmbrosiaUpgrades.completions > 0) ? 1 : 0
+            const ambrosiaGainPerGen = (ambrosiaLuck.total / 100) + bonusAmbrosia;
             const ambrosiaGainChance = (ambrosiaLuck.total - 100 * Math.floor(ambrosiaLuck.total / 100)) / 100;
             let accelerationSeconds = 0;
             let accelerationAmount = 0;
@@ -740,8 +741,17 @@ implements HSPersistable, HSGameDataSubscriber {
             const bluePercentageSpeed = (ambrosiaSpeed / blueAmbrosiaBarMax) * 100;
             const bluePercentageSafeThreshold = bluePercentageSpeed + 3;
 
-            if(ambrosiaAcceleratorCount > 0) {
-                accelerationSeconds = (0.2 * ambrosiaAcceleratorCount) * ambrosiaGainPerGen;
+            const maxAccelMultiplier = (1 / 2)
+            + (3 / 5 - 1 / 2) * +(gameData.singularityChallenges.noAmbrosiaUpgrades.completions >= 15)
+            + (2 / 3 - 3 / 5) * +(gameData.singularityChallenges.noAmbrosiaUpgrades.completions >= 19)
+            + (3 / 4 - 2 / 3) * +(gameData.singularityChallenges.noAmbrosiaUpgrades.completions >= 20);
+
+            if(ambrosiaAcceleratorCount > 0 && ambrosiaSpeed > 0) {
+                const secondsToNextAmbrosia = blueAmbrosiaBarMax / ambrosiaSpeed;
+                accelerationSeconds = Math.min(
+                    secondsToNextAmbrosia * maxAccelMultiplier,
+                    ambrosiaGainPerGen * 0.2 * ambrosiaAcceleratorCount
+                );
                 accelerationAmount = accelerationSeconds * ambrosiaSpeed;
                 accelerationPercent = (accelerationAmount / blueAmbrosiaBarMax) * 100;
             }
@@ -821,6 +831,7 @@ implements HSPersistable, HSGameDataSubscriber {
                         RAW LUK: ${ambrosiaLuck.raw.toFixed(2)}</br>
                         TOT LUK: ${ambrosiaLuck.total.toFixed(2)}</br>
                         ------------------------</br>
+                        ACC CNT: ${ambrosiaAcceleratorCount}</br>
                         ACCEL AMOUNT: ${accelerationAmount.toFixed(2)}</br>
                         ACCEL %: ${accelerationPercent.toFixed(2)}</br>
                         `;

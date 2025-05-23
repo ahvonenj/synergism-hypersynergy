@@ -9,7 +9,7 @@ import { HSUI } from "../hs-ui";
 import { HSModuleManager } from "../module/hs-module-manager";
 import { HSGameData } from "./hs-gamedata";
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
-import { c15Functions, challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
+import { c15Functions, CASH_GRAB_ULTRA_BLUEBERRY, challenge15Rewards, hepteractEffectiveValues, redAmbrosiaUpgradeCalculationCollection } from "./stored-vars-and-calculations";
 
 /*
     If this looks silly, check details in hs-gamedata-api-partial.ts
@@ -319,7 +319,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             1 + data.singularityUpgrades.singAmbrosiaGeneration.level / 100,
             1 + data.singularityUpgrades.singAmbrosiaGeneration2.level / 100,
             1 + data.singularityUpgrades.singAmbrosiaGeneration3.level / 100,
-            1 + data.singularityUpgrades.singAmbrosiaGeneration4.level / 100,
+            1 + (2 * data.singularityUpgrades.singAmbrosiaGeneration4.level) / 100,
         ]
 
         const reduced = vals.reduce((a, b) => a * b);
@@ -1348,6 +1348,20 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return base;
     }
 
+    R_calculateCashGrabBonus (extra: number) {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+
+        return 1 + data.shopUpgrades.shopCashGrabUltra * extra * Math.min(1, Math.pow(data.lifetimeAmbrosia / 1e7, 1 / 3));
+    }
+
+    R_calculateEXUltraBonus (extra: number) {
+        if(!this.gameData) return 0;
+        const data = this.gameData;
+
+        return 1 + extra * Math.min(data.shopUpgrades.shopEXUltra, Math.floor(data.lifetimeAmbrosia / 1000) / 125);
+    }
+
     calculateAmbrosiaSpeed(reduce_vals = true) {
         if(!this.gameData) return 0;
         const gameData = this.gameData;
@@ -1372,8 +1386,8 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
         if(cached) return cached;*/
 
-        const P_GEN_BUFF_LVL = pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level ?? 0;
-        const P_GEN_BUFF = P_GEN_BUFF_LVL ? 1 + P_GEN_BUFF_LVL * 0.05 : 0;
+        const P_GEN_BUFF_LVL = pseudoData?.playerUpgrades.find(u => u.internalName === "AMBROSIA_GENERATION_BUFF")?.level;
+        const P_GEN_BUFF = P_GEN_BUFF_LVL ? 1 + P_GEN_BUFF_LVL * 0.05 : 1;
 
         const campaignBlueberrySpeedBonus = this.R_calculateCampaignAmbrosiaSpeedBonus()
 
@@ -1382,7 +1396,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         const RED_AMB_GEN_1 = this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed');
         const RED_AMB_GEN_2 = this.R_calculateRedAmbrosiaUpgradeValue('blueberryGenerationSpeed2');
 
-        const cube76 = gameData.cubeUpgrades[76] ?? 0;
+        const cube76 = gameData.cubeUpgrades[76] ?? 1;
 
         const vals = [
             +(gameData.visitedAmbrosiaSubtab),
@@ -1397,6 +1411,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             RED_AMB_GEN_1,
             RED_AMB_GEN_2,
             1 + 0.01 * cube76 * this.R_calculateNumberOfThresholds(),
+            this.R_calculateCashGrabBonus(CASH_GRAB_ULTRA_BLUEBERRY),
             this.isEvent ? 1 + this.R_calculateConsumableEventBuff(EventBuffType.BlueberryTime) : 1
         ];
 
@@ -1640,6 +1655,16 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.#updateCache(cacheName, { value: reduced, cachedBy: calculationVars });
 
         return reduce_vals ? reduced : vals;
+    }
+
+    calculateGoldenRevolution() {
+        if(!this.gameData) return 0;
+
+        const data = this.gameData;
+
+        const goldenQuarksPerSecond = data.highestSingularityCount >= 100
+        ? 1 - (0.5 * data.highestSingularityCount) / 250
+        : 1;
     }
 
     async dumpDataForHeater() {

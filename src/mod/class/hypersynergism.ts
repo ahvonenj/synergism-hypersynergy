@@ -114,6 +114,14 @@ export class Hypersynergism {
     }
 
     #buildToolsTab(hsui: HSUI) {
+        const calculationOptions = HSGameDataAPI.getCalculationDefinitions({ toolingSupport: "true" })
+        .map((def) => {
+            return {
+                text: def.supportsReduce ? `${def.calculationName} (C)` : def.calculationName,
+                value: def.supportsReduce ? `${def.fnName}|c` : def.fnName,
+            };
+        });
+
         // BUILD TOOLS TAB
         // Add corruption reference modal button
         hsui.replaceTabContents(2, 
@@ -181,6 +189,16 @@ export class Hypersynergism {
                             gridColumn: 'span 2'
                         }
                     }),
+                    HSUIC.Div({ 
+                        id: 'hs-panel-calc-tools-p', 
+                        html: `Execute supported calculations and see their results. Calculations denoted with "(C)" support "calculating by components",
+                        meaning that the calculation results can be output as an array of components that make up the calculations.<br><br>
+                        Note that calculating by components always clears the calculation cache first.`,
+                        styles: {
+                            gridColumn: 'span 2',
+                            fontSize: '10pt'
+                        }
+                    }),
                     HSUIC.Select({ 
                         class: 'hs-panel-setting-block-select-input', 
                         id: 'hs-panel-test-calc-sel', 
@@ -188,18 +206,9 @@ export class Hypersynergism {
                         styles: {
                             gridColumn: 'span 2'
                         }
-                     }, 
-                    [
-                        { "text": "None", "value": "" },
-                        { "text": "LimitedAscensionsDebuff", "value": "R_calculateLimitedAscensionsDebuff" },
-                        { "text": "SingularityReductions (C)", "value": "R_calculateSingularityReductions|c" },
-                        { "text": "AscensionSpeedExponentSpread (C)", "value": "R_calculateAscensionSpeedExponentSpread|c" },
-                        { "text": "AscensionSpeedMult", "value": "R_calculateAscensionSpeedMult" },
-                        { "text": "RawAscensionSpeedMult (C)", "value": "R_calculateRawAscensionSpeedMult|c" },
-                        { "text": "AllShopTablets (C)", "value": "R_calculateAllShopTablets|c" },
-                    ]),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-redu-btn', text: 'Calc (redu)' }),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-comps-btn', text: 'Calc (comps)' }),
+                    }, calculationOptions),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-redu-btn', text: 'Calculate reduced', styles: { width: 'auto' } }),
+                    HSUIC.Button({ id: 'hs-panel-test-calc-comps-btn', text: 'Calculate components', styles: { width: 'auto' } }),
                     HSUIC.Button({ id: 'hs-panel-test-calc-cache-clear-btn', text: 'Clear cache' }),
                     HSUIC.Button({ id: 'hs-panel-test-calc-cache-dump-btn', text: 'Dump cache' }),
                     HSUIC.Div({ 
@@ -347,14 +356,21 @@ export class Hypersynergism {
                 const comp = selVal.includes('c');
 
                 if(typeof (dataModule as any)[calcFnName] === 'function') {
-                    let result;
                     if(comp) {
-                        result = (dataModule as any)[calcFnName](false) as number;
+                        dataModule.clearCache();
+                        const result = (dataModule as any)[calcFnName](false) as number[];
+
+                        const latestDiv = document.querySelector('#hs-panel-test-calc-latest') as HTMLDivElement;
+
+                        if(latestDiv) {
+                            latestDiv.innerText = `Last calc result: [${result.toString().split(',').join(', ')}]`;
+                        }
+
+                        console.log(`--- CALCULATED ${calcFnName} ---`);
+                        console.log(result);
                     } else {
-                        result = (dataModule as any)[calcFnName]() as number;
+                        HSLogger.warn(`${calcFnName} cannot be calculated by components`, this.#context);
                     }
-                    console.log(`--- CALCULATED ${calcFnName} ---`);
-                    console.log(result);
                 } else {
                     HSLogger.warn(`${calcFnName} is not a function`, this.#context);
                 }
