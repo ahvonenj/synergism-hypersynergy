@@ -199,7 +199,7 @@ export class HSHepteracts extends HSModule {
                                 
                                 try {
                                     if(id in self.#hepteractCosts) {
-                                        const floatCost = HSUtils.parseFloat2(cost);
+                                        const floatCost = parseFloat(HSUtils.unfuckNumericString(cost));
                                         (self.#hepteractCosts as any)[id] = floatCost;
                                     }
                                 } catch (e) {
@@ -276,8 +276,12 @@ export class HSHepteracts extends HSModule {
                                 const currentMax = (self.#boxCounts as any)[id];
                                 const cubeCost = (self.#hepteractCosts as any)[id];
 
-                                if(currentMax === null || cubeCost === null) {
-                                    HSLogger.warn(`Hepteract cost for ${id} not parsed yet`, self.context);
+                                if(!(currentMax > 0) || !(cubeCost > 0)) {
+                                    // Without a known cap and cost the protection can't be evaluated (buyCost would be 0 or NaN
+                                    // and silently pass the check), so refuse to expand rather than expand blind
+                                    HSLogger.warn(`Hepteract cap or cost for ${id} not parsed yet, hover the hepteract and try again`, self.context);
+                                    self.#expandPending = false;
+                                    return;
                                 }
 
                                 let hepteractDoubleCapSetting = HSSettings.getSetting('expandCostProtectionDoubleCap') as HSSetting<boolean>;
@@ -407,7 +411,7 @@ export class HSHepteracts extends HSModule {
                                         
                                         try {
                                             if(id in self.#hepteractCosts) {
-                                                const floatCost = HSUtils.parseFloat2(cost);
+                                                const floatCost = parseFloat(HSUtils.unfuckNumericString(cost));
                                                 (self.#hepteractCosts as any)[id] = floatCost;
                                             }
                                         } catch (e) {
@@ -424,7 +428,7 @@ export class HSHepteracts extends HSModule {
 
                                 if(subElement) {
                                     const value = subElement.innerText;
-                                    const hepts = parseFloat(value);
+                                    const hepts = parseFloat(HSUtils.unfuckNumericString(value));
                                     self.#ownedHepteracts = hepts;
                                 }
                             }

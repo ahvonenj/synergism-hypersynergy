@@ -197,30 +197,52 @@ export class HSUtils {
         }
     }
 
+    static #numberSeparators?: { group: string; decimal: string };
+
+    /**
+     * Returns the thousand-group and decimal separators of the browser's default locale.
+     * Synergism formats its numbers with `new Intl.NumberFormat(undefined, ...)`,
+     * so this matches whatever the game is rendering (e.g. sv-SE: "2 048 000" / "2,04e6").
+     */
+    static getNumberSeparators() : { group: string; decimal: string } {
+        if(!HSUtils.#numberSeparators) {
+            const parts = new Intl.NumberFormat().formatToParts(1234567.5);
+
+            HSUtils.#numberSeparators = {
+                group: parts.find(p => p.type === 'group')?.value ?? ',',
+                decimal: parts.find(p => p.type === 'decimal')?.value ?? '.'
+            };
+        }
+
+        return HSUtils.#numberSeparators;
+    }
+
+    /**
+     * Converts a number string rendered by the game (in the user's locale, possibly in
+     * e-notation) into a string that parseFloat() understands.
+     *
+     * Examples (sv-SE):  "2,04e6" -> "2.04e6",  "32 000" -> "32000",  "1,02e6 / 1,02e6" -> "1.02e6"
+     * Examples (en-US):  "2.04e6" -> "2.04e6",  "32,000" -> "32000"
+     * Examples (de-DE):  "2,04e6" -> "2.04e6",  "32.000" -> "32000"
+     */
     static unfuckNumericString(str: string) : string {
         if(!str) return str;
 
-        // if the number is in e-notation, we can just parse it normally
-        if(str.toLowerCase().includes('e')) {
-            return str.replace(/,/g, '');
+        const { group, decimal } = HSUtils.getNumberSeparators();
+
+        // Remove group separators. Whitespace is stripped as well because locales use
+        // various space characters (NBSP, narrow NBSP...) as group separators.
+        let normalized = str.split(group).join('').replace(/[\s  ]/g, '');
+
+        // Normalize the locale's decimal separator to '.'
+        if(decimal !== '.') {
+            normalized = normalized.split(decimal).join('.');
         }
 
-        // Remove all non-numeric characters except for . and -
-        const cleanedStr = str.replace(/[^0-9.,-]/g, '');
+        // Grab the first number (optionally in e-notation) from what is left
+        const match = normalized.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/i);
 
-        // Remove , if it is used as thousand separator
-        // and replace . with , if it is used as decimal separator
-        const parts = cleanedStr.split('.');
-
-        let finalStr = '';
-
-        if(parts.length > 1) {
-            finalStr = parts[0].replace(/,/g, '') + '.' + parts[1].replace(/,/g, '');
-        } else {
-            finalStr = cleanedStr.replace(/,/g, '');
-        }
-
-        return finalStr;
+        return match ? match[0] : '';
     }
 
     /*
