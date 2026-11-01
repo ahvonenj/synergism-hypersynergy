@@ -121,6 +121,13 @@ const fusionRebates = make({ bluePointsPerSecond: 1e7, redPointsPerSecond: 1000,
     acceleratorSecondsPerRedAmbrosia: 3 }, {
     purpleFillBluePoints: 1e6, purpleFillRedPoints: 500, cancerPurplePointsPerBlueOrRedFill: 5000,
 });
+// Fusion can drain the opposite tank through Libra overflow even without
+// Purple rebates or Cancer. A regular fill/drain cycle is not warm-up drift.
+const fusionTankCycle = make({ bluePointsPerSecond: 8000, redPointsPerSecond: 8,
+    acceleratorSecondsPerRedAmbrosia: 12.5 }, {
+    blueRoutingPercent: 25, redRoutingPercent: 50, encabulatorSpeed: 28.8,
+    purpleRequirementWithoutTwoMind: 125000,
+});
 // Physical inputs captured from the full routing scan. Express its mean
 // fusion packet with integral Red Luck so upstream RNG introduces no bias.
 const zeroBlueSpill = make({
@@ -155,6 +162,7 @@ assert.throws(() => income(make({ redRequirementWithoutTwoMind: 0 })), /requirem
 const cases = [
     ['red surplus', redSurplus], ['blue surplus', make({ bluePointsPerSecond: 1e7, redPointsPerSecond: 1000 })],
     ['rare rebate', scarceRed], ['fusion + rebates', fusionRebates],
+    ['fusion tank cycle without extraction rebates', fusionTankCycle],
     ['zero blue spill', zeroBlueSpill],
     ['no overcap', { ...fusionRebates, reactor: { ...fusionRebates.reactor, overcapEnabled: false } }],
     ['Two Mind + fusion', twoMindFusion],
