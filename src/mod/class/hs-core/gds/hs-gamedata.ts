@@ -787,7 +787,7 @@ export class HSGameData extends HSModule {
         // Also a start in progress or a pending restart, which would run on the imported save
         if (autosing?.isAutosingActive()) {
             HSLogger.log("Load from file clicked - Stopping Auto-Sing", this.context);
-            autosing.stopAutosing();
+            autosing.stopAutosing({ saveReplaced: true });
             HSUI.Notify("Auto-Sing stopped for save file import", { position: 'top', notificationType: 'warning' });
         }
 
