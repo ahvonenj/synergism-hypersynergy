@@ -2,7 +2,7 @@
 """Build the public site, feature inventory and GitHub Wiki from one catalogue.
 
 No dependencies or network access. Existing developer documents are inputs only.
-Run from any directory: python scripts/tools/build-docs.py [--check]
+Run from any directory: python scripts/tools/build-docs.py [--check | --validate]
 """
 from __future__ import annotations
 
@@ -15,13 +15,13 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
-CATALOGUE = json.loads((DOCS / "data/feature-catalogue.json").read_text())
-SETTINGS = json.loads((ROOT / "src/mod/resource/json/hs-settings.json").read_text())
-VERSION = json.loads((ROOT / "package.json").read_text())["version"]
+CATALOGUE = json.loads((DOCS / "data/feature-catalogue.json").read_text(encoding="utf-8"))
+SETTINGS = json.loads((ROOT / "src/mod/resource/json/hs-settings.json").read_text(encoding="utf-8"))
+VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
 CATEGORIES = CATALOGUE["categories"]
 FEATURES = [f for c in CATEGORIES for f in c["features"]]
 REPO = "https://github.com/" + CATALOGUE["repository"]
-SOURCE = REPO + "/blob/" + CATALOGUE["audited_commit"] + "/"
+SOURCE = REPO + "/blob/master/"
 OUTPUTS: dict[str, str] = {}
 
 
@@ -190,7 +190,7 @@ def settings_outputs() -> None:
 
 def calculation_outputs() -> None:
     path = "src/mod/class/hs-core/gds/hs-calculation-definition.ts"
-    text = (ROOT / path).read_text()
+    text = (ROOT / path).read_text(encoding="utf-8")
     entries = []
     for block in re.split(r"(?=calculationName:)", text)[1:]:
         name = re.match(r'calculationName:\s*"([^"]+)"', block)
@@ -340,13 +340,18 @@ def build() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Verify generated files are current without writing")
+    parser.add_argument("--validate", action="store_true", help="Only validate the catalogue against the checkout, without generating anything")
     args = parser.parse_args()
+    if args.validate:
+        validate_catalogue()
+        print(f"Catalogue valid: {len(FEATURES)} features, {len(CATEGORIES)} categories, {len(SETTINGS)} settings.")
+        return
     build()
     stale = []
     for name, content in OUTPUTS.items():
         p = ROOT / name
         if args.check:
-            if not p.is_file() or p.read_text() != content:
+            if not p.is_file() or p.read_text(encoding="utf-8") != content:
                 stale.append(name)
         else:
             p.parent.mkdir(parents=True, exist_ok=True)

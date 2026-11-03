@@ -6,7 +6,7 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
 
 1. Review the relevant mod implementation and developer feature docs.
 2. Edit `docs/data/feature-catalogue.json`. It is the shared source for the public site, inventory and wiki; do not edit generated pages by hand.
-3. When re-auditing behavior, update `audited_commit` to the reviewed source commit. The package version, settings registry and calculation picker entries are read from the checkout.
+3. When re-auditing behavior, update `audited_commit` to the reviewed source commit: it only records the audit in `docs/FEATURE-AUDIT.md`, source links follow `master`. The package version, settings registry and calculation picker entries are read from the checkout.
 4. Run:
 
    ```sh
@@ -15,7 +15,7 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
    node --check docs/js/guide.js
    ```
 
-The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod.
+The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod. `--validate` runs only those catalogue checks and writes nothing: on Dev, use it instead of generating (`docs/dev/releasing.md`, "Porting a change to Live").
 
 ## Preview
 

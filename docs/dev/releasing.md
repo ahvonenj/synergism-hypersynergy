@@ -78,6 +78,10 @@ one clone to another: check `git remote -v`.
 - **Check what the change relies on in Live's version**: a fix can need an earlier Dev commit ported first, as its own
   commit.
 - **One topic per PR. No release bundle in a PR**: Ferlieloi builds his own release.
+- **Website and wiki:** Dev commits edits to `docs/data/feature-catalogue.json` with their feature, checked by
+  `build-docs.py --validate`, but never the generated pages: the generator reads the version and settings of its
+  checkout, so Dev's pages would show Dev's and conflict at every merge. In the worktree, port the topic's catalogue
+  entries, run `python scripts/tools/build-docs.py`, and commit the regenerated pages in the PR.
 - Loader tests fail in a fresh worktree until `synergism_modloader` has its `node_modules`: not a regression.
 - Check the target revision's Tools tab definitions before assuming a calculation is available there. Live includes
   the Tools tab; the node harness can also check GDS changes directly on a save.
