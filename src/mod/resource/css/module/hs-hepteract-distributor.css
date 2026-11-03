@@ -94,36 +94,6 @@
     cursor: help;
 }
 
-/* Placed against the panel, not the "?", so it is as wide as the panel's content.
-   It lets the mouse through: it closes as soon as the "?" is left, and never keeps the fields under it out of reach */
-.hs-hept-distributor-help-box {
-    display: none;
-    position: absolute;
-    top: 34px;
-    left: 34px;
-    right: 34px;
-    z-index: 10;
-    margin: 0;
-    padding: 8px 12px 8px 28px;
-    border: 1px solid #888;
-    border-radius: 5px;
-    background-color: #101828;
-    color: white;
-    font-size: 13px;
-    line-height: 1.4;
-    list-style: disc;
-    text-align: left;
-    pointer-events: none;
-}
-
-.hs-hept-distributor-help-box li {
-    margin: 2px 0;
-}
-
-.hs-hept-distributor-help:hover .hs-hept-distributor-help-box {
-    display: block;
-}
-
 .hs-hept-distributor-cells {
     display: flex;
     flex-wrap: wrap;

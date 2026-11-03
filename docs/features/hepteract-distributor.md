@@ -4,7 +4,7 @@ The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, Hepter
 
 ## Panel
 - **A "Distributor" button on the forge's welcome line opens the panel**, which then takes the place of the forge's three intro lines (`#hepteractWelcome`, `#hepteractExpository1/2`, hidden by a class on `#cubeTab7`, CSS only). A minimize button closes it. Open or closed is kept (`hepteractDistributorOpen`). No game element is moved: the button is absolutely placed, and the welcome line gets side padding so a long translation wraps instead of running under it.
-- **The panel's title has a "?"** that shows the feature in a few lines on hover (`HELP_LINES`): update it when the feature changes. Its box is placed against the panel and lets the mouse through, so it closes as soon as the "?" is left. Each control keeps its own tooltip.
+- **The panel's title has a "?"** that shows the feature in a few lines on hover (`HELP_LINES`): update it when the feature changes. The mouse passes through its tooltip, so it closes as soon as the "?" is left. Each control keeps its own tooltip.
 - **A warning line is always shown under the buttons** ("Distribute ascends several times in a row…"), chosen over a checkbox.
 - **A run's status is also written to the Log tab** (`HSLogger.log`, one line, its lines joined by " | ": a log line shows no line break), and a stop as a warning, both through `escapeLogText`.
 - **Not available** (Distribute disabled, the reason in the status line, checked when the panel opens, on hover and at each press): bookmark load (no live player), before the first singularity (no Auto craft), inside Exalt 3 (`limitedAscensions`) and Exalt 7 (`limitedTime`), and while autosing is active.

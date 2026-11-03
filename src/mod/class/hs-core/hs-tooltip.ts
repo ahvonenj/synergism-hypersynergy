@@ -78,6 +78,16 @@ export class HSTooltip {
         return attributes;
     }
 
+    /** A bulleted list for html, from plain texts; a [term, text] line shows its term in colour. */
+    static list(lines: readonly (string | readonly [string, string])[]): string {
+        const items = lines.map(line => {
+            if (typeof line === 'string') return escapeHtml(line);
+            const [term, text] = line;
+            return term ? `<span class="hs-tip-key">${escapeHtml(term)}</span> ${escapeHtml(text)}` : escapeHtml(text);
+        });
+        return `<ul class="hs-tip-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+    }
+
     /** Puts a position: fixed element next to anchor: on the other side if it doesn't fit, always inside the viewport. */
     static place(element: HTMLElement, anchor: HTMLElement, options: { placement?: HSTooltipPlacement; gutter?: number } = {}): void {
         const anchorRect = anchor.getBoundingClientRect();

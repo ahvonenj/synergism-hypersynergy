@@ -4,6 +4,7 @@ import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import type { HSGameState } from "../../hs-core/hs-gamestate";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
+import { HSTooltip } from "../../hs-core/hs-tooltip";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSModule } from "../../hs-core/module/hs-module";
 import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
@@ -213,14 +214,7 @@ export class HSHepteractDistributor extends HSModule {
         const help = document.createElement('span');
         help.className = 'hs-hept-distributor-help';
         help.textContent = '?';
-        const helpBox = document.createElement('ul');
-        helpBox.className = 'hs-hept-distributor-help-box';
-        for (const line of HELP_LINES) {
-            const item = document.createElement('li');
-            item.textContent = line;
-            helpBox.appendChild(item);
-        }
-        help.appendChild(helpBox);
+        HSTooltip.set(help, { html: HSTooltip.list(HELP_LINES), delay: 0 });
         title.appendChild(help);
         panel.appendChild(title);
 

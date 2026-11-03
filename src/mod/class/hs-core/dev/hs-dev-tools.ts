@@ -1,6 +1,7 @@
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSStorage } from "../hs-storage";
+import { HSTooltip } from "../hs-tooltip";
 import { HSUI } from "../hs-ui";
 import { HSBackup } from "../hs-backup";
 import { HSGameData } from "../gds/hs-gamedata";
@@ -422,9 +423,7 @@ export class HSDevTools {
     /** A circled "?" for a group title, showing a list of rules while the mouse is over it. */
     #help(rules: string[]): HTMLElement {
         const help = this.#el('span', 'hs-dev-tools-help', '?');
-        const box = this.#el('ul', 'hs-dev-tools-help-box');
-        for (const rule of rules) box.append(this.#el('li', '', rule));
-        help.append(box);
+        HSTooltip.set(help, { html: HSTooltip.list(rules), delay: 0 });
         return help;
     }
 

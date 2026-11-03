@@ -5,6 +5,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 `hs-modules/hs-heater/`: Ambrosia loadout optimizer. It runs in a web worker built separately (`hs-heater-optimizer-worker.ts`), driven by `HSHeaterOptimizerRunner`.
 
 ## Heating
+- **A test of the Heater's UI, not its values:** set `Lifetime Ambrosia` to about 100,000 first (dev tools), so the heat is almost instantaneous.
 - **A heat is logged in the Log tab**: one summary line with a time per worker group, or "result reused" for an input already heated.
   - With debug on, one more line per group with the optimizer's stage times (`Heat stages, cubes+sr: …`, stages under 0.05 s left out; a parent stage comes after its sub-stages): the worker calls `runExperiment` and sends `diagnostics.stages` back (no stage on the heat button: it is full).
   - The optimizer can't import `HSLogger` (no DOM in a worker): its stand-in keeps `warn` and `error` lines (`takeHeaterOptimizerLogs()`), the worker sends them back with its answer, the runner writes them.

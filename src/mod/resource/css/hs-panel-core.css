@@ -847,6 +847,16 @@ select::-webkit-scrollbar-corner {
     font-weight: 600;
 }
 
+#hs-tooltip .hs-tip-list {
+    margin: 0;
+    padding-left: 16px;
+    list-style: disc;
+}
+
+#hs-tooltip .hs-tip-list li {
+    margin: 2px 0;
+}
+
 /* ===== RESIZERS ===== */
 
 .hs-resizer {
