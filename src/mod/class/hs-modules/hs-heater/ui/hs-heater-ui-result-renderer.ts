@@ -268,8 +268,11 @@ function buildArraySectionDataRow(
         : "";
     const maxCell = `<td>${rowModel.maxedValue === true ? '<span class="hs-heater-status-maxed">✔</span>' : rowModel.maxedValue === false ? `<span class="hs-heater-status-unmaxed">✘</span>${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
     // A type picked in "Your loadout order" that can't be afforded: the whole
-    // row in the orange of that slot's border
-    const rowClass = isSelectedType && isUnaffordable ? ' class="hs-heater-selected-unaffordable-row"' : '';
+    // row in the orange of that slot's border. An H row that wins at no P4x4
+    // is dimmed, picked or not.
+    const rowClass = isSelectedType && isUnaffordable ? ' class="hs-heater-selected-unaffordable-row"'
+        : rowModel.p4x4Value === "Never" ? ' class="hs-heater-never-row"'
+        : '';
     return `<tr${rowClass}>${resultCell}${loadoutCell}${blueberryCostCell}${costCell}${effectCell}${p4x4Cell}${maxCell}</tr>`;
 }
 

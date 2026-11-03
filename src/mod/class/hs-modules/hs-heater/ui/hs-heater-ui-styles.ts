@@ -859,6 +859,9 @@ export class HSHeaterUIStyles {
             }
             .hs-heater-best-h-marker { color: #f2c94c; white-space: nowrap; cursor: help; }
 
+            /* Opacity, not a text colour: the ✔/✘, icons and buttons must dim too. */
+            .hs-heater-never-row td { opacity: 0.55; }
+
             /* Same orange as the slot's border in "Your loadout order". The
                type's label is in a button when it has an icon, and a button
                doesn't inherit the row's colour. */
