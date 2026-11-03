@@ -19,7 +19,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 - `BRANCH_GROUPS` gives each group a lane: lane 0 Hyperflux then Cubes+SR (the two big ones, ~0.8 GB each, never at once), lane 1 Oct+AmbOct (Max Amb + Oct is in the Oct group: it shares Oct's tables), Luck+Purple, Quarks/Obt/Off. Each lane runs its groups one at a time.
 - Measured: S260 in node 96 → ~57 s, peak ~1.3 GB summed instead of 0.9; Chrome's Task Manager showed at most 1.1 GB on a save at 144M Ambrosia.
 - Falls back to one worker when `navigator.deviceMemory` < 8 or `hardwareConcurrency` < 4 (unknown = enough), said in the summary line.
-- **The workers share one heap limit**: measured on Chrome 156 (16 GB PC, near-empty headless page), one worker stopped at about 4 GB and two at about 2 GB each. At that point the tab stopped answering, with no `worker.onerror`: `MAX_FRONTIER` is the only failure a player would see explained.
+- **The workers share one heap limit**: measured on Chrome 156 (16 GB PC, near-empty headless page), one worker stopped at about 4 GB and two at about 2 GB each. At that point the whole tab crashes, game included ("Aw, Snap!" page), with no `worker.onerror`: `MAX_FRONTIER` is the only failure a player would see explained.
 - A failing group stops the other lane; a cancel stops both. Results are merged by group index, so the order doesn't depend on which lane ends first.
 
 ## Results table
