@@ -41,7 +41,17 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - While `document.hidden`, `HSUtils.sleep` goes through a small worker created at the first such sleep. In a visible tab it is the normal timer plus one boolean check. If the worker fails: a warning, normal timers from then on, and a sleep running in it ends early rather than never.
 - Always on: no setting, nothing is gained by turning it off.
 - These stay on normal timers and can fire about 1 s late: the restart delay (button and action 902), the 5 s text refresh limit, and the challenge time limit in `#waitForCompletion`'s DOM fallback, the only one that can cost a run time (mainly bookmarklet players). The run panel doesn't draw while hidden, whatever the timer.
-- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (`guides/autosing.md`). Not a silent audio track: Chrome doesn't count it as sound. Not a wake lock: the browser releases it when the tab is hidden.
+- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (`guides/autosing.md`). Not a silent audio track: Chrome doesn't count it as sound. The wake lock below doesn't help here: the browser releases it when the tab is hidden.
+
+## "Keep the PC awake" (`autosingKeepAwake`)
+`HSAutosingWakeLock`.
+- On by default: a player running autosing expects the PC to stay awake. Off, the mod never requests the lock.
+- A screen wake lock, held from `#autosingEnabled` turning true to `#stopAutosingCore`, so every stop, restart and save load releases it. Changing the setting during a run applies at once.
+- The browser releases it when the tab is hidden; a `visibilitychange` listener, there only during a run, requests it again when the tab comes back. So a session in another tab or a minimized window isn't protected. Nor, in Chrome on Windows, is a fully covered window or a locked PC: the lock goes, and comes back by itself (within 5 s of Win+L and of unlocking).
+- On Steam the lock stays while the window is minimized or fully covered and while the PC is locked (measured for 1 minute locked), likely because the game's window sets `backgroundThrottling: false`.
+- To check it on Windows: `powercfg /requests` in an administrator shell lists the browser or `Synergism.exe` with "Blink Wake Lock" under `DISPLAY` and `SYSTEM`.
+- The web has no "PC awake, screen off" lock: the screen stays on, and the idle auto-lock can be blocked.
+- A refusal gives one notification per start, and a log line: logs are off during a run unless debug logs are on. A tab hidden during the request isn't a refusal.
 
 ## The player's tab comes back
 `#notePlayerTab` / `#showPlayerTab`.
@@ -75,7 +85,6 @@ Test: `npm run test:autosing`.
 - Why: every ambrosia loadout load resets the ambrosia bars (the game's `createBlueberryTree` → `resetBlueberryTree` → `resetAmbrosiaBarProgress`: blueberry, red ambrosia and purple honey progress), even reloading the tree already in place (only the game's Auto Ascension rules skip a loaded tree).
 - With the setting on, `#setAmbrosiaLoadout` does nothing: no switch after the singularity, at the start, before the quark export, in the push, nor for steps 301–306. Every switch must go through `#setAmbrosiaLoadout`.
 - Read once per run in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
-- A global switch was chosen over "None = skip that one switch" (an unset slot would silently switch nothing).
 
 ## Step numbers and logs
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).

@@ -20,7 +20,7 @@ The Auto-Sing window shows the time per singularity and the quarks and golden qu
 ## Keep the game running
 
 Auto-Sing keeps its speed when the game is in another tab. Two things can still stop it:
-- **The computer going to sleep.** Keep it awake while Auto-Sing runs.
+- **The computer going to sleep.** The **Keep the PC awake** setting prevents it while the game is in view. On Steam, it also works while the window is minimized or covered and while the PC is locked. In a browser, it doesn't: for another tab, a minimized or covered window, or a locked PC, change your computer's sleep settings instead.
 - **Chrome's Energy Saver** (a leaf icon next to the address bar). It can freeze a hidden tab after 5 minutes. Turn it off in `chrome://settings/performance`, or keep the game window in view.
 
 ## Making your own strategy

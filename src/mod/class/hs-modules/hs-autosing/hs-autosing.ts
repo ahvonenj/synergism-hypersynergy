@@ -17,6 +17,7 @@ import { HSGlobal } from "../../hs-core/hs-global";
 import { HSGameState, MainView } from "../../hs-core/hs-gamestate";
 import { HSAutosingSettingsFixer } from './hs-autosingSettingsFixer';
 import { HSAutosingCorruption } from './hs-autosingCorruption';
+import { HSAutosingWakeLock } from './hs-autosingWakeLock';
 import { ELogLevel } from "../../../types/module-types/hs-logger-types";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSSubtabMemory } from "../hs-subtab-memory";
@@ -84,6 +85,7 @@ export class HSAutosing extends HSModule {
     #lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
     #challengeAccessors: Record<number, ChallengeAccessor> = {};
     #settingsFixer = new HSAutosingSettingsFixer();
+    #wakeLock = new HSAutosingWakeLock();
     #settingsWork?: Promise<void>;
     #settingsRestore?: Promise<void>;
     #previousQuarkAmount: number = 0;
@@ -367,6 +369,13 @@ export class HSAutosing extends HSModule {
         return true;
     }
 
+    /** "Keep the PC awake" changed. During a run it applies at once; otherwise the next start reads the setting. */
+    public setKeepAwake(on: boolean): void {
+        if (!this.#autosingEnabled) return;
+        if (on) this.#wakeLock.start();
+        else this.#wakeLock.stop();
+    }
+
     #cacheMiscElements(): boolean {
         const elements = {
             antiquitiesRuneLockedContainer: document.getElementById('antiquitiesRuneLockedContainer') as HTMLDivElement | null,
@@ -605,6 +614,7 @@ export class HSAutosing extends HSModule {
         this.#cacheExposedFunctions();
 
         this.#autosingEnabled = true;
+        if (HSSettings.getSetting("autosingKeepAwake").isEnabled()) this.#wakeLock.start();
         this.#stopAtSingularitysEnd = false;
         this.#endStageDone = false;
         this.#antiquitiesObserverActivated = false;
@@ -745,6 +755,7 @@ export class HSAutosing extends HSModule {
 
     async #stopAutosingCore(options: { modalDisposition: 'review' | 'destroy', leaveExalt: boolean }): Promise<void> {
         this.#autosingEnabled = false;
+        this.#wakeLock.stop();
 
         // Stopped between entering Exalt 2 and leaving it: leave it, or the player stays inside.
         // Its own session answers its dialogs: the exit Alert is queued after stopAutosing() has stopped

@@ -182,6 +182,11 @@ export class HSSettingActions {
             }
         },
 
+        autosingKeepAwakeAction: moduleToggle<HSAutosing>('HSAutosing',
+            (mod) => mod.setKeepAwake(true),
+            (mod) => mod.setKeepAwake(false)
+        ),
+
         createAutosingStrategy: async (params: HSSettingActionParams) => {
             await HSAutosingStrategyModal.open();
         },

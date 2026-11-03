@@ -1483,6 +1483,21 @@
           ]
         },
         {
+          "id": "autosing-keep-awake",
+          "title": "Keep the PC awake",
+          "where": "Settings → Auto-Sing → Keep the PC awake",
+          "summary": "Keeps the screen on and stops the PC sleeping while AutoSing runs with the game in view.",
+          "details": [
+            "On by default, and can be changed during a run. If the browser refuses, a notification says so."
+          ],
+          "limits": [
+            "In a browser, the lock drops while the game is in another tab, minimized or fully covered, or the PC is locked, and comes back when the game returns. On Steam it stays while the window is minimized or covered and while the PC is locked."
+          ],
+          "settings": [
+            "autosingKeepAwake"
+          ]
+        },
+        {
           "id": "autosing-advanced",
           "title": "Advanced run settings and reset to defaults",
           "where": "AutoSing advanced/timer settings",

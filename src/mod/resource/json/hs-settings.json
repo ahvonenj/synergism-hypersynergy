@@ -836,6 +836,21 @@
       }
     }
   },
+  "autosingKeepAwake": {
+    "settingName": "autosingKeepAwake",
+    "settingDescription": "Keep the PC awake",
+    "settingHelpText": "While Auto-Sing runs with the game in view, the screen stays on and the PC doesn't sleep.",
+    "settingType": "boolean",
+    "enabled": true,
+    "skipInit": true,
+    "settingAction": "autosingKeepAwakeAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-keep-awake-btn"
+    }
+  },
   "autosingStrategy": {
     "settingName": "autosingStrategy",
     "settingDescription": "Auto-Sing Strategy",
