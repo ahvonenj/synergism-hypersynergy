@@ -47,6 +47,7 @@ export const HSGlobal: IHSGlobal = class {
         isModFullyLoaded: false,
 
         get modGithubUrl() { return `https://github.com/${HSGlobal.Release.githubOwner}/synergism-hypersynergy/`; },
+        get modWebsiteUrl() { return 'https://ferlieloi.github.io/synergism-hypersynergy/'; },
         get modDiscordThreadUrl() { return 'https://discord.com/channels/677271830838640680/1456904896099127367'; },
         heaterUrl: 'https://docs.google.com/spreadsheets/d/105yoI41lk8UJ2PThTkV0tWKNli5R0K1WuaSphKl13R0/'
     };
