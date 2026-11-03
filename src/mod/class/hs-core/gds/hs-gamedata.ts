@@ -668,7 +668,8 @@ export class HSGameData extends HSModule {
             this.#saveInterval = undefined;
         }
 
-        HSUI.removeInjectedStyle(HSGlobal.HSGameData.gdsCSSId);
+        // Only the save capture injects it
+        if (this.#engineSource === 'save') HSUI.removeInjectedStyle(HSGlobal.HSGameData.gdsCSSId);
 
         // The loadFromFileEventHandler is NOT removed here:
         // it must remain active to intercept save loads even when GDS is disabled.

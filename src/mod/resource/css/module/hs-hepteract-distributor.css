@@ -60,7 +60,7 @@
 #hs-hept-distributor-minimize {
     position: absolute;
     top: 4px;
-    right: 4px;
+    left: 4px;
     min-height: 0;
     width: 24px;
     height: 24px;

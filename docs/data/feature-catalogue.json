@@ -933,7 +933,7 @@
           "summary": "Reuses your Heater slot assignments in the rest of the mod.",
           "details": [
             "Sync icons assigns recognizable semantic icons to the chosen slot roles.",
-            "Sync settings maps relevant roles into AutoSing's loadout preferences; Best H remains a semantic choice rather than being stored as a fixed H row."
+            "Sync settings maps relevant roles into the AutoSing, ADD/TIME and timed export loadout settings; Best H remains a semantic choice rather than being stored as a fixed H row."
           ]
         },
         {

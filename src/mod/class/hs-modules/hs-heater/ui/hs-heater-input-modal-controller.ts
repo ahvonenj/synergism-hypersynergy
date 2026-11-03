@@ -40,6 +40,7 @@ export class HSHeaterInputModalController {
         autosingAmbrosiaLoadout:            { label: 'Autosing Amb',            preferences: ["allAmb"] },
         autoLoadoutAdd:                     { label: 'Auto-Loadout Add',        preferences: ["allAmb"] },
         autoLoadoutTime:                    { label: 'Auto-Loadout Time',       preferences: ["allAmb"] },
+        autoExportSaveLoadout:              { label: 'Timed Export',            preferences: ["quarks"] },
     };
 
 
