@@ -201,6 +201,21 @@
       "controlEnabledId": "hs-setting-corruption-header-controls-btn"
     }
   },
+  "corruptionHeaderInline": {
+    "settingName": "corruptionHeaderInline",
+    "settingDescription": "Corruption module: level controls in the module",
+    "settingHelpText": "Change the next level in the module itself, at sizes M and L. The icon and the current level still open the popover.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "corruptionHeaderInlineAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol-buttons",
+      "controlEnabledId": "hs-setting-corruption-header-inline-btn"
+    }
+  },
   "corruptionHeaderAlwaysShown": {
     "settingName": "corruptionHeaderAlwaysShown",
     "settingDescription": "Keep the corruption module visible",

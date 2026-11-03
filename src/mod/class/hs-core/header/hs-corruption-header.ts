@@ -9,7 +9,13 @@ const MODULE_ID = 'corruptionLevelHeader';
 const TEXT_ID = 'corruptionLevelHeaderText';
 const POPOVER_ID = 'hs-corruption-popover';
 const CONTROLS_CLASS = 'hs-corruption-header-controls';
+const INLINE_CLASS = 'hs-corruption-header-inline';
+const INLINE_CONTROLS = 'button, input, label';
 const REFRESH_MS = 250;
+// Holding the module's ‹ or ›: the first repeat after the delay, ±10 instead of ±1 after that many repeats
+const HOLD_DELAY_MS = 400;
+const HOLD_REPEAT_MS = 120;
+const HOLD_BIG_STEPS_AFTER = 10;
 // The game's level row, in its order and with its classes; the Max text is the game's (translated)
 const BUTTONS: { button: HSCorruptionLevelButton; text: string; className: string }[] = [
     { button: 'min', text: '0', className: 'corruptionReset' },
@@ -33,16 +39,37 @@ interface HSCorruptionPlayer {
     highestSingularityCount?: number;
 }
 
+interface HSCorruptionCleanse {
+    button: HTMLButtonElement;
+    icon: HTMLImageElement;
+    confirm: HTMLElement;
+}
+
+interface HSCorruptionToggleControl {
+    toggle: HSCorruptionToggle;
+    label: HTMLElement;
+    checkbox: HTMLInputElement;
+    fallbackTitle: string;
+}
+
 interface HSCorruptionPopover {
     element: HTMLElement;
     title: HTMLElement;
     row: HTMLElement;
     input: HTMLInputElement;
     maxButton: HTMLButtonElement;
-    cleanse: HTMLButtonElement;
-    cleanseIcon: HTMLImageElement;
-    cleanseConfirm: HTMLElement;
-    toggles: { toggle: HSCorruptionToggle; label: HTMLElement; checkbox: HTMLInputElement; fallbackTitle: string }[];
+    cleanse: HSCorruptionCleanse;
+    toggles: HSCorruptionToggleControl[];
+}
+
+interface HSCorruptionInline {
+    element: HTMLElement;
+    used: HTMLElement;
+    maxLink: HTMLButtonElement;
+    level: HTMLElement;
+    input: HTMLInputElement;
+    maxButton: HTMLButtonElement;
+    toggle: HSCorruptionToggleControl;
 }
 
 /**
@@ -57,6 +84,10 @@ interface HSCorruptionPopover {
  *       toggles, all done through the game's own controls (HSCorruptionLevel). The cleanse and the row are hidden
  *       while the max is 0 (as the game's row). Read every 250 ms while the module is seen; no patcher feature (without
  *       the live player, the levels come from the game's text and controls).
+ *     - Level controls in the module (setting corruptionHeaderInline, under the one above): at M, the next level
+ *       between ‹ and ›, and /max as a Max button; at L, also 0, Max, the cleanse and Auto-climb. The CSS shows them by
+ *       the module's size and hides the game's text, which keeps being written and read. The icon and the used level
+ *       still open the popover.
  *     - Keep visible (setting corruptionHeaderAlwaysShown): the game shows the module once Challenge 11 is completed,
  *       so it hid at the start of each singularity; kept after the first singularity (when the game unlocks its
  *       Corruption tab). Needs the patcher's capture of the unlock checks (window.__HS_headerModuleUnlocks).
@@ -71,6 +102,12 @@ export class HSCorruptionHeader {
     static #next?: HTMLSpanElement;
     static #popover?: HSCorruptionPopover;
     static #open = false;
+    static #inline?: HSCorruptionInline;
+    static #inlineWanted = false;
+    // While ‹ or › is held
+    static #repeatTimer?: ReturnType<typeof setTimeout>;
+    // The popover's and the module's
+    static #cleanses: HSCorruptionCleanse[] = [];
     // While the cleanse waits for its confirming click
     static #cleanseTimer?: ReturnType<typeof setTimeout>;
     // The game's own unlock check of the module, while the mod's replaces it
@@ -102,6 +139,7 @@ export class HSCorruptionHeader {
         module.addEventListener('click', HSCorruptionHeader.#onModuleClick);
         document.documentElement.classList.add(CONTROLS_CLASS);
         HSCorruptionHeader.#timer = setInterval(() => HSCorruptionHeader.#refresh(), REFRESH_MS);
+        HSCorruptionHeader.#syncInline();
         HSCorruptionHeader.#refresh();
     }
 
@@ -109,6 +147,7 @@ export class HSCorruptionHeader {
         if (HSCorruptionHeader.#timer === undefined) return;
         clearInterval(HSCorruptionHeader.#timer);
         HSCorruptionHeader.#timer = undefined;
+        HSCorruptionHeader.#syncInline();
         HSCorruptionHeader.#close();
         HSCorruptionHeader.#module?.removeEventListener('click', HSCorruptionHeader.#onModuleClick);
         HSCorruptionHeader.#next?.remove();
@@ -141,6 +180,7 @@ export class HSCorruptionHeader {
         const seen = module.checkVisibility?.() ?? true;
         const editing = document.getElementById('mainHeader')?.classList.contains('headerEditMode') === true;
         if (HSCorruptionHeader.#open && (!seen || editing)) HSCorruptionHeader.#close();
+        if (!seen || editing) HSCorruptionHeader.#stopRepeat();
         // In the tray outside edit mode, or locked
         if (!seen) return;
 
@@ -150,6 +190,7 @@ export class HSCorruptionHeader {
             const text = Number.isFinite(level) && level !== shown ? ` → ${Intl.NumberFormat().format(level)}` : '';
             if (next.textContent !== text) next.textContent = text;
             if (HSCorruptionHeader.#open) HSCorruptionHeader.#refreshPopover(level, max);
+            HSCorruptionHeader.#refreshInline(level, shown, max);
         } catch (error) {
             HSLogger.warnOnce(`Could not draw the next corruption level: ${error}`, 'hs-corruption-header');
         }
@@ -159,7 +200,9 @@ export class HSCorruptionHeader {
     // ----------------------- Popover -----------------------
     // ======================================================
 
-    static #onModuleClick = (): void => {
+    static #onModuleClick = (event: MouseEvent): void => {
+        // The controls in the module act on their own; the rest of it opens the popover
+        if (event.target instanceof Element && event.target.closest(`.hs-corr-inline :is(${INLINE_CONTROLS})`)) return;
         if (HSCorruptionHeader.#open) HSCorruptionHeader.#close();
         else HSCorruptionHeader.#openPopover();
     };
@@ -188,7 +231,7 @@ export class HSCorruptionHeader {
             label.title = HSCorruptionLevel.toggleLabel(toggle) ?? fallbackTitle;
         }
         const icon = HSCorruptionLevel.cleanseIcon();
-        if (icon && popover.cleanseIcon.getAttribute('src') !== icon) popover.cleanseIcon.src = icon;
+        if (icon && popover.cleanse.icon.getAttribute('src') !== icon) popover.cleanse.icon.src = icon;
         HSCorruptionHeader.#disarmCleanse();
 
         popover.element.hidden = false;
@@ -217,31 +260,12 @@ export class HSCorruptionHeader {
 
         const row = document.createElement('div');
         row.className = 'hs-corr-pop-row';
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.min = '0';
-        input.step = '1';
-        input.className = 'hs-corr-pop-input';
-        input.addEventListener('change', () => {
-            const level = Math.floor(Number(input.value));
-            // Emptied or not a number: the game would set 0
-            if (input.value.trim() === '' || !Number.isFinite(level)) HSCorruptionHeader.#apply(() => HSCorruptionLevel.getNext());
-            else HSCorruptionHeader.#apply(() => HSCorruptionLevel.setNext(level));
-        });
+        const input = HSCorruptionHeader.#buildLevelInput('hs-corr-pop-input');
         input.addEventListener('keydown', event => { if (event.key === 'Enter') input.blur(); });
 
-        // Left of the row: the game's cleanse icon, with "OK?" over it while it waits for the second click
-        const cleanse = document.createElement('button');
-        cleanse.type = 'button';
-        cleanse.className = 'hs-corr-pop-cleanse';
-        const cleanseIcon = document.createElement('img');
-        cleanseIcon.src = 'Pictures/Default/CorruptExit.png';
-        cleanseIcon.alt = '';
-        const cleanseConfirm = document.createElement('span');
-        cleanseConfirm.className = 'hs-corr-pop-cleanse-confirm';
-        cleanse.append(cleanseIcon, cleanseConfirm);
-        cleanse.addEventListener('click', () => HSCorruptionHeader.#onCleanseClick());
-        row.append(cleanse);
+        // Left of the row
+        const cleanse = HSCorruptionHeader.#buildCleanse();
+        row.append(cleanse.button);
 
         let maxButton: HTMLButtonElement | undefined;
         for (const def of BUTTONS) {
@@ -259,39 +283,77 @@ export class HSCorruptionHeader {
         // The game's toggles on its tab, side by side
         const toggleRow = document.createElement('div');
         toggleRow.className = 'hs-corr-pop-toggles';
-        const toggles = TOGGLES.map(({ toggle, label: text, fallbackTitle }) => {
-            const label = document.createElement('label');
-            label.className = 'corruptionToggle hs-corr-pop-toggle';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.addEventListener('change', () => {
-                HSCorruptionLevel.setToggle(toggle, checkbox.checked);
-                const enabled = HSCorruptionLevel.getToggle(toggle);
-                checkbox.checked = enabled;
-                HSLogger.debug(() => `Corruption ${toggle}: ${enabled}`, HSCorruptionHeader.#context);
-                HSCorruptionHeader.#refresh();
-            });
-            const name = document.createElement('span');
-            name.textContent = text;
-            label.append(checkbox, name);
-            toggleRow.append(label);
-            return { toggle, label, checkbox, fallbackTitle };
+        const toggles = TOGGLES.map(def => {
+            const control = HSCorruptionHeader.#buildToggle(def, 'corruptionToggle hs-corr-pop-toggle');
+            toggleRow.append(control.label);
+            return control;
         });
 
         element.append(title, row, toggleRow);
         document.body.append(element);
-        return { element, title, row, input, maxButton: maxButton!, cleanse, cleanseIcon, cleanseConfirm, toggles };
+        return { element, title, row, input, maxButton: maxButton!, cleanse, toggles };
+    }
+
+    static #buildLevelInput(className: string): HTMLInputElement {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.step = '1';
+        input.className = className;
+        input.addEventListener('change', () => {
+            const level = Math.floor(Number(input.value));
+            // Emptied or not a number: the game would set 0
+            if (input.value.trim() === '' || !Number.isFinite(level)) HSCorruptionHeader.#apply(() => HSCorruptionLevel.getNext());
+            else HSCorruptionHeader.#apply(() => HSCorruptionLevel.setNext(level));
+        });
+        return input;
+    }
+
+    // The game's cleanse icon, with "OK?" over it while it waits for the second click
+    static #buildCleanse(): HSCorruptionCleanse {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'hs-corr-cleanse';
+        const icon = document.createElement('img');
+        icon.src = HSCorruptionLevel.cleanseIcon() ?? 'Pictures/Default/CorruptExit.png';
+        icon.alt = '';
+        const confirm = document.createElement('span');
+        confirm.className = 'hs-corr-cleanse-confirm';
+        button.append(icon, confirm);
+        button.addEventListener('click', () => HSCorruptionHeader.#onCleanseClick());
+        const cleanse = { button, icon, confirm };
+        HSCorruptionHeader.#cleanses.push(cleanse);
+        return cleanse;
+    }
+
+    static #buildToggle(def: typeof TOGGLES[number], className: string): HSCorruptionToggleControl {
+        const { toggle, label: text, fallbackTitle } = def;
+        const label = document.createElement('label');
+        label.className = className;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.addEventListener('change', () => {
+            HSCorruptionLevel.setToggle(toggle, checkbox.checked);
+            const enabled = HSCorruptionLevel.getToggle(toggle);
+            checkbox.checked = enabled;
+            HSLogger.debug(() => `Corruption ${toggle}: ${enabled}`, HSCorruptionHeader.#context);
+            HSCorruptionHeader.#refresh();
+        });
+        const name = document.createElement('span');
+        name.textContent = text;
+        label.append(checkbox, name);
+        return { toggle, label, checkbox, fallbackTitle };
     }
 
     // A first click waits 10 s for a second one, as the game's Cleanse then Confirm: a cleanse lowers the current level at once
     static #onCleanseClick(): void {
         if (HSCorruptionHeader.#cleanseTimer === undefined) {
-            const popover = HSCorruptionHeader.#popover;
-            if (!popover) return;
-            // Short, over the icon: the button keeps its size (the game's Confirm text is its tooltip)
-            popover.cleanse.classList.add('hs-armed');
-            popover.cleanseConfirm.textContent = 'OK?';
-            popover.cleanse.title = HSCorruptionLevel.cleanseTexts().confirm ?? 'Confirm';
+            for (const cleanse of HSCorruptionHeader.#cleanses) {
+                // Short, over the icon: the button keeps its size (the game's Confirm text is its tooltip)
+                cleanse.button.classList.add('hs-armed');
+                cleanse.confirm.textContent = 'OK?';
+                cleanse.button.title = HSCorruptionLevel.cleanseTexts().confirm ?? 'Confirm';
+            }
             HSCorruptionHeader.#cleanseTimer = setTimeout(() => HSCorruptionHeader.#disarmCleanse(), CLEANSE_CONFIRM_MS);
             return;
         }
@@ -305,21 +367,25 @@ export class HSCorruptionHeader {
             clearTimeout(HSCorruptionHeader.#cleanseTimer);
             HSCorruptionHeader.#cleanseTimer = undefined;
         }
-        const popover = HSCorruptionHeader.#popover;
-        if (!popover) return;
-        popover.cleanse.classList.remove('hs-armed');
-        popover.cleanseConfirm.textContent = '';
-        const cleanse = HSCorruptionLevel.cleanseTexts().cleanse ?? 'Cleanse';
-        popover.cleanse.title = cleanse;
-        popover.cleanse.setAttribute('aria-label', cleanse);
+        const title = HSCorruptionLevel.cleanseTexts().cleanse ?? 'Cleanse';
+        for (const cleanse of HSCorruptionHeader.#cleanses) {
+            cleanse.button.classList.remove('hs-armed');
+            cleanse.confirm.textContent = '';
+            cleanse.button.title = title;
+            cleanse.button.setAttribute('aria-label', title);
+        }
     }
 
     /** A change through the game's controls, then the module and popover show what the game kept. */
     static #apply(change: () => number): void {
         const kept = change();
         HSLogger.debug(() => `Next corruption level: ${kept}`, HSCorruptionHeader.#context);
-        // The input shows the kept level even while focused (a level the game lowered)
-        if (HSCorruptionHeader.#popover && Number.isFinite(kept)) HSCorruptionHeader.#popover.input.value = String(kept);
+        // The inputs show the kept level even while focused (a level the game lowered)
+        if (Number.isFinite(kept)) {
+            for (const input of [HSCorruptionHeader.#popover?.input, HSCorruptionHeader.#inline?.input]) {
+                if (input) input.value = String(kept);
+            }
+        }
         HSCorruptionHeader.#refresh();
     }
 
@@ -345,6 +411,166 @@ export class HSCorruptionHeader {
         const left = Math.max(8, Math.min(rect.left + (rect.width - width) / 2, pageWidth - width - 8));
         popover.element.style.left = `${left + window.scrollX}px`;
         popover.element.style.top = `${rect.bottom + window.scrollY}px`;
+    }
+
+    // ======================================================
+    // ---------------- Controls in the module ---------------
+    // ======================================================
+
+    static setInline(enabled: boolean): void {
+        HSCorruptionHeader.#inlineWanted = enabled;
+        HSCorruptionHeader.#syncInline();
+        HSCorruptionHeader.#refresh();
+    }
+
+    // Under the next level and controls setting: both settings' actions come here, in either order
+    static #syncInline(): void {
+        const module = HSCorruptionHeader.#module;
+        const shown = HSCorruptionHeader.#inlineWanted && HSCorruptionHeader.#timer !== undefined && !!module;
+        document.documentElement.classList.toggle(INLINE_CLASS, shown);
+        if (shown) {
+            const inline = HSCorruptionHeader.#inline ??= HSCorruptionHeader.#buildInline();
+            if (!inline.element.isConnected) module.append(inline.element);
+            HSCorruptionHeader.#refreshInlineTexts();
+            return;
+        }
+        HSCorruptionHeader.#stopRepeat();
+        HSCorruptionHeader.#disarmCleanse();
+        HSCorruptionHeader.#inline?.element.remove();
+    }
+
+    static #buildInline(): HSCorruptionInline {
+        const element = document.createElement('span');
+        element.className = 'hs-corr-inline';
+        // The game holds a press on a module for its edit mode: only outside the controls
+        element.addEventListener('pointerdown', event => {
+            if (event.target instanceof Element && event.target.closest(INLINE_CONTROLS)) event.stopPropagation();
+        });
+        // The tooltips and Max follow a language switch when the pointer comes
+        element.addEventListener('pointerenter', () => HSCorruptionHeader.#refreshInlineTexts());
+        window.addEventListener('blur', () => HSCorruptionHeader.#stopRepeat());
+
+        const used = document.createElement('span');
+        const maxLink = HSCorruptionHeader.#buildInlineButton('', 'hs-corr-inline-max-link', () => HSCorruptionLevel.press('max'));
+
+        const level = document.createElement('span');
+        level.className = 'hs-corr-inline-level';
+        const input = HSCorruptionHeader.#buildLevelInput('hs-corr-inline-input');
+        input.addEventListener('focus', () => input.select());
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') input.blur();
+            else if (event.key === 'Escape') {
+                input.value = String(HSCorruptionLevel.getNext());
+                input.blur();
+            } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                const up = event.key === 'ArrowUp';
+                HSCorruptionHeader.#apply(() => HSCorruptionLevel.press(event.shiftKey ? (up ? 'up10' : 'down10') : (up ? 'up1' : 'down1')));
+                input.select();
+            }
+        });
+        const maxButton = HSCorruptionHeader.#buildInlineButton('Max', 'hs-corr-inline-btn hs-corr-wide', () => HSCorruptionLevel.press('max'));
+        const cleanse = HSCorruptionHeader.#buildCleanse();
+        cleanse.button.classList.add('hs-corr-wide');
+        level.append(
+            HSCorruptionHeader.#buildInlineButton('0', 'hs-corr-inline-btn hs-corr-wide', () => HSCorruptionLevel.press('min')),
+            HSCorruptionHeader.#buildStepper('hs-corr-step-down', '−1, Shift −10, hold to repeat', 'down1', 'down10'),
+            input,
+            HSCorruptionHeader.#buildStepper('hs-corr-step-up', '+1, Shift +10, hold to repeat', 'up1', 'up10'),
+            maxButton,
+            cleanse.button,
+        );
+
+        const toggle = HSCorruptionHeader.#buildToggle(TOGGLES[0], 'hs-corr-inline-toggle hs-corr-wide');
+        element.append(used, maxLink, level, toggle.label);
+        return { element, used, maxLink, level, input, maxButton, toggle };
+    }
+
+    static #buildInlineButton(text: string, className: string, change: () => number): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = className;
+        button.textContent = text;
+        button.addEventListener('click', () => HSCorruptionHeader.#apply(change));
+        return button;
+    }
+
+    // Steps at the press, so a hold goes on from it; a click without a pointer comes from the keyboard
+    static #buildStepper(className: string, title: string, small: HSCorruptionLevelButton, big: HSCorruptionLevelButton): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `hs-corr-inline-btn ${className}`;
+        button.title = title;
+        button.setAttribute('aria-label', title);
+        const press = (which: HSCorruptionLevelButton) => HSCorruptionHeader.#apply(() => HSCorruptionLevel.press(which));
+        button.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            HSCorruptionHeader.#stopRepeat();
+            press(event.shiftKey ? big : small);
+            let repeats = 0;
+            const repeat = () => {
+                const before = HSCorruptionLevel.getNext();
+                repeats++;
+                press(event.shiftKey || repeats > HOLD_BIG_STEPS_AFTER ? big : small);
+                // At 0 or the max
+                HSCorruptionHeader.#repeatTimer = HSCorruptionLevel.getNext() === before ? undefined : setTimeout(repeat, HOLD_REPEAT_MS);
+            };
+            HSCorruptionHeader.#repeatTimer = setTimeout(repeat, HOLD_DELAY_MS);
+        });
+        for (const stop of ['pointerup', 'pointerleave', 'pointercancel']) {
+            button.addEventListener(stop, () => HSCorruptionHeader.#stopRepeat());
+        }
+        button.addEventListener('click', event => {
+            if (event.detail === 0) press(event.shiftKey ? big : small);
+        });
+        return button;
+    }
+
+    static #stopRepeat(): void {
+        clearTimeout(HSCorruptionHeader.#repeatTimer);
+        HSCorruptionHeader.#repeatTimer = undefined;
+    }
+
+    static #refreshInlineTexts(): void {
+        const inline = HSCorruptionHeader.#inline;
+        if (!inline) return;
+        const max = HSCorruptionLevel.buttonText('max') ?? 'Max';
+        inline.maxButton.textContent = max;
+        inline.maxLink.title = max;
+        inline.input.title = HSCorruptionLevel.inputLabel() ?? 'Corruption level for next Ascension';
+        inline.toggle.label.title = HSCorruptionLevel.toggleLabel(inline.toggle.toggle) ?? inline.toggle.fallbackTitle;
+    }
+
+    static #refreshInline(level: number, shown: number, max: number): void {
+        const inline = HSCorruptionHeader.#inline;
+        if (!inline?.element.isConnected) return;
+
+        // The game's text as it is written ("25/132"), which keeps its number format
+        const text = HSCorruptionHeader.#text?.textContent ?? '';
+        const slash = text.indexOf('/');
+        const usedText = slash < 0 ? text : text.slice(0, slash);
+        const maxText = slash < 0 ? '' : text.slice(slash);
+        if (inline.used.textContent !== usedText) inline.used.textContent = usedText;
+        if (inline.maxLink.textContent !== maxText) inline.maxLink.textContent = maxText;
+
+        // The game hides its level row while the max is 0
+        const hasLevels = max > 0;
+        inline.level.hidden = !hasLevels;
+        inline.maxLink.disabled = !hasLevels;
+
+        // Not while the player types in it
+        const value = Number.isFinite(level) ? String(level) : '';
+        if (document.activeElement !== inline.input && inline.input.value !== value) inline.input.value = value;
+        inline.input.classList.toggle('hs-corr-pending', level !== shown);
+        // Room for the max's digits in both numbers, so the controls don't move when a level changes
+        const digits = Math.max(2, String(Number.isFinite(max) ? max : 0).length);
+        const usedWidth = `${digits}ch`;
+        if (inline.used.style.minWidth !== usedWidth) inline.used.style.minWidth = usedWidth;
+        const width = `calc(${digits}ch + 4px)`;
+        if (inline.input.style.width !== width) inline.input.style.width = width;
+
+        const enabled = HSCorruptionLevel.getToggle(inline.toggle.toggle);
+        if (inline.toggle.checkbox.checked !== enabled) inline.toggle.checkbox.checked = enabled;
     }
 
     // ======================================================

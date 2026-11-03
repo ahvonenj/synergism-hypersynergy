@@ -111,6 +111,7 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
         title: 'Corruption module',
         toggles: [
             { setting: 'corruptionHeaderControls', label: 'Next level and controls' },
+            { setting: 'corruptionHeaderInline', label: 'Level controls in the module', shown: () => HSSettings.getSetting('corruptionHeaderControls').isEnabled() },
             // The game's unlock checks are reachable only through the header modules patch
             { setting: 'corruptionHeaderAlwaysShown', label: 'Keep visible', shown: hasHeaderModules },
         ],

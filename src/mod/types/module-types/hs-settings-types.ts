@@ -45,6 +45,7 @@ export interface HSSettingsDefinition {
     challengeProgressDetails: HSSettingBase<string>;
     challengeProgressShowNone: HSSettingBase<boolean>;
     corruptionHeaderControls: HSSettingBase<boolean>;
+    corruptionHeaderInline: HSSettingBase<boolean>;
     corruptionHeaderAlwaysShown: HSSettingBase<boolean>;
     autoDismissOfflinePopup: AutoDismissOfflinePopupSetting;
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;

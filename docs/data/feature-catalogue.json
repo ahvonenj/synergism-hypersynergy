@@ -712,6 +712,20 @@
           ]
         },
         {
+          "id": "corruption-inline",
+          "title": "Corruption level controls in the module",
+          "where": "Header → game's Corruption level module, at size M or L",
+          "summary": "Changes the next level in the module itself, without opening the popover.",
+          "details": [
+            "At M: ‹ and › step by 1, by 10 with Shift, and repeat while held. Click the number to type a level. Click /max to set the maximum.",
+            "At L: also 0, Max, the cleanse (two clicks) and Auto-climb.",
+            "At S or stacked, the module keeps its usual text. The icon and the current level still open the popover, which has every control."
+          ],
+          "settings": [
+            "corruptionHeaderInline"
+          ]
+        },
+        {
           "id": "corruption-keep-visible",
           "title": "Keep corruption visible before C11",
           "where": "[HS] Header → Corruption module → Keep visible",

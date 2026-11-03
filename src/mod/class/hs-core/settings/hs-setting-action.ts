@@ -141,6 +141,9 @@ export class HSSettingActions {
             if (params.disable === true) HSCorruptionHeader.disableControls();
             else HSCorruptionHeader.enableControls();
         },
+        corruptionHeaderInlineAction: async (params: HSSettingActionParams) => {
+            HSCorruptionHeader.setInline(params.disable !== true);
+        },
         corruptionHeaderAlwaysShownAction: async (params: HSSettingActionParams) => {
             HSCorruptionHeader.setAlwaysShown(params.disable !== true);
         },

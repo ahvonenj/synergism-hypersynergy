@@ -59,18 +59,12 @@ html.hs-corruption-header-controls #mainHeader:not(.headerEditMode) #corruptionL
 
 /* The game's cleanse icon as it is (it has its own frame), as high as the buttons; "OK?" over it while it waits,
    so the button keeps its size */
-#hs-corruption-popover .hs-corr-pop-cleanse {
+.hs-corr-cleanse {
    position: relative;
-   margin-right: 4px;
    padding: 0;
    background-color: transparent;
 }
-#hs-corruption-popover .hs-corr-pop-cleanse > img {
-   display: block;
-   width: 30px;
-   height: 30px;
-}
-#hs-corruption-popover .hs-corr-pop-cleanse-confirm {
+.hs-corr-cleanse-confirm {
    position: absolute;
    inset: 0;
    display: flex;
@@ -80,8 +74,16 @@ html.hs-corruption-header-controls #mainHeader:not(.headerEditMode) #corruptionL
    color: white;
    font-weight: bold;
 }
-#hs-corruption-popover .hs-corr-pop-cleanse-confirm:empty {
+.hs-corr-cleanse-confirm:empty {
    display: none;
+}
+#hs-corruption-popover .hs-corr-cleanse {
+   margin-right: 4px;
+}
+#hs-corruption-popover .hs-corr-cleanse > img {
+   display: block;
+   width: 30px;
+   height: 30px;
 }
 
 #hs-corruption-popover .hs-corr-pop-toggles {
@@ -91,4 +93,184 @@ html.hs-corruption-header-controls #mainHeader:not(.headerEditMode) #corruptionL
 /* Smaller than the tab's (scale 1.4) */
 #hs-corruption-popover .hs-corr-pop-toggle > input {
    transform: none;
+}
+
+/* Level controls in the module (setting corruptionHeaderInline): at M and L, outside a stack; S and a stack keep the
+   game's text and " → 30" */
+#corruptionLevelHeader > .hs-corr-inline {
+   display: none;
+}
+html.hs-corruption-header-inline #corruptionLevelHeader:not([data-size="S"], .headerStack > *) > .hs-corr-inline {
+   display: flex;
+   flex: 1;
+   align-items: center;
+   min-width: 0;
+}
+/* The current level's digits reserved (by the code), right-aligned against "/132": the controls don't move with it */
+#corruptionLevelHeader .hs-corr-inline > :first-child {
+   text-align: right;
+}
+html.hs-corruption-header-inline #corruptionLevelHeader:not([data-size="S"], .headerStack > *) > :is(#corruptionLevelHeaderText, .hs-corruption-header-next) {
+   display: none;
+}
+/* The game's width of a cell's module, grown when the controls need more of the cell */
+html.hs-corruption-header-inline .headerGrid #corruptionLevelHeader:not([data-size="S"], .headerModuleWide, .headerStack > *) {
+   width: max-content;
+   min-width: calc(38px + 7.5em);
+}
+
+/* The game's button style has a 30 px height and 0.75em text */
+#corruptionLevelHeader .hs-corr-inline button,
+#corruptionLevelHeader .hs-corr-inline input {
+   margin: 0;
+   min-height: 0;
+   height: 22px;
+   font: inherit;
+}
+#corruptionLevelHeader .hs-corr-inline-level {
+   display: flex;
+   align-items: center;
+   gap: 2px;
+   margin-left: auto;
+   padding-left: 4px;
+}
+#corruptionLevelHeader .hs-corr-inline-level[hidden] {
+   display: none;
+}
+#corruptionLevelHeader .hs-corr-inline-btn {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   min-width: 18px;
+   padding: 0 3px;
+   border: none;
+   border-radius: 3px;
+   background-color: transparent;
+   color: #ccc;
+   line-height: 1;
+   cursor: pointer;
+}
+#corruptionLevelHeader .hs-corr-inline-btn:hover {
+   background-color: rgba(255, 255, 255, 0.12);
+   color: white;
+}
+/* Drawn: a font's ‹ and › sit below the middle of the digits */
+#corruptionLevelHeader :is(.hs-corr-step-down, .hs-corr-step-up)::before {
+   content: '';
+   flex: none;
+   box-sizing: border-box;
+   width: 0.45em;
+   height: 0.45em;
+   border: 0 solid currentColor;
+}
+#corruptionLevelHeader .hs-corr-step-down::before {
+   border-width: 0 0 2px 2px;
+   transform: translateX(0.1em) rotate(45deg);
+}
+#corruptionLevelHeader .hs-corr-step-up::before {
+   border-width: 2px 2px 0 0;
+   transform: translateX(-0.1em) rotate(45deg);
+}
+
+/* Reads as the level until it's pointed at; gold while the next level differs from the one shown */
+#corruptionLevelHeader .hs-corr-inline-input {
+   box-sizing: border-box;
+   padding: 0;
+   border: 1px solid transparent;
+   background-color: transparent;
+   color: silver;
+   text-align: center;
+   appearance: textfield;
+}
+#corruptionLevelHeader .hs-corr-inline-input.hs-corr-pending {
+   color: gold;
+}
+#corruptionLevelHeader .hs-corr-inline-input:is(:hover, :focus) {
+   border-color: orange;
+   outline: none;
+}
+#corruptionLevelHeader .hs-corr-inline-input::-webkit-inner-spin-button {
+   appearance: none;
+   margin: 0;
+}
+
+/* The game's "/132" as a Max button */
+#corruptionLevelHeader .hs-corr-inline-max-link {
+   padding: 0;
+   border: none;
+   background-color: transparent;
+   color: inherit;
+   cursor: pointer;
+}
+#corruptionLevelHeader .hs-corr-inline-max-link:hover:enabled {
+   color: gold;
+}
+#corruptionLevelHeader .hs-corr-inline-max-link:disabled {
+   cursor: inherit;
+}
+
+/* Only at L: the game gives a grid module two cells at data-size M, and the top row keeps data-size L */
+#corruptionLevelHeader .hs-corr-wide {
+   display: none;
+}
+#corruptionLevelHeader.headerModuleWide .hs-corr-wide,
+.ascensionStats > #corruptionLevelHeader[data-size="L"] .hs-corr-wide {
+   display: inline-flex;
+   align-items: center;
+}
+/* One row with one gap between its blocks (the level, its controls, the cleanse, Auto-climb), not pushed to both ends.
+   Room left falls after it, so the header's Horizontal alignment moves the row as a whole */
+html.hs-corruption-header-inline #corruptionLevelHeader.headerModuleWide:not([data-size="S"]) > .hs-corr-inline,
+html.hs-corruption-header-inline .ascensionStats > #corruptionLevelHeader[data-size="L"] > .hs-corr-inline {
+   flex: none;
+}
+#corruptionLevelHeader.headerModuleWide .hs-corr-inline-level,
+.ascensionStats > #corruptionLevelHeader[data-size="L"] .hs-corr-inline-level {
+   margin-left: 8px;
+   padding-left: 0;
+}
+#corruptionLevelHeader .hs-corr-inline .hs-corr-cleanse {
+   flex: none;
+   width: 22px;
+   margin-left: 6px;
+   cursor: pointer;
+}
+#corruptionLevelHeader .hs-corr-cleanse > img {
+   display: block;
+   width: 22px;
+   height: 22px;
+   margin: 0;
+}
+#corruptionLevelHeader .hs-corr-cleanse-confirm {
+   font-size: 11px;
+}
+#corruptionLevelHeader .hs-corr-inline-toggle {
+   gap: 3px;
+   margin-left: 8px;
+   color: #ccc;
+   font-size: 0.85em;
+   cursor: pointer;
+}
+/* Discreet greys instead of the browser's white box and blue fill */
+#corruptionLevelHeader .hs-corr-inline .hs-corr-inline-toggle > input {
+   appearance: none;
+   box-sizing: border-box;
+   flex: none;
+   width: 0.9em;
+   height: 0.9em;
+   border: 1px solid #666;
+   border-radius: 2px;
+   background: transparent center / contain no-repeat;
+   cursor: pointer;
+}
+#corruptionLevelHeader .hs-corr-inline .hs-corr-inline-toggle > input:checked {
+   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5 5 9l4.5-6' fill='none' stroke='%23bbb' stroke-width='1.8'/%3E%3C/svg%3E");
+}
+#corruptionLevelHeader .hs-corr-inline .hs-corr-inline-toggle:hover > input {
+   border-color: #999;
+}
+
+/* Edit mode takes every press inside a module, to drag it */
+#mainHeader.headerEditMode .hs-corr-inline {
+   pointer-events: none;
 }
