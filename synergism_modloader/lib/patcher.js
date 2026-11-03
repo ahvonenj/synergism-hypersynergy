@@ -4,6 +4,14 @@
 // For the header modules patch (see there). Self-contained: its source is written into the game bundle.
 // A copy of the player without the mod's module ids ("hs" then a capital letter) in its headerLayouts (slots, hidden,
 // sizes, positions), or the same object when there are none. Never changes what it's given.
+function capSaveSeeds(player) {
+    const seeds = player && player.seed;
+    if (!Array.isArray(seeds)) return player;
+    const now = Date.now();
+    if (!seeds.some(seed => seed > now)) return player;
+    return Object.assign({}, player, { seed: seeds.map(seed => Math.min(seed, now)) });
+}
+
 function stripHeaderModules(player) {
     const isMod = id => typeof id === 'string' && /^hs[A-Z]/.test(id);
     const layouts = player && player.headerLayouts;
@@ -875,6 +883,35 @@ function patchBundle(code, options = {}) {
         }
     } catch (e) {
         warn('Error while patching the header modules', e);
+    }
+
+    // ==================================================================================
+    // ── SAVE SEED CAP — keep saves working when an RNG seed overtakes the clock (docs/game/behaviours.md)
+    // The game's save schema wants each player.seed below Date.now() + 1000, and each draw adds 1 to a seed that began
+    // as a timestamp in ms: over 1000 draws per second, every save throws, and the throw kills the autosave's interval.
+    // saveSynergy, found by its "testing.gameSaved" message and the talismans it writes (fragmentsInvested): its one
+    // schema parse saves a copy with the seeds capped at the clock, the live player's draws carry on untouched:
+    //   let t=Yp.parse(n)  becomes  let t=Yp.parse(window.__HS_capSaveSeeds(n))
+    // After the header modules patch: it applies with or without that one's edit of the same parse.
+    report.saveSeedCap = false;
+    try {
+        const saveResult = findEnclosingFunction(code, /["']testing\.gameSaved["']/g, ['fragmentsInvested'], 'save seed cap');
+        const schemaParse = /(?<![\w$.])(?!JSON\.)([a-zA-Z_$][\w$]*)\.parse\(\s*(window\.__HS_stripHeaderModules\(\s*[a-zA-Z_$][\w$]*\s*\)|[a-zA-Z_$][\w$]*)\s*\)/g;
+        const saveParses = saveResult ? [...code.slice(saveResult.bodyStart, saveResult.bodyEnd).matchAll(schemaParse)] : [];
+        if (saveParses.length === 1) {
+            const [match, schema, argument] = saveParses[0];
+            const at = saveResult.bodyStart + saveParses[0].index;
+            code = code.slice(0, at) + `${schema}.parse(window.__HS_capSaveSeeds(${argument}))` + code.slice(at + match.length);
+            topLines.push(`window.__HS_capSaveSeeds=${String(capSaveSeeds)};`);
+            report.saveSeedCap = true;
+            log(`Patched the save seed cap (save=${saveResult.fnName})`);
+        } else if (saveResult) {
+            warn(`Could not patch the save seed cap — expected 1 schema parse in saveSynergy (fn=${saveResult.fnName}), found ${saveParses.length}`);
+        } else {
+            warn('Could not patch the save seed cap — saveSynergy ("testing.gameSaved") not found');
+        }
+    } catch (e) {
+        warn('Error while patching the save seed cap', e);
     }
 
     // ==================================================================================
