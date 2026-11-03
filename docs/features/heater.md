@@ -10,6 +10,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
   - With debug on, one more line per group with the optimizer's stage times (`Heat stages, cubes+sr: …`, stages under 0.05 s left out; a parent stage comes after its sub-stages): the worker calls `runExperiment` and sends `diagnostics.stages` back (no stage on the heat button: it is full).
   - The optimizer can't import `HSLogger` (no DOM in a worker): its stand-in keeps `warn` and `error` lines (`takeHeaterOptimizerLogs()`), the worker sends them back with its answer, the runner writes them.
   - A failed heat logs its input as JSON (runner) and the stack (the heat button's catch). The optimizer's crash dump stays console only.
+- **An input that is NaN stops the heat at once**, naming the field in the log (`findNaNInputFields`): a NaN stat passes every Pareto trim, so the frontier would fill to its 500,000-row limit and report a memory problem. The optional `reactor`, `purple` and `coinsC15` blocks aren't checked, so a bad one doesn't stop the branches that don't read it. The modal already turns a NaN in one of its own fields into 0, silently: this catches the hidden fields.
 - **A heat can be cancelled** (✖ right of "Heating…", shown only while the optimizer runs in a worker): `HSHeaterOptimizerRunner.cancel()` terminates the running worker, `createResult` rejects with `HSHeatCancelledError`, nothing is cached and the groups already heated are dropped. One "Heat cancelled" log line, no notification.
 - **The heat button shows the elapsed time** in whole seconds, and the number of worker groups started when there are several (`🔥 Heating 2/3... ⏳ 12s 🌡️`, from `createResult`'s `onProgress`, called before each group). It only ticks with a worker; without one the page is frozen and the label stays as it is.
 
@@ -18,6 +19,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 - `BRANCH_GROUPS` gives each group a lane: lane 0 Hyperflux then Cubes+SR (the two big ones, ~0.8 GB each, never at once), lane 1 Oct+AmbOct (Max Amb + Oct is in the Oct group: it shares Oct's tables), Luck+Purple, Quarks/Obt/Off. Each lane runs its groups one at a time.
 - Measured: S260 in node 96 → ~57 s, peak ~1.3 GB summed instead of 0.9; Chrome's Task Manager showed at most 1.1 GB on a save at 144M Ambrosia.
 - Falls back to one worker when `navigator.deviceMemory` < 8 or `hardwareConcurrency` < 4 (unknown = enough), said in the summary line.
+- **The workers share one heap limit**: measured on Chrome 156 (16 GB PC, near-empty headless page), one worker stopped at about 4 GB and two at about 2 GB each. At that point the tab stopped answering, with no `worker.onerror`: `MAX_FRONTIER` is the only failure a player would see explained.
 - A failing group stops the other lane; a cancel stops both. Results are merged by group index, so the order doesn't depend on which lane ends first.
 
 ## Results table

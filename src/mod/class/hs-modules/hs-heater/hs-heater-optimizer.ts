@@ -4820,6 +4820,21 @@ function findCoinsC15Opt(): Loadout {
     return best;
 }
 
+// The input fields holding NaN. A NaN stat passes every Pareto trim (its
+// comparisons are false), so the frontier would fill up to its memory limit
+// and report that instead. The optional blocks are left out: only some
+// branches read them, and a bad one shouldn't stop the others.
+function findNaNInputFields(value: unknown, path = ''): string[] {
+    if (typeof value === 'number')
+        return Number.isNaN(value) ? [path] : [];
+    if (typeof value !== 'object' || value === null)
+        return [];
+    return Object.entries(value).flatMap(([key, field]) =>
+        path === '' && (key === 'reactor' || key === 'purple' || key === 'coinsC15')
+            ? []
+            : findNaNInputFields(field, path === '' ? key : `${path}.${key}`));
+}
+
 function fillStatsAndOptionsFromInput(input: HeaterOptimizerInput): void {
     const {
         amb, ramb, bonusAmbrosiaPerFill, blueberries, purpleLeoLevel,
@@ -5067,6 +5082,10 @@ export class HSHeaterOptimizer {
             || input.blueBarRequirementBeforeRounding <= 0) {
             throw new Error('Blue bar pre-round requirement is missing; re-export current game data for Heater.');
         }
+
+        const nanFields = findNaNInputFields(input);
+        if (nanFields.length > 0)
+            throw new Error(`Heater input is not a number: ${nanFields.join(', ')}. Re-export current game data for Heater.`);
 
         // Populate stats + options from input
         fillStatsAndOptionsFromInput(input);
