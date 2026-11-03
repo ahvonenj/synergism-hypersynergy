@@ -19,6 +19,8 @@ routed, `hs-ambrosia-reactor-income.ts` preserves the game's reaction stages: ro
 overflow against remaining opposite stock, extraction, zero-time rebates, regular fills, then zero-time fusion.
 Unmatched excess returns to the regular bars. Empty ticks and ordinary two-tick tank cycles are batched; bounded
 feedback sampling and resource conservation estimate sustained fills without simulating every elapsed second.
+The warm-up drift check allows observed Red-Blue Ultrafusion bursts in both tanks: blue overflow can consume
+the opposite red tank. Extraction-rebate tolerance remains per extraction, rather than per extraction batch.
 RNG rewards use their expected value. These are fixed-stat sustained estimates, not an exact next-hour forecast
 with changing lifetime stats or random rewards. Tests use the upstream reactor fixture, including rare rebate
 bursts, fusion, Two Mind and Bar Dependence.

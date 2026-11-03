@@ -83,7 +83,9 @@ export class HSAutosing extends HSModule {
     #storedC15: number = 0;
     #lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
     #challengeAccessors: Record<number, ChallengeAccessor> = {};
-    #hsSettingsToRestore: string[] = [];
+    #settingsFixer = new HSAutosingSettingsFixer();
+    #settingsWork?: Promise<void>;
+    #settingsRestore?: Promise<void>;
     #previousQuarkAmount: number = 0;
     #previousGoldenQuarkAmount: number = 0;
 
@@ -534,7 +536,8 @@ export class HSAutosing extends HSModule {
         try {
             await this.#startAutosing();
         } catch (error) {
-            HSLogger.warn(`Error while starting autosing: ${error instanceof Error ? error.message : String(error)}`, this.context);
+            HSLogger.warn(`Error while starting autosing: ${escapeLogText(error instanceof Error ? error.message : String(error))}`, this.context);
+            HSUI.Notify('Auto-Sing could not start. See the mod log for details.', { notificationType: 'warning' });
             this.stopAutosing();
         } finally {
             this.#isStarting = false;
@@ -548,8 +551,7 @@ export class HSAutosing extends HSModule {
 
     /**
      * Checkpoint for a start stopped by stopAutosing() before it was marked as running.
-     * stopAutosing() already turned the toggle off and restored what was changed at that time:
-     * this restores what the start changed since (settings fixer, GDS pause).
+     * stopAutosing() turned the toggle off. Cleanup waits for the settings fixer to finish.
      */
     #isStartCancelled(): boolean {
         if (!this.#startCancelled) return false;
@@ -596,8 +598,8 @@ export class HSAutosing extends HSModule {
         // From here, the game's Confirms and Alerts are answered (by the dialog hook, or by the dialog watcher
         // without any patch). Cleared by #restoreHsSettings().
         HSGameDialogs.setAutosingActive(true);
-        // Appended: after a restart, the list still holds what the previous run changed (kept changed meanwhile)
-        this.#hsSettingsToRestore = [...this.#hsSettingsToRestore, ...await HSAutosingSettingsFixer.fixAllSettings()];
+        this.#settingsWork = this.#settingsFixer.fixAllSettings();
+        await this.#settingsWork;
         if (this.#isStartCancelled()) return;
         this.#cacheObservers();
         this.#cacheExposedFunctions();
@@ -661,8 +663,8 @@ export class HSAutosing extends HSModule {
     }
 
     /**
-     * @param options.restarting Keeps the start toggle ON, GDS paused and the mod settings as autosing
-     * set them, for the next start. A stop or a failed start restores them.
+     * @param options.restarting Keeps the original settings snapshot, start toggle ON and GDS paused
+     * for the next start. A stop or a failed start restores the original settings.
      * @param options.saveReplaced The game is loading another save right now: nothing is clicked in the game,
      * as the answer to a click would come once the new save is in place.
      */
@@ -671,6 +673,7 @@ export class HSAutosing extends HSModule {
 
         window.clearTimeout(this.#restartTimer);
         this.#restartTimer = undefined;
+        if (options?.saveReplaced) this.#settingsFixer.discardGameSettings();
         if (this.#isStarting) {
             // Also when it's already marked as running (stopped during validation),
             // so that a new start request isn't ignored
@@ -707,15 +710,37 @@ export class HSAutosing extends HSModule {
     }
 
     /**
-     * Resumes the GDS engine, restores the mod settings changed by HSAutosingSettingsFixer,
-     * and stops answering the game's dialogs.
+     * Stop answering dialogs immediately. Restore settings after startup and stopped strategy chains
+     * have settled, so their last actions cannot overwrite the player's restored values.
      */
     #restoreHsSettings(): void {
         HSGameDialogs.setAutosingActive(false);
-        void HSModuleManager.getModule<HSGameData>('HSGameData')?.resumeGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
-        HSAutosingSettingsFixer.restoreUnwantedSettings(this.#hsSettingsToRestore);
-        // Cleared so a later stop can't restore them a second time
-        this.#hsSettingsToRestore = [];
+        if (this.#settingsRestore) return;
+        const chains = [...this.#chains];
+        const work = this.#settingsWork;
+        this.#settingsRestore = Promise.resolve().then(async () => {
+            // A failed fixer still owns a snapshot of any settings it changed before failing.
+            await work?.catch(() => undefined);
+            await Promise.all(chains);
+            try {
+                this.#settingsFixer.restoreGameSettings();
+            } catch (error) {
+                HSLogger.warn(`Could not fully restore Auto-Sing's game settings: ${escapeLogText(error instanceof Error ? error.message : String(error))}`, this.context);
+                HSUI.Notify('Auto-Sing could not restore all game settings. See the mod log for details.', { notificationType: 'warning' });
+            } finally {
+                try {
+                    await HSModuleManager.getModule<HSGameData>('HSGameData')?.resumeGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
+                } finally {
+                    this.#settingsFixer.restoreUnwantedSettings();
+                }
+            }
+        }).catch(error => {
+            HSLogger.warn(`Auto-Sing settings cleanup failed: ${escapeLogText(String(error))}`, this.context);
+        }).finally(() => {
+            this.#settingsWork = undefined;
+            this.#settingsRestore = undefined;
+        });
+        this.#trackChain(this.#settingsRestore);
     }
 
     async #stopAutosingCore(options: { modalDisposition: 'review' | 'destroy', leaveExalt: boolean }): Promise<void> {
@@ -1900,11 +1925,12 @@ export class HSAutosing extends HSModule {
     // MISC - PUBLIC API
     // ============================================================================
 
-    /** Running, starting (not cancelled yet), or waiting to restart. */
+    /** Running, starting, waiting to restart, or still holding settings for deferred restoration. */
     isAutosingActive(): boolean {
         return this.#autosingEnabled
             || (this.#isStarting && !this.#startCancelled)
-            || this.#restartTimer !== undefined;
+            || this.#restartTimer !== undefined
+            || this.#settingsFixer.hasOriginalSettings;
     }
 
     setStopAtSingularitysEnd(value: boolean): void {

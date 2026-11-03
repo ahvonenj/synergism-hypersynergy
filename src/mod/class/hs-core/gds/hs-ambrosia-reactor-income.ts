@@ -153,6 +153,8 @@ function calculateReactorIncomeUncached(input: ReactorIncomeInput): FillRates {
     const fusion = input.fusionBluePerRedFill > 0;
     const extractionFeedback = input.blueRebate > 0 || input.redRebate > 0
         || input.directFillsPerExtraction > 0;
+    let fusionPacket = input.fusionBluePerRedFill
+        * Math.max(1, input.redPerTick / input.redRequirement);
 
     const ordinary = (b: number, r: number) =>
         react(input, b, r, input.bluePerTick, input.redPerTick, input.normalPerTick);
@@ -292,6 +294,7 @@ function calculateReactorIncomeUncached(input: ReactorIncomeInput): FillRates {
         blueBar %= input.blueRequirement;
         redBar %= input.redRequirement;
         if (fusion && r + direct > 0) {
+            fusionPacket = Math.max(fusionPacket, (r + direct) * input.fusionBluePerRedFill);
             const reward = react(input, blue, red, (r + direct) * input.fusionBluePerRedFill, 0, 0);
             blue = reward.blue;
             red = reward.red;
@@ -369,10 +372,6 @@ function calculateReactorIncomeUncached(input: ReactorIncomeInput): FillRates {
     // warm-up drift to its boundary instead of measuring the consumption of an
     // arbitrary initial stock. A few packets' worth of motion is ordinary fill
     // phase, so leave that alone (in particular, do not flatten rebate bursts).
-    const bluePacket = Math.max(input.blueRebate, input.fusionBluePerRedFill
-        * Math.max(1, input.redPerTick / input.redRequirement));
-    const blueDriftTolerance = Math.max(input.blueCapacity * 1e-8, 4 * bluePacket);
-    const redDriftTolerance = Math.max(input.redCapacity * 1e-8, 4 * input.redRebate);
     let settled = false;
     for (let pass = 0; pass < 8; pass++) {
         const beforeBlue = blue;
@@ -380,6 +379,12 @@ function calculateReactorIncomeUncached(input: ReactorIncomeInput): FillRates {
         for (let step = 0; step < 64; step++) advance();
         const driftBlue = blue - beforeBlue;
         const driftRed = red - beforeRed;
+        // Fusion adds blue points, but its overflow can consume the red tank.
+        // Both tanks use recipe batches, so allow the observed fusion burst in both.
+        const blueDriftTolerance = Math.max(input.blueCapacity * 1e-8,
+            4 * Math.max(input.blueRebate, fusionPacket));
+        const redDriftTolerance = Math.max(input.redCapacity * 1e-8,
+            4 * Math.max(input.redRebate, fusionPacket));
         const moveBlue = Math.abs(driftBlue) > blueDriftTolerance;
         const moveRed = Math.abs(driftRed) > redDriftTolerance;
         if (!moveBlue && !moveRed) {
