@@ -83,6 +83,8 @@ export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
     parentModalId?: string;
     headerClass?: string;
     bodyClass?: string;
+    // Called with the modal laid out, its CSS applied, before it is placed and shown
+    onBeforeShow?: (modal: HTMLElement) => void;
 }
 
 export type HSNotifyPosition = "topLeft" | "top" | "topRight" | "right" | "bottomRight" | "bottom" | "bottomLeft" | "left";

@@ -30,7 +30,7 @@ export class HSHeaterUIStyles {
                 flex: 0 0 auto;
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
+                gap: 6px;
                 min-height: 0;
                 max-height: 100%;
                 overflow-y: auto;
@@ -63,8 +63,8 @@ export class HSHeaterUIStyles {
                 align-items: center;
                 gap: 4px;
                 padding: 0px 8px;
-                /* Close to the heat button: the column's 12px gap less 8 */
-                margin-top: -8px;
+                /* Close to the heat button: the column's 6px gap less 2 */
+                margin-top: -2px;
                 color: #bbb;
                 cursor: help;
             }
@@ -91,7 +91,7 @@ export class HSHeaterUIStyles {
                 display: none;
             }
 
-            /* Same as the Active Branches checkboxes */
+            /* Same as the "Loadouts to heat" checkboxes */
             .hs-heater-two-workers input {
                 width: 16px;
                 height: 16px;
@@ -464,7 +464,7 @@ export class HSHeaterUIStyles {
             .hs-heater-active-grid {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 2px;
+                gap: 0;
             }
 
             .hs-heater-active-branch {
@@ -473,6 +473,8 @@ export class HSHeaterUIStyles {
                 gap: 4px;
                 padding: 0px 8px;
                 border-radius: 4px;
+                font-size: 0.9em;
+                line-height: 1.2;
             }
 
             .hs-heater-active-branch-note {
@@ -524,7 +526,7 @@ export class HSHeaterUIStyles {
             .hs-heater-type-selects-grid {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 4px;
+                gap: 1px;
             }
 
             .hs-heater-type-select-row {
@@ -542,10 +544,12 @@ export class HSHeaterUIStyles {
 
             .hs-heater-type-select-icon {
                 background-repeat: no-repeat;
-                background-size: 80%;
+                background-size: contain;
                 background-position: center;
-                height: 30px;
-                width: 30px;
+                height: 26px;
+                /* The game's buttons have min-height: 30px */
+                min-height: 0;
+                width: 26px;
                 border: 2px solid blue;
                 pointer-events: none;
                 outline: none;

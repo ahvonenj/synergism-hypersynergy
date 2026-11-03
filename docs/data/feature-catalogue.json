@@ -789,7 +789,7 @@
         {
           "id": "heater-branches",
           "title": "Choose and remember active optimization branches",
-          "where": "Heater inputs → Active Branches",
+          "where": "Heater inputs → Loadouts to heat",
           "summary": "Runs only the loadout families you need.",
           "details": [
             "Branches include Ambrosia, Purple Ambrosia, Quarks, 3–7D Cubes, Octeracts, C15 coins, Obtainium/Offerings, joint Obt+Off, Hyperflux, Max SR and Max Amb+Oct.",

@@ -900,6 +900,11 @@ export class HSUI extends HSModule {
             await this.#waitForModalImages(modal);
         }
 
+        if (modalOptions.onBeforeShow) {
+            HSUI.flushInjectedStyles();
+            modalOptions.onBeforeShow(modal);
+        }
+
         const finalCoords = this.#clampModalPosition(
             modal,
             this.#resolveCoordinates(modalOptions.position, modal, modalOptions.parentModalId)

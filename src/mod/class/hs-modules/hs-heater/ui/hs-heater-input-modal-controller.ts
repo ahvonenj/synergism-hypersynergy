@@ -25,6 +25,8 @@ export class HSHeaterInputModalController {
     static currentInputsModalId: string | null = null;
     static #currentInputsModalObserver: MutationObserver | null = null;
     static #syncSettingsTooltipId = 'hs-heater-sync-settings-tooltip';
+    // Down to the screen's bottom: the modal opens at y = 10
+    static readonly #MAX_MODAL_HEIGHT = 'calc(100vh - 10px)';
 
     static #cachedInputsModal: HTMLElement | null = null;
     static #cachedTypeSelects: HTMLSelectElement[] = [];
@@ -116,13 +118,31 @@ export class HSHeaterInputModalController {
             position: { x: 50, y: 10 },
             styles: {
                 width: 'auto',
-                height: 'calc(100vh - 50px)',
-            }
+                height: this.#MAX_MODAL_HEIGHT,
+            },
+            onBeforeShow: (modal) => this.#fitHeightToRightColumn(modal),
         });
 
         this.currentInputsModalId = modalId;
         this.attachModalHandlers(modalId);
         HSHeaterResultModalController.reconnectToInputsModal(modalId);
+    }
+
+
+    // Shows the whole right column when the screen allows it; the left one scrolls
+    static #fitHeightToRightColumn(modal: HTMLElement): void {
+        const column = modal.querySelector<HTMLElement>('#hs-heater-inputs-body-right');
+        if (!column) return;
+
+        const chromeHeight = modal.offsetHeight - column.offsetHeight;
+        column.style.alignSelf = 'flex-start';
+        column.style.maxHeight = 'none';
+        const contentHeight = column.scrollHeight;
+        column.style.alignSelf = '';
+        column.style.maxHeight = '';
+
+        // Spare room: at a fractional display scale, rounding alone can bring a scrollbar
+        modal.style.height = `min(${this.#MAX_MODAL_HEIGHT}, ${chromeHeight + contentHeight + 10}px)`;
     }
 
 
@@ -236,7 +256,7 @@ export class HSHeaterInputModalController {
         recalcButton?.addEventListener('click', async () => {
             const branchCheckboxes = Array.from(modal.querySelectorAll<HTMLInputElement>('.hs-heater-active-checkbox'));
             const hasActiveBranch = branchCheckboxes.some((checkbox) => checkbox.checked);
-            if (!hasActiveBranch) { HSUI.Notify('Select at least one active branch before starting the heater.', { position: 'top', notificationType: 'warning' }); return; }
+            if (!hasActiveBranch) { HSUI.Notify('Tick at least one line in Loadouts to heat before starting the heater.', { position: 'top', notificationType: 'warning' }); return; }
 
             const originalText = recalcButton.textContent;
             recalcButton.style.pointerEvents = 'none';

@@ -161,9 +161,9 @@ export class HSHeaterUIInput {
 
         return `
            <div class="hs-heater-active-header">
-                <span class="hs-heater-inputs-title">Active Branches:</span>
+                <span class="hs-heater-inputs-title">Loadouts to heat:</span>
                 <span class="hs-heater-active-bulk">
-                    <button type="button" class="hs-heater-active-bulk-btn" data-branch-bulk="slots" title="Only the branches Your Loadout Order uses">☰</button>
+                    <button type="button" class="hs-heater-active-bulk-btn" data-branch-bulk="slots" title="Only what Your Loadout Order uses">☰</button>
                     <button type="button" class="hs-heater-active-bulk-btn" data-branch-bulk="all" title="Tick all">☑</button>
                     <button type="button" class="hs-heater-active-bulk-btn" data-branch-bulk="none" title="Untick all">☐</button>
                 </span>

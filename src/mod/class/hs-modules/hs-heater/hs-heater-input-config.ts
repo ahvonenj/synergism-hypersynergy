@@ -5,7 +5,7 @@ import type { HSIcon } from "../../hs-utils/hs-icons";
 // the export). A new input that copies a modal field must read the field
 // instead (fillStatsAndOptionsFromInput), or editing that field does nothing.
 type HeaterInputBase = Omit<HeaterOptimizerInput,
-    | 'heaterOptions'                           // the Active Branches checkboxes
+    | 'heaterOptions'                           // the "Loadouts to heat" checkboxes
     | 'ambrosiaUpgradeBonusLevels'              // per upgrade, from Purple enchantments
     | 'ambrosiaUpgradeBlueberryCostReductions'  // per upgrade
     | 'runeSiBonusLevelsTalismanNoAmbrosia'     // the talisman part of SI Bonus Levels
