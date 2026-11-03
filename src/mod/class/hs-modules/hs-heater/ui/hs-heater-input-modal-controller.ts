@@ -103,7 +103,7 @@ export class HSHeaterInputModalController {
                 <div>${HSHeaterUIInput.buildHeaterOptionToggleGrid(initialInput.heaterOptions)}</div>
                 <div class="hs-heater-start-row">${HSUIC.Button({ id: 'hs-heater-recalculate-btn',   class: 'redButton hs-heater-start-heater-tooltip-trigger', text: '🔥 Start Heater', styles: { cursor: 'help' } })}${HSUIC.Button({ id: 'hs-heater-cancel-btn', class: 'redButton', text: '✖', props: { title: 'Cancel this heat', hidden: '' } })}</div>
                 ${this.#buildTwoWorkersCheckbox()}
-                <div id="hs-heater-type-selects" class="hs-heater-type-selects-grid">${heaterTypeDropdowns}</div>
+                <div id="hs-heater-type-selects" class="hs-heater-type-selects-grid${loadoutsAmount > 9 ? ' hs-heater-type-selects-two-digits' : ''}">${heaterTypeDropdowns}</div>
                 <div>${HSUIC.Button({ id: 'hs-heater-import-all-btn',    class: 'blueButton', text: 'Import All <span style="color: #338eef;">☑</span> Loadouts' })}</div>
                 <div>${HSUIC.Button({ id: 'hs-heater-sync-icons-btn',    class: 'blueButton', text:   'Sync All Icons' })}</div>
                 <div>${HSUIC.Button({ id: 'hs-heater-sync-settings-btn', class: 'blueButton hs-heater-sync-settings-tooltip-trigger', text: 'Sync All Loadout Settings', styles: { cursor: 'help' } })}</div>

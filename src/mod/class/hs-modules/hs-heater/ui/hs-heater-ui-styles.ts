@@ -146,7 +146,7 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table td:nth-child(2),
             .hs-heater-input-table th:nth-child(2) {
-                width: 200px;
+                white-space: nowrap;
             }
 
             .hs-heater-input-table td:nth-child(3),
@@ -157,7 +157,7 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table input {
                 width: 100%;
-                min-width: 165px;
+                min-width: 140px;
                 box-sizing: border-box;
             }
 
@@ -414,6 +414,7 @@ export class HSHeaterUIStyles {
             /* === Input Controls === */
             .hs-heater-input-table td.hs-heater-input-warning {
                 height: auto;
+                white-space: normal;
                 color: #e0b84f;
                 text-align: center;
             }
@@ -536,10 +537,16 @@ export class HSHeaterUIStyles {
             }
 
             .hs-heater-type-select-loadout-label {
-                width: 24px;
-                min-width: 24px;
+                width: 18px;
+                min-width: 18px;
                 text-align: center;
                 font-weight: 600;
+            }
+
+            /* L10 and up */
+            .hs-heater-type-selects-two-digits .hs-heater-type-select-loadout-label {
+                width: 24px;
+                min-width: 24px;
             }
 
             .hs-heater-type-select-icon {
@@ -588,7 +595,6 @@ export class HSHeaterUIStyles {
             .hs-heater-type-select-checkbox {
                 width: 16px;
                 height: 16px;
-                margin-left: 6px;
                 cursor: pointer;
                 accent-color: #0505ad;
                 box-sizing: border-box;
