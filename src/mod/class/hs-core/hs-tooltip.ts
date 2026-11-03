@@ -2,19 +2,24 @@ import { escapeHtml } from '../hs-modules/hs-heater/hs-heater-utils';
 
 export type HSTooltipPlacement = 'below' | 'above' | 'right' | 'left';
 
-export interface HSTooltipBehaviour {
+export interface HSTooltipSettings {
+    // A line on top, in plain text
+    title?: string;
     delay?: number;
     placement?: HSTooltipPlacement;
 }
 
-export interface HSTooltipOptions extends HSTooltipBehaviour {
+export interface HSTooltipOptions extends HSTooltipSettings {
     // Never read as HTML; a \n is a line break, and the text wraps by itself
     text?: string;
     // The caller escapes what it puts in. A function runs at each show
     html?: string | (() => string);
+    // false: as wide as its longest line, for content made of lines (a list)
+    wrap?: boolean;
 }
 
 const TEXT_ATTR = 'data-hs-tip';
+const TITLE_ATTR = 'data-hs-tip-title';
 const DELAY_ATTR = 'data-hs-tip-delay';
 const PLACEMENT_ATTR = 'data-hs-tip-placement';
 const DEFAULT_DELAY = 150;
@@ -64,11 +69,12 @@ export class HSTooltip {
     }
 
     /** The same in an HTML string: the attributes to put in the element's tag. */
-    static attrs(text: string, behaviour: HSTooltipBehaviour = {}): string {
+    static attrs(text: string, settings: HSTooltipSettings = {}): string {
         HSTooltip.#install();
         let attributes = `${TEXT_ATTR}="${escapeHtml(text)}"`;
-        if (behaviour.delay !== undefined) attributes += ` ${DELAY_ATTR}="${behaviour.delay}"`;
-        if (behaviour.placement) attributes += ` ${PLACEMENT_ATTR}="${behaviour.placement}"`;
+        if (settings.title) attributes += ` ${TITLE_ATTR}="${escapeHtml(settings.title)}"`;
+        if (settings.delay !== undefined) attributes += ` ${DELAY_ATTR}="${settings.delay}"`;
+        if (settings.placement) attributes += ` ${PLACEMENT_ATTR}="${settings.placement}"`;
         return attributes;
     }
 
@@ -169,7 +175,14 @@ export class HSTooltip {
         const element = HSTooltip.#element ??= HSTooltip.#build();
         if (html) element.innerHTML = html;
         else element.textContent = options.text ?? '';
+        if (options.title) {
+            const title = document.createElement('div');
+            title.className = 'hs-tip-title';
+            title.textContent = options.title;
+            element.prepend(title);
+        }
         element.classList.toggle('hs-tooltip-html', !!html);
+        element.classList.toggle('hs-tooltip-nowrap', options.wrap === false);
         element.hidden = false;
         // Its width depends on the room it has: measured from the corner, not from where it was last
         element.style.left = '0';
@@ -204,6 +217,7 @@ export class HSTooltip {
         const delay = anchor.getAttribute(DELAY_ATTR);
         return {
             text: anchor.getAttribute(TEXT_ATTR) ?? '',
+            title: anchor.getAttribute(TITLE_ATTR) ?? undefined,
             delay: delay === null ? undefined : Number(delay),
             placement: (anchor.getAttribute(PLACEMENT_ATTR) as HSTooltipPlacement | null) ?? undefined,
         };

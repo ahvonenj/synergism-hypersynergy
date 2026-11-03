@@ -18,6 +18,12 @@ const RESULT_COL_INDEX = {
 
 const RESULT_TABLE_TOTAL_COLS = 7;
 
+const RESULTS_HELP = `The loadouts will only be as good as your inputs, this means:\n`
+    + `- If you want an optimized p4x4 loadout, you need to actually have pre-AoAG inputs.\n`
+    + `- Same for Obt/Off loadouts (but less problematic, so simply (un)checking the "post-aoag" input is enough).\n`
+    + `- ??? (Feel free to contribute)\n\n`
+    + `Right-click an Import button to pin its tooltip. Esc key to un-pin all.`;
+
 type NormalizedResultRow = {
     loadoutValue:       HeaterResultRow[typeof RESULT_COL_INDEX.loadout];
     blueberryCostValue: HeaterResultRow[typeof RESULT_COL_INDEX.blueberryCost];
@@ -44,8 +50,7 @@ function buildTypeLabelWithIcon(label: string, semanticId?: string, infoTitle = 
 
     const infoTrigger = description
         ? `<div class="hs-heater-type-info-trigger" tabindex="0" role="note"
-                data-info-title="${safeInfoTitle}"
-                data-info-content="${escapeHtml(description)}"
+                ${HSTooltip.attrs(description, { title: infoTitle, delay: 0, placement: 'right' })}
                 aria-label="More information about ${safeInfoTitle}">?</div>`
         : '';
 
@@ -301,7 +306,7 @@ function buildArrayResultSection(entriesByKey: Map<ResultKey, NormalizedHeaterRe
     return `
         <div class="hs-heater-results-wrapper">
             <div class="hs-heater-results-topbar">
-                <div class="hs-heater-results-topbar-help" aria-label="Heater results help" tabindex="0">?</div>
+                <div class="hs-heater-results-topbar-help" aria-label="Heater results help" tabindex="0" ${HSTooltip.attrs(RESULTS_HELP, { delay: 0 })}>?</div>
             </div>
             <table class="hs-heater-subtable hs-heater-results-table">
                 <tbody>${allRows}</tbody>

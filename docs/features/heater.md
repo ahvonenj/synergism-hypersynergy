@@ -13,7 +13,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 - **The heat button shows the elapsed time** in whole seconds, and the number of worker groups started when there are several (`🔥 Heating 2/3... ⏳ 12s 🌡️`, from `createResult`'s `onProgress`, called before each group). It only ticks with a worker; without one the page is frozen and the label stays as it is.
 
 ## Two workers
-- "Faster heat (2 workers)" checkbox right under the heat button (hidden setting `heaterTwoWorkers`, on by default; hidden without a worker), its warning in the title.
+- "Faster heat (2 workers)" checkbox right under the heat button (hidden setting `heaterTwoWorkers`, on by default; hidden without a worker), its warning in the tooltip.
 - `BRANCH_GROUPS` gives each group a lane: lane 0 Hyperflux then Cubes+SR (the two big ones, ~0.8 GB each, never at once), lane 1 Oct+AmbOct (Max Amb + Oct is in the Oct group: it shares Oct's tables), Luck+Purple, Quarks/Obt/Off. Each lane runs its groups one at a time.
 - Measured: S260 in node 96 → ~57 s, peak ~1.3 GB summed instead of 0.9; Chrome's Task Manager showed at most 1.1 GB on a save at 144M Ambrosia.
 - Falls back to one worker when `navigator.deviceMemory` < 8 or `hardwareConcurrency` < 4 (unknown = enough), said in the summary line.

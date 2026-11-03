@@ -817,6 +817,36 @@ select::-webkit-scrollbar-corner {
     white-space: normal;
 }
 
+/* wrap: false. A text keeps its \n; in HTML, only a <br> or a block breaks a line */
+#hs-tooltip.hs-tooltip-nowrap {
+    max-width: calc(100vw - 16px);
+    white-space: pre;
+}
+
+#hs-tooltip.hs-tooltip-html.hs-tooltip-nowrap {
+    white-space: nowrap;
+}
+
+#hs-tooltip .hs-tip-title {
+    margin-bottom: 3px;
+    color: #fff;
+    font-weight: 600;
+}
+
+#hs-tooltip .hs-tip-key {
+    color: #7fa1d1;
+    font-weight: 600;
+}
+
+#hs-tooltip .hs-tip-dim {
+    color: #8f8f8f;
+}
+
+#hs-tooltip .hs-tip-warn {
+    color: #e5534b;
+    font-weight: 600;
+}
+
 /* ===== RESIZERS ===== */
 
 .hs-resizer {

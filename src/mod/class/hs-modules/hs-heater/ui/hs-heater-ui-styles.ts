@@ -970,11 +970,7 @@ export class HSHeaterUIStyles {
             }
 
             /* === Heater Tooltip Overlays === */
-            .hs-heater-loadout-json-tooltip,
-            .hs-heater-type-info-tooltip,
-            #hs-heater-sync-settings-tooltip,
-            #hs-heater-start-heater-tooltip,
-            #hs-heater-topbar-help-tooltip {
+            .hs-heater-loadout-json-tooltip {
                 position: fixed;
                 z-index: 10000;
                 background: #1e1e1e;
@@ -990,15 +986,6 @@ export class HSHeaterUIStyles {
                 overflow-y: auto;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.5);
                 white-space: pre-wrap;
-            }
-            .hs-heater-type-info-tooltip {
-                max-width: 250px;
-            }
-            #hs-heater-sync-settings-tooltip {
-                white-space: normal !important;
-            }
-            .hs-heater-tooltip-bigger {
-                font-size: 0.95em !important;
             }
 
             .hs-heater-tooltip-title {
@@ -1036,32 +1023,6 @@ export class HSHeaterUIStyles {
 
             .hs-heater-tooltip-pinned:active {
                 cursor: grabbing;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-key {
-                color: #7fa1d1;
-                font-weight: 600;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-none {
-                color: #bc888c;
-                font-weight: 500;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-key-none-selected,
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-none-selected {
-                color: #d71928;
-                font-weight: 900;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-selected {
-                color: #667fd2e8;
-                font-weight: 700;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-unselected {
-                color: #7f7f7f;
-                font-weight: 500;
             }
         `;
     }

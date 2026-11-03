@@ -2,6 +2,7 @@ import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
 import { HSQuickbarIconPickerController } from "../../hs-loadout-icons/hs-loadout-icon-picker";
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { escapeHtml } from "../hs-heater-utils";
 import { buildResultTableHtmlFromNormalized } from "./hs-heater-ui-result-renderer";
 import { clearHeaterIconOverride, getEffectiveHeaterIconSrc, getOverrideHeaterIconSrc, setHeaterIconOverride, } from "../hs-heater-icon-store";
@@ -73,11 +74,9 @@ const HEATER_RESULT_UI_SELECTORS = {
     previewEmptyCell:   'hs-heater-preview-empty-cell',
     previewHoverClass:  'hs-heater-loadout-preview--hover',
     jsonTooltipHoverClass: 'hs-heater-loadout-json-tooltip--hover',
-    topbarHelpTooltipId: 'hs-heater-topbar-help-tooltip',
     copyLoadoutBtn:     'hs-heater-copy-loadout-btn',
     importLoadoutBtn:   'hs-heater-import-loadout-btn',
     jsonTooltipTrigger: 'hs-heater-json-tooltip-trigger',
-    typeInfoTrigger:    'hs-heater-type-info-trigger',
     dataLoadout:        'data-loadout',
     importFileInputId:  'importBlueberries',
 } as const;
@@ -138,7 +137,7 @@ export class HSHeaterUIResult {
 
     static #activeHoverOverlay: {
         target: HTMLElement;
-        kind: 'preview' | 'json' | 'info';
+        kind: 'preview' | 'json';
         tooltip: HTMLElement;
         cleanup: () => void;
     } | null = null;
@@ -268,16 +267,6 @@ export class HSHeaterUIResult {
             this.#quickbarCloneCleanup = this.#setupQuickbarCloneLink(clone, slotsSource);
         }
 
-        // This runs again without a re-render (attachResultModalHandlers): wire a given badge once
-        const topbarHelp = header.querySelector<HTMLDivElement>('.hs-heater-results-topbar-help:not([data-hs-wired])');
-        if (topbarHelp) {
-            topbarHelp.dataset.hsWired = 'true';
-            topbarHelp.addEventListener('mouseenter', () => this.showTopbarHelpTooltip(topbarHelp));
-            topbarHelp.addEventListener('mouseleave', () => this.removeTopbarHelpTooltip());
-            topbarHelp.addEventListener('focus', () => this.showTopbarHelpTooltip(topbarHelp));
-            topbarHelp.addEventListener('blur', () => this.removeTopbarHelpTooltip());
-        }
-
         // The Exalt badge, opposite the help badge, when the heat ran inside an Exalt with rules to explain
         header.querySelector('.hs-heater-results-topbar-exalt')?.remove();
         const exalt = HSHeaterResultStore.getCurrentRawResult()?.input.exalt ?? 0;
@@ -289,10 +278,7 @@ export class HSHeaterUIResult {
             const exaltName = getHeaterExaltName(exalt);
             exaltBadge.setAttribute('aria-label', `How the results read in ${exaltName}`);
             exaltBadge.innerHTML = `<img src="Pictures/Default/TinySChalTime.png" alt="${escapeHtml(exaltName)}" />`;
-            exaltBadge.addEventListener('mouseenter', () => this.#showTopbarTooltip(exaltBadge, exaltRules));
-            exaltBadge.addEventListener('mouseleave', () => this.removeTopbarHelpTooltip());
-            exaltBadge.addEventListener('focus', () => this.#showTopbarTooltip(exaltBadge, exaltRules));
-            exaltBadge.addEventListener('blur', () => this.removeTopbarHelpTooltip());
+            HSTooltip.set(exaltBadge, { text: exaltRules, delay: 0 });
             header.prepend(exaltBadge);
         }
     }
@@ -446,69 +432,6 @@ export class HSHeaterUIResult {
 
     static removeLoadoutJsonTooltip(): void {
         const existing = document.querySelector(`.hs-heater-loadout-json-tooltip.${HEATER_RESULT_UI_SELECTORS.jsonTooltipHoverClass}`) as HTMLElement | null;
-        if (existing && existing.parentElement) {
-            existing.parentElement.removeChild(existing);
-        }
-    }
-
-    static #buildTypeInfoTooltip(trigger: HTMLElement): HTMLElement | null {
-        const titleText = trigger.dataset.infoTitle;
-        const contentText = trigger.dataset.infoContent;
-        if (!titleText || !contentText) return null;
-
-        const tooltip = document.createElement('div');
-        tooltip.classList.add('hs-heater-type-info-tooltip');
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-
-        const title = document.createElement('div');
-        title.className = 'hs-heater-tooltip-title';
-        title.textContent = titleText;
-        tooltip.appendChild(title);
-
-        const content = document.createElement('div');
-        content.className = 'hs-heater-tooltip-content';
-        content.textContent = contentText;
-        tooltip.appendChild(content);
-
-        return tooltip;
-    }
-
-    static showTypeInfoTooltip(trigger: HTMLElement): HTMLElement | null {
-        const tooltip = this.#buildTypeInfoTooltip(trigger);
-        if (!tooltip) return null;
-
-        document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { gutter: 0 });
-        return tooltip;
-    }
-
-    static showTopbarHelpTooltip(trigger: HTMLElement): void {
-        this.#showTopbarTooltip(trigger,
-            `The loadouts will only be as good as your inputs, this means:\n`
-            + `- If you want an optimized p4x4 loadout, you need to actually have\n pre-AoAG inputs.\n`
-            + `- Same for Obt/Off loadouts (but less problematic, so simply (un)checking the "post-aoag" input is enough).\n`
-            + `- ??? (Feel free to contribute)`
-            + `\n\n`
-            + `Right-click an Import button to pin his tooltip. Esc key to un-pin all.\n`
-        );
-    }
-
-    // The help and Exalt badges share one tooltip element: only one shows at a time
-    static #showTopbarTooltip(trigger: HTMLElement, text: string): void {
-        this.removeTopbarHelpTooltip();
-
-        const tooltip = document.createElement('div');
-        tooltip.id = HEATER_RESULT_UI_SELECTORS.topbarHelpTooltipId;
-        tooltip.classList.add('hs-heater-tooltip-bigger');
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-        tooltip.textContent = text;
-
-        document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { placement: 'below' });
-    }
-
-    static removeTopbarHelpTooltip(): void {
-        const existing = document.getElementById(HEATER_RESULT_UI_SELECTORS.topbarHelpTooltipId);
         if (existing && existing.parentElement) {
             existing.parentElement.removeChild(existing);
         }
@@ -771,7 +694,7 @@ export class HSHeaterUIResult {
 
     // === Modal/Interaction/Event Methods ===
     static getResultInteractionTarget(modal: HTMLElement, event: Event): HTMLElement | null {
-        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}, .${HEATER_RESULT_UI_SELECTORS.typeInfoTrigger}`) as HTMLElement | null;
+        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}`) as HTMLElement | null;
         if (!target || !modal.contains(target)) return null;
         return target;
     }
@@ -787,15 +710,12 @@ export class HSHeaterUIResult {
         return hoverOverlay?.target === target && hoverOverlay.tooltip.contains(related);
     }
 
-    static getOverlayKindFromTarget(target: HTMLElement): 'preview' | 'json' | 'info' | null {
+    static getOverlayKindFromTarget(target: HTMLElement): 'preview' | 'json' | null {
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
             return 'preview';
         }
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger)) {
             return 'json';
-        }
-        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.typeInfoTrigger)) {
-            return 'info';
         }
         return null;
     }
@@ -885,9 +805,7 @@ export class HSHeaterUIResult {
 
         const tooltip = kind === 'preview'
             ? this.showLoadoutPreview(target)
-            : kind === 'json'
-                ? this.showLoadoutJsonTooltip(target)
-                : this.showTypeInfoTooltip(target);
+            : this.showLoadoutJsonTooltip(target);
         if (!tooltip) return;
 
         this.#associateTooltip(target, tooltip);
@@ -944,7 +862,7 @@ export class HSHeaterUIResult {
 
     static #togglePinnedOverlay(target: HTMLElement): void {
         const kind = this.getOverlayKindFromTarget(target);
-        if (!kind || kind === 'info') return;
+        if (!kind) return;
 
         if (this.#pinnedOverlays.has(target)) {
             this.#removePinnedOverlay(target);
