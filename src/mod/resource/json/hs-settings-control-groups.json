@@ -11,10 +11,6 @@
     "groupName": "Notification settings",
     "order": 3
   },
-  "talismans": {
-    "groupName": "Talisman settings",
-    "order": 5
-  },
   "mouse": {
     "groupName": "Mouse settings",
     "order": 6

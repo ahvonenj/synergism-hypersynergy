@@ -1655,8 +1655,8 @@
   },
   "hideMaxedGQUpgrades": {
     "settingName": "hideMaxedGQUpgrades",
-    "settingDescription": "Hide maxed GQ upgrades",
-    "settingHelpText": "Uses the game's native toggle to hide maxed Golden Quark upgrades and remembers the choice after reload.",
+    "settingDescription": "Keep maxed GQ upgrades hidden",
+    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
     "settingType": "boolean",
     "enabled": true,
     "settingAction": "hideMaxedGQUpgradesAction",
@@ -1670,7 +1670,7 @@
   "enableGQDistributor": {
     "settingName": "enableGQDistributor",
     "settingDescription": "Enable GQ Distributor",
-    "settingHelpText": "When enabled, adds a GQ Distributor to the GQ page to distribute Golden Quarks among upgrades that are not maxed.",
+    "settingHelpText": "When enabled, adds a Distributor button to the GQ page. It opens a panel to distribute Golden Quarks among upgrades that are not maxed.",
     "settingType": "boolean",
     "enabled": true,
     "settingAction": "enableGQDistributorAction",
@@ -1680,6 +1680,13 @@
       "controlPage": "qol-buttons",
       "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
     }
+  },
+  "gqDistributorOpen": {
+    "settingName": "gqDistributorOpen",
+    "settingDescription": "GQ Distributor panel open",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
   },
   "gqDistributorBalanceInvestments": {
     "settingName": "gqDistributorBalanceInvestments",
@@ -1705,8 +1712,8 @@
   },
   "hideMaxedOctUpgrades": {
     "settingName": "hideMaxedOctUpgrades",
-    "settingDescription": "Hide maxed Octeract upgrades",
-    "settingHelpText": "Uses the game's native toggle to hide maxed Octeract upgrades and remembers the choice after reload.",
+    "settingDescription": "Keep maxed Octeract upgrades hidden",
+    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
     "settingType": "boolean",
     "enabled": true,
     "settingAction": "hideMaxedOctUpgradesAction",
@@ -1743,19 +1750,6 @@
       "controlGroup": "debug",
       "controlPage": "debug",
       "controlEnabledId": "hs-setting-display-debug-logs-btn"
-    }
-  },
-  "enableTalismansModule": {
-    "settingName": "enableTalismansModule",
-    "settingDescription": "Enable the \"Cycle BUY\" button (\"Enhanced BUY ALL\")",
-    "settingHelpText": "When enabled, add an enhanced 'Cycle BUY' button next to the vanilla one that cycles through fragments.",
-    "settingType": "boolean",
-    "enabled": true,
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "talismans",
-      "controlPage": "input",
-      "controlEnabledId": "hs-setting-enable-talismans-btn"
     }
   },
   "autosing3to6DCubeOpeningPercent": {

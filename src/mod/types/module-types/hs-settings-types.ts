@@ -118,9 +118,8 @@ export interface HSSettingsDefinition {
     headerEditButton: HSSettingBase<boolean>;
     headerLongPressEditing: HSSettingBase<boolean>;
 
-    // Talismans Settings
-    enableTalismansModule: EnableTalismansModuleSetting;
     // GQ Distributor Ratio Settings
+    gqDistributorOpen: GQDistributorOpenSetting;
     gqDistributorRatios: GQDistributorRatiosSetting;
     gqDistributorBalanceInvestments: GQDistributorBalanceInvestmentsSetting;
     gqDistributorKeepSkippedShare: GQDistributorKeepSkippedShareSetting;
@@ -270,9 +269,9 @@ export interface QOLButtonsCenterQuickbarsSetting extends HSSettingBase<boolean>
 export interface QOLButtonsHeaderStatsAtBottomSetting extends HSSettingBase<boolean> { }
 
 // Talismans Settings
-export interface EnableTalismansModuleSetting extends HSSettingBase<boolean> { }
 
 // GQ Distributor Ratio Settings
+export interface GQDistributorOpenSetting extends HSSettingBase<boolean> { }
 export interface GQDistributorRatiosSetting extends HSSettingBase<string> { }
 export interface GQDistributorBalanceInvestmentsSetting extends HSSettingBase<boolean> { }
 export interface GQDistributorKeepSkippedShareSetting extends HSSettingBase<boolean> { }

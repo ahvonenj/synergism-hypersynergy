@@ -224,7 +224,6 @@
       "sources": [
         "src/mod/class/hs-modules/hs-codes.ts",
         "src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts",
-        "src/mod/class/hs-modules/hs-talismans.ts",
         "src/mod/class/hs-core/hs-mouse.ts"
       ],
       "features": [
@@ -266,19 +265,6 @@
           ],
           "limits": [
             "Each action uses the game's costs and available stock."
-          ]
-        },
-        {
-          "id": "cycle-buy",
-          "title": "Talisman fragment Cycle BUY",
-          "where": "Talisman fragments, next to BUY ALL; Settings → Input",
-          "summary": "Cycles through fragment buy buttons and shows which color comes next.",
-          "details": [
-            "Each press buys the next fragment through its native button.",
-            "The displayed color follows the cycle; after three seconds without another press the cycle returns to its starting Blue fragment."
-          ],
-          "settings": [
-            "enableTalismansModule"
           ]
         },
         {
@@ -1150,14 +1136,16 @@
         {
           "id": "gq-distributor",
           "title": "GQ Distributor with saved upgrade ratios",
-          "where": "Singularity → Shop → GQ Distributor",
+          "where": "Singularity → Shop → Distributor button",
           "summary": "Splits Golden Quarks among visible, unlocked, unmaxed upgrades.",
           "details": [
+            "The Distributor button above the upgrades opens the panel; a minimize button closes it, and the choice is remembered.",
             "Set a ratio for each upgrade; Match invested ratios derives weights from current investment and Reset zeros them.",
             "Ratios are remembered locally. Distribution goes through the game's purchase dialogs and reports skipped upgrades."
           ],
           "settings": [
             "enableGQDistributor",
+            "gqDistributorOpen",
             "gqDistributorRatios"
           ]
         },
@@ -1190,7 +1178,7 @@
         {
           "id": "gq-hide-maxed",
           "title": "Remember hidden maxed GQ upgrades",
-          "where": "Settings → QOL → Hide maxed GQ upgrades; native shop toggle",
+          "where": "Settings → QOL → Keep maxed GQ upgrades hidden; native shop toggle",
           "summary": "Saves and restores your choice for the game's own hide-maxed toggle between sessions.",
           "details": [
             "Using the game's own button synchronizes the remembered preference, and the mod reapplies it when revisiting the shop."
@@ -1202,7 +1190,7 @@
         {
           "id": "oct-hide-maxed",
           "title": "Remember hidden maxed Octeract upgrades",
-          "where": "Settings → QOL → Hide maxed Octeract upgrades; native shop toggle",
+          "where": "Settings → QOL → Keep maxed Octeract upgrades hidden; native shop toggle",
           "summary": "Saves and restores your choice for the game's own hide-maxed toggle between sessions.",
           "details": [
             "The stored choice follows the game's own hide-maxed state and is restored on reload."

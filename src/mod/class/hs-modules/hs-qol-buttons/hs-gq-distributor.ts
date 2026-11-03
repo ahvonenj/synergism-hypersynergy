@@ -37,10 +37,23 @@ interface GQDistributionInput {
 }
 
 const GQ_DISTRIBUTOR_CSS = `
+    /* The open button sits above the upgrade box's top left corner, without moving the game's own elements:
+       past the box's 3px border and 5px top margin, so its bottom lines up with the hide-maxed button's row */
+    #hs-gq-distributor-open {
+        position: absolute; bottom: calc(100% + 8px); left: -3px;
+        min-height: 0; height: 22px; padding: 0 10px;
+        border: 2px solid pink; cursor: pointer;
+    }
     #hs-gq-distributor {
+        position: relative;
         display: flex; flex-direction: column; align-items: center;
         margin-top: 10px; padding: 10px;
         border: 1px solid #ccc; border-radius: 5px; background-color: rgba(0, 0, 0, 0.5);
+    }
+    #hs-gq-distributor-minimize {
+        position: absolute; top: 4px; left: 4px;
+        min-height: 0; width: 24px; height: 24px; padding: 0;
+        font-size: 16px; font-weight: bold; line-height: 1; cursor: pointer;
     }
     #hs-gq-distributor h3 { margin: 0 0 10px 0; }
     #hs-gq-distributor .hs-gq-upgrades { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -86,14 +99,15 @@ function skipSummary(skipped: SkippedUpgrades, upgradeNames: Map<string, string>
  * Class: HSGQDistributor
  * IsExplicitHSModule: No
  * Description:
- *     Created by HSQOLButtons. The GQ Distributor under the shop's Golden Quarks: spends the unspent GQ on the
- *     unmaxed GQ upgrades following ratios the player sets, through the game's purchase dialog.
+ *     Created by HSQOLButtons. The GQ Distributor under the shop's Golden Quarks, opened by a button: spends the
+ *     unspent GQ on the unmaxed GQ upgrades following ratios the player sets, through the game's purchase dialog.
  * Author: XxmolkxX, Shewchou
  */
 export class HSGQDistributor {
     #context: string;
     #scanningGQUpgrades = false;
     #gqDistributorRenderVersion = 0;
+    #openButton?: HTMLButtonElement;
 
     constructor(context: string) {
         this.#context = context;
@@ -140,10 +154,39 @@ export class HSGQDistributor {
         return {};
     }
 
+    #buildOpenButton(): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.id = 'hs-gq-distributor-open';
+        button.type = 'button';
+        button.textContent = 'Distributor';
+        button.title = 'GQ Distributor: spend your Golden Quarks on the upgrades following ratios';
+        button.addEventListener('click', () => this.#setOpened(true));
+        return button;
+    }
+
+    #setOpened(opened: boolean): void {
+        HSSettings.getSetting('gqDistributorOpen').setValue(opened);
+        void this.show();
+    }
+
     async show(): Promise<void> {
         const renderVersion = ++this.#gqDistributorRenderVersion;
         const container = document.getElementById('goldenQuarksDisplay');
         if (!container) return;
+        // Written now, not in the next task: the button and the distributor are drawn right below
+        HSUI.injectStyle(GQ_DISTRIBUTOR_CSS, 'hs-gq-distributor-css');
+        HSUI.flushInjectedStyles();
+
+        this.#openButton ??= this.#buildOpenButton();
+        document.getElementById('actualSingularityUpgradeContainer')?.append(this.#openButton);
+
+        // Closed: no save read and no scan
+        if (HSSettings.getSetting('gqDistributorOpen').getValue() !== true) {
+            document.getElementById('hs-gq-distributor')?.remove();
+            this.#openButton.style.display = '';
+            return;
+        }
+
         let gameData: GameData | undefined;
         try {
             gameData = await HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getForcedGameData();
@@ -152,12 +195,17 @@ export class HSGQDistributor {
         }
         if (!gameData || renderVersion !== this.#gqDistributorRenderVersion) return;
         document.getElementById('hs-gq-distributor')?.remove();
-        // Written now, not in the next task: the distributor is drawn right below
-        HSUI.injectStyle(GQ_DISTRIBUTOR_CSS, 'hs-gq-distributor-css');
-        HSUI.flushInjectedStyles();
 
         const distributor = document.createElement('div');
         distributor.id = 'hs-gq-distributor';
+
+        const minimize = document.createElement('button');
+        minimize.id = 'hs-gq-distributor-minimize';
+        minimize.type = 'button';
+        minimize.textContent = '–';
+        minimize.title = 'Minimize';
+        minimize.addEventListener('click', () => this.#setOpened(false));
+        distributor.appendChild(minimize);
 
         const title = document.createElement('h3');
         title.textContent = 'GQ Distributor';
@@ -286,7 +334,7 @@ export class HSGQDistributor {
 
         // While a match or a distribution runs
         const setControlsDisabled = (disabled: boolean) => {
-            for (const control of [distributeBtn, matchRatios, resetRatios, balanceInvestments, keepSkippedShare]) control.disabled = disabled;
+            for (const control of [minimize, distributeBtn, matchRatios, resetRatios, balanceInvestments, keepSkippedShare]) control.disabled = disabled;
         };
 
         const syncInvestedRatios = (data: GameData): boolean => {
@@ -344,6 +392,7 @@ export class HSGQDistributor {
         distributor.appendChild(statusLabel);
 
         container.parentNode?.insertBefore(distributor, container.nextSibling);
+        this.#openButton.style.display = 'none';
     }
 
     #getPurchaseDialog(): PurchaseDialog | undefined {
@@ -545,9 +594,7 @@ export class HSGQDistributor {
 
     hide(): void {
         this.#gqDistributorRenderVersion++;
-        const distributor = document.getElementById('hs-gq-distributor');
-        if (distributor) {
-            distributor.style.display = 'none';
-        }
+        document.getElementById('hs-gq-distributor')?.remove();
+        this.#openButton?.remove();
     }
 }

@@ -57,11 +57,6 @@ window.__HS_INIT_PROMISE = (async () => {
             moduleColor: 'slateblue',
         },
         {
-            className: 'HSTalismans',
-            context: 'HSTalismans',
-            moduleColor: 'cyan',
-        },
-        {
             className: 'HSMouse',
             context: 'HSMouse',
             moduleColor: 'gold',

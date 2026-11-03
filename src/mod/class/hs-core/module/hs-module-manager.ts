@@ -3,7 +3,6 @@ import { HSExternalModule, HSModule } from "./hs-module";
 import { HSCodes } from "../../hs-modules/hs-codes";
 import { HSHepteracts } from "../../hs-modules/hs-hepteracts/hs-hepteracts";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSTalismans } from "../../hs-modules/hs-talismans";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
 import { HSModuleDefinition, HSModuleOptions, HSModuleType } from "../../../types/hs-types";
@@ -40,7 +39,6 @@ export class HSModuleManager {
         "HSCodes": HSCodes,
         "HSHepteracts": HSHepteracts,
         "HSHepteractDistributor": HSHepteractDistributor,
-        "HSTalismans": HSTalismans,
         "HSSettings": HSSettings,
         "HSPrototypes": HSPrototypes,
         "HSMouse": HSMouse,
