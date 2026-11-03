@@ -382,7 +382,7 @@ export class HSHeaterUIResult {
         if (!preview) return null;
 
         document.body.appendChild(preview);
-        this.positionOverlayNearTarget(preview, button, { gutter: 0 });
+        HSTooltip.place(preview, button, { placement: 'right', gutter: 0 });
         return preview;
     }
 
@@ -426,7 +426,7 @@ export class HSHeaterUIResult {
         if (!tooltip) return null;
 
         document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { gutter: 0 });
+        HSTooltip.place(tooltip, trigger, { placement: 'right', gutter: 0 });
         return tooltip;
     }
 
@@ -549,41 +549,6 @@ export class HSHeaterUIResult {
             HSLogger.error(`loadout-parse-failed: ${JSON.stringify({ source: 'getLoadoutFromButton', loadoutPreview: loadout.slice(0, 180) })} ${String(error)}`, this.#context);
             return null;
         }
-    }
-
-    static positionOverlayNearTarget(preview: HTMLElement, button: HTMLElement, options?: { placement?: 'right' | 'below'; gutter?: number }): void {
-        const buttonRect = button.getBoundingClientRect();
-        const previewRect = preview.getBoundingClientRect();
-        const gutter = options?.gutter ?? 8;
-        const placement = options?.placement ?? 'right';
-
-        let left = placement === 'below' ? buttonRect.left : buttonRect.right + gutter;
-        let top = placement === 'below' ? buttonRect.bottom + gutter : buttonRect.top;
-
-        const rightOverflow = left + previewRect.width > window.innerWidth - gutter;
-        const bottomOverflow = top + previewRect.height > window.innerHeight - gutter;
-
-        if (placement === 'right' && rightOverflow) {
-            left = buttonRect.left;
-            top = buttonRect.bottom + gutter;
-        }
-
-        if (placement === 'below' && bottomOverflow) {
-            left = buttonRect.right + gutter;
-            top = buttonRect.top;
-        }
-
-        if (left + previewRect.width > window.innerWidth - gutter)
-            left = Math.max(window.innerWidth - previewRect.width - gutter, gutter);
-        if (top + previewRect.height > window.innerHeight - gutter)
-            top = Math.max(window.innerHeight - previewRect.height - gutter, gutter);
-        if (top < gutter)
-            top = gutter;
-        if (left < gutter)
-            left = gutter;
-
-        preview.style.left = `${left}px`;
-        preview.style.top = `${top}px`;
     }
 
     static #appendPinnedTooltipButton(tooltip: HTMLElement, target: HTMLElement): void {
@@ -838,7 +803,7 @@ export class HSHeaterUIResult {
         if (!tooltip) return null;
 
         document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, target);
+        HSTooltip.place(tooltip, target, { placement: 'right' });
         return tooltip;
     }
 
