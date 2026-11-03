@@ -154,6 +154,17 @@ html.hs-corruption-header-inline .headerGrid #corruptionLevelHeader:not([data-si
    background-color: rgba(255, 255, 255, 0.12);
    color: white;
 }
+/* A square frame as the game's level buttons when pointed at, always there so it moves nothing */
+#corruptionLevelHeader :is(.hs-corr-step-down, .hs-corr-step-up) {
+   border: 1px solid transparent;
+   border-radius: 0;
+}
+#corruptionLevelHeader .hs-corr-step-down:hover {
+   border-color: var(--green-color);
+}
+#corruptionLevelHeader .hs-corr-step-up:hover {
+   border-color: var(--red-color);
+}
 /* Drawn: a font's ‹ and › sit below the middle of the digits */
 #corruptionLevelHeader :is(.hs-corr-step-down, .hs-corr-step-up)::before {
    content: '';

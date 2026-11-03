@@ -38,6 +38,7 @@ Decorates the game's `corruptionLevelHeader` ("used/max", game 4.4.0); not a mod
   - **The max's digits are reserved** for the current level and the field, so the controls stay put when a level
     changes length (entering a challenge shows 0).
   - **‹ ›**: ±1, Shift ±10, a hold repeats (±10 after 10 repeats, stops at 0 or the max). Not the six buttons of the row.
+    Hovered: a square frame as high as the number, `‹` in the game's green, `›` in its red.
   - **The number**: a click selects it for typing; Enter applies, Esc cancels, ↑↓ step. Grey when it equals the level
     shown, gold while a change is pending. It's always shown, so a change moves nothing.
   - **`/132` sets Max**, the icon and `25` open the popover.
