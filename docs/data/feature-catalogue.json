@@ -1336,7 +1336,8 @@
           "details": [
             "Choose the singularity to farm and a strategy appropriate to your save. Start validates the required game state and settings.",
             "AutoSing manages progression, the AOAG phase, end-of-singularity actions and the Exalt entry/exit used by its farming cycle.",
-            "It restores the player's accessible tab/subtab after its own navigation; importing another save stops AutoSing."
+            "It restores the player's accessible tab/subtab after its own navigation; importing another save stops AutoSing.",
+            "It keeps its speed when the game is in another tab. Chrome's Energy Saver can still freeze a hidden tab after 5 minutes: turn it off in chrome://settings/performance, or keep the game window in view."
           ],
           "limits": [
             "Intended for S216+ after completing EXALT6 at least once. The code refuses a highest singularity below 40, warns below 216, and expects EXALT2 access for its cycle. A supplied strategy is not guaranteed to finish on every save."

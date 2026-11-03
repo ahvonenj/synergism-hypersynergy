@@ -19,9 +19,9 @@ The Auto-Sing window shows the time per singularity and the quarks and golden qu
 
 ## Keep the game running
 
-The browser slows down a game that is hidden, minimized or on a screen that turned off, and Auto-Sing slows down with it.
-- Keep the screen on.
-- Keep the game window in view. A tool that keeps it on top helps, like PowerToys (Always on Top) or DeskPins; you can tuck the window in a corner of your screen.
+Auto-Sing keeps its speed when the game is in another tab. Two things can still stop it:
+- **The computer going to sleep.** Keep it awake while Auto-Sing runs.
+- **Chrome's Energy Saver** (a leaf icon next to the address bar). It can freeze a hidden tab after 5 minutes. Turn it off in `chrome://settings/performance`, or keep the game window in view.
 
 ## Making your own strategy
 

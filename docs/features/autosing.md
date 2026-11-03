@@ -35,6 +35,14 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - Patched players still read `player.insideSingularityChallenge` and still poll it at each game tick: the attribute only wakes them earlier, and without it (a game update) the tick ends the wait. Bookmarklet players read the attribute.
 - With debug logs on, a line gives the time taken and how many waits a tick ended (0 when the attribute did).
 
+## A hidden browser tab
+`HSUtils.sleep`.
+- The browser fires a hidden tab's normal timers once a second at most, and chained ones once a minute after 5 minutes; a worker's timers aren't throttled. The game's tick uses worker timers and keeps its speed. With normal timers, autosing's waits took a singularity from about 6 s to about 15 s (S260 save, first minute hidden).
+- While `document.hidden`, `HSUtils.sleep` goes through a small worker created at the first such sleep. In a visible tab it is the normal timer plus one boolean check. If the worker fails: a warning, normal timers from then on, and a sleep running in it ends early rather than never.
+- Always on: no setting, nothing is gained by turning it off.
+- These stay on normal timers and can fire about 1 s late: the restart delay (button and action 902), the 5 s text refresh limit, and the challenge time limit in `#waitForCompletion`'s DOM fallback, the only one that can cost a run time (mainly bookmarklet players). The run panel doesn't draw while hidden, whatever the timer.
+- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (`guides/autosing.md`). Not a silent audio track: Chrome doesn't count it as sound. Not a wake lock: the browser releases it when the tab is hidden.
+
 ## The player's tab comes back
 `#notePlayerTab` / `#showPlayerTab`.
 - The tab is noted before each singularity, and before each DOM stage read (bookmarklet players: that read visits Settings > Stats).

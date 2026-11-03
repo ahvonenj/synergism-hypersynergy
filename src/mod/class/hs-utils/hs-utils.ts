@@ -3,6 +3,7 @@ import { HSSettingType } from "../../types/module-types/hs-settings-types";
 import { CSSValue } from "../../types/module-types/hs-ui-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSGlobal } from "../hs-core/hs-global";
+import { escapeLogText } from "../hs-modules/hs-heater/hs-heater-utils";
 
 /**
  * Class: HSUtils
@@ -19,10 +20,58 @@ import { HSGlobal } from "../hs-core/hs-global";
  */
 export class HSUtils {
     static #context = 'HSUtils';
-    static sleep = (ms: number): Promise<void> => new Promise<void>(resolve => setTimeout(resolve, ms));
+    static sleep = (ms: number): Promise<void> => document.hidden
+        ? HSUtils.#sleepInWorker(ms)
+        : new Promise<void>(resolve => setTimeout(resolve, ms));
     static tackTime = 5; // for bookmark/steam (no tack hook)
 
     static #_onAfterTack: ((fn: () => void) => void) | null = null;
+
+    // The browser throttles a hidden tab's timers, not a worker's. undefined: not created yet, null: can't be used
+    static #_sleepWorker: Worker | null | undefined;
+    static readonly #_workerSleeps = new Map<number, () => void>();
+    static #_nextWorkerSleepId = 0;
+
+    static #getSleepWorker(): Worker | null {
+        if (HSUtils.#_sleepWorker !== undefined) return HSUtils.#_sleepWorker;
+
+        const giveUp = (reason: unknown): null => {
+            HSLogger.warn(`Sleep worker unavailable, hidden tab waits will be slower: ${escapeLogText(String(reason))}`, HSUtils.#context);
+            HSUtils.#_sleepWorker = null;
+            // A sleep ending early is better than one never ending
+            for (const resolve of HSUtils.#_workerSleeps.values()) resolve();
+            HSUtils.#_workerSleeps.clear();
+            return null;
+        };
+
+        try {
+            const source = 'onmessage = ({ data }) => setTimeout(() => postMessage(data.id), data.ms)';
+            const worker = new Worker(URL.createObjectURL(new Blob([source], { type: 'text/javascript' })));
+            worker.onmessage = ({ data }: MessageEvent<number>): void => {
+                HSUtils.#_workerSleeps.get(data)?.();
+                HSUtils.#_workerSleeps.delete(data);
+            };
+            worker.onerror = (event): void => {
+                worker.terminate();
+                giveUp(event.message);
+            };
+            HSUtils.#_sleepWorker = worker;
+            return worker;
+        } catch (error) {
+            return giveUp(error);
+        }
+    }
+
+    static #sleepInWorker(ms: number): Promise<void> {
+        const worker = HSUtils.#getSleepWorker();
+        if (!worker) return new Promise<void>(resolve => setTimeout(resolve, ms));
+
+        return new Promise<void>(resolve => {
+            const id = HSUtils.#_nextWorkerSleepId++;
+            HSUtils.#_workerSleeps.set(id, resolve);
+            worker.postMessage({ id, ms });
+        });
+    }
 
     // Reusable MessageChannel for sub-millisecond event-loop yielding.
     // Queue-based so concurrent yields (if ever) work correctly.
