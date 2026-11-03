@@ -1072,6 +1072,12 @@ export class HSAutosingModal {
         return option ? option.text : String(value || 'None');
     }
 
+    /** Update the footer's loadouts after "Don't switch ambrosia loadouts" changed during a run. */
+    public refreshLoadouts(): void {
+        this.#loadoutsOrder = this.#getLoadoutsOrder();
+        this.#setTextEl(this.#footerLoadoutsSpan, this.#loadoutsOrder.join(', '));
+    }
+
     /** Return the order of ambrosia loadouts for the session from settings. */
     #getLoadoutsOrder(): string[] {
         if (HSSettings.getSetting('autosingNoAmbrosiaSwitch').isEnabled()) return ['no switch'];

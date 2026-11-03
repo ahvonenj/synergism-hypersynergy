@@ -187,6 +187,11 @@ export class HSSettingActions {
             (mod) => mod.setKeepAwake(false)
         ),
 
+        autosingNoAmbrosiaSwitchAction: moduleToggle<HSAutosing>('HSAutosing',
+            (mod) => mod.setAmbrosiaSwitchesOff(true),
+            (mod) => mod.setAmbrosiaSwitchesOff(false)
+        ),
+
         createAutosingStrategy: async (params: HSSettingActionParams) => {
             await HSAutosingStrategyModal.open();
         },

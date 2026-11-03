@@ -1476,7 +1476,8 @@
           "summary": "Leaves the tree in place throughout the run to preserve bar progress.",
           "details": [
             "Skips every AutoSing tree load, including loadout actions, post-singularity switches and export/push switches.",
-            "The footer shows no switch; configured loadout roles are not used in this mode."
+            "The footer shows no switch; configured loadout roles are not used in this mode.",
+            "Can be changed during a run. Turning it off is refused while a role has no slot."
           ],
           "settings": [
             "autosingNoAmbrosiaSwitch"

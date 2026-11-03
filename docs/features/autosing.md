@@ -84,7 +84,9 @@ Test: `npm run test:autosing`.
 ## "Don't switch ambrosia loadouts" (`autosingNoAmbrosiaSwitch`)
 - Why: every ambrosia loadout load resets the ambrosia bars (the game's `createBlueberryTree` → `resetBlueberryTree` → `resetAmbrosiaBarProgress`: blueberry, red ambrosia and purple honey progress), even reloading the tree already in place (only the game's Auto Ascension rules skip a loaded tree).
 - With the setting on, `#setAmbrosiaLoadout` does nothing: no switch after the singularity, at the start, before the quark export, in the push, nor for steps 301–306. Every switch must go through `#setAmbrosiaLoadout`.
-- Read once per run in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
+- Read at the start in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
+- Changing it during a run applies from the next step, and the footer follows. Turning it off looks up the 6 slots at that moment; a slot at "None" refuses the change: the switch goes back on, a notification says why, and the run goes on without switches. The slot settings themselves are still only read at those two moments.
+- A global switch was chosen over "None = skip that one switch" (an unset slot would silently switch nothing).
 
 ## Step numbers and logs
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).

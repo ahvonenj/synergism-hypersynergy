@@ -126,7 +126,7 @@ export class HSAutosing extends HSModule {
     #ambrosia_obt!: HTMLButtonElement;
     #ambrosia_off!: HTMLButtonElement;
     #ambrosia_luck!: HTMLButtonElement;
-    // Read once per run: the slots above aren't looked up while it's on
+    // Read at the start, then kept up to date by setAmbrosiaSwitchesOff(): the slots above aren't looked up while it's on
     #ambrosiaSwitchesOff = false;
 
     // DOM Elements - Misc
@@ -338,6 +338,16 @@ export class HSAutosing extends HSModule {
             return true;
         }
 
+        if (!this.#findAmbrosiaLoadoutButtons()) {
+            HSUI.Notify("There is a problem with the Auto-Sing settings. Check the logs for more details.", {
+                notificationType: "warning"
+            });
+            return false;
+        }
+        return true;
+    }
+
+    #findAmbrosiaLoadoutButtons(): boolean {
         const earlyCubeVal = HSSettings.getSetting("autosingEarlyCubeLoadout").getValue();
         const lateCubeVal = HSSettings.getSetting("autosingLateCubeLoadout").getValue();
         const quarkVal = HSSettings.getSetting("autosingQuarkLoadout").getValue();
@@ -353,12 +363,8 @@ export class HSAutosing extends HSModule {
             off: document.getElementById(`blueberryLoadout${offVal}`) as HTMLButtonElement | null,
             luck: document.getElementById(`blueberryLoadout${ambrosiaVal}`) as HTMLButtonElement | null,
         };
-        if (!this.#ensureElements(elements)) {
-            HSUI.Notify("There is a problem with the Auto-Sing settings. Check the logs for more details.", {
-                notificationType: "warning"
-            });
-            return false;
-        }
+        // Not #ensureElements, which stops a running autosing: a slot at "None" during a run only refuses the change
+        if (!this.#allElementsFound(elements)) return false;
 
         this.#ambrosia_early_cube = elements.earlyCube;
         this.#ambrosia_late_cube = elements.lateCube;
@@ -367,6 +373,26 @@ export class HSAutosing extends HSModule {
         this.#ambrosia_off = elements.off;
         this.#ambrosia_luck = elements.luck;
         return true;
+    }
+
+    /**
+     * "Don't switch ambrosia loadouts" changed. During a run it applies from the next step;
+     * otherwise the next start reads the setting.
+     */
+    public setAmbrosiaSwitchesOff(off: boolean): void {
+        if (!this.#autosingEnabled && !this.#isStarting) return;
+        if (this.#ambrosiaSwitchesOff === off) return;
+
+        // The slots weren't looked up if the setting was on at the start
+        if (!off && !this.#findAmbrosiaLoadoutButtons()) {
+            HSLogger.warn("Ambrosia loadout switches stay off: an ambrosia loadout setting has no slot.", this.context);
+            HSUI.Notify("Auto-Sing still won't switch ambrosia loadouts: pick a slot for each loadout first.", { notificationType: 'warning' });
+            HSSettings.getSetting("autosingNoAmbrosiaSwitch").enable();
+            return;
+        }
+
+        this.#ambrosiaSwitchesOff = off;
+        this.#autosingModal?.refreshLoadouts();
     }
 
     /** "Keep the PC awake" changed. During a run it applies at once; otherwise the next start reads the setting. */
@@ -2098,16 +2124,20 @@ export class HSAutosing extends HSModule {
     }
 
     #ensureElements<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
+        if (this.#allElementsFound(elements))
+            return true;
+
+        if (this.#autosingEnabled) this.stopAutosing();
+        return false;
+    }
+
+    #allElementsFound<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
         const missing = Object.entries(elements)
             .filter(([, element]) => !element)
             .map(([name]) => name);
 
-        if (missing.length === 0)
-            return true;
-
         for (const name of missing) { HSLogger.warn(`Required element missing: ${name}`, this.context); }
-        if (this.#autosingEnabled) this.stopAutosing();
-        return false;
+        return missing.length === 0;
     }
 
     async #waitIfAutosingPaused(): Promise<void> {
