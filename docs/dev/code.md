@@ -49,6 +49,14 @@ the page's height for a moment at each load).
 - A help text is also the `title` of the setting's buttons (`#buildSettingBlock`), put in an HTML attribute unescaped
   (`HSUIC.#getPropString`): no double quote in a help text.
 
+## Tooltips
+
+- A browser `title` is the default. `HSTooltip` (`hs-core/hs-tooltip.ts`) is for what a `title` can't do: colours, a
+  shorter delay, a chosen side. `HSTooltip.set(element, text or options)`, or `HSTooltip.attrs(text)` in an HTML string.
+- `text` is never read as HTML; with `html`, the caller escapes. Default: 150 ms, below, about 420 px at most; don't
+  put line breaks in a text to shape it, it wraps by itself.
+- The mouse passes through a tooltip. A window with pins or scrolling keeps its own code and uses `HSTooltip.place()`.
+
 ## Class headers and authors
 
 - Each class has a header doc comment (`Class / IsExplicitHSModule / Description / Author`); private fields use `#`

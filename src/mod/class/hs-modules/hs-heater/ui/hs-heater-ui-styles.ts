@@ -631,30 +631,6 @@ export class HSHeaterUIStyles {
                 cursor: help;
             }
 
-            .hs-heater-header-tooltip::before {
-                content: attr(data-tooltip);
-                position: absolute;
-                left: 50%;
-                top: calc(100% + 2px);
-                transform: translateX(-50%);
-                min-width: 12rem;
-                max-width: 18rem;
-                padding: 8px 10px;
-                background: #1e1e1e;
-                color: #d3d5da;
-                border: 1px solid rgba(255,255,255,0.2);
-                border-radius: 4px;
-                white-space: pre-line;
-                text-align: left;
-                font-size: 0.78em;
-                line-height: 1.35;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-                z-index: 10000;
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-            }
-
             .hs-heater-header-tooltip::after {
                 content: "";
                 position: absolute;
@@ -667,12 +643,6 @@ export class HSHeaterUIStyles {
                 border-top: 5px solid rgb(122, 144, 255);
                 border-right: 5px solid rgb(122, 144, 255);
                 pointer-events: none;
-            }
-
-            .hs-heater-header-tooltip:hover::before,
-            .hs-heater-header-tooltip:focus-within::before {
-                opacity: 1;
-                visibility: visible;
             }
 
             .hs-heater-selected-type-cell,

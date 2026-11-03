@@ -102,7 +102,6 @@ export class HSAmbrosiaLevelsDisplay {
 
         button.title = 'Toggle persistent Amb Levels Display';
         button.setAttribute('aria-label', 'Toggle persistent Amb Levels Display');
-        button.classList.remove('hs-tooltip');
 
         this.#persistentAmbrosiaLevelsToggleHandler ??= (event: Event) => {
             event.preventDefault();

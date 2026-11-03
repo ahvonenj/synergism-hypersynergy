@@ -1,3 +1,4 @@
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { escapeHtml, formatNumber, HEATER_EFFECT_PAIR_SEPARATOR } from "../hs-heater-utils";
 import { getEffectiveHeaterIconSrc } from "../hs-heater-icon-store";
 import { getHeaterResultSectionDefinitions, getHeaterTypeConfig, resolveHeaterTypeDescription, type HeaterResultSectionDef } from "../hs-heater-result-config";
@@ -120,7 +121,7 @@ function buildShortCostCell(short: HeaterShortResource, atLeast: boolean): strin
 }
 
 function buildHeaderTooltipLabel(label: string, tooltip: string, iconHtml = ""): string {
-    return `<th class="hs-heater-header-tooltip" data-tooltip="${escapeHtml(tooltip)}">${iconHtml}${escapeHtml(label)}</th>`;
+    return `<th class="hs-heater-header-tooltip" ${HSTooltip.attrs(tooltip)}>${iconHtml}${escapeHtml(label)}</th>`;
 }
 
 function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string {
@@ -138,12 +139,8 @@ function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string 
         ? buildHeaderTooltipLabel(effectHeader, "Effect counts Hyperflux as if you have P4x4x50", cubeIcon)
         : `<th>${escapeHtml(effectHeader)}</th>`;
     const p4x4Label = showP4x4
-        ? buildHeaderTooltipLabel("p4x4 eq", `"p4x4 eq" indicates the amount\n`
-                                            + `of p4x4 you need to buy for the\n`
-                                            + `loadout in this row to be better\n`
-                                            + `than the ones above it.\n`
-                                            + `"★ now" marks the best one\n`
-                                            + `at your current P4x4.`)
+        ? buildHeaderTooltipLabel("p4x4 eq", `"p4x4 eq" indicates the amount of p4x4 you need to buy for the loadout in this row to be better than the ones above it.\n`
+                                            + `"★ now" marks the best one at your current P4x4.`)
         : `<th>p4x4 eq</th>`;
 
     return showP4x4
