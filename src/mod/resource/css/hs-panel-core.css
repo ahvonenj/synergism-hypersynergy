@@ -693,16 +693,29 @@ select::-webkit-scrollbar-corner {
 
 .hs-notifications {
     position: fixed;
+    max-width: calc(100vw - 30px);
+    display: flex;
+    gap: 8px;
+    z-index: 7000;
+    pointer-events: none;
+}
+
+.hs-notifications-top {
     top: 15px;
     left: 50%;
     transform: translateX(-50%);
     width: 400px;
-    max-width: calc(100vw - 30px);
-    display: flex;
     flex-direction: column;
-    gap: 8px;
-    z-index: 7000;
-    pointer-events: none;
+}
+
+/* Same width and left edge as the game's notifications (.notification-item), new ones above the older ones */
+.hs-notifications-bottomLeft {
+    bottom: 15px;
+    left: 0;
+    width: 15vw;
+    min-width: calc(140px + 10em);
+    font-size: min(1em, 24px);
+    flex-direction: column-reverse;
 }
 
 .hs-notification {

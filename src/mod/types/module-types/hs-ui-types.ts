@@ -89,9 +89,10 @@ export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
 
 export type HSNotifyPosition = "topLeft" | "top" | "topRight" | "right" | "bottomRight" | "bottom" | "bottomLeft" | "left";
 export type HSNotifyType = "default" | "warning" | "error" | "success";
+export type HSNotifyColumn = "top" | "bottomLeft";
 
 export interface HSNotifyOptions {
-    // Not used for now: every notification goes in the top-centre column
+    // "bottomLeft" has its own column, any other value goes in the top-centre one
     position: HSNotifyPosition;
     popDuration: number;
     // A minimum: a caller can make a notification last longer, never cut a long text short
@@ -103,6 +104,7 @@ export interface HSNotifyOptions {
 export interface HSNotification {
     text: string;
     notificationType: HSNotifyType;
+    column: HSNotifyColumn;
     element: HTMLElement;
     lifetime: Animation;
     onRemoved: () => void;

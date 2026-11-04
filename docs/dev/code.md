@@ -51,10 +51,13 @@ the page's height for a moment at each load).
 
 ## Notifications
 
-- `HSUI.Notify(text, options?)`: one top-centre column, 3 at most. A new one drops the oldest non-error first, and the
-  same text replaces its earlier copy. Height follows the text. Hover pauses the timer, a click dismisses.
+- `HSUI.Notify(text, options?)`: a top-centre column, and a bottom-left one for what answers a player's action in the
+  game (`position: 'bottomLeft'`, hidden Alerts, below the game's own notifications and as wide). Any other `position`
+  goes top-centre.
+- 3 at most per column: a new one drops the oldest non-error first, and the same text replaces its earlier copy. Height
+  follows the text. Hover pauses the timer, a click dismisses.
 - It stays the longest of 5 s, 60 ms per character and `displayDuration`, then fades: to make one last longer, set
-  `displayDuration`. `position` is accepted but not used.
+  `displayDuration`.
 - Its promise resolves when it is gone, which a hover can delay: code never waits on it.
 
 ## Tooltips

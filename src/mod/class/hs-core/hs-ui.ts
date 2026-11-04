@@ -1,4 +1,4 @@
-import { EPredefinedPosition, HSNotification, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
+import { EPredefinedPosition, HSNotification, HSNotifyColumn, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSIcons } from "../hs-utils/hs-icons";
 import { HSElementHooker } from "./hs-elementhooker";
@@ -106,7 +106,7 @@ export class HSUI extends HSModule {
     static #notifyMinDisplayMs = 5000;
     static #notifyDisplayMsPerCharacter = 60;
 
-    static #notifyColumn?: HTMLElement;
+    static #notifyColumns = new Map<HSNotifyColumn, HTMLElement>();
     static #notifications: HSNotification[] = [];
 
 
@@ -1013,13 +1013,15 @@ export class HSUI extends HSModule {
     // --------- Notification helpers ---------
     // ========================================
 
-    static #getNotifyColumn(): HTMLElement {
-        if (!HSUI.#notifyColumn) {
-            HSUI.#notifyColumn = document.createElement('div');
-            HSUI.#notifyColumn.className = HSGlobal.HSUI.notifyColumnClassName;
-            document.body.appendChild(HSUI.#notifyColumn);
+    static #getNotifyColumn(column: HSNotifyColumn): HTMLElement {
+        let element = HSUI.#notifyColumns.get(column);
+        if (!element) {
+            element = document.createElement('div');
+            element.className = `${HSGlobal.HSUI.notifyColumnClassName} ${HSGlobal.HSUI.notifyColumnClassName}-${column}`;
+            document.body.appendChild(element);
+            HSUI.#notifyColumns.set(column, element);
         }
-        return HSUI.#notifyColumn;
+        return element;
     }
 
     static #removeNotification(notification: HSNotification): void {
@@ -1029,11 +1031,13 @@ export class HSUI extends HSModule {
         notification.onRemoved();
     }
 
-    // The same text replaces its earlier copy; past the limit the oldest goes, errors last
-    static #makeRoomForNotification(text: string): void {
-        HSUI.#notifications.filter(n => n.text === text).forEach(n => HSUI.#removeNotification(n));
-        if (HSUI.#notifications.length < HSUI.#notifyMaxShown) return;
-        HSUI.#removeNotification(HSUI.#notifications.find(n => n.notificationType !== 'error') ?? HSUI.#notifications[0]);
+    // In its column, the same text replaces its earlier copy; past the limit the oldest goes, errors last
+    static #makeRoomForNotification(text: string, column: HSNotifyColumn): void {
+        const inColumn = () => HSUI.#notifications.filter(n => n.column === column);
+        inColumn().filter(n => n.text === text).forEach(n => HSUI.#removeNotification(n));
+        const shown = inColumn();
+        if (shown.length < HSUI.#notifyMaxShown) return;
+        HSUI.#removeNotification(shown.find(n => n.notificationType !== 'error') ?? shown[0]);
     }
 
     // Resolves when the notification is gone, which a hover can put off for as long as it lasts: don't make code wait on it
@@ -1049,8 +1053,9 @@ export class HSUI extends HSModule {
             notifyOptions?.displayDuration ?? 0
         );
         const hideStart = popDuration + displayDuration;
+        const column: HSNotifyColumn = notifyOptions?.position === 'bottomLeft' ? 'bottomLeft' : 'top';
 
-        HSUI.#makeRoomForNotification(text);
+        HSUI.#makeRoomForNotification(text, column);
 
         const element = document.createElement('div');
         const notificationText = document.createElement('div');
@@ -1059,14 +1064,14 @@ export class HSUI extends HSModule {
         notificationText.className = HSGlobal.HSUI.notifyTextClassName;
 
         element.style.backgroundColor = HSUI.#notifyBackgroundColors[notificationType];
-        element.style.transform = 'translateY(calc(-100% - 15px))';
+        element.style.transform = column === 'bottomLeft' ? 'translateX(-100%)' : 'translateY(calc(-100% - 15px))';
 
         notificationText.innerText = text;
         element.appendChild(notificationText);
 
-        const column = HSUI.#getNotifyColumn();
-        column.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-        column.appendChild(element);
+        const columnElement = HSUI.#getNotifyColumn(column);
+        columnElement.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
+        columnElement.appendChild(element);
 
         void element.transition({
             transform: 'none'
@@ -1076,15 +1081,15 @@ export class HSUI extends HSModule {
         const lifetime = element.animate([{ opacity: 1 }, { opacity: 0 }], { delay: hideStart, duration: hideDuration, fill: 'forwards' });
 
         return new Promise(resolve => {
-            const notification: HSNotification = { text, notificationType, element, lifetime, onRemoved: resolve };
+            const notification: HSNotification = { text, notificationType, column, element, lifetime, onRemoved: resolve };
             HSUI.#notifications.push(notification);
 
             lifetime.onfinish = () => HSUI.#removeNotification(notification);
             element.addEventListener('click', () => HSUI.#removeNotification(notification));
             element.addEventListener('mouseenter', () => {
+                lifetime.pause();
                 // During the fade: back to full opacity, the fade starts over when the mouse leaves
                 if (Number(lifetime.currentTime) > hideStart) lifetime.currentTime = hideStart;
-                lifetime.pause();
             });
             element.addEventListener('mouseleave', () => lifetime.play());
         });
