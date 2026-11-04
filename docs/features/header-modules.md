@@ -18,8 +18,7 @@ Code: `hs-core/header/hs-header-modules.ts`; patcher "header modules" patch (`__
 - **No corruption loadout modules since the game's 4.4.0**: the game replaced them (and their cleanse
   buttons) with one corruption level module, `corruptionLevelHeader` ("level/max", see `header-corruption.md`).
   Every mod feature on them went with them, no exception. A saved copy of their settings is
-  dropped at load; the corruption icons' storage key `hs-corruption-loadout-icons` is deleted at each load
-  (`#removeLegacyCorruptionIcons`, to remove a few releases later).
+  dropped at load.
 - **A mod module id starts with `hs` and a capital letter** (no game id does), and **never reaches a save**: the
   game's save schema checks ids against its own list and resets a whole layout (desktop or mobile) over one unknown
   id. The patcher strips them in `saveSynergy` (the saved copy) and `loadSynergy` (every loaded save, including the

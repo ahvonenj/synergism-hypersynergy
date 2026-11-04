@@ -1,10 +1,7 @@
 import type { GameData } from "../../../types/data-types/hs-player-savedata";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
-import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
-import type { HSStorage } from "../../hs-core/hs-storage";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
 
 /**
@@ -35,46 +32,11 @@ export class HSAmbrosiaLevelsDisplay {
 
     async init(): Promise<void> {
         this.#blueberryUpgradeContainer = await HSElementHooker.HookElement('#blueberryUpgradeContainer');
-        this.#migrateLegacyPersistentAmbrosiaLevelsState();
     }
 
     /** The "Keep upgrade levels shown on the tree" setting, the only record of the 📌/🔎 state. */
     get #persistentAmbrosiaLevelsEnabled(): boolean {
         return HSSettings.getSetting('persistentAmbrosiaLevels')?.isEnabled() ?? true;
-    }
-
-    /**
-     * Before the setting, the state had a storage key of its own (hs-ambrosia-loadouts, despite its name).
-     * Carried into the setting once, then removed; an old backup brings it back and goes through here again.
-     * Temporary (added 2026-10-18): can be removed a few releases later, with its call in init().
-     * Without it, a leftover key is just ignored and the setting keeps its default.
-     */
-    #migrateLegacyPersistentAmbrosiaLevelsState() {
-        const legacyKey = 'ambrosia-loadouts';
-        const storage = HSModuleManager.getModule<HSStorage>('HSStorage');
-        if (!storage || localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${legacyKey}`) === null) return;
-
-        let stored: unknown = storage.getData(legacyKey);
-        try {
-            // Written as a JSON string inside JSON
-            if (typeof stored === 'string') stored = JSON.parse(stored);
-        } catch {
-            stored = null;
-        }
-
-        if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
-            const record = stored as Record<string, unknown>;
-            const value = 'persistentAmbrosiaLevelsDisplayEnabled' in record ? record.persistentAmbrosiaLevelsDisplayEnabled
-                : 'permaAmbLevelsDisplayEnabled' in record ? record.permaAmbLevelsDisplayEnabled
-                    : undefined;
-            const setting = HSSettings.getSetting('persistentAmbrosiaLevels');
-            if (value !== undefined && setting) {
-                setting.setValue(Boolean(value));
-                HSLogger.log(`Persistent ambrosia levels display (${Boolean(value) ? 'on' : 'off'}) moved into its setting`, this.#context);
-            }
-        }
-
-        storage.clearData(legacyKey);
     }
 
     /** The Ambrosia tab was opened: hooks the 📌/🔎 button, and shows the levels when the setting is on. */
