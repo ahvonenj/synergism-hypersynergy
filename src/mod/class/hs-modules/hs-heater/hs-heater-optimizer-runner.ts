@@ -18,7 +18,17 @@ import HS_HEATER_WORKER_SOURCE from 'hs-heater-worker-source'
 
 const LOG_CONTEXT = 'HSHeater'
 
-type BranchGroup = { branches: readonly HeaterBranchId[]; lane: 0 | 1 }
+// The worker counts a player can pick
+export const HEATER_WORKER_COUNTS = [1, 2, 3] as const
+export type HeaterWorkerCount = typeof HEATER_WORKER_COUNTS[number]
+
+// A saved value that isn't a known count (an edited backup) counts as the default
+export function heaterWorkerCount(value: unknown): HeaterWorkerCount {
+  return value === 1 || value === 2 ? value : 3
+}
+
+// lanes: the group's lane with 2 and with 3 workers. With 1, all run one after the other.
+type BranchGroup = { branches: readonly HeaterBranchId[]; lanes: { 2: 0 | 1; 3: 0 | 1 | 2 } }
 
 const BRANCH_GROUPS: readonly BranchGroup[] = [
   // Groups run in disposable workers. Cube/SR reuse their Cube/Voucher and
@@ -26,14 +36,15 @@ const BRANCH_GROUPS: readonly BranchGroup[] = [
   // inputs but keep separate objective-specific frontiers.
   // Purple reuses the Luck branch's luck and voucher tables.
   // Max Amb + Oct reuses the Oct branch's Octeract tables.
-  // With two workers, each lane runs its groups one after the other: the two
-  // largest (S260: ~0.8 GB peak each) share lane 0, so they never run at once.
-  { branches: ['hyperflux'], lane: 0 },
-  { branches: ['cubes', 'sr'], lane: 0 },
-  { branches: ['oct', 'ambOct'], lane: 1 },
-  { branches: ['coinsC15'], lane: 1 },
-  { branches: ['luck', 'purple'], lane: 1 },
-  { branches: ['quarks', 'obtOff', 'obtAndOff'], lane: 1 },
+  // Each lane runs its groups one after the other. With 2 workers the two
+  // largest (S260: ~0.8 GB peak each) share a lane, so they never run at once.
+  // With 3 they do: docs/features/heater.md has the memory measured.
+  { branches: ['hyperflux'], lanes: { 2: 0, 3: 0 } },
+  { branches: ['cubes', 'sr'], lanes: { 2: 0, 3: 1 } },
+  { branches: ['oct', 'ambOct'], lanes: { 2: 1, 3: 1 } },
+  { branches: ['coinsC15'], lanes: { 2: 1, 3: 1 } },
+  { branches: ['luck', 'purple'], lanes: { 2: 1, 3: 0 } },
+  { branches: ['quarks', 'obtOff', 'obtAndOff'], lanes: { 2: 1, 3: 2 } },
 ]
 
 const ALL_BRANCHES = BRANCH_GROUPS.flatMap(group => group.branches)
@@ -70,20 +81,29 @@ function activeBranchGroups(
     .filter(group => group.branches.length > 0)
 }
 
-// Below this, two workers fall back to one. deviceMemory (GB, rounded down,
-// at most 8) is Chromium only: unknown counts as enough.
-const TWO_WORKERS_MIN_MEMORY_GB = 8
-const TWO_WORKERS_MIN_THREADS = 4
+// Below this, several workers fall back to one. deviceMemory (GB) is Chromium
+// only: unknown counts as enough.
+const SEVERAL_WORKERS_MIN_MEMORY_GB = 8
+const SEVERAL_WORKERS_MIN_THREADS = 4
 
-// Why this computer can't take two workers, or null if it can
-function twoWorkersBlocker(): string | null {
+// Why this computer can't take several workers, or null if it can
+function severalWorkersBlocker(): string | null {
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory
-  if (memory !== undefined && memory < TWO_WORKERS_MIN_MEMORY_GB)
+  if (memory !== undefined && memory < SEVERAL_WORKERS_MIN_MEMORY_GB)
     return `${memory} GB of memory reported`
   const threads = navigator.hardwareConcurrency
-  if (threads !== undefined && threads < TWO_WORKERS_MIN_THREADS)
+  if (threads !== undefined && threads < SEVERAL_WORKERS_MIN_THREADS)
     return `${threads} CPU threads reported`
   return null
+}
+
+// The groups' indexes, per lane. A lane left without a group starts no worker.
+function buildLanes(groups: readonly BranchGroup[], workers: HeaterWorkerCount): number[][] {
+  const indexes = groups.map((_, index) => index)
+  if (workers === 1)
+    return [indexes]
+  return Array.from({ length: workers }, (_, lane) => indexes.filter(index => groups[index].lanes[workers] === lane))
+    .filter(lane => lane.length > 0)
 }
 
 function inputForBranches(input: HeaterOptimizerInput, branches: readonly HeaterBranchId[]): HeaterOptimizerInput {
@@ -221,12 +241,12 @@ export class HSHeaterOptimizerRunner {
 
   // onProgress is called before each worker group starts, with the number
   // of groups started so far (from 1), only when the heat runs in a worker.
-  // twoWorkers: run the two lanes of BRANCH_GROUPS at once, when this
-  // computer reports enough memory and CPU threads.
+  // workers: run that many lanes of BRANCH_GROUPS at once, when this computer
+  // reports enough memory and CPU threads.
   static async createResult(
     input: HeaterOptimizerInput,
     onProgress?: (group: number, groupCount: number) => void,
-    twoWorkers = false,
+    workers: HeaterWorkerCount = 1,
   ): Promise<HeaterOptimizationResult> {
     if (!ALL_BRANCHES.some(branch => input.heaterOptions[branch]))
       return { input }
@@ -267,14 +287,11 @@ export class HSHeaterOptimizerRunner {
       // A branch keeps several large Pareto frontiers alive at once. Running
       // multiple branches in parallel multiplies that peak and can exhaust the
       // browser process even though each individual search fits: one lane
-      // runs its groups one at a time, and at most two lanes run at once.
+      // runs its groups one at a time, and at most three lanes run at once.
       // Terminating a worker between groups also releases its entire heap
       // deterministically.
-      const indexes = activeGroups.map((_, index) => index)
-      const blocker = twoWorkers ? twoWorkersBlocker() : null
-      const lanes = twoWorkers && blocker === null
-        ? [0, 1].map(lane => indexes.filter(index => activeGroups[index].lane === lane)).filter(lane => lane.length > 0)
-        : [indexes]
+      const blocker = workers > 1 ? severalWorkersBlocker() : null
+      const lanes = buildLanes(activeGroups, blocker === null ? workers : 1)
       const sourceUrl = URL.createObjectURL(new Blob([HS_HEATER_WORKER_SOURCE], { type: 'text/javascript' }))
       try {
         // By group index, so the merge order doesn't depend on which lane ends first
@@ -320,9 +337,9 @@ export class HSHeaterOptimizerRunner {
           throw new HSHeatCancelledError()
         const result = mergeResults(input, results)
         cacheResult(cacheKey, result)
-        const workers = lanes.length > 1 ? ' (2 workers)'
+        const workersUsed = lanes.length > 1 ? ` (${lanes.length} workers)`
           : blocker !== null ? ` (1 worker: ${blocker})` : ''
-        HSLogger.info(`Heat done in ${formatSeconds(performance.now() - startedAt)}${workers}: ${groupTimes.filter(Boolean).join(', ')}`, LOG_CONTEXT)
+        HSLogger.info(`Heat done in ${formatSeconds(performance.now() - startedAt)}${workersUsed}: ${groupTimes.filter(Boolean).join(', ')}`, LOG_CONTEXT)
         return result
       } finally {
         URL.revokeObjectURL(sourceUrl)

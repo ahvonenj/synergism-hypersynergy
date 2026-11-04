@@ -1921,11 +1921,12 @@
     "enabled": true,
     "settingValue": []
   },
-  "heaterTwoWorkers": {
+  "heaterWorkers": {
     "hidden": true,
-    "settingName": "heaterTwoWorkers",
-    "settingDescription": "Heater: heat in two workers at once (checkbox under the heat button)",
-    "settingType": "boolean",
-    "enabled": true
+    "settingName": "heaterWorkers",
+    "settingDescription": "Heater: workers running at once (select under the heat button)",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 3
   }
 }

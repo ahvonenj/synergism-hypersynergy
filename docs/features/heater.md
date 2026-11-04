@@ -14,13 +14,26 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 - **A heat can be cancelled** (✖ right of "Heating…", shown only while the optimizer runs in a worker): `HSHeaterOptimizerRunner.cancel()` terminates the running worker, `createResult` rejects with `HSHeatCancelledError`, nothing is cached and the groups already heated are dropped. One "Heat cancelled" log line, no notification.
 - **The heat button shows the elapsed time** in whole seconds, and the number of worker groups started when there are several (`🔥 Heating 2/3... ⏳ 12s 🌡️`, from `createResult`'s `onProgress`, called before each group). It only ticks with a worker; without one the page is frozen and the label stays as it is.
 
-## Two workers
-- "Faster heat (2 workers)" checkbox right under the heat button (hidden setting `heaterTwoWorkers`, on by default; hidden without a worker), its warning in the tooltip.
-- `BRANCH_GROUPS` gives each group a lane: lane 0 Hyperflux then Cubes+SR (the two big ones, ~0.8 GB each, never at once), lane 1 Oct+AmbOct (Max Amb + Oct is in the Oct group: it shares Oct's tables), Luck+Purple, Quarks/Obt/Off. Each lane runs its groups one at a time.
-- Measured: S260 in node 96 → ~57 s, peak ~1.3 GB summed instead of 0.9; Chrome's Task Manager showed at most 1.1 GB on a save at 144M Ambrosia.
-- Falls back to one worker when `navigator.deviceMemory` < 8 or `hardwareConcurrency` < 4 (unknown = enough), said in the summary line.
-- **The workers share one heap limit**: measured on Chrome 156 (16 GB PC, near-empty headless page), one worker stopped at about 4 GB and two at about 2 GB each. At that point the whole tab crashes, game included ("Aw, Snap!" page), with no `worker.onerror`: `MAX_FRONTIER` is the only failure a player would see explained.
-- A failing group stops the other lane; a cancel stops both. Results are merged by group index, so the order doesn't depend on which lane ends first.
+## Workers
+- "Heat with: 1 / 2 / 3 workers" select right under the heat button (hidden numeric setting `heaterWorkers`, 3 by default; hidden without a worker), its warning in the tooltip. A value that isn't 1, 2 or 3 counts as 3 (`heaterWorkerCount`). Not migrated from the old `heaterTwoWorkers` checkbox: the settings loader drops the key at the next save.
+- `BRANCH_GROUPS` gives each group a fixed lane per count; each lane runs its groups one at a time, and a lane left without a group starts no worker. Not a shared queue: it would run both big groups at once with 2 workers.
+  - 2 workers: Hyperflux, Cubes+SR (the two big ones, never at once) / Oct+AmbOct (Max Amb + Oct is in the Oct group: it shares Oct's tables), Coins, Luck+Purple, Quarks/Obt/Off.
+  - 3 workers: Hyperflux, Luck+Purple / Cubes+SR, Oct+AmbOct, Coins / Quarks/Obt/Off. The two big ones do run at once here.
+- A fourth worker isn't offered: it would only run Oct, Coins and Luck (~15 s), the biggest group sets the floor, and it leaves no thread for the page on 4 threads.
+- Measured in Chrome on a 16 GB PC, real game and worker code, tab's peak working set with the game included:
+
+| | 2 workers | 3 workers |
+|---|---|---|
+| S260 default | 33.5 s, 0.9 GB | 28.1 s, 1.0 GB |
+| S260 + Obt+Off | 41.9 s, 0.9 GB | 30.4 s, 1.2 GB |
+| S230-S291 default | 59.9 s, 1.0 GB | 40.7 s, 1.3 GB |
+| S230-S291 + Obt+Off | 59.5 s, 1.1 GB | 42.0 s, 1.5 GB |
+| S260, rune EXP 1e20000, + Obt+Off | 69.9 s, 1.1 GB | 48.7 s, 1.6 GB (highest 1.68) |
+
+- Results are identical at 1, 2 and 3 workers (S260, through the heat button).
+- Falls back to one worker when `navigator.deviceMemory` < 8 or `hardwareConcurrency` < 4 (unknown = enough), said in the summary line. The select keeps the player's choice.
+- **The workers share one heap limit**: on Chrome 156 (16 GB PC, near-empty headless page) the tab reached the same total with 1, 2 and 3 workers, about 4.5 GB of working set. Earlier runs ended at about that point with the whole tab crashing, game included ("Aw, Snap!" page), with no `worker.onerror`: `MAX_FRONTIER` is the only failure a player would see explained. Steam's Electron: a heat at 3 workers on a S290 save with Obt+Off took 45.3 s, renderer peak 1.37 GB; its heap limit isn't measured.
+- A failing group stops the other lanes; a cancel stops them all. Results are merged by group index, so the order doesn't depend on which lane ends first.
 
 ## Results table
 - **Effect** is text, formatted in the worker by `formatNumber` (`hs-heater-utils.ts`) with the browser's number format; the results renderer prints it as is.
@@ -57,7 +70,7 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 
 ## Inputs modal vs hidden inputs
 - **Height**: it opens as tall as its right column needs, at most down to the screen's bottom (`#fitHeightToRightColumn`, measured, not a fixed height: the column depends on the loadout count); the left column scrolls. Anything added to the right column counts by itself.
-- **Width**: no fixed width, both columns follow their content. Left: the longest label and the Exalt select (inputs at least 140px). Right: its widest line, today "Faster heat (2 workers)"; the slot dropdowns take what the row leaves. The slot label is 18px, 24px from 10 slots on (L10 doesn't fit in 18).
+- **Width**: no fixed width, both columns follow their content. Left: the longest label and the Exalt select (inputs at least 140px). Right: its widest line; the slot dropdowns take what the row leaves. The slot label is 18px, 24px from 10 slots on (L10 doesn't fit in 18).
 - **Field order**: players rarely read the inputs, so the few they may change on purpose come first under "Heat for" (Exalt?, Current Singularity, Active Bells, Event Blue Bar Bonus, Post-AoAG); no more fields there. Then Blue Ambrosia, Red Ambrosia (bar fields with their luck/speed), Red Ambrosia Upgrades, Resources & Singularity, Runes & Talismans, Unlocks (moved down from second), Shop last. A grey heading row comes from `heading` on a group's first field in `inputDefinitions`; nothing reads the list by position.
 - **Every modal field reaches the optimizer.** The optimizer reads hidden export data (`shopUpgradeRawLevels`, `shopBonusLevelsNoAmbrosia`, `panthemaLevel`): `fillStatsAndOptionsFromInput` overlays the modal's shop levels onto `shopUpgradeRawLevels` and its Free Quark/Infinity levels onto the Quark/Infinity groups (GDS exports equal values on both sides, checked on 8 backups). "Jack of All Trades Level" (`panthemaLevel`) replaced the Jack checkbox; GDS still exports `jack` (unread).
 - **The inputs left out of the modal on purpose**, with their reasons, are listed in the `HeaterInputBase` comment (`hs-heater-input-config.ts`).

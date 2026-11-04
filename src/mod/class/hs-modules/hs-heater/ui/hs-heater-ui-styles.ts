@@ -58,7 +58,7 @@ export class HSHeaterUIStyles {
                 display: none;
             }
 
-            .hs-heater-two-workers {
+            .hs-heater-workers {
                 display: flex;
                 align-items: center;
                 gap: 4px;
@@ -70,7 +70,7 @@ export class HSHeaterUIStyles {
             }
 
             /* Shows there is a tooltip: a circle like the results' type info trigger */
-            .hs-heater-two-workers-help {
+            .hs-heater-workers-help {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -87,21 +87,22 @@ export class HSHeaterUIStyles {
                 user-select: none;
             }
 
-            .hs-heater-two-workers[hidden] {
+            .hs-heater-workers[hidden] {
                 display: none;
             }
 
-            /* Same as the "Loadouts to heat" checkboxes */
-            .hs-heater-two-workers input {
-                width: 16px;
-                height: 16px;
-                margin: 0;
+            /* Same look as the "Your Loadout Order" dropdowns, in the heat button's red */
+            .hs-heater-workers select {
+                flex: 1 1 auto;
+                height: 22px;
+                background-color: #020525;
+                border: 1px solid #810b0b;
+                color: white;
                 cursor: pointer;
-                accent-color: #a22a2a;
-                box-sizing: border-box;
-                padding: 0;
-                border: 0;
-                flex-shrink: 0;
+            }
+
+            .hs-heater-workers select:focus {
+                outline: none;
             }
 
             /* === Shared Table Base Styles === */

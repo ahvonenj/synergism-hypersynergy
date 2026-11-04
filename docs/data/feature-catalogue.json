@@ -953,17 +953,17 @@
         {
           "id": "heater-workers",
           "title": "Background heating, progress and cancel",
-          "where": "Heater → Heat / Faster heat (2 workers)",
+          "where": "Heater → Heat / Heat with",
           "summary": "Runs the optimizer in workers with elapsed-time and group progress.",
           "details": [
-            "Two-worker mode is on by default where supported and falls back on lower-memory or lower-core devices.",
+            "Heats with 1, 2 or 3 workers at once, 3 by default; lower-memory or lower-core devices fall back to 1.",
             "Cancel terminates an active worker heat. Identical already-heated inputs can reuse their result; the Log records heat timing or reuse."
           ],
           "limits": [
             "Heating can use substantial memory. Without worker support, calculation can block the page and cannot offer the same cancellation behavior."
           ],
           "settings": [
-            "heaterTwoWorkers"
+            "heaterWorkers"
           ]
         },
         {
