@@ -188,6 +188,8 @@ export interface HSSettingBase<T> {
     /** Needs GDS: everywhere (true) or only on these platforms. Read it through HSSettings.usesGameData() */
     usesGameData?: boolean | HSPlatformName[];
     skipInit?: boolean;
+    /** Never drawn in the settings panel: changed from elsewhere (header edit mode, a module's own UI) */
+    hidden?: boolean;
     /** Shown in the settings panel only on these platforms (all when absent). The setting itself still works everywhere */
     platforms?: HSPlatformName[];
 }
