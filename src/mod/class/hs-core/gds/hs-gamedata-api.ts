@@ -302,7 +302,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         {
             i18n: 'ConstantUpgrade9',
             stat: () => {
-                const talismanShards = parseGameDataDecimal(this.gameData?.talismanShards)
+                const talismanShards = parseGameDataDecimal(this.gameData?.stats.talismanShardsThisAscension)
                 return 1 + 0.01 * Decimal.log(talismanShards.add(1), 4)
                     * Math.min(1, (this.gameData?.constantUpgrades[9] ?? 0))
             },

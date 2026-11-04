@@ -447,7 +447,7 @@ export const redAmbrosiaUpgradeCalculationCollection: RedAmbrosiaUpgradeCalculat
   },
   redAmbrosiaFreeAccumulator: {
     label: 'Red DOAa',
-    costFunction: (level: number, _cpl: number) => [100, 400, 1000, 3000, 10000, 25000, 75000, 150000, 400000, 1000000][level] ?? 0,
+    costFunction: (level: number, _cpl: number) => [100, 400, 1000, 3000, 10000, 25000, 70500, 140000, 400000, 1000000][level] ?? 0,
     maxLevel: 10,
     costPerLevel: 1,
     effects: (n: number) => {

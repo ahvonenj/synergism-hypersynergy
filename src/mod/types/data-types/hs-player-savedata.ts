@@ -1209,5 +1209,6 @@ interface GameDataFields {
 
     stats: {
         totalAddCodesUsed: number;
+        talismanShardsThisAscension: GameDecimal;
     }
 }

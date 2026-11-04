@@ -302,6 +302,29 @@ export class SynergismLevelHelper {
         return Math.floor(total)
     }
 
+    /** Each progressive achievement's points, as SynergismOfficial/src/Achievements.ts rewards them. */
+    calculateProgressiveAchievementPoints(): Record<ProgressiveAchievements, number> {
+        const data = this.#gameData;
+        const points = {} as Record<ProgressiveAchievements, number>;
+        if (!data) return points;
+        for (const k of Object.keys(this.#progressiveAchievementPoints) as ProgressiveAchievements[]) {
+            const savedValue = data.progressiveAchievements[k] ?? 0;
+            const effectiveValue = k === 'talismanRarities' && savedValue === 0
+                ? this.#api.talisman.calculateTalismanRarityTotal()
+                : savedValue;
+            points[k] = this.#progressiveAchievementPoints[k](effectiveValue);
+        }
+        return points;
+    }
+
+    calculateAchievementPoints(): number {
+        const data = this.#gameData;
+        if (!data) return 0;
+        return this.#api.achievement.achievements.reduce((sum, ach, index) => {
+            return sum + (data.achievements[index] ? ach.pointValue : 0)
+        }, 0) + Object.values(this.calculateProgressiveAchievementPoints()).reduce((a, b) => a + b, 0);
+    }
+
     /**
      * Cached until the cache generation changes: about 0.1 ms, and an ambrosia rate refresh asks for it 8 times
      * (luck, red luck, red speed, purple honey…). Everything it reads comes in through the _update* methods,
@@ -317,19 +340,7 @@ export class SynergismLevelHelper {
         }
         if (this.#synergismLevel !== undefined) return this.#synergismLevel;
 
-        let achievementPoints = 0;
-
-        achievementPoints += this.#api.achievement.achievements.reduce((sum, ach, index) => {
-            return sum + (data.achievements[index] ? ach.pointValue : 0)
-        }, 0)
-
-        for (const k of Object.keys(this.#progressiveAchievementPoints) as ProgressiveAchievements[]) {
-            const savedValue = data.progressiveAchievements[k] ?? 0;
-            const effectiveValue = k === 'talismanRarities' && savedValue === 0
-                ? this.#api.talisman.calculateTalismanRarityTotal()
-                : savedValue;
-            achievementPoints += this.#progressiveAchievementPoints[k](effectiveValue);
-        }
+        const achievementPoints = this.calculateAchievementPoints();
 
         let level: number;
         if (achievementPoints < 2500) {
