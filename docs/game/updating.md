@@ -28,18 +28,29 @@ check, in order, and how the 4.4.0 update went as a worked example.
 
 ## Checking GDS against the game
 
-The reference is the game's own Stats for nerds (Settings, `#settingstab`, then `#switchSettingSubTab4`): each `k…`
-button (`kFreeCorruptionLevels`, `kSalvage`, `kASCMult`…) fills a container whose `innerText` lists the lines, and
-many stats have element ids (`statSalvPos2NT`, `statFreeAccel<N>`, `statFreeBoost<N>`). GDS functions return their
-components under the game's line names when asked (`reduce_vals = false`, `docs/features/gds.md`), so the two lists
-can be compared line by line.
+The reference is the game's own Stats for nerds, read at full precision. `scripts/harness/gds-vs-game.cjs <save>` runs
+the real game headless on about 50 states of a save (Exalts, singularities, upgrades at zero and at their maximum,
+random levels) and writes every value next to the player it was computed on, with no tick in between;
+`scripts/tests/test-gds-formulas.cjs` replays that in node. After a game update:
+1. Run it on your own save with `--write`, which replaces `scripts/fixtures/gds-reference.json`. If it stops on a bundle
+   anchor or a stat id, the game changed: update the script.
+2. `npm test`. A failure is a line that moved in the game and not in GDS, or an old GDS error: read the vanilla source.
+3. Other saves: run it without `--write`, then `GDS_REFERENCE=local/harness-out/gds-vs-game/reference.json node
+   scripts/tests/test-gds-formulas.cjs`. Worth doing on a low singularity and an Exalt save. A player's save never goes
+   in the fixture.
 
-The setup used for 4.4.0: the real patched game headless with the save loaded (`scripts/harness/lib/`), clicking those
-buttons and reading the lines; `HSGameDataAPI` on the same save in node (`scripts/harness/node-run.mjs` with
-`node/gds-on-save.ts`); a script that compares the two. Several test saves made from one real save by changing a
-field (corruption level, Platonic upgrades…) cover more cases than one save. Traps:
-- The game's line labels carry icons and non-breaking spaces: strip both before matching.
-- Headless Chrome formats numbers in the system's locale (`6,336e93` in French).
+Until step 1 runs, the test checks the old game: passing says nothing about a new one. A new check: the stat's id in
+the script's `TOTALS` or `LINES` and the GDS value under the same id in the test.
+
+Differences that aren't GDS errors, on a run of the script (never on a replay):
+- **A state that raises the highest singularity** (an Exalt on a low save): the game counts its campaign tokens once at
+  load, before raising it, and a reset refreshes them in real play. The Infinite Ascent rune is 1 or 2 levels off.
+- **Rune lines off on one state only**: the game caches a rune's level and refreshes it periodically. Run that state
+  again with `ONLY=`.
+
+To read a stat by hand: Settings, `#settingstab`, then `#switchSettingSubTab4`; each `k…` button fills a container
+whose `innerText` lists the lines (labels carry icons and non-breaking spaces, numbers follow the locale). GDS functions
+return their components under the game's line names (`reduce_vals = false`, `docs/features/gds.md`). Traps:
 - The game recomputes some values at load (`scripts/harness/README.md`, Pitfalls): a test save's C1–C10 changes never
   reach the game, and Exalt completions follow `highestSingularityCompleted`, so a test save must change both.
 - A save from before the update goes through the game's migration at load, which can drop progress (4.4.0 dropped

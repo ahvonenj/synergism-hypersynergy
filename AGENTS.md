@@ -68,7 +68,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 
 ### GDS (Game Data Sniffing): `hs-core/gds/` (`docs/features/gds.md`)
 - `HSGameData` reads the live player every 500 ms when patched, else captures the save. The live player is the same object at every read: never key a cache by it. `HSGameDataAPIPartial` is the actual API, `HSGameDataAPI` the game-formula calculations.
-- **The calculations re-implement vanilla formulas**: check them against the vanilla source (traps: `docs/game/formulas.md`). A shop upgrade's level goes through `getShopLevel`.
+- **The calculations re-implement vanilla formulas**: check them against the vanilla source (traps: `docs/game/formulas.md`); `test-gds-formulas.cjs` replays the real game's values (`docs/game/updating.md`). A shop upgrade's level goes through `getShopLevel`.
 - **The GDS setting (bookmarklet players only) and the engine are separate**: pause with `pauseGDS(reason)` / `resumeGDS(reason)`, check `isGDSRunning()`; nothing turns the setting off.
 - **No extra traffic to synergism.cc**: no WebSocket, no periodic fetch, every request carries `X-HyperSynergism-Version`.
 - **Every save load goes through the game's `importSynergism(input, reset)`**; `__HS_onSaveImport(reset)` stops autosing when `reset` is false. It runs at every singularity: keep the `reset` path one test.

@@ -43,6 +43,7 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | `node/heater-bench.ts <backup> <branch[+branch]>` | One heat in node on a backup's heater data, with per-stage times and peak memory. `SWAP=hs-heater-optimizer.ts=<copy>` compares a modified optimizer on the same input. |
 | `hepteract-distributor.cjs <save>` | Presses the real Hepteract Distributor on the real game, on states set through the dev tools: an expansion paid back to the unit, a partial step ending the plan, a normal run. Prints each check, exits 1 if one fails. The save needs Chronos, Hyperrealism, Challenge and Abyss unlocked, outside Exalts 3 and 7. |
 | `gds-player-keys.cjs` | After a game update: vanilla `Player` keys against the mod's `GameDataFields`. |
+| `gds-vs-game.cjs <save> [--write]` | The real game's Stats for nerds at full precision on about 50 states of a save, for `scripts/tests/test-gds-formulas.cjs`. Rewrites the served bundle to report raw values, here only. 3 minutes. How to use it: `docs/game/updating.md`. |
 
 Typical times: a game load with a save and the mod, 25 s; one autosing singularity on a S260 save, about 7 s; a full
 heat on a S260 save in node, about 100 s.
@@ -97,6 +98,7 @@ heat on a S260 save in node, about 100 s.
   `event.isTrusted` is true), `mouse`, `setFiles`, `screenshot`, `logs`.
 - `game.cjs`: `startGameServer`, `interceptGameServer`, `waitGameReady`, `answerDialog`, `readSaveFile`, `decodeSave`,
   `importSave`, `restoreModData`, `injectMod`, `PLAYER` (the live player object's expression).
+- `node-stubs.cjs`: the esbuild stubs to run the mod's code in node (`PRESETS`, `loadStubs`), for `node-run.mjs` and tests.
 
 ## Without the real game
 
