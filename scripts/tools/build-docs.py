@@ -336,8 +336,7 @@ def changelog_outputs() -> None:
         release = entry["release_url"]
         version_title = f'<a href="{esc(release)}">v{version}</a>' if release else f'v{version}'
         status_label = " · Publication unconfirmed" if entry["status"] == "version-record" else ""
-        date_qualifier = {"published": "Published", "tag": "Tag date", "commit": "Date inferred from commit"}[entry["date_kind"]]
-        date_label = f'{esc(entry["date"])} <span class="muted">({date_qualifier})</span>'
+        date_label = esc(entry["date"])
         credits = []
         contributor_names = []
         for credit in entry["contributors"]:
@@ -376,12 +375,12 @@ def changelog_outputs() -> None:
 <h2>{version_title} <span class="channel-badge channel-{esc(entry["channel"])}">{labels[entry["channel"]]}</span></h2>
 <p class="changelog-meta"><time datetime="{esc(entry["date"])}">{date_label}</time>{esc(status_label)}</p>
 {contributor_html}{''.join(merge_html)}{change_body}{source_details}</article>''')
-    scope_note = "Only published releases and tagged builds are shown. Unconfirmed source versions and planned builds are excluded. Dates use UTC; tag dates are marked where a publication date is unavailable." if released_only else "Dates are marked as publication, tag, or inferred commit dates. Version records without a confirmed release are labeled."
+    scope_note = "Only published releases and tagged builds are shown. Unconfirmed source versions and planned builds are excluded. Dates use UTC." if released_only else "Dates use UTC. Version records without a confirmed release are labeled."
     body = f'''<h1>Changelog</h1>
 <p>{'Released builds' if released_only else 'Recorded versions'} across the original, Live, Dev and loader channels, newest first.</p>
 <p class="muted">Dev versions are from <a href="https://github.com/maenhiir/synergism-hypersynergy">Shew’s repository</a>, not Live releases. Merge notices show when changes reach Live or when Dev catches up with Live.</p>
 <p class="muted">{esc(scope_note)}</p>
-<details class="changelog-sources"><summary>About this history</summary><p>Dates use UTC. Publication, tag and inferred commit dates are identified. When a publication date is unavailable, the preserved tag or its build commit supplies the date instead. Source links accompany each entry.</p><p>Credits use human Git authors and recorded co-authors across each version’s changes, with aliases combined. Release-only contributions are marked. GitHub profiles are linked where verified; other author names are retained without guessing a profile.</p></details>
+<details class="changelog-sources"><summary>About this history</summary><p>Dates use UTC. When a publication date is unavailable, the preserved tag or its build commit supplies the date instead. Source links accompany each entry.</p><p>Credits use human Git authors and recorded co-authors across each version’s changes, with aliases combined. Release-only contributions are marked. GitHub profiles are linked where verified; other author names are retained without guessing a profile.</p></details>
 <form class="changelog-controls" role="search" onsubmit="return false">
 <label for="changelog-channel">Channel <select id="changelog-channel"><option value="">All versions</option><option value="original">Original</option><option value="live">Live (Ferlieloi)</option><option value="dev">Dev versions (Shew)</option><option value="loader">Windows loader</option></select></label>
 <label for="changelog-search">Search versions and changes <input id="changelog-search" type="search" autocomplete="off" placeholder="Version or change"></label>
