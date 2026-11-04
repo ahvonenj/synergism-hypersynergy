@@ -1,93 +1,11 @@
 #!/usr/bin/env node
-import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, relative, resolve } from 'path';
+import {
+    askForInput, askYesNo, fatal, getOriginRepo, info, log, logWait, purgeJsDelivrPath, purgeUrlFor, run, runAndCheck,
+    setSkipPrompts, skipPrompts, stop, success, warn,
+} from './release-common.mjs';
 import { parseTagList, semverSort } from './release-version-tags.mjs';
-
-
-// ===============================
-// ------ Low-level Helpers ------
-// ===============================
-
-/** Log Helpers */
-function log(msg) { console.log(msg); }
-function logWait(msg) { console.log(`⏳\t${msg}`); }
-function success(msg) { console.log(`✅\t${msg}`); }
-function info(msg) { console.log(`ℹ️\t${msg}`); }
-function warn(msg) { console.log(`⚠️\t${msg}`); }
-function fatal(msg, result) {
-    console.error(`❌\tERROR: ${msg}`);
-    if (result) {
-        if (result.stdout) console.error(String(result.stdout));
-        if (result.stderr) console.error(String(result.stderr));
-        if (result.error) console.error(result.error.message || result.error);
-        if (typeof result.status !== 'undefined') console.error('Exit code:', result.status);
-        if (result.signal) console.error('Signal:', result.signal);
-        if (result.error && result.error.code) console.error('Code:', result.error.code);
-    }
-    process.exit(1);
-}
-/** Stop without an error: the user said no, nothing more is done. */
-function stop(msg) {
-    info(msg);
-    process.exit(0);
-}
-
-/** Format a command + args for logging. */
-function formatCommand(cmd, args) {
-    const parts = Array.isArray(args) ? args : [args];
-    return `${cmd} ${parts.map(a => `'${String(a).replace(/'/g, "\\'")}'`).join(' ')}`;
-}
-
-/** Run a command synchronously and return result. */
-function run(cmd, args, opts = {}) {
-    return spawnSync(cmd, args, { stdio: 'pipe', ...opts });
-}
-
-/** Convenience wrapper for commands that must succeed. Uses `fatal()` on any failure. */
-function runAndCheck(cmd, args, opts = {}) {
-    const r = run(cmd, args, opts);
-    const out = r.stdout ? r.stdout.toString() : '';
-    const err = r.stderr ? r.stderr.toString() : '';
-    if (r.status !== 0) {
-        fatal(`Command returned non-zero: ${formatCommand(cmd, args)}`, r);
-    }
-    return { stdout: out, stderr: err, status: r.status };
-}
-
-/** Ask user for y/n confirmation. */
-let skipPrompts = false;
-
-function askYesNo(question) {
-    if (skipPrompts) {
-        info(`[auto] ${question} -> yes`);
-        return Promise.resolve(true);
-    }
-    return new Promise(async resolve => {
-        const readline = await import('readline');
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.question(`❓ ${question} (y/N) `, ans => {
-            rl.close();
-            resolve(/^(y|yes)$/i.test((ans || '').trim()));
-        });
-    });
-}
-
-/** Ask user for free-form text input. */
-function askForInput(question) {
-    if (skipPrompts) {
-        info(`[auto] ${question} -> (default)`);
-        return Promise.resolve('');
-    }
-    return new Promise(async resolve => {
-        const readline = await import('readline');
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.question(`❓ ${question} `, ans => {
-            rl.close();
-            resolve((ans || '').trim());
-        });
-    });
-}
 
 
 // =============================
@@ -159,7 +77,7 @@ for (let i = 0; i < argv.length; i++) {
     if (arg.startsWith('-')) fatal(`Unknown flag ${arg} (see --help)`);
     fatal('Positional arguments are not accepted.');
 }
-skipPrompts = opts.yes;
+setSkipPrompts(opts.yes);
 
 log('release-and-tag-helper.mjs (--help for the steps and flags)');
 
@@ -180,21 +98,8 @@ const purgeFiles = [
     { file: 'src/loader/hypersynergism.user.js' },
     { file: 'src/loader/tampermonkey-bridge.user.js' },
 ];
-/**
- * The GitHub repository releases are pushed to (from the `origin` remote), e.g. "maenhiir/synergism-hypersynergy"
- * for the dev fork, or '' if it can't be identified. No fallback: the GitHub release and the purge are for the
- * repository just pushed to, the only one with the new tag and files.
- */
-function getOriginRepo() {
-    const r = run('git', ['remote', 'get-url', 'origin']);
-    const url = r.status === 0 && !r.error ? String(r.stdout).trim() : '';
-    // https://github.com/OWNER/REPO(.git) or git@github.com:OWNER/REPO(.git)
-    const match = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
-    return match ? `${match[1]}/${match[2]}` : '';
-}
 const originRepo = getOriginRepo();
 const purgePathFor = (file) => `/gh/${originRepo}@master/${file}`;
-const purgeUrlFor = (purgePath) => `https://purge.jsdelivr.net${purgePath}`;
 
 // Read the notes now, so a wrong path or an empty file stops the script before any change
 let releaseNotes = null;
@@ -812,21 +717,7 @@ async function purgeModCache(status) {
     await new Promise(resolve => setTimeout(resolve, 10_000));
 
     // One request per file, each checked on its own
-    for (const purgePath of purgePaths) {
-        const purgeUrl = purgeUrlFor(purgePath);
-        try {
-            const response = await fetch(purgeUrl, { signal: AbortSignal.timeout(15_000) });
-            const body = await response.text();
-            if (!response.ok) throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
-            const result = JSON.parse(body);
-            if (!result.paths?.[purgePath] || result.paths[purgePath].throttled || result.status === 'error') {
-                throw new Error(`Purge was throttled or rejected: ${body.slice(0, 200)}`);
-            }
-            success(`jsDelivr purge request accepted: ${purgeUrl}`);
-        } catch (error) {
-            warn(`jsDelivr purge could not be confirmed (${error.message || error}). Purge manually: ${purgeUrl}`);
-        }
-    }
+    for (const purgePath of purgePaths) await purgeJsDelivrPath(purgePath);
 }
 
 // ==========================

@@ -25,7 +25,8 @@
     "build": "node esbuild.config.js build",
     "release": "node esbuild.config.js release",
     "dev": "node esbuild.config.js dev",
-    "release-and-tag-helper": "node scripts/release-and-tag-helper.mjs"
+    "release-and-tag-helper": "node scripts/release-and-tag-helper.mjs",
+    "merge-live": "node scripts/merge-live-release.mjs"
   },
   "license": "MIT",
   "devDependencies": {

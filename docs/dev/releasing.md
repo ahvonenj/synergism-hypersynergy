@@ -38,18 +38,24 @@ one clone to another: check `git remote -v`.
   The loader's self-update lists `loader-v*` tags itself (`launcherUpdater.js`), so mod releases can't push loader
   releases out of its reach.
 - **Testing the helper** without touching the real repo: a throwaway repo with a bare `origin.git` cloned to `work/`
-  (a local-path origin makes `getOriginRepo()` return '' and skips the purge); in `work/`, a copy of the script, a
-  `package.json`, a stub `esbuild.config.js` writing the bundle and the strategy manifest, a bridge userscript and a
+  (a local-path origin makes `getOriginRepo()` return '' and skips the purge); in `work/`, a copy of the script and of
+  `release-common.mjs` and `release-version-tags.mjs`, a `package.json`, a stub `esbuild.config.js` writing the bundle and the strategy manifest, a bridge userscript and a
   `patcher.js`. A node driver spawns the script, waits for each `❓` on stdout and writes the next answer; **end the
   child's stdin after the last answer**, or it prints "Completed" and hangs on readline. Each scenario is set up with
   plain git (a local-only tag, a tag on HEAD~1, a dirty file, a second clone that pushes so the branch is behind). For
-  the GitHub release step: replace `getOriginRepo()` with `'test/repo'` in the copy, and put a fake `gh.exe` first in
+  the GitHub release step: replace `getOriginRepo()` with `'test/repo'` in the script's copy, and put a fake `gh.exe` first in
   the child's PATH (Node won't run a `gh.cmd` without a shell); a small C# program compiled with
   `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe` that logs its args and stdin and answers by an env mode
   (missing / exists / viewerror / createfail). A real `gh release view` of a missing tag: stderr "release not found",
   exit 1. Not covered: the real build, the purge requests, the bridge `@version` bump.
 
 ## Merging a Live release into Dev
+
+`npm run merge-live` (`-- --dry-run` to see its decisions and stop) applies the rules below to Live's highest stable tag:
+it merges without committing, sets the version and the bundle, runs the checks, then asks before the commit, each push
+and the purge of what changed on `@master`, and compares the served files with the commit. On a conflict elsewhere it
+stops with the merge in progress, version and bundle done, and prints the steps left. It merges tags only: Live's
+commits past its tag are listed, and arrive with the next release or a hand merge.
 
 - **When:** before the next Dev release at the latest; earlier when the Live release has Ferlieloi's own code changes.
 - **Version naming (Shewchou's rule):** once a Live release is merged, Dev builds are named from it. If Live has none
@@ -60,10 +66,14 @@ one clone to another: check `git remote -v`.
   release. When Dev didn't touch the package files or the bundle since the last merge, git takes Live's silently: set
   the version by hand anyway and `git checkout master -- release/mod/hypersynergism_release.js`. A file split or moved
   on Dev comes back as a modify/delete conflict: port Live's change into the new files, then `git rm` the old one.
-- **Except when Live has all the Dev code** (Dev's commits since are docs or tests only): keep Live's bundle, so Dev
+- **Except when Live has all the Dev code** (since the merge base, Dev changed nothing the bundle is built from: docs,
+  `scripts/` apart from the two the build runs, a version bump, or the bundle itself, which is output and proves nothing;
+  an unknown path counts as code, the harmless side to be wrong on): keep Live's bundle, so Dev
   players get the Live release without a Dev release, and push Live's stable tag to the Dev repo after `master`
   (`git push origin vX`), so their version check sees it. Otherwise stable tags are not pushed to the Dev repo: the tag
   would name a build Dev doesn't serve.
+- **Restart or carry on can't be read from git** when Dev has code since the merge base: v2.14.6a restarted with 2 Dev
+  commits, because Live had taken the whole `master` of its time. The script shows the commits and asks.
 - **`git checkout --ours <file>` takes the whole file**, dropping what merged cleanly from Live's side (it once dropped
   a script line in `package.json`): compare with Live's `master` after resolving.
 - Verify (`npx tsc --noEmit`, `npm test`, `npm run build`) before the merge commit.
