@@ -55,7 +55,16 @@ heat on a S260 save in node, about 100 s.
 - **A wait loop must throw when it gives up.** One that goes on silently lets a test "pass" on a game that never loaded.
   `waitGameReady` throws.
 - **With synergism.cc blocked, the game asks a PseudoCoin Confirm at load** and keeps the loading screen until it is
-  answered; an imported old save runs its offline progress first. `waitGameReady` answers both.
+  answered. `waitGameReady` answers it.
+- **`importSave` skips the game's offline progress** (`offlinetick` set to now in the save; 1 s to import, against over
+  3 minutes on a save a week old). `{ offline: true }`, or `OFFLINE=1` in `game-smoke` and `autosing-run`, keeps it, for
+  a test of offline progress itself. Runs since this change start without offline gains: compare them with older
+  autosing figures with care.
+- **A profile keeps the game's last save**, and the game runs its offline progress at the next load, before any import:
+  a stuck save blocks every later run on that profile. `launchChrome({ fresh: true })` empties the profile first
+  (`game-smoke`, `autosing-run`); a one-off script does the same unless it needs what the profile holds.
+- **To test a state, change the live player on one save** (`game.PLAYER`) rather than loading another save; another save
+  only to reproduce a player's report, or for values the game recomputes at load (below).
 - **The "Hypersynergism loaded" notification covers the top of the header** for a few seconds: wait before clicking there.
 - **Headless Chrome formats numbers in the system's locale** (`6,336e93` in French). Parse displayed numbers with that
   in mind, or read the player object (`game.PLAYER`) instead.

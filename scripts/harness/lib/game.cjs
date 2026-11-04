@@ -69,7 +69,7 @@ const answerDialog = cdp => cdp.evaluate(`(() => { const box = document.getEleme
     const text = box.innerText.slice(0, 120); for (const id of ['ok_confirm', 'ok_alert', 'ok_prompt']) { const b = document.getElementById(id); if (b && b.offsetParent) { b.click(); return id + ': ' + text; } } return 'open: ' + text; })()`).catch(() => '')
 
 // Waits for the game to finish loading. With synergism.cc blocked the game asks a PseudoCoin Confirm that holds the
-// loading screen, and an imported old save runs its offline progress first: both are answered here.
+// loading screen, and a save imported with its offline time runs its offline progress first: both are answered here.
 // until: an extra condition (an expression). Throws when the game never gets there: a wait that gives up silently
 // makes a test "pass" on a game that never loaded.
 async function waitGameReady(cdp, { until = 'true', ms = 90000, onDialog = () => { } } = {}) {
@@ -97,10 +97,17 @@ function decodeSave(base64) {
     return save
 }
 
-// Imports through Settings > Load from file, as a player does
-async function importSave(cdp, base64, dir) {
+// The save as if just saved: the game has no offline time to run (over 3 minutes on a save a week old).
+// Only the number changes, in the text: the rest of the save stays byte for byte. A save in another format is left as is.
+function withoutOfflineTime(base64) {
+    const text = Buffer.from(base64, 'base64').toString('latin1')
+    return Buffer.from(text.replace(/"offlinetick":\s*[\d.e+]+/, `"offlinetick":${Date.now()}`), 'latin1').toString('base64')
+}
+
+// Imports through Settings > Load from file, as a player does. offline: true keeps the game's offline progress.
+async function importSave(cdp, base64, dir, { offline = false } = {}) {
     const file = path.join(dir, 'save.txt')
-    fs.writeFileSync(file, base64)
+    fs.writeFileSync(file, offline ? base64 : withoutOfflineTime(base64))
     await cdp.setFiles('#importfile', [file])
 }
 
