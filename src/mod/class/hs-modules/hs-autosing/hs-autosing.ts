@@ -1623,7 +1623,7 @@ export class HSAutosing extends HSModule {
                 const isOnStageTab =
                     this.#settingsTab.classList.contains('active-tab') &&
                     this.#settingsSubTab.classList.contains('active-subtab') &&
-                    this.#misc.style.backgroundColor === 'crimson';
+                    document.getElementById('miscStats')?.classList.contains('activeStats');
 
                 try {
                     if (!isOnStageTab) {
@@ -1787,7 +1787,7 @@ export class HSAutosing extends HSModule {
             return false;
         }
 
-        const exaltBtn = this.#getActiveExaltElement();
+        const exaltBtn = HSUtils.getActiveExaltElement();
         if (!exaltBtn) {
             HSLogger.warn("Could not find the active Exalt to leave it.", this.context);
             HSUI.Notify("Auto-Sing could not leave the Exalt. Leave it yourself, then start Auto-Sing again.", { notificationType: 'warning' });
@@ -1807,16 +1807,6 @@ export class HSAutosing extends HSModule {
             await HSUtils.sleep(50);
         }
         return true;
-    }
-
-    /** The active Exalt's icon (its id is the challenge's key): the game colours it orchid. */
-    #getActiveExaltElement(): HTMLElement | null {
-        const challenges = HSGlobal.exposedPlayer?.singularityChallenges;
-        if (challenges) {
-            const key = Object.keys(challenges).find(k => challenges[k as keyof typeof challenges]?.enabled);
-            return key ? document.getElementById(key) : null;
-        }
-        return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="background-color: orchid"]');
     }
 
 

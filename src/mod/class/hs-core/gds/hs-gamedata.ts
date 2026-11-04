@@ -245,7 +245,8 @@ export class HSGameData extends HSModule {
 
     // --- Quark bonuses (personal and global) ---
     // The game reads them from https://synergism.cc/api/v1/users/me (at load and at a login) and
-    // https://synergism.cc/api/v1/quark-bonus (at load, then every 15 minutes); its formulas use its copy.
+    // https://synergism.cc/api/v1/quark-bonus (at load, then every hour) with changes broadcast on its WebSocket; its
+    // formulas use its copy.
 
     #isQuarkBonusPatched(): boolean {
         return window.__HS_PATCH_REPORT?.quarkBonus === true;
@@ -461,7 +462,7 @@ export class HSGameData extends HSModule {
 
     /**
      * Follows the game's global event: the patcher hands over each answer the game gets from
-     * https://synergism.cc/events/get (Event.ts eventCheck, at load then every 5 minutes), and keeps the last one in
+     * https://synergism.cc/events/get (Event.ts eventCheck, at each save load then every 30 minutes), and keeps the last one in
      * window.__HS_globalEvent, read here once because the game's first fetch comes before the mod loads.
      * The mod doesn't fetch it (the game's dev asked for less traffic). Without the patch (bookmarklet, older patch)
      * there is no global event. A save without dayCheck makes the game skip its fetch: no event, as in the game.

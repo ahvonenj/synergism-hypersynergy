@@ -18,7 +18,9 @@ check, in order, and how the 4.4.0 update went as a worked example.
    `GameDataFields`, then check the runtime shapes on the live game (`docs/features/gds.md`).
 4. **DOM ids and names.** Subtab button ids are written once, in the `*_VIEW_BUTTON_IDS` records
    (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
-   has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it.
+   has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it. If the diff
+   touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
+   one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).
 5. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
    then check the numbers on real saves (below).
 6. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.

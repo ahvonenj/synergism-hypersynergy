@@ -493,10 +493,7 @@ export class Hypersynergism {
     #fixExaltBug() {
         HSLogger.log('Attempting to exit an exalt by clicking the active challenge (if any).');
 
-        const singChallengesWrapper = document.querySelector('#singularityChallenges');
-        if (!singChallengesWrapper) return;
-
-        const img = singChallengesWrapper.querySelector('img.challenge[style*="background-color: orchid"]') as HTMLElement;
+        const img = HSUtils.getActiveExaltElement();
         if (img) {
             console.log('Found active challenge img, clicking:', img);
             img.click();

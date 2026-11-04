@@ -280,6 +280,19 @@ export class HSUtils {
         return `url(${JSON.stringify(url)})`;
     }
 
+    /**
+     * The active Exalt's icon (its id is the challenge's key). Without the live player (bookmarklet), the one the game
+     * colours: var(--orchid-background-color), plain orchid in older builds.
+     */
+    static getActiveExaltElement(): HTMLElement | null {
+        const challenges = HSGlobal.exposedPlayer?.singularityChallenges;
+        if (challenges) {
+            const key = Object.keys(challenges).find(k => challenges[k as keyof typeof challenges]?.enabled);
+            return key ? document.getElementById(key) : null;
+        }
+        return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="orchid"]');
+    }
+
     static #translationFiles = new Map<string, Promise<Record<string, unknown> | undefined>>();
 
     /**
