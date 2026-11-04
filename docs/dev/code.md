@@ -48,6 +48,8 @@ the page's height for a moment at each load).
   mod that way (`HSPlatform.get()`, `hs-core/hs-platform.ts`). The setting still exists and works everywhere.
 - A help text is also the `title` of the setting's buttons (`#buildSettingBlock`), put in an HTML attribute unescaped
   (`HSUIC.#getPropString`): no double quote in a help text.
+- `scripts/tests/test-settings-data.cjs` checks the data: handlers, a control with each action, pages, unique ids, help
+  texts.
 
 ## Notifications
 
