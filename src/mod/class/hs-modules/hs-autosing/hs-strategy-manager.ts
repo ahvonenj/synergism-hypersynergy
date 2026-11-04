@@ -343,9 +343,7 @@ export class HSStrategyManager {
             + `"Corrup Ants" steps were removed.`, context);
         void HSUI.Notify(`Autosing: ${names} now use corruption level 0 everywhere. Set the levels in the strategy editor.`, {
             notificationType: 'warning',
-            displayDuration: 10000,
-            width: 400,
-            height: 60
+            displayDuration: 10000
         });
     }
 

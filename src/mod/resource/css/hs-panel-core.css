@@ -691,26 +691,37 @@ select::-webkit-scrollbar-corner {
 
 /* ===== NOTIFICATIONS ===== */
 
-.hs-notification {
+.hs-notifications {
     position: fixed;
-    max-width: 600px;
-    max-height: 250px;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-width: calc(100vw - 30px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 7000;
+    pointer-events: none;
+}
+
+.hs-notification {
+    min-height: 50px;
     color: #f5f6fa;
     border: 1px solid #f5f6fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 7000;
     padding: 5px;
     box-sizing: border-box;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .hs-notification-text {
-    text-overflow: ellipsis;
-    overflow: hidden;
     font-size: 10pt;
-    max-height: 250px;
     text-align: center;
+    overflow-wrap: anywhere;
     box-sizing: border-box;
 }
 

@@ -73,8 +73,6 @@ export abstract class HSSetting<T extends HSSettingType> {
             position: 'top',
             notificationType: 'warning',
             displayDuration: 6000,
-            width: 440,
-            height: dependentNames.length > 2 ? 80 : 60,
         });
 
         for (const setting of dependents) {

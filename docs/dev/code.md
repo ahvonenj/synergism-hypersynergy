@@ -49,6 +49,14 @@ the page's height for a moment at each load).
 - A help text is also the `title` of the setting's buttons (`#buildSettingBlock`), put in an HTML attribute unescaped
   (`HSUIC.#getPropString`): no double quote in a help text.
 
+## Notifications
+
+- `HSUI.Notify(text, options?)`: one top-centre column, 3 at most. A new one drops the oldest non-error first, and the
+  same text replaces its earlier copy. Height follows the text. Hover pauses the timer, a click dismisses.
+- It stays the longest of 5 s, 60 ms per character and `displayDuration`, then fades: to make one last longer, set
+  `displayDuration`. `position` is accepted but not used.
+- Its promise resolves when it is gone, which a hover can delay: code never waits on it.
+
 ## Tooltips
 
 - A browser `title` is the default. `HSTooltip` (`hs-core/hs-tooltip.ts`) is for what a `title` can't do: colours, a

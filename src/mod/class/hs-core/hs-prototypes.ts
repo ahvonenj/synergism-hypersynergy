@@ -17,7 +17,6 @@ declare global {
 
     interface HTMLElement {
         transition(properties: TransitionProperties, duration?: number, timingFunction?: string): Promise<void>;
-        clearTransitions(): void
         textNodes(): string[];
     }
 
@@ -68,7 +67,6 @@ export class HSPrototypes extends HSModule {
 
         // Extend HTMLElement prototype with transition method
         HTMLElement.prototype.transition = this.#createTransition();
-        HTMLElement.prototype.clearTransitions = this.#createClearTransitions();
 
         // Extend Object with typedEntries method
         // This method is a type-safe version of Object.entries
@@ -320,23 +318,6 @@ export class HSPrototypes extends HSModule {
                 // Check completion immediately in case some properties were removed from pending
                 checkCompletion();
             });
-        };
-    }
-
-    #createClearTransitions(): () => void {
-        return function(this: HTMLElement): void {
-            this.style.transition = 'none';
-
-            if ((this as any)._hsTransitionEndHandler) {
-                this.removeEventListener('transitionend', (this as any)._hsTransitionEndHandler);
-                delete (this as any)._hsTransitionEndHandler; // Clean up the stored reference
-            }
-
-            // for (const prop in this.style) {
-            //     if (this.style.hasOwnProperty(prop) && prop !== 'transition') {
-            //         this.style[prop] = ''; // Or perhaps remove the property
-            //     }
-            // }
         };
     }
 

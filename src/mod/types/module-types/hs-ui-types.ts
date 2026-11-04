@@ -91,13 +91,21 @@ export type HSNotifyPosition = "topLeft" | "top" | "topRight" | "right" | "botto
 export type HSNotifyType = "default" | "warning" | "error" | "success";
 
 export interface HSNotifyOptions {
+    // Not used for now: every notification goes in the top-centre column
     position: HSNotifyPosition;
     popDuration: number;
+    // A minimum: a caller can make a notification last longer, never cut a long text short
     displayDuration: number;
     hideDuration: number;
     notificationType: HSNotifyType;
-    width: number;
-    height: number;
+}
+
+export interface HSNotification {
+    text: string;
+    notificationType: HSNotifyType;
+    element: HTMLElement;
+    lifetime: Animation;
+    onRemoved: () => void;
 }
 
 export interface HSUICModalOptions extends HSUICOptions {

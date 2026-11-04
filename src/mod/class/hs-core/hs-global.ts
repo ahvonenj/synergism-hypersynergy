@@ -157,6 +157,7 @@ export const HSGlobal: IHSGlobal = class {
     // --- HSUI ---
     static HSUI = {
         injectedStylesDomId: 'hs-injected-styles',
+        notifyColumnClassName: 'hs-notifications',
         notifyClassName: 'hs-notification',
         notifyTextClassName: 'hs-notification-text',
     }

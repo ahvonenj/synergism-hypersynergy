@@ -1,4 +1,4 @@
-import { EPredefinedPosition, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
+import { EPredefinedPosition, HSNotification, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSIcons } from "../hs-utils/hs-icons";
 import { HSElementHooker } from "./hs-elementhooker";
@@ -102,16 +102,12 @@ export class HSUI extends HSModule {
         'success': '#009432'
     };
 
-    static #notifyTransitions: Record<string, Record<string, string>> = {
-        topLeft: { top: '15px' },
-        top: { top: '15px' },
-        topRight: { top: '15px' },
-        right: { right: '15px' },
-        bottomRight: { bottom: '15px' },
-        bottom: { bottom: '15px' },
-        bottomLeft: { bottom: '15px' },
-        left: { left: '15px' }
-    };
+    static #notifyMaxShown = 3;
+    static #notifyMinDisplayMs = 5000;
+    static #notifyDisplayMsPerCharacter = 60;
+
+    static #notifyColumn?: HTMLElement;
+    static #notifications: HSNotification[] = [];
 
 
     // ========================================
@@ -1017,74 +1013,80 @@ export class HSUI extends HSModule {
     // --------- Notification helpers ---------
     // ========================================
 
-    static #getNotifyPositionStyles(position: string, width: number, height: number): Record<string, string> {
-        return {
-            topLeft: { top: `-${height}px`, left: '15px' },
-            top: { top: `-${height}px`, left: `calc(50vw - ${width / 2}px)` },
-            topRight: { top: `-${height}px`, right: '15px' },
-            right: { top: `calc(50vh - ${height / 2}px)`, right: `-${width}px` },
-            bottomRight: { bottom: `-${height}px`, right: '15px' },
-            bottom: { bottom: `-${height}px`, left: `calc(50vw - ${width / 2}px)` },
-            bottomLeft: { bottom: `-${height}px`, left: '15px' },
-            left: { top: `calc(50vh - ${height / 2}px)`, left: `-${width}px` }
-        }[position] || { bottom: `-${height}px`, right: '15px' };
+    static #getNotifyColumn(): HTMLElement {
+        if (!HSUI.#notifyColumn) {
+            HSUI.#notifyColumn = document.createElement('div');
+            HSUI.#notifyColumn.className = HSGlobal.HSUI.notifyColumnClassName;
+            document.body.appendChild(HSUI.#notifyColumn);
+        }
+        return HSUI.#notifyColumn;
     }
 
-    static #getNotifyStyles(options: HSNotifyOptions): Record<string, string> {
-        return {
-            ...HSUI.#getNotifyPositionStyles(options.position, options.width, options.height),
-            opacity: '1',
-            backgroundColor: HSUI.#notifyBackgroundColors[options.notificationType],
-            width: `${options.width}px`,
-            height: `${options.height}px`
-        };
+    static #removeNotification(notification: HSNotification): void {
+        HSUI.#notifications = HSUI.#notifications.filter(n => n !== notification);
+        notification.lifetime.cancel();
+        notification.element.remove();
+        notification.onRemoved();
     }
 
-    static async Notify(text: string, notifyOptions?: Partial<HSNotifyOptions>) {
+    // The same text replaces its earlier copy; past the limit the oldest goes, errors last
+    static #makeRoomForNotification(text: string): void {
+        HSUI.#notifications.filter(n => n.text === text).forEach(n => HSUI.#removeNotification(n));
+        if (HSUI.#notifications.length < HSUI.#notifyMaxShown) return;
+        HSUI.#removeNotification(HSUI.#notifications.find(n => n.notificationType !== 'error') ?? HSUI.#notifications[0]);
+    }
+
+    // Resolves when the notification is gone, which a hover can put off for as long as it lasts: don't make code wait on it
+    static Notify(text: string, notifyOptions?: Partial<HSNotifyOptions>): Promise<void> {
         // The Log tab renders HTML, the notification shows plain text
         HSLogger.log(escapeLogText(text), 'Notify');
-        const options: HSNotifyOptions = {
-            position: notifyOptions?.position ?? "bottomRight",
-            popDuration: notifyOptions?.popDuration ?? 400,
-            displayDuration: notifyOptions?.displayDuration ?? 4000,
-            hideDuration: notifyOptions?.hideDuration ?? 2300,
-            notificationType: notifyOptions?.notificationType ?? "default",
-            width: notifyOptions?.width ?? 300,
-            height: notifyOptions?.height ?? 50
-        };
+        const notificationType = notifyOptions?.notificationType ?? "default";
+        const popDuration = notifyOptions?.popDuration ?? 400;
+        const hideDuration = notifyOptions?.hideDuration ?? 500;
+        const displayDuration = Math.max(
+            HSUI.#notifyMinDisplayMs,
+            text.length * HSUI.#notifyDisplayMsPerCharacter,
+            notifyOptions?.displayDuration ?? 0
+        );
+        const hideStart = popDuration + displayDuration;
 
-        const notificationDiv = document.createElement('div');
+        HSUI.#makeRoomForNotification(text);
+
+        const element = document.createElement('div');
         const notificationText = document.createElement('div');
 
-        notificationDiv.className = HSGlobal.HSUI.notifyClassName;
+        element.className = HSGlobal.HSUI.notifyClassName;
         notificationText.className = HSGlobal.HSUI.notifyTextClassName;
 
-        notificationDiv.style.cssText = HSUtils.objectToCSS({
-            ...HSUI.#getNotifyStyles(options),
-            zIndex: String(HSUI.getHighestActiveModalZIndex() + 1)
-        });
+        element.style.backgroundColor = HSUI.#notifyBackgroundColors[notificationType];
+        element.style.transform = 'translateY(calc(-100% - 15px))';
 
         notificationText.innerText = text;
-        notificationDiv.appendChild(notificationText);
+        element.appendChild(notificationText);
 
-        document.body.querySelectorAll(`.${HSGlobal.HSUI.notifyClassName}`).forEach(n => {
-            (n as HTMLElement).clearTransitions();
-            n.remove();
+        const column = HSUI.#getNotifyColumn();
+        column.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
+        column.appendChild(element);
+
+        void element.transition({
+            transform: 'none'
+        }, popDuration, `linear(0, 0.408 26.7%, 0.882 50.9%, 0.999 57.7%, 0.913 65.3%, 0.893 68.8%, 0.886 72.4%, 0.903 78.5%, 0.986 92.3%, 1)`);
+
+        // One animation holds the display time and the fade, so a hover only has to pause it
+        const lifetime = element.animate([{ opacity: 1 }, { opacity: 0 }], { delay: hideStart, duration: hideDuration, fill: 'forwards' });
+
+        return new Promise(resolve => {
+            const notification: HSNotification = { text, notificationType, element, lifetime, onRemoved: resolve };
+            HSUI.#notifications.push(notification);
+
+            lifetime.onfinish = () => HSUI.#removeNotification(notification);
+            element.addEventListener('click', () => HSUI.#removeNotification(notification));
+            element.addEventListener('mouseenter', () => {
+                // During the fade: back to full opacity, the fade starts over when the mouse leaves
+                if (Number(lifetime.currentTime) > hideStart) lifetime.currentTime = hideStart;
+                lifetime.pause();
+            });
+            element.addEventListener('mouseleave', () => lifetime.play());
         });
-
-        document.body.appendChild(notificationDiv);
-
-        await notificationDiv.transition({
-            ...HSUI.#notifyTransitions[options.position],
-        }, options.popDuration, `linear(0, 0.408 26.7%, 0.882 50.9%, 0.999 57.7%, 0.913 65.3%, 0.893 68.8%, 0.886 72.4%, 0.903 78.5%, 0.986 92.3%, 1)`);
-
-        await HSUtils.wait(options.displayDuration);
-
-        await notificationDiv.transition({
-            'opacity': '0'
-        }, options.hideDuration, `linear`);
-
-        notificationText.remove();
-        notificationDiv.remove();
     }
 }

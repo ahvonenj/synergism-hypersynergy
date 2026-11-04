@@ -98,7 +98,7 @@ export class Hypersynergism {
         hsui?.setPanelControlVisible(true);
         HSGlobal.General.isModFullyLoaded = true;
 
-        await HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
+        void HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
             position: 'top',
             notificationType: "success"
         });
@@ -164,10 +164,7 @@ export class Hypersynergism {
         void HSUI.Notify(`Game patch: ${problems}. Some features may not work as usual, details in the Log tab.`, {
             position: 'top',
             notificationType: 'warning',
-            displayDuration: 10000,
-            // A fixed-size box that hides what overflows: two lines of this text
-            width: 440,
-            height: 60
+            displayDuration: 10000
         });
     }
 

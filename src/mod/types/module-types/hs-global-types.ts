@@ -103,6 +103,7 @@ export interface HSGlobalGameData {
 
 export interface HSGlobalHSUI {
     injectedStylesDomId: string;
+    notifyColumnClassName: string;
     notifyClassName: string;
     notifyTextClassName: string;
 }
