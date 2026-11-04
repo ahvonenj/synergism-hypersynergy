@@ -7,6 +7,7 @@
   const count = document.getElementById('changelog-count');
   const empty = document.getElementById('changelog-no-results');
   const entries = [...document.querySelectorAll('.changelog-entry')];
+  const kind = document.getElementById('changelog-list')?.dataset.kind || 'versions';
   if (!channel || !search || !clear || !count || !empty) return;
   const params = new URLSearchParams(location.search);
   search.value = params.get('q') || '';
@@ -23,7 +24,7 @@
       entry.hidden = !matches;
       if (matches) visible++;
     }
-    count.textContent = `${visible} of ${entries.length} versions shown`;
+    count.textContent = `${visible} of ${entries.length} ${kind} shown`;
     empty.hidden = visible !== 0;
     if (updateURL && location.protocol !== 'file:') {
       const url = new URL(location.href);
