@@ -56,6 +56,10 @@ export interface HepteractPlan {
 
 // A distribution from an empty forge with a huge stock takes several hundred steps
 const MAX_STEPS = 5000;
+// The game's auto-craft stops on a full meter as long as what is left can't pay back one more expansion, which
+// takes at least a third more than the planned cost: 5% above it absorbs a cost slightly off (the cost check
+// allows 1%) without ever reaching that
+const AMOUNT_MARGIN = 1.05;
 
 /**
  * The next step towards the ratios: the type furthest behind its ratio (lowest balance x unitCost / ratio, what
@@ -99,7 +103,10 @@ export function applyHepteractStep(state: HepteractPlanState, step: HepteractPla
     state.hepteracts = Math.max(0, state.hepteracts - step.craft * type.unitCost);
 }
 
-/** A whole distribution: nextHepteractStep until no step is left, on a copy of the state. */
+/**
+ * A whole distribution: nextHepteractStep until no step is left, on a copy of the state.
+ * A partial step ends it: its type is crafted last and takes all that is left, so a plan never holds two.
+ */
 export function planHepteractDistribution(state: HepteractPlanState, allowPartial: boolean): HepteractPlan {
     const working: HepteractPlanState = { hepteracts: state.hepteracts, types: state.types.map(type => ({ ...type })) };
     const units = new Map<string, number>();
@@ -115,7 +122,12 @@ export function planHepteractDistribution(state: HepteractPlanState, allowPartia
         }
         applyHepteractStep(working, next.step);
         units.set(next.step.key, (units.get(next.step.key) ?? 0) + next.step.craft);
-        if (next.step.partial) partialKey = next.step.key;
+        if (next.step.partial) {
+            partialKey = next.step.key;
+            waitingFor = nextHepteractStep(working, false).waitingFor;
+            steps++;
+            break;
+        }
     }
 
     const targets = [...units].map(([key, total]): HepteractPlanTarget => {
@@ -132,4 +144,9 @@ export function planHepteractDistribution(state: HepteractPlanState, allowPartia
     targets.sort((a, b) => Number(a.partial) - Number(b.partial));
 
     return { targets, waitingFor, hepteractsLeft: working.hepteracts, steps };
+}
+
+/** The hepteracts to give a target's Auto at its ascension: all that is left for a partial one, else its cost with the margin. */
+export function hepteractCraftAmount(target: HepteractPlanTarget, spendable: number, unitCost: number): number {
+    return target.partial ? spendable : Math.min(spendable, (target.units * AMOUNT_MARGIN + 0.5) * unitCost);
 }

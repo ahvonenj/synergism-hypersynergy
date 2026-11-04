@@ -41,6 +41,7 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | `node-run.mjs <entry.ts> [args]` | Bundles a TypeScript entry that imports the mod's code (`@repo/...` = `src/mod`) for node, with browser-only modules stubbed, and runs it. The entry names its stubs in a comment: `// harness-stubs: gds`, `heater` or a regex. |
 | `node/gds-on-save.ts <save> [overrides]` | `HSGameDataAPI` on a save: ambrosia per hour, luck. Copy it to check another figure. |
 | `node/heater-bench.ts <backup> <branch[+branch]>` | One heat in node on a backup's heater data, with per-stage times and peak memory. `SWAP=hs-heater-optimizer.ts=<copy>` compares a modified optimizer on the same input. |
+| `hepteract-distributor.cjs <save>` | Presses the real Hepteract Distributor on the real game, on states set through the dev tools: an expansion paid back to the unit, a partial step ending the plan, a normal run. Prints each check, exits 1 if one fails. The save needs Chronos, Hyperrealism, Challenge and Abyss unlocked, outside Exalts 3 and 7. |
 | `gds-player-keys.cjs` | After a game update: vanilla `Player` keys against the mod's `GameDataFields`. |
 
 Typical times: a game load with a save and the mod, 25 s; one autosing singularity on a S260 save, about 7 s; a full
@@ -118,6 +119,5 @@ so `localStorage` and reloads behave), the real classes bundled in, driven with 
 events, so code checking `event.isTrusted` or `window.event` can be tested; `evaluate` with a `setTimeout` stands for
 mod code. Stub `hs-logger`, `hs-module-manager` and `settings/hs-settings` (an esbuild `onResolve` plugin);
 `hs-gamestate`, `hs-global`, `hs-storage`, `hs-elementhooker` and `hs-utils` bundle as they are. Used for subtab
-memory, the strategy editor windows (fake `Modal`), the Hepteract Distributor (a fake forge from the game's
-`#cubeTab7` block and a fake ascension), the timed export (an OPFS folder for the picked one) and the dev tools
-(`--dump-dom` doesn't wait for IndexedDB: use CDP).
+memory, the strategy editor windows (fake `Modal`), the timed export (an OPFS folder for the picked one) and the dev
+tools (`--dump-dom` doesn't wait for IndexedDB: use CDP).
