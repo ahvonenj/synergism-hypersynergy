@@ -5,22 +5,28 @@ const path = require('node:path')
 const vm = require('node:vm')
 const { EventEmitter } = require('node:events')
 
-function loadMain(overrides = {}) {
+function loadMain(overrides = {}, { hasLock = true } = {}) {
     const handlers = new Map()
     const app = new EventEmitter()
+    const windows = []
     let quits = 0
     let completeDetection
     let cleanedGameDir
     Object.assign(app, {
+        requestSingleInstanceLock: () => hasLock,
         whenReady: () => Promise.resolve(),
         getVersion: () => 'test',
         getGPUFeatureStatus: () => ({}),
         quit: () => { quits++ }
     })
     class BrowserWindow extends EventEmitter {
-        constructor() { super(); this.webContents = { send: () => {} } }
+        constructor() { super(); this.webContents = { send: () => {} }; this.minimized = true; this.focused = 0; windows.push(this) }
         setMenuBarVisibility() {}
         loadFile() { return Promise.resolve() }
+        isDestroyed() { return false }
+        isMinimized() { return this.minimized }
+        restore() { this.minimized = false }
+        focus() { this.focused++ }
     }
     const modules = {
         electron: { app, BrowserWindow, ipcMain: { handle: (name, handler) => handlers.set(name, handler) } },
@@ -57,8 +63,26 @@ function loadMain(overrides = {}) {
         process,
         setTimeout: () => {}
     })
-    return { app, handlers, finishDetection: value => completeDetection(value), quits: () => quits, cleanedGameDir: () => cleanedGameDir }
+    return { app, handlers, windows, finishDetection: value => completeDetection(value), quits: () => quits, cleanedGameDir: () => cleanedGameDir }
 }
+
+test('a second loader opens no window and quits', async () => {
+    const main = loadMain({}, { hasLock: false })
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(main.windows.length, 0)
+    assert.equal(main.quits(), 1)
+})
+
+test('starting a second loader brings the first one back, restored if minimized', async () => {
+    const main = loadMain()
+    main.app.emit('second-instance') // before its window exists: nothing to do
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(main.windows.length, 1)
+    assert.equal(main.quits(), 0)
+    main.app.emit('second-instance')
+    assert.equal(main.windows[0].minimized, false)
+    assert.equal(main.windows[0].focused, 1)
+})
 
 test('closing the launcher quits while startup registry detection is still pending', async () => {
     const main = loadMain()

@@ -2,7 +2,7 @@ const { finished } = require('stream/promises')
 
 /**
  * The directories an archive keeps outside itself, in the `.unpacked` folder beside it. The game does
- * that for its native modules (steamworks.js): a `.node` file inside the archive is loaded from a copy
+ * that for its native modules (steamworks-ffi-node, koffi): a `.node` file inside the archive is loaded from a copy
  * in the temp folder, where the DLLs it needs are not beside it.
  *
  * A file kept outside on its own counts as its directory: more files outside is harmless, fewer is not.

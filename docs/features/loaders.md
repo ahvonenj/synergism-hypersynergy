@@ -63,5 +63,6 @@ Some patcher globals are also set late. The stage patch sets `__HS_i18next`, `__
 
 ## Decisions
 
+- **One loader at a time** (`app.requestSingleInstanceLock`): a second start brings the first loader to the front and closes, with a line in the console and in `loader-startup.log`. The lock follows the user data folder, which the installed loader and `npm start` share: close one to run the other.
 - **Re-patch banner:** "Launch last played" patches first when a re-patch is needed (a game update too); no stored hash asks for one re-patch; any patcher difference blocks "Launch only" and "Quick switch", switching builds included; a failed download asks for nothing (a console line). Downloading the patcher and the mod by commit id (`@<sha>`) to avoid jsDelivr's lag was refused.
 - **Bookmarklet notice:** shown at every bookmark load, no "don't show again"; the script is always Live (`Ferlieloi`, `master`); only Tampermonkey is named; the README's bookmark loads from `Ferlieloi@master`.

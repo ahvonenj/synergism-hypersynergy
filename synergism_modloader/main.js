@@ -58,11 +58,25 @@ function createWindow() {
         .catch(error => diagnostics.report('Could not load the launcher page', error))
 }
 
-app.whenReady().then(() => {
-    createWindow()
-    diagnostics.log(`GPU features: ${JSON.stringify(app.getGPUFeatureStatus())}`)
-    setTimeout(() => { void launcherUpdater.check() }, 2000)
-}).catch(error => diagnostics.report('Could not start the launcher', error))
+// One loader at a time: they share the user data folder (browser caches, loader-config.json) and would patch the same
+// game folder. npm start and the installed loader count as the same one.
+if (app.requestSingleInstanceLock()) {
+    app.on('second-instance', () => {
+        if (!mainWindow || mainWindow.isDestroyed()) return
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.focus()
+    })
+    app.whenReady().then(() => {
+        createWindow()
+        diagnostics.log(`GPU features: ${JSON.stringify(app.getGPUFeatureStatus())}`)
+        setTimeout(() => { void launcherUpdater.check() }, 2000)
+    }).catch(error => diagnostics.report('Could not start the launcher', error))
+} else {
+    const refused = 'Another loader is already open (installed or npm start): it comes to the front, this one closes'
+    diagnostics.log(refused)
+    console.log(refused)
+    app.quit()
+}
 app.on('window-all-closed', () => {
     diagnostics.log('All windows closed; quitting')
     app.quit()
