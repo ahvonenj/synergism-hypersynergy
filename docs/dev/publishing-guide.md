@@ -17,6 +17,25 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
 
 The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod.
 
+## Update the changelog
+
+Edit `docs/data/changelog.json`, which records release and version history separately from the current feature catalogue. Keep the researched version labels and channel names as recorded, distinguish published release dates from tag or inferred commit dates, and link evidence to HTTPS GitHub sources. Validate the feature catalogue and changelog without writing files with:
+
+```sh
+python scripts/tools/build-docs.py --validate
+```
+
+Regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site:
+
+```sh
+python scripts/tools/build-docs.py --changelog-only
+python scripts/tools/build-docs.py --changelog-only --check
+python scripts/tests/test-changelog-validation.py
+node --check docs/js/changelog.js
+```
+
+The changelog keeps player-facing additions, behavior changes, removals and fixes. Source-only records are not promoted to confirmed releases; historical audit notes and change evidence stay in the data even when the displayed wording is simplified.
+
 ## Preview
 
 Open `docs/index.html` directly in a browser: the complete site, wiki, relative assets and feature search work without a server. Alternatively run `python -m http.server 8080 --directory docs` and visit `http://localhost:8080/`. No game save is needed.
