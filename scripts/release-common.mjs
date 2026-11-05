@@ -1,6 +1,7 @@
 // Shared by the release helper (release-and-tag-helper.mjs) and the Live merge (merge-live-release.mjs):
 // console output, running commands, questions, the origin repository, jsDelivr purges.
 import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 
 /** Log Helpers */
 export function log(msg) { console.log(msg); }
@@ -113,5 +114,59 @@ export async function purgeJsDelivrPath(purgePath) {
         success(`jsDelivr purge request accepted: ${purgeUrl}`);
     } catch (error) {
         warn(`jsDelivr purge could not be confirmed (${error.message || error}). Purge manually: ${purgeUrl}`);
+    }
+}
+
+const sha256 = (data) => createHash('sha256').update(data).digest('hex');
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/** Whether jsDelivr serves `file` from `@master` as committed on HEAD: 3 tries, 15 s apart. */
+async function servesCommittedFile(repo, file) {
+    const committed = run('git', ['show', `HEAD:${file}`], { maxBuffer: 256 * 1024 * 1024 });
+    if (committed.status !== 0) {
+        info(`Could not read ${file} from HEAD: not checked.`);
+        return true;
+    }
+    const expected = sha256(committed.stdout);
+    const url = `https://cdn.jsdelivr.net/gh/${repo}@master/${file}`;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+            if (response.ok && sha256(Buffer.from(await response.arrayBuffer())) === expected) return true;
+        } catch (error) {
+            info(`Could not read ${url}: ${error.message || error}`);
+        }
+        if (attempt < 3) await wait(15_000);
+    }
+    return false;
+}
+
+/**
+ * Purges `files` on `repo@master`, then checks jsDelivr serves each as committed on HEAD. An accepted purge can
+ * still leave the old file served (once: the new bundle with the old patcher.js), so a stale file is purged once
+ * more and checked again; still stale, it warns with the URLs to check and purge by hand.
+ */
+export async function purgeAndCheckServedFiles(repo, files) {
+    const purgePathOf = (file) => `/gh/${repo}@master/${file}`;
+    for (const file of files) await purgeJsDelivrPath(purgePathOf(file));
+    await wait(5_000);
+
+    let stale = [];
+    for (const file of files) {
+        if (await servesCommittedFile(repo, file)) success(`Served file matches the commit: ${file}`);
+        else stale.push(file);
+    }
+    if (stale.length === 0) return;
+
+    info(`jsDelivr still serves an old ${stale.join(', ')}: purging again.`);
+    for (const file of stale) await purgeJsDelivrPath(purgePathOf(file));
+    await wait(5_000);
+    for (const file of stale) {
+        if (await servesCommittedFile(repo, file)) {
+            success(`Served file matches the commit: ${file}`);
+        } else {
+            warn(`jsDelivr doesn't serve the committed ${file} yet. Check https://cdn.jsdelivr.net/gh/${repo}@master/${file}`
+                + `, or purge it again: ${purgeUrlFor(purgePathOf(file))}`);
+        }
     }
 }

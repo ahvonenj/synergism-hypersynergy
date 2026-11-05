@@ -24,9 +24,10 @@ one clone to another: check `git remote -v`.
   by hand in `package.json` and `package-lock.json` (two version lines).
 - `-- --notes-file <path>` puts a Markdown changelog into the tag message (`AGENTS.md`, "Commands").
 - **Purges:** the bundle, and `synergism_modloader/lib/patcher.js`, `src/loader/hypersynergism.user.js` and
-  `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). After a
-  release that changed a loader file, check the served file anyway: once (v2.14.6a-dev1) jsDelivr served the new bundle
-  with the old `patcher.js`, cause unknown. Purge by hand:
+  `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). An
+  accepted purge can still leave the old file served (once, v2.14.6a-dev1: the new bundle with the old `patcher.js`,
+  cause unknown), so after the purges `purgeAndCheckServedFiles` (shared with `merge-live`) compares each served file
+  with the commit, purges a stale one once more, and warns if it is still stale. Purge by hand:
   `curl https://purge.jsdelivr.net/gh/<owner>/synergism-hypersynergy@master/<path>`, then check the served file.
 - **`loaderVersion` in `patcher.js`** (the `[HS-LOADER vX.Y]` console prefix): the helper offers a y/N bump (`--yes`
   bumps) only when `patcher.js` changed since the previous `v*` tag, last number + 1 (`bumpLastNumber`); a major bump is

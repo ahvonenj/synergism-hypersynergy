@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import {
-    askForInput, askYesNo, fatal, getOriginRepo, info, log, logWait, purgeJsDelivrPath, purgeUrlFor, run, runAndCheck,
+    askForInput, askYesNo, fatal, getOriginRepo, info, log, logWait, purgeAndCheckServedFiles, purgeUrlFor, run, runAndCheck,
     setSkipPrompts, skipPrompts, stop, success, warn,
 } from './release-common.mjs';
 import { parseTagList, semverSort } from './release-version-tags.mjs';
@@ -32,7 +32,7 @@ function printHelp() {
     log('    7) prompts to push branch and tag to origin');
     log('    8) prompts to create the GitHub release with the gh CLI (title: the tag; text: the tag message without its');
     log('       first line; marked Latest, unless the Latest release is a loader-v* one), unless it exists');
-    log('    9) prompts to purge jsDelivr (the mod, plus loader files changed since the previous release), waits 10s, purges');
+    log('    9) prompts to purge jsDelivr (the mod, plus loader files changed since the previous release), waits 10s, purges, checks the served files (purges a stale one once more)');
     log('');
     log('Flags:');
     log('  -h, --help           Show this help and exit');
@@ -716,8 +716,8 @@ async function purgeModCache(status) {
     logWait('Waiting 10 seconds after the push before purging jsDelivr...');
     await new Promise(resolve => setTimeout(resolve, 10_000));
 
-    // One request per file, each checked on its own
-    for (const purgePath of purgePaths) await purgeJsDelivrPath(purgePath);
+    // One request per file, then each served file compared with the commit (purged again once if stale)
+    await purgeAndCheckServedFiles(originRepo, purgePaths.map(purgePath => purgePath.split('@master/')[1]));
 }
 
 // ==========================

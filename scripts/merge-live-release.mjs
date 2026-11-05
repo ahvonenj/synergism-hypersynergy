@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 // Merges Live's latest release into Dev's master. The rules: docs/dev/releasing.md, "Merging a Live release into Dev".
-import { createHash } from 'crypto';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
-    askYesNo, fatal, getOriginRepo, info, log, logWait, purgeJsDelivrPath, purgeUrlFor, run, runAndCheck, stop, success, warn,
+    askYesNo, fatal, getOriginRepo, info, log, logWait, purgeAndCheckServedFiles, purgeUrlFor, run, runAndCheck, stop, success, warn,
 } from './release-common.mjs';
 import {
     BUNDLE_FILE, PACKAGE_FILES, carriedVersion, devCodeFiles, highestStableTag, restartedVersion, withVersion, withoutVersion,
@@ -203,27 +202,6 @@ function changedServedFiles(preMerge) {
     return lines(git('diff', '--name-only', preMerge, 'HEAD', '--', ...SERVED_FILES));
 }
 
-async function checkServedFile(repo, file) {
-    const expected = createHash('sha256').update(showFile('HEAD', file)).digest('hex');
-    const url = `https://cdn.jsdelivr.net/gh/${repo}@master/${file}`;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-            const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
-            if (response.ok) {
-                const served = createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex');
-                if (served === expected) {
-                    success(`Served file matches the commit: ${file}`);
-                    return;
-                }
-            }
-        } catch (error) {
-            info(`Could not read ${url}: ${error.message || error}`);
-        }
-        if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 15_000));
-    }
-    warn(`jsDelivr doesn't serve the committed ${file} yet. Check ${url}, or purge it again: ${purgeUrlFor(`/gh/${repo}@master/${file}`)}`);
-}
-
 async function purge(preMerge) {
     const repo = getOriginRepo();
     if (!repo) {
@@ -242,9 +220,7 @@ async function purge(preMerge) {
     }
     logWait('Waiting 10 seconds after the push before purging jsDelivr...');
     await new Promise(resolve => setTimeout(resolve, 10_000));
-    for (const file of files) await purgeJsDelivrPath(`/gh/${repo}@master/${file}`);
-    await new Promise(resolve => setTimeout(resolve, 5_000));
-    for (const file of files) await checkServedFile(repo, file);
+    await purgeAndCheckServedFiles(repo, files);
 }
 
 async function main() {
