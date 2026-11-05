@@ -67,6 +67,8 @@ heat on a S260 save in node, about 100 s.
   (`game-smoke`, `autosing-run`); a one-off script does the same unless it needs what the profile holds.
 - **To test a state, change the live player on one save** (`game.PLAYER`) rather than loading another save; another save
   only to reproduce a player's report, or for values the game recomputes at load (below).
+- **`injectMod` sets `HS_LOADER_INITIALIZED`**: the mod takes itself for a userscript, even on `PATCH=0`. For a
+  bookmarklet player, add the `/mod.js` script tag without that flag (it changes `HSPlatform` and subtab memory).
 - **The "Hypersynergism loaded" notification covers the top of the header** for a few seconds: wait before clicking there.
 - **Headless Chrome formats numbers in the system's locale** (`6,336e93` in French). Parse displayed numbers with that
   in mind, or read the player object (`game.PLAYER`) instead.

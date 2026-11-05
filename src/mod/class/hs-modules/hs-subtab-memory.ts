@@ -38,7 +38,7 @@ interface HSOpenTab {
  *     and at a page load. A reset only clears the game's own indexes: a hidden tab's subtab buttons keep
  *     their active-subtab class until that tab is opened again. So a tab's subtab is noted when the tab is
  *     left, and clicked back when the player opens the tab and the game shows another one.
- *     Only a tab opened by the player counts (a trusted event is being handled): the mod's own visits
+ *     Only a tab opened by the player counts (a trusted click, key or touch is being handled): the mod's own visits
  *     (stage read, settings fixer, autosing's tab restore) and a loader's visit to Settings > Stats are
  *     neither restored nor remembered.
  * Author: Shewchou
@@ -132,7 +132,7 @@ export class HSSubtabMemory extends HSModule {
         }
 
         const name = view.getName();
-        const byPlayer = !!window.event?.isTrusted;
+        const byPlayer = HSSubtabMemory.#isPlayerInput(window.event);
         let shown = HSSubtabMemory.#activeSubtab(ids);
         let lockedNote = false;
 
@@ -238,6 +238,16 @@ export class HSSubtabMemory extends HSModule {
     /** The tab's subtab buttons, in the game's order. Undefined for a tab without subtabs. */
     static #subtabIds(view: MainView): string[] | undefined {
         return HSGlobal.HSGameState.viewProperties.get(view.getId())?.subViewIds;
+    }
+
+    /**
+     * A trusted click, key or touch is being handled. Not any trusted event: HSUtils.yield() and the sleep worker
+     * resume the mod's code inside a trusted message event, so autosing's own tab clicks would count as the player's.
+     */
+    static #isPlayerInput(event: Event | undefined): boolean {
+        if (!event?.isTrusted) return false;
+        return event instanceof MouseEvent || event instanceof KeyboardEvent
+            || (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent);
     }
 
     static #activeSubtab(ids: string[]): string | undefined {
