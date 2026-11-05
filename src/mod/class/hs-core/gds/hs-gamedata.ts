@@ -690,10 +690,10 @@ export class HSGameData extends HSModule {
     }
 
     /**
-     * Dispatches a save event and extracts quarks and goldenQuarks from the latest save data.
-     * @returns Promise<{ quarks: number; goldenQuarks: number } | null>
+     * Dispatches a save event and extracts autosing's quark figures from the latest save data.
+     * @returns Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null>
      */
-    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number } | null> {
+    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null> {
         const saveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
         
         saveButton.dispatchEvent(this.#saveTriggerEvent);
@@ -704,7 +704,9 @@ export class HSGameData extends HSModule {
                 const parsed = JSON.parse(this.#mitm_gamedata);
                 const quarks = typeof parsed.worlds === 'number' ? parsed.worlds : 0;
                 const goldenQuarks = typeof parsed.goldenQuarks === 'number' ? parsed.goldenQuarks : 0;
-                return { quarks, goldenQuarks };
+                const quarksFromAnts = typeof parsed.ants?.quarksGainedFromAnts === 'number' ? parsed.ants.quarksGainedFromAnts : 0;
+                const quarksThisSingularity = typeof parsed.quarksThisSingularity === 'number' ? parsed.quarksThisSingularity : 0;
+                return { quarks, goldenQuarks, quarksFromAnts, quarksThisSingularity };
             } catch (e) {
                 HSLogger.error(`Failed to parse mitm_gamedata for autosing: ${e}`, this.context);
                 return null;

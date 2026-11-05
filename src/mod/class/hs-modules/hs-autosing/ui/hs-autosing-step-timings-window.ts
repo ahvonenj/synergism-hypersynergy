@@ -39,7 +39,8 @@ export class HSAutosingStepTimingsWindow {
     static #sort: SortKey = 'ms';
     static #getInfo: (() => HSAutosingStepTableInfo) | null = null;
 
-    static async open(getInfo: () => HSAutosingStepTableInfo, position: HSUIXY | undefined): Promise<void> {
+    /** @param panel Where the run panel is: the window opens beside it, at its height */
+    static async open(getInfo: () => HSAutosingStepTableInfo, panel: DOMRect | undefined): Promise<void> {
         const uiMod = HSModuleManager.getModule<HSUI>('HSUI');
         if (!uiMod || !uiMod.uiReady || HSAutosingStepTimingsWindow.#opening) return;
         HSAutosingStepTimingsWindow.#getInfo = getInfo;
@@ -51,11 +52,13 @@ export class HSAutosingStepTimingsWindow {
 
         HSAutosingStepTimingsWindow.#opening = true;
         try {
+            const { position, width, height } = HSAutosingStepTimingsWindow.#placement(panel);
             HSAutosingStepTimingsWindow.#modalId = await uiMod.Modal({
                 title: 'Step timings',
                 position,
-                // Its first size: set on the window, not its content, so that the content follows a resize
-                styles: { width: 'min(680px, 90vw)', height: '60vh' },
+                // Its first size: set on the window, not its content, so that the content follows a resize.
+                // Border included, so that its height is the panel's.
+                styles: { width, height, boxSizing: 'border-box' },
                 htmlContent: `
                     <div class="hs-step-timings">
                         <div class="hs-step-timings-top">
@@ -92,6 +95,20 @@ export class HSAutosingStepTimingsWindow {
     static close(): void {
         if (!HSAutosingStepTimingsWindow.#isOpen()) return;
         void HSModuleManager.getModule<HSUI>('HSUI')?.CloseModal(HSAutosingStepTimingsWindow.#modalId);
+    }
+
+    /** Right of the run panel if the window fits there, else left of it. The UI keeps it on screen. */
+    static #placement(panel: DOMRect | undefined): { position: HSUIXY | undefined; width: string; height: string } {
+        const width = Math.min(680, window.innerWidth * 0.9);
+        if (!panel) return { position: undefined, width: `${width}px`, height: '60vh' };
+
+        const screenMargin = 10;
+        const fitsRight = panel.right + width + screenMargin <= window.innerWidth;
+        return {
+            position: { x: fitsRight ? panel.right : panel.left - width, y: panel.top },
+            width: `${width}px`,
+            height: `${Math.min(panel.height, window.innerHeight - 2 * screenMargin)}px`,
+        };
     }
 
     static #isOpen(): boolean {

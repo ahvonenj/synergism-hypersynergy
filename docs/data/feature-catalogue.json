@@ -1378,7 +1378,7 @@
           "where": "AutoSing timer window → detailed data / charts",
           "summary": "Tracks run pace, phase timings, Quarks, GQ and C15 statistics.",
           "details": [
-            "Shows completed singularities, latest and rolling-average times, extrema and variation.",
+            "Shows completed singularities, latest and rolling-average times, extrema and variation, and the share of the run's quarks that came from the Ants to Quark Corner.",
             "Expandable detailed views add phase histories and sparklines for timing, currencies and C15; stopped runs can be reviewed."
           ]
         },

@@ -95,10 +95,15 @@ Test: `npm run test:autosing`.
 - The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
 
+## Run panel: quarks
+- **"Gained" is the balance's rise** (`worlds`, read after the Exalt), so spending lowers it. Autosing is meant for players who completed Limited Time once: without it the game resets the balance at each singularity and "Gained" stays at `-`, which is expected.
+- **`(12.34% ants)` after "Gained":** the run's total of `ants.quarksGainedFromAnts` over its total of `quarksThisSingularity`, in grey, shown with or without details; that total of ant quarks in its tooltip. Not over "Gained": spending would then raise the share with the ants earning the same.
+- Both are read at the top of `#performSingularity`, before the Exalt click: the singularity resets both. The first singularity at the start isn't counted, like every other figure. A singularity crossing the real-life day change under-reports its ant quarks (the game resets the counter then too); negligible over a run.
+
 ## Step timings (`autosingStepTimings`)
 For players tuning a strategy. `HSAutosingRecorder` records, `hs-autosingStepTable.ts` turns that into the table (pure, `test-autosing-step-table.cjs`), `ui/hs-autosing-step-timings-window.ts` shows it.
 - **Off by default, read at each start.** Off, the main loop only checks `#recordTimings` / `passRecord` and the last run's timings are cleared. Autosing runs for hours and most players never read this.
-- **The run panel's 📋 opens the window**: shown when the run records, the panel not minimized and its details on; it stays in review mode. One window at most, closed with the panel. CSV export: not this, it gave one row per singularity, which the panel already covers.
+- **The run panel's 📋 opens the window**: shown when the run records, the panel not minimized and its details on; it stays in review mode. One window at most, closed with the panel. It opens beside the panel, on the right if it fits, at the panel's height at that moment; it doesn't follow the panel afterwards. CSV export: not this, it gave one row per singularity, which the panel already covers.
 - **Built when it opens, then at most once per singularity while it is open**, in an animation frame (never while the tab is hidden). Closed, it costs nothing.
 - **The table covers finished singularities whose steps are all held**: the one running is left out, and so is the oldest once the steps' cap has dropped part of it. The summary then says "Last 144 of 160 singularities", because its figures and the rows cover those only, unlike the run panel's "All".
 - **The summary calculates as the run panel does:** σ divided by n, C15 as the geometric mean (not arithmetic: one high score would pull it, and the panel's `σlog` measures spread around the same mean). A score of 0 is skipped in both. Above a number's range only the panel still counts it. The recorder's 0.1 ms rounding can still change a last digit.

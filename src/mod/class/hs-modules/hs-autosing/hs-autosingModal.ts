@@ -62,6 +62,7 @@ export class HSAutosingModal {
     #quarksCurrentAmountSpan: HTMLElement | null = null;
     #quarksRateValSpan: HTMLElement | null = null;
     #quarksRateHrSpan: HTMLElement | null = null;
+    #quarksAntsShareSpan: HTMLElement | null = null;
     #gquarksCurrentAmountSpan: HTMLElement | null = null;
     #gquarksRateValSpan: HTMLElement | null = null;
     #gquarksRateHrSpan: HTMLElement | null = null;
@@ -118,6 +119,8 @@ export class HSAutosingModal {
         totalQuarks: 0,
         minQuarks: Infinity,
         maxQuarks: 0,
+        totalQuarksFromAnts: 0,
+        totalQuarksEarned: 0,
         totalGoldenQuarks: 0,
         minGoldenQuarks: Infinity,
         maxGoldenQuarks: 0
@@ -263,7 +266,7 @@ export class HSAutosingModal {
         this.#stepTimingsBtn.onclick = () => {
             void HSAutosingStepTimingsWindow.open(
                 () => ({ modVersion: this.#modVersion, loadouts: this.#loadoutsOrder }),
-                this.#stepTimingsPosition()
+                this.#timerDisplay?.getBoundingClientRect()
             );
         };
         // Detailed data toggle button
@@ -386,7 +389,7 @@ export class HSAutosingModal {
                     <div class="hs-label-cell hs-detailed-data"><span class="hs-timer-label hs-secondary-data-style">Max:</span></div>
                     <div class="hs-value-cell hs-detailed-data"><span id="hs-quarks-max-gains" class="hs-secondary-data-style">-</span></div>
                     <div class="hs-label-cell"><span class="hs-timer-label">Gained:</span></div>
-                    <div class="hs-value-cell"><span id="hs-quarks-total-gains" class="hs-quarks-rate-color">-</span></div>
+                    <div class="hs-value-cell"><span id="hs-quarks-total-gains" class="hs-quarks-rate-color">-</span> <span id="hs-quarks-ants-share"></span></div>
                     <div class="hs-label-cell hs-detailed-data"><span class="hs-timer-label hs-secondary-data-style">Min:</span></div>
                     <div class="hs-value-cell hs-detailed-data"><span id="hs-quarks-min-gains" class="hs-secondary-data-style">-</span></div>
                 </div>
@@ -473,6 +476,7 @@ export class HSAutosingModal {
         this.#quarksRateValSpan        = document.getElementById('hs-quarks-rate-val');
         this.#quarksRateHrSpan         = document.getElementById('hs-quarks-rate-val-hr');
         this.#quarksTotalGainsSpan     = document.getElementById('hs-quarks-total-gains');
+        this.#quarksAntsShareSpan      = document.getElementById('hs-quarks-ants-share');
         this.#quarksMaxGainsSpan       = document.getElementById('hs-quarks-max-gains');
         this.#quarksMinGainsSpan       = document.getElementById('hs-quarks-min-gains');
         this.#gquarksCurrentAmountSpan = document.getElementById('hs-gquarks-current-amount');
@@ -494,17 +498,6 @@ export class HSAutosingModal {
         this.#footerStrategySpan = document.getElementById('hs-footer-strategy');
         this.#footerLoadoutsSpan = document.getElementById('hs-footer-loadouts');
         this.#footerPatchSpan    = document.getElementById('hs-footer-patch');
-    }
-
-    /**
-     * Beside the run panel: to its right, else to its left when there is no room (the window is about 700 px wide).
-     * 30 px away: the panel widens as its figures arrive.
-     */
-    #stepTimingsPosition(): { x: number; y: number } | undefined {
-        const panel = this.#timerDisplay?.getBoundingClientRect();
-        if (!panel) return undefined;
-        const room = window.innerWidth - panel.right > 730;
-        return { x: room ? panel.right + 30 : Math.max(10, panel.left - 710), y: panel.top };
     }
 
     /** Ensure the average span structure (main/sd) exists for a given element.
@@ -878,7 +871,7 @@ export class HSAutosingModal {
 
     /** Records the completion of a singularity, updating metrics and stats.
      *  Stores running averages for duration, quarks, and golden quarks. */
-    public recordSingularity(gainedGoldenQuarks: number, currentGoldenQuarks: number, gainedQuarks: number, currentQuarks: number, happyHourStackAmount: number, c15Score?: Decimal): void {
+    public recordSingularity(gainedGoldenQuarks: number, currentGoldenQuarks: number, gainedQuarks: number, currentQuarks: number, quarksFromAnts: number, quarksThisSingularity: number, happyHourStackAmount: number, c15Score?: Decimal): void {
         const now = performance.now();
         const singularityDuration = (now - this.#lastSingularityTimestamp) / 1000;
         this.#lastSingularityTimestamp = now;
@@ -903,6 +896,8 @@ export class HSAutosingModal {
         this.#allTimeStats.totalDuration += singularityDuration;
         // Quarks
         this.#allTimeStats.totalQuarks += realQuarksGain;
+        this.#allTimeStats.totalQuarksFromAnts += quarksFromAnts;
+        this.#allTimeStats.totalQuarksEarned   += quarksThisSingularity;
         // Golden Quarks
         this.#allTimeStats.totalGoldenQuarks += gainedGoldenQuarks;
         // Min and Max
@@ -1196,6 +1191,7 @@ export class HSAutosingModal {
         const allTimeQuarksPerSec       = allTimeDuration > 0 ? allTimeQuarks / allTimeDuration : 0;
         const allTimeGoldenQuarks       = this.#allTimeStats.totalGoldenQuarks;
         const allTimeGoldenQuarksPerSec = allTimeDuration > 0 ? allTimeGoldenQuarks / allTimeDuration : 0;
+        const antsSharePercent          = 100 * this.#allTimeStats.totalQuarksFromAnts / this.#allTimeStats.totalQuarksEarned;
 
         // Farming section
         this.#setTextEl(this.#completedSingAmountSpan, singCompleted ? `${singCompleted}` : '-');
@@ -1212,6 +1208,8 @@ export class HSAutosingModal {
         this.#setTextEl(this.#quarksRateValSpan,    `${formatNumber(allTimeQuarksPerSec)}/s`);
         this.#setTextEl(this.#quarksRateHrSpan,     `(${formatNumber(allTimeQuarksPerSec * 3600)}/hr)`);
         this.#setTextEl(this.#quarksTotalGainsSpan, allTimeQuarks > 0 ? formatNumber(allTimeQuarks) : '-');
+        this.#setTextEl(this.#quarksAntsShareSpan,  Number.isFinite(antsSharePercent) ? `(${antsSharePercent.toFixed(2)}% ants)` : '');
+        if (this.#quarksAntsShareSpan) this.#quarksAntsShareSpan.title = `Quarks earned during this run from the Ants to Quark Corner: ${formatNumber(this.#allTimeStats.totalQuarksFromAnts)}`;
 
         // Golden Quarks section
         this.#setTextEl(this.#gquarksRateValSpan,    `${formatNumber(allTimeGoldenQuarksPerSec)}/s`);
@@ -1341,6 +1339,8 @@ export class HSAutosingModal {
             totalQuarks: 0,
             minQuarks: Infinity,
             maxQuarks: 0,
+            totalQuarksFromAnts: 0,
+            totalQuarksEarned: 0,
             totalGoldenQuarks: 0,
             minGoldenQuarks: Infinity,
             maxGoldenQuarks: 0

@@ -1670,8 +1670,13 @@ export class HSAutosing extends HSModule {
 
         let q = 0;
         let gq = 0;
+        // Read before the Exalt click: the singularity it runs resets both
+        let quarksFromAnts = 0;
+        let quarksThisSingularity = 0;
         let c15ScoreBeforeSinging: Decimal;
         if (this.#hasLivePlayer) {
+            quarksFromAnts = this.#exposedPlayer!.ants.quarksGainedFromAnts;
+            quarksThisSingularity = this.#exposedPlayer!.quarksThisSingularity;
             c15ScoreBeforeSinging = new Decimal(this.#exposedPlayer!.challenge15Exponent);
         } else {
             // A GDS fetch right after a singularity lags, so the amounts are read before it for bookmarklet:
@@ -1679,6 +1684,8 @@ export class HSAutosing extends HSModule {
             const data = await this.#gameDataAPI?.getLatestAutosingData();
             q = data?.quarks ?? 0;
             gq = data?.goldenQuarks ?? 0;
+            quarksFromAnts = data?.quarksFromAnts ?? 0;
+            quarksThisSingularity = data?.quarksThisSingularity ?? 0;
             c15ScoreBeforeSinging = this.#getChallengeAccessor(15).getCompletions();
             this.#lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
         }
@@ -1730,7 +1737,7 @@ export class HSAutosing extends HSModule {
             // The singularity done at start isn't recorded: the first recorded one starts after it
             this.#autosingModal?.restartSingularityTimer();
         } else {
-            this.#autosingModal?.recordSingularity(gqGain, gq, qGain, q, happyHourStackAmount, c15ScoreBeforeSinging);
+            this.#autosingModal?.recordSingularity(gqGain, gq, qGain, q, quarksFromAnts, quarksThisSingularity, happyHourStackAmount, c15ScoreBeforeSinging);
         }
         const recordedAt = this.#recordTimings ? performance.now() : 0;
         if (this.#recordTimings) {
