@@ -46,7 +46,9 @@ async function main() {
     }));
     assert.equal(table.singularities, 2);
     nearly(table.avgMs, 1500);
-    nearly(table.sdMs, Math.sqrt(500000));
+    // Divided by the count, as in the run panel
+    nearly(table.sdMs, 500);
+    assert.ok(stepTableSummaryLines(table)[0].startsWith('2 singularities · 1.50 s ± 0.50'));
     nearly(table.quarksPerHour, 200 / 3000 * 3600000);
     nearly(table.goldenQuarksPerHour, 20 / 3000 * 3600000);
     nearly(table.c15, 1e6);
@@ -73,6 +75,7 @@ async function main() {
     assert.equal(table.singularities, 2);
     nearly(table.avgMs, 1000);
     nearly(stepRows(table)[0].ms, 150);
+    assert.ok(stepTableSummaryLines(table)[0].startsWith('Last 2 of 4 singularities · '));
 
     // The singularities' cap can drop more than the steps'
     table = buildStepTable(timings({
@@ -91,6 +94,10 @@ async function main() {
         steps: [step(1, 'a', 0, 150)],
     }));
     assert.equal(rowOf(table, 'other').ms, 0);
+
+    // C15 is the geometric mean, as in the run panel
+    table = buildStepTable(timings({ current: { sing: 3, startedAt: 0, passCount: {}, phaseMs: {} }, singularities: [sing(1, 1, { c15: 1e120 }), sing(2, 1, { c15: 1e130 })] }));
+    assert.ok(Math.abs(table.c15 / 1e125 - 1) < 1e-9);
 
     // A C15 out of a number's range is ignored, and none at all gives no figure
     table = buildStepTable(timings({ current: { sing: 3, startedAt: 0, passCount: {}, phaseMs: {} }, singularities: [sing(1, 1, { c15: Infinity }), sing(2, 1, { c15: 1e10 })] }));

@@ -134,8 +134,6 @@ export class HSAutosingModal {
     #metricsSumGoldenQuarks: number = 0;
     #phaseHistory: Map<string, PhaseHistoryEntry> = new Map();
     static readonly #DECIMAL_0 = new Decimal(0);
-    #c15Count: number = 0;
-    #c15Mean: Decimal = HSAutosingModal.#DECIMAL_0;
     #logC15Count: number = 0;
     #logC15Mean: number = 0;
     #logC15M2: number = 0;
@@ -915,27 +913,16 @@ export class HSAutosingModal {
         this.#allTimeStats.minGoldenQuarks = Math.min(this.#allTimeStats.minGoldenQuarks, gainedGoldenQuarks);
         this.#allTimeStats.maxGoldenQuarks = Math.max(this.#allTimeStats.maxGoldenQuarks, gainedGoldenQuarks);
 
-        // Store c15 into history if provided (store Decimal for accurate statistics)
-        if (c15Score !== undefined) {
-            // Update C15 online mean (Decimal Welford)
-            const k       = this.#c15Count + 1;
-            const delta   = c15Score.minus(this.#c15Mean);
-            this.#c15Mean = this.#c15Mean.plus(delta.div(k));
-            this.#c15Count = k;
-
-            // Update online stats for log(C15) using Welford's algorithm (natural log)
-            try {
-                const asNumber = Number(c15Score);
-                if (!Number.isNaN(asNumber) && asNumber > 0) {
-                    const logVal = Math.log(asNumber);
-                    const k      = this.#logC15Count + 1;
-                    const delta  = logVal - this.#logC15Mean;
-                    this.#logC15Mean  += delta / k;
-                    this.#logC15M2    += delta * (logVal - this.#logC15Mean);
-                    this.#logC15Count = k;
-                }
-            } catch (e) {
-                // If conversion/logging fails, skip updating online stats but keep the Decimal history
+        // Online stats of ln(C15), Welford's algorithm: its mean gives the geometric mean shown, its spread σlog.
+        // Read from the Decimal, a score can be out of a number's range. A score of 0 has no log: skipped.
+        if (c15Score !== undefined && c15Score.gt(0)) {
+            const logVal = c15Score.ln();
+            if (Number.isFinite(logVal)) {
+                const k     = this.#logC15Count + 1;
+                const delta = logVal - this.#logC15Mean;
+                this.#logC15Mean  += delta / k;
+                this.#logC15M2    += delta * (logVal - this.#logC15Mean);
+                this.#logC15Count = k;
             }
         }
 
@@ -1252,7 +1239,7 @@ export class HSAutosingModal {
         const minGoldenQuarksGains = this.#allTimeStats.minGoldenQuarks;
 
         // Farming section
-        this.#setTextEl(this.#c15TopSpan,    `C15 ${formatDecimal(this.#c15Mean)}`);
+        this.#setTextEl(this.#c15TopSpan,    `C15 ${formatDecimal(this.#logC15Count > 0 ? Decimal.exp(this.#logC15Mean) : HSAutosingModal.#DECIMAL_0)}`);
         this.#setTextEl(this.#c15SigmaSpan,  sdLogC15 !== null ? `(σlog ±${sdLogC15.toFixed(3)})` : '');
 
         // Times section
@@ -1358,8 +1345,6 @@ export class HSAutosingModal {
             minGoldenQuarks: Infinity,
             maxGoldenQuarks: 0
         };
-        this.#c15Count = 0;
-        this.#c15Mean = HSAutosingModal.#DECIMAL_0;
         this.#logC15Count = 0;
         this.#logC15Mean = 0;
         this.#logC15M2 = 0;

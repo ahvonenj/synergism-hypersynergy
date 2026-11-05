@@ -27,6 +27,8 @@ export interface HSAutosingStepTable {
     target: number;
     // The finished singularities the table covers, all of whose steps are still held
     singularities: number;
+    // All the run's finished singularities, covered or not
+    finishedSingularities: number;
     avgMs: number;
     sdMs: number;
     quarksPerHour: number;
@@ -61,6 +63,7 @@ export function buildStepTable(timings: HSAutosingTimings): HSAutosingStepTable 
         strategy: timings.strategy,
         target: timings.target,
         singularities: count,
+        finishedSingularities: last,
         avgMs: 0,
         sdMs: 0,
         quarksPerHour: 0,
@@ -79,10 +82,9 @@ export function buildStepTable(timings: HSAutosingTimings): HSAutosingStepTable 
         totalGoldenQuarks += s.goldenQuarks;
     }
     table.avgMs = totalMs / count;
-    if (count > 1) {
-        const squares = singularities.reduce((sum, s) => sum + (s.ms - table.avgMs) ** 2, 0);
-        table.sdMs = Math.sqrt(squares / (count - 1));
-    }
+    // Divided by the count, as in the run panel
+    const squares = singularities.reduce((sum, s) => sum + (s.ms - table.avgMs) ** 2, 0);
+    table.sdMs = Math.sqrt(squares / count);
     if (totalMs > 0) {
         table.quarksPerHour = totalQuarks / totalMs * 3600000;
         table.goldenQuarksPerHour = totalGoldenQuarks / totalMs * 3600000;
@@ -132,15 +134,18 @@ export function buildStepTable(timings: HSAutosingTimings): HSAutosingStepTable 
     return table;
 }
 
-/** "10 singularities · 7.18 s ± 0.21", then a line with the rates and the C15 score. */
+/** "10 singularities · 7.18 s ± 0.21" ("Last 144 of 160 singularities" once some are left out), then a line with the rates and the C15 score. */
 export function stepTableSummaryLines(table: HSAutosingStepTable): [string, string] {
+    const covered = table.singularities < table.finishedSingularities
+        ? `Last ${table.singularities} of ${table.finishedSingularities} singularities`
+        : `${table.singularities} singularit${table.singularities === 1 ? 'y' : 'ies'}`;
     const gains = [
         `Quarks ${formatNumber(table.quarksPerHour)}/hr`,
         `Golden quarks ${formatNumber(table.goldenQuarksPerHour)}/hr`,
     ];
     if (table.c15 !== null) gains.push(`C15 ${formatNumber(table.c15)}`);
     return [
-        `${table.singularities} singularit${table.singularities === 1 ? 'y' : 'ies'} · ${(table.avgMs / 1000).toFixed(2)} s ± ${(table.sdMs / 1000).toFixed(2)}`,
+        `${covered} · ${(table.avgMs / 1000).toFixed(2)} s ± ${(table.sdMs / 1000).toFixed(2)}`,
         gains.join(' · '),
     ];
 }
