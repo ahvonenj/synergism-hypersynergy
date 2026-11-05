@@ -1806,7 +1806,7 @@ class Loadout {
         return JSON.stringify(upgradeLevels)
     }
 
-    // effectStat: the stat the Effect shows, when it isn't the one "Maxed?"
+    // effectStat: the stat the Effect shows, when it isn't the one "Maxed"
     // checks (Max SR rows: cubes, maxed on their SR level).
     generateOutput(stat: string = "", maxLoadout: Loadout, p4x4: number | null = null, effectStat: string = stat): HeaterResultRow {
 

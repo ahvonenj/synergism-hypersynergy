@@ -267,7 +267,7 @@ export class HSHeaterInputModalController {
             const showElapsed = () => {
                 const seconds = Math.floor((performance.now() - startedAt) / 1000);
                 const icon = seconds >= 120 ? '🥵' : seconds >= 90 ? '🤒' : seconds >= 60 ? '😵' : '🌡️';
-                recalcButton.textContent = `🔥 Heating${progress}... ⏳ ${seconds}s ${icon}`;
+                recalcButton.textContent = `🔥 Heating${progress}... ${seconds}s ${icon}`;
             };
             showElapsed();
             const elapsedTimer = setInterval(showElapsed, 1000);

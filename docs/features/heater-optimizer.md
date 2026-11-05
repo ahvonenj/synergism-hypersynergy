@@ -36,7 +36,7 @@ The heat is for the **Active Bells** field's bell count (default: the live count
 
 ## Obt + Off row
 One loadout for Obtainium and Offerings together (a player's request).
-- Score obt × off (`obtAndOff` stat: +10% of either counts the same). Effect shows both multipliers ("Obt x / Off y"); "Maxed?" compares the product with the max tree; follows the Post-AoAG (Obt/Off) field. Label "Obt + Off", default icon BlueberryObtainium; the Obt and Off rows' default icons are BlueberryBaseObtainium1 / BlueberryBaseOffering1.
+- Score obt × off (`obtAndOff` stat: +10% of either counts the same). Effect shows both multipliers ("Obt x / Off y"); "Maxed" compares the product with the max tree; follows the Post-AoAG (Obt/Off) field. Label "Obt + Off", default icon BlueberryObtainium; the Obt and Off rows' default icons are BlueberryBaseObtainium1 / BlueberryBaseOffering1.
 - Its own branch `obtAndOff`, "Obt + Off (slower)", unticked until the player ticks it (`heater.md`, "Branches"). Same worker group as Quarks and Obt/Off (shares their Luck, Rune and Voucher tables). The older branch/section id `obtOff` stays (saved in the setting); its checkbox label is "Obt, Off".
 - Cost (node bench): +7 s (S260), +24 s (S230, 90M), +39 s (S289, Exalt 10). The time is `findResourceVoucherOpt`'s bound pass (left frontier ~3.5× Obt's × 61 voucher rows, each fully scored) and, in Exalt 10, loose bounds (43 groups searched instead of 1). Not sound: a per-row Luck budget for the bound (a Blueberry repair can make an over-budget pair affordable).
 - Autosing Sync Settings: Obt + Off is the second choice for Autosing Obt and Autosing Off.

@@ -72,6 +72,31 @@ function formatCostCellValue(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost
     return escapeHtml(`${sign}${groupedDigits}`);
 }
 
+const COMPACT_COST_UNITS: readonly (readonly [number, string])[] = [[1e9, "B"], [1e6, "M"], [1e3, "K"]];
+
+// 105 727 028 -> 105.72M, in the browser's number format and truncated like
+// formatNumber. A value under 1000, or that isn't a number, stays as it is.
+function formatCompactCost(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost]): string {
+    const raw = String(value).trim();
+    if (!/^-?\d+$/.test(raw)) return escapeHtml(String(value));
+    const number = Number(raw);
+    const unit = COMPACT_COST_UNITS.find(([size]) => Math.abs(number) >= size);
+    if (!unit) return escapeHtml(raw);
+    const compact = (number / unit[0]).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        roundingMode: "trunc",
+    });
+    return escapeHtml(`${compact}${unit[1]}`);
+}
+
+// The exact cost is in the title, when the cell shortens it
+function buildAmbrosiaCostCell(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost]): string {
+    const compact = formatCompactCost(value);
+    const exact = formatCostCellValue(value);
+    return compact === exact ? `<td>${exact}</td>` : `<td title="${exact}">${compact}</td>`;
+}
+
 function normalizeArrayResultRow(row: HeaterResultRow): NormalizedResultRow {
     return {
         loadoutValue:       row[RESULT_COL_INDEX.loadout],
@@ -119,10 +144,12 @@ function buildShortfallIcons(shortfall: HeaterResultShortfall): string {
     return icons.join("");
 }
 
-// An unaffordable row's short resource: what the tree needs, "≥" for a minimum
-function buildShortCostCell(short: HeaterShortResource, atLeast: boolean): string {
-    const need = `${atLeast ? "≥ " : ""}${formatCostCellValue(short.need)}`;
-    return `<td class="hs-heater-short-cost" title="You have ${formatCostCellValue(short.have)}">${need}</td>`;
+// An unaffordable row's short resource: what the tree needs, "≥" for a minimum.
+// The title has the exact figures, whichever way the cell writes them.
+function buildShortCostCell(short: HeaterShortResource, atLeast: boolean, formatCell = formatCostCellValue): string {
+    const prefix = atLeast ? "≥ " : "";
+    const title = `Needs ${prefix}${formatCostCellValue(short.need)}, you have ${formatCostCellValue(short.have)}`;
+    return `<td class="hs-heater-short-cost" title="${title}">${prefix}${formatCell(short.need)}</td>`;
 }
 
 function buildHeaderTooltipLabel(label: string, tooltip: string, iconHtml = ""): string {
@@ -136,7 +163,7 @@ function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string 
     const ambrosiaHeader = `<img src="Pictures/Default/Ambrosia.png" class="hs-heater-header-icon hs-heater-header-icon-small" />`;
     if (showRouting) {
         const splitHeader = `<th colspan="2" class="hs-heater-split-cell"><div class="hs-heater-split"><span>${escapeHtml(effectHeader)}</span><span>Routing</span></div></th>`;
-        return `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${splitHeader}<th>Maxed?</th></tr>`;
+        return `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${splitHeader}<th>Maxed</th></tr>`;
     }
     // Every p4x4 row's Effect is a cube multiplier, SR rows included
     const cubeIcon = `<img src="Pictures/Default/TinyWow3.png" class="hs-heater-header-icon hs-heater-effect-header-icon" alt="Cubes" />`;
@@ -149,8 +176,8 @@ function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string 
         : `<th>p4x4 eq</th>`;
 
     return showP4x4
-        ? `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${effectLabel}${p4x4Label}<th>Maxed?</th></tr>`
-        : `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th><th colspan="2">${escapeHtml(effectHeader)}</th><th>Maxed?</th></tr>`;
+        ? `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${effectLabel}${p4x4Label}<th>Maxed</th></tr>`
+        : `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th><th colspan="2">${escapeHtml(effectHeader)}</th><th>Maxed</th></tr>`;
 }
 
 // The H row that wins at the live P4x4 when the table is drawn (it's redrawn
@@ -248,8 +275,8 @@ function buildArraySectionDataRow(
         ? buildShortCostCell(shortfall.blueberries, shortfall.atLeast)
         : `<td>${formatCostCellValue(rowModel.blueberryCostValue)}</td>`;
     const costCell = shortfall?.ambrosia
-        ? buildShortCostCell(shortfall.ambrosia, shortfall.atLeast)
-        : `<td>${formatCostCellValue(rowModel.costValue)}</td>`;
+        ? buildShortCostCell(shortfall.ambrosia, shortfall.atLeast, formatCompactCost)
+        : buildAmbrosiaCostCell(rowModel.costValue);
     // Effect takes two columns, or shares them with p4x4 eq. With the routing,
     // it stays one cell, split inside (see .hs-heater-split-cell).
     const effectHtml = buildEffectHtml(entry, rowModel.effectValue);

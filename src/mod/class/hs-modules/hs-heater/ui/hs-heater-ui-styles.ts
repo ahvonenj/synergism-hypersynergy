@@ -197,6 +197,8 @@ export class HSHeaterUIStyles {
                 margin-left: auto;
                 margin-right: auto;
                 margin-bottom: 4px;
+                /* Room for the two badges, which are out of the flow: 16 slots can't run under them */
+                padding: 0 30px;
             }
 
             .hs-heater-results-topbar > * {
@@ -205,13 +207,29 @@ export class HSHeaterUIStyles {
                 margin-bottom: 0;
             }
 
+            /* The Ambrosia tab's slots, as compact as the "Your loadout order" icons */
+            .hs-heater-results-topbar .hs-quickbar-slots-wrapper {
+                gap: 0;
+            }
+
+            .hs-heater-results-topbar .blueberryLoadoutSlot {
+                width: 26px;
+                height: 26px;
+                /* The game's buttons have min-height: 30px */
+                min-height: 0;
+                /* The number in the corner, where the game's header bar has it */
+                padding: 0 0 0 2px;
+                line-height: 1.1;
+                background-size: contain;
+            }
+
             .hs-heater-results-topbar-exalt {
                 position: absolute;
                 left: 0px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 30px;
-                height: 30px;
+                width: 26px;
+                height: 26px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -222,8 +240,8 @@ export class HSHeaterUIStyles {
             }
 
             .hs-heater-results-topbar-exalt img {
-                width: 24px;
-                height: 24px;
+                width: 22px;
+                height: 22px;
                 pointer-events: none;
             }
 
@@ -232,8 +250,8 @@ export class HSHeaterUIStyles {
                 right: 0px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 30px;
-                height: 30px;
+                width: 26px;
+                height: 26px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -249,8 +267,22 @@ export class HSHeaterUIStyles {
             /* === Results & Subtable Styles === */
             .hs-heater-results-table td, .hs-heater-results-table th,
             .hs-heater-subtable td, .hs-heater-subtable th {
-                padding: 0px 8px;
+                padding: 0px 4px;
                 text-align: center;
+                font-size: 0.85em;
+            }
+
+            /* Only the first column and the section titles keep the full size */
+            .hs-heater-results-table td:has(.hs-heater-type-cell-content),
+            .hs-heater-results-table th:first-child,
+            .hs-heater-results-table td.hs-heater-title-row {
+                font-size: 1em;
+            }
+
+            /* Centred under the slots when they are the wider of the two */
+            .hs-heater-results-table {
+                margin-left: auto;
+                margin-right: auto;
             }
 
             .hs-heater-redamb-summary {
@@ -716,7 +748,7 @@ export class HSHeaterUIStyles {
                 flex: 1;
                 text-align: center;
                 box-sizing: border-box;
-                padding: 0 18px;
+                padding: 0 4px;
             }
 
             .hs-heater-type-icon {
@@ -735,17 +767,17 @@ export class HSHeaterUIStyles {
                 min-height: 20px;
                 cursor: pointer;
                 padding: 1px 4px;
-                font-size: 0.85em;
+                /* The cell's own size: its font is already reduced */
+                font-size: 1em;
                 border: 2px solid transparent;
             }
 
             /* Common section with Purple rows: Effect and Routing are one cell spanning both
                effect columns, split at a fixed width. As two real columns,
-               the routing's width would set the p4x4 section's columns too. */
+               the routing's width would set the p4x4 section's columns too.
+               The header and data cells need the same font size, or the split moves. */
             .hs-heater-results-table .hs-heater-split-cell {
                 position: relative;
-                padding-left: 4px;
-                padding-right: 4px;
                 /* The "Effect" header in bold is about 3.35em wide */
                 --hs-heater-split-effect-width: 3.4em;
             }
@@ -771,11 +803,12 @@ export class HSHeaterUIStyles {
                are narrower than the icons, whose sides are transparent. */
             .hs-heater-purple-routing {
                 display: grid;
-                grid-template-columns: 12px 2.8em 12px 2.5em auto;
+                grid-template-columns: 11px 2.5em 11px 2.5em auto;
                 column-gap: 1px;
                 align-items: center;
                 justify-content: start;
                 justify-items: start;
+                /* This column's width sets the whole table's Effect area */
                 font-size: 0.9em;
                 white-space: nowrap;
                 cursor: help;
@@ -783,15 +816,16 @@ export class HSHeaterUIStyles {
 
             .hs-heater-purple-routing .hs-heater-apply-routing-btn {
                 padding: 0;
+                border: 0;
                 font-size: 1em;
                 line-height: 1;
                 color: var(--purple-text-color, #FF29FF);
             }
 
             .hs-heater-routing-icon {
-                width: 16px;
-                height: 16px;
-                margin: 0 -2px;
+                width: 14px;
+                height: 14px;
+                margin: 0 -1.5px;
                 object-fit: contain;
             }
 
