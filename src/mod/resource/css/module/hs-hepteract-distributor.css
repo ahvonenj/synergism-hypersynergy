@@ -179,6 +179,14 @@
     width: 30px;
 }
 
+/* Same gap as the panel's rows */
+.hs-hept-distributor-options {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
 .hs-hept-distributor-option {
     display: flex;
     align-items: center;

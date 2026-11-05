@@ -309,8 +309,12 @@ export class HSHepteractDistributor extends HSModule {
         this.#controls.push(keepInput);
 
         type OptionSetting = 'hepteractDistributorUseReducers' | 'hepteractDistributorTalismanAlone' | 'hepteractDistributorAllowPartial';
+        // Centred as one block, rows left-aligned, so a sub-option's indent lines up under its parent's text.
         // A sub-option is only shown while the option above it is ticked (CSS)
-        const option = (text: string, hint: string, setting: OptionSetting, subOption = false) => {
+        const options = document.createElement('div');
+        options.className = 'hs-hept-distributor-options';
+        panel.appendChild(options);
+        const option =(text: string, hint: string, setting: OptionSetting, subOption = false) => {
             const label = document.createElement('label');
             label.className = subOption ? 'hs-hept-distributor-option hs-hept-distributor-suboption' : 'hs-hept-distributor-option';
             label.title = hint;
@@ -321,7 +325,7 @@ export class HSHepteractDistributor extends HSModule {
                 HSSettings.getSetting(setting).setValue(checkbox.checked);
             });
             label.append(checkbox, text);
-            panel.appendChild(label);
+            options.appendChild(label);
             this.#controls.push(checkbox);
         };
         option('Use singularity reducers and Talisman Power',
