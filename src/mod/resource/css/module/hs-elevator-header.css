@@ -75,9 +75,9 @@ html.hs-elevator-header #mainHeader:not(.headerEditMode) #ascSingularityCountSta
    cursor: default;
 }
 
-/* Two lines reserved: the game's text takes one while locked, two otherwise */
+/* One line, locked or not (the game's own line, shown when its number can't be read, may take two) */
 #hs-elevator-popover .hs-elevator-status {
-   min-height: 2.5em;
+   min-height: 1.25em;
    line-height: 1.25;
    color: #ccc;
    text-align: center;

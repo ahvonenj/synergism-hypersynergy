@@ -310,6 +310,6 @@ export class HSElevatorHeader {
         }
         const next = /(\d+)\D*$/.exec(game.status.textContent ?? '')?.[1];
         if (!next) return game.status.innerHTML;
-        return `Future Sings <span style="color:var(--lime-color, lime)">UNLOCKED</span>.<br>Your next Sing will be ${gold(`S${next}`)}`;
+        return `Future Sings <span style="color:var(--lime-color, lime)">UNLOCKED</span>. Next will be ${gold(`S${next}`)}`;
     }
 }

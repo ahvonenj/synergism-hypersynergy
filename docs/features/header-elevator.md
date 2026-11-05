@@ -25,13 +25,13 @@ game's module back, cursor included.
   clicks only when the player's value differs from the one wanted.
 - **Short English texts** (Shewchou's choice, English for everyone, as the corruption popover's toggles): "Lock Future
   Sings" and "Only go up 1 Sing", the game's translated sentences as their tooltips; status "Future Sings LOCKED. You
-  will repeat S280." / "Future Sings UNLOCKED. Your next Sing will be S291" in the game's colours. The title stays the
+  will repeat S280." / "Future Sings UNLOCKED. Next will be S291" in the game's colours, one line each. The title stays the
   game's, after "[HS] " (as the corruption popover's).
 - **The lock line names the target, not the game's current singularity.** Locked, the game's tab and Singularity Confirm
   say "repeat S{singularityCount}", but `Reset.ts` sets `singularityCount = singularityElevatorTarget`: at S101 with
   target 100, it goes to S100. Unlocked, the next singularity is the last number of the game's line (with "Only go up
   1" off it depends on the lookahead); the game's line as it is if it has none. The game's own texts are left alone.
-- **"Only go up 1" is greyed while locked**, not hidden as on the tab, and the box has one width and two lines for the
+- **"Only go up 1" is greyed while locked**, not hidden as on the tab, and the box has one width and one line for the
   status: nothing moves when a toggle changes the texts.
 - **Below S10** (`highestSingularityCount < 10`, the game's check) only the game's out-of-order title and text: the game
   only hides its controls there, and they still work.
