@@ -987,19 +987,18 @@ export class AmbrosiaHelper {
             mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
-
-        const vals: HSCalculationComponents = {
-            'Quark Upgrade - Ambrosia Generation I': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration1', 'ambrosiaGenerationMult', mode) as number,
-            'Quark Upgrade - Ambrosia Generation II': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration2', 'ambrosiaGenerationMult', mode) as number,
-            'Quark Upgrade - Ambrosia Generation III': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration3', 'ambrosiaGenerationMult', mode) as number,
-            'Quark Upgrade - Ambrosia Generation IV': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration4', 'ambrosiaGenerationMult', mode) as number,
+        const calculateVals = (): HSCalculationComponents => {
+            const vals: HSCalculationComponents = {
+                'Quark Upgrade - Ambrosia Generation I': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration1', 'ambrosiaGenerationMult', mode) as number,
+                'Quark Upgrade - Ambrosia Generation II': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration2', 'ambrosiaGenerationMult', mode) as number,
+                'Quark Upgrade - Ambrosia Generation III': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration3', 'ambrosiaGenerationMult', mode) as number,
+                'Quark Upgrade - Ambrosia Generation IV': this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaGeneration4', 'ambrosiaGenerationMult', mode) as number,
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a * b, 1);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a * b, 1));
     }
 
     calculateAmbrosiaGenerationSingularityUpgrade(reduce_vals = true) {
@@ -1032,18 +1031,16 @@ export class AmbrosiaHelper {
         const exalt1Completions = this.#api.getGameData()?.singularityChallenges.noSingularityUpgrades.completions ?? 0;
         const cacheName = 'CampaignAmbrosiaSpeedBonus' as keyof CalculationCache;
         const calculationVars: number[] = [tokens, exalt1Completions];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            let campaignBlueberrySpeedBonus;
+            if (tokens < 2000 || exalt1Completions <= 0) {
+                campaignBlueberrySpeedBonus = 1;
+            } else {
+                campaignBlueberrySpeedBonus = 1 + 0.02 * 1 / 2000 * Math.min(tokens - 2000, 2000) + 0.03 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2000));
+            }
 
-        let campaignBlueberrySpeedBonus;
-        if (tokens < 2000 || exalt1Completions <= 0) {
-            campaignBlueberrySpeedBonus = 1;
-        } else {
-            campaignBlueberrySpeedBonus = 1 + 0.02 * 1 / 2000 * Math.min(tokens - 2000, 2000) + 0.03 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2000));
-        }
-
-        this.#api.updateCalculationCache(cacheName, { value: campaignBlueberrySpeedBonus, cachedBy: calculationVars });
-        return campaignBlueberrySpeedBonus;
+            return campaignBlueberrySpeedBonus;
+        });
     }
 
     calculateAmbrosiaGenerationSpeed(reduce_vals = true, trueBaseOrMode: boolean | CalculationMode = false) {
@@ -1121,33 +1118,32 @@ export class AmbrosiaHelper {
             mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
-
-        const vals: HSCalculationComponents = {
-            'Default Per Second': AMBROSIA_UNLOCKED_GATE,
-            'PseudoCoin Upgrade': P_GEN_BUFF_LVL ? 1 + P_GEN_BUFF_LVL * 0.05 : 1,
-            'Campaign Bonus': campaignBlueberrySpeedBonus,
-            'Quark Upgrades (I-IV)': ambrosiaGenerationShopUpgrade,
-            'Golden Quark Upgrades (I-IV)': ambrosiaGenerationSingularityUpgrade,
-            'Octeract Upgrades (I-IV)': ambrosiaGenerationOcteractUpgrade,
-            'Ambrosia - Shameless, Ambrosial Subscriber Advertisement': ambrosiaPatreonBlueberryGeneration,
-            'The Jack of all Trades': panthemaAmbrosiaGenerationMult,
-            'EXALT - One Challenge Caps': oneChallengeCap,
-            'EXALT - No Ambrosia Effects': noAmbrosiaUpgrades,
-            'Red Ambrosia - The Sands of Time': RED_AMB_GEN_1,
-            'Red Ambrosia - The Sands of Time II': RED_AMB_GEN_2,
-            'Cookie Upgrade 26 (Cx26)': cookie76Bonus,
-            'Cash Grab ULTRA Blueberry Bonus': this.#api.quarkShop.getShopUpgradeEffects('shopCashGrabUltra', 'ambrosiaGenerationMult') as number,
-            "Purple Honey - The Purple Guy's Greeting": purpleTutorial,
-            'Event Bonus': eventBlueberryTimeBuff,
-            'Lifetime Purple Honey Power': lifetimePurpleHoney,
-            'Purple Ambrosia - Aries': purpleAries,
+        const calculateVals = (): HSCalculationComponents => {
+            const vals: HSCalculationComponents = {
+                'Default Per Second': AMBROSIA_UNLOCKED_GATE,
+                'PseudoCoin Upgrade': P_GEN_BUFF_LVL ? 1 + P_GEN_BUFF_LVL * 0.05 : 1,
+                'Campaign Bonus': campaignBlueberrySpeedBonus,
+                'Quark Upgrades (I-IV)': ambrosiaGenerationShopUpgrade,
+                'Golden Quark Upgrades (I-IV)': ambrosiaGenerationSingularityUpgrade,
+                'Octeract Upgrades (I-IV)': ambrosiaGenerationOcteractUpgrade,
+                'Ambrosia - Shameless, Ambrosial Subscriber Advertisement': ambrosiaPatreonBlueberryGeneration,
+                'The Jack of all Trades': panthemaAmbrosiaGenerationMult,
+                'EXALT - One Challenge Caps': oneChallengeCap,
+                'EXALT - No Ambrosia Effects': noAmbrosiaUpgrades,
+                'Red Ambrosia - The Sands of Time': RED_AMB_GEN_1,
+                'Red Ambrosia - The Sands of Time II': RED_AMB_GEN_2,
+                'Cookie Upgrade 26 (Cx26)': cookie76Bonus,
+                'Cash Grab ULTRA Blueberry Bonus': this.#api.quarkShop.getShopUpgradeEffects('shopCashGrabUltra', 'ambrosiaGenerationMult') as number,
+                "Purple Honey - The Purple Guy's Greeting": purpleTutorial,
+                'Event Bonus': eventBlueberryTimeBuff,
+                'Lifetime Purple Honey Power': lifetimePurpleHoney,
+                'Purple Ambrosia - Aries': purpleAries,
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a * b, 1);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a * b, 1));
     }
 
     // Mirrors allRedAmbrosiaGenerationSpeedStats in SynergismOfficial/src/Statistics.ts.
@@ -1278,39 +1274,37 @@ export class AmbrosiaHelper {
             barDependence.completions,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            if (twoMindEnabled) {
+                return 10_000_000;
+            }
 
-        if (twoMindEnabled) {
-            return 10_000_000;
-        }
+            if (barDependence.enabled) {
+                return Math.max(
+                    25_000_000,
+                    1.5e15 * (barDependence.completions + 1) / (data.lifetimeAmbrosia + 1)
+                );
+            }
 
-        if (barDependence.enabled) {
-            return Math.max(
-                25_000_000,
-                1.5e15 * (barDependence.completions + 1) / (data.lifetimeAmbrosia + 1)
-            );
-        }
+            let val = timePerAmbrosia;
+            val += Math.floor((data.lifetimeAmbrosia / 300));
 
-        let val = timePerAmbrosia;
-        val += Math.floor((data.lifetimeAmbrosia / 300));
+            const acceleratorMult = this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaAccelerator', 'ambrosiaPointRequirementMult') as number;
+            const brickOfLeadMult = ignoreBrickOfLead
+                ? 1
+                : this.getAmbrosiaUpgradeEffects('ambrosiaBrickOfLead').barRequirementMult;
 
-        const acceleratorMult = this.#api.quarkShop.getShopUpgradeEffects('shopAmbrosiaAccelerator', 'ambrosiaPointRequirementMult') as number;
-        const brickOfLeadMult = ignoreBrickOfLead
-            ? 1
-            : this.getAmbrosiaUpgradeEffects('ambrosiaBrickOfLead').barRequirementMult;
+            val *= acceleratorMult;
+            val *= brickOfLeadMult;
 
-        val *= acceleratorMult;
-        val *= brickOfLeadMult;
+            if (data.lifetimeAmbrosia >= 10000) {
+                const extraScalingPower = Math.log10(4);
+                val *= Math.pow(data.lifetimeAmbrosia / 10000, extraScalingPower);
+                val = Math.ceil(val);
+            }
 
-        if (data.lifetimeAmbrosia >= 10000) {
-            const extraScalingPower = Math.log10(4);
-            val *= Math.pow(data.lifetimeAmbrosia / 10000, extraScalingPower);
-            val = Math.ceil(val);
-        }
-
-        this.#api.updateCalculationCache(cacheName, { value: val, cachedBy: calculationVars });
-        return val;
+            return val;
+        });
     }
 
     calculateRequiredRedAmbrosiaTime(ignoreTwoMind = false) {
@@ -1328,31 +1322,29 @@ export class AmbrosiaHelper {
             barDependence.completions,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            if (twoMindEnabled) {
+                return 7_500;
+            }
 
-        if (twoMindEnabled) {
-            return 7_500;
-        }
+            if (barDependence.enabled) {
+                return Math.max(
+                    7_500,
+                    2e11 * (barDependence.completions + 1) / (data.lifetimeRedAmbrosia + 1)
+                );
+            }
 
-        if (barDependence.enabled) {
-            return Math.max(
-                7_500,
-                2e11 * (barDependence.completions + 1) / (data.lifetimeRedAmbrosia + 1)
-            );
-        }
+            const redBarRequirementMultiplier = this.#api.getSingularityChallengeEffect('limitedTime', 'barRequirementMultiplier');
 
-        const redBarRequirementMultiplier = this.#api.getSingularityChallengeEffect('limitedTime', 'barRequirementMultiplier');
+            let val = HSGlobal.HSAmbrosia.TIME_PER_RED_AMBROSIA;
+            val += 2 * data.lifetimeRedAmbrosia;
 
-        let val = HSGlobal.HSAmbrosia.TIME_PER_RED_AMBROSIA;
-        val += 2 * data.lifetimeRedAmbrosia;
+            const max = 1e4 * +redBarRequirementMultiplier;
+            val *= +redBarRequirementMultiplier;
 
-        const max = 1e4 * +redBarRequirementMultiplier;
-        val *= +redBarRequirementMultiplier;
-
-        const reduced = Math.min(max, val);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+            const reduced = Math.min(max, val);
+            return reduced;
+        });
     }
 
     calculatePurpleHoneyConversionFactor(ignoreTwoMind = false) {
@@ -1409,17 +1401,15 @@ export class AmbrosiaHelper {
             data.lifetimeAmbrosia,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const numDigits = data.lifetimeAmbrosia > 0 ? 1 + Math.floor(Math.log10(data.lifetimeAmbrosia)) : 0;
+            const matissa = Math.floor(data.lifetimeAmbrosia / Math.pow(10, numDigits - 1));
 
-        const numDigits = data.lifetimeAmbrosia > 0 ? 1 + Math.floor(Math.log10(data.lifetimeAmbrosia)) : 0;
-        const matissa = Math.floor(data.lifetimeAmbrosia / Math.pow(10, numDigits - 1));
+            const extraReduction = matissa >= 3 ? 1 : 0;
+            const reduced = Math.max(0, 2 * (numDigits - digitReduction) - 1 + extraReduction);
 
-        const extraReduction = matissa >= 3 ? 1 : 0;
-        const reduced = Math.max(0, 2 * (numDigits - digitReduction) - 1 + extraReduction);
-
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+            return reduced;
+        });
     }
 
     calculateToNextThreshold() {
@@ -1432,24 +1422,22 @@ export class AmbrosiaHelper {
             data.lifetimeAmbrosia,
         ];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const numThresholds = this.calculateNumberOfThresholds();
+            let val;
 
-        const numThresholds = this.calculateNumberOfThresholds();
-        let val;
-
-        if (numThresholds === 0) {
-            val = 10000 - data.lifetimeAmbrosia;
-        } else {
-            if (numThresholds % 2 === 0) {
-                val = Math.pow(10, numThresholds / 2 + digitReduction) - data.lifetimeAmbrosia;
+            if (numThresholds === 0) {
+                val = 10000 - data.lifetimeAmbrosia;
             } else {
-                val = 3 * Math.pow(10, (numThresholds - 1) / 2 + digitReduction) - data.lifetimeAmbrosia;
+                if (numThresholds % 2 === 0) {
+                    val = Math.pow(10, numThresholds / 2 + digitReduction) - data.lifetimeAmbrosia;
+                } else {
+                    val = 3 * Math.pow(10, (numThresholds - 1) / 2 + digitReduction) - data.lifetimeAmbrosia;
+                }
             }
-        }
 
-        this.#api.updateCalculationCache(cacheName, { value: val, cachedBy: calculationVars });
-        return val;
+            return val;
+        });
     }
 
     calculateAmbrosiaUpgradeValue(upgradeName: AmbrosiaUpgradeNames, freeLevelsOnly = false) {
@@ -1478,21 +1466,17 @@ export class AmbrosiaHelper {
             data.ambrosiaUpgrades[upgradeName].purpleAmbrosiaInvested ?? 0,
             extraLevels,
         ];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            if (freeLevelsOnly) {
+                const reduced = extraLevels;
+                return reduced;
+            }
 
-        if (cached !== undefined) return cached;
+            const upgradeValue = purchasedLevel + extraLevels;
 
-        if (freeLevelsOnly) {
-            const reduced = extraLevels;
-            this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
+            const reduced = upgradeValue;
             return reduced;
-        }
-
-        const upgradeValue = purchasedLevel + extraLevels;
-
-        const reduced = upgradeValue;
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+        });
     }
 
     calculateRedAmbrosiaUpgradeValue(upgradeName: keyof RedAmbrosiaUpgrades) {
@@ -1504,21 +1488,19 @@ export class AmbrosiaHelper {
         if (!(upgradeName in this.redAmbrosiaUpgradeCalculationCollection)) return 0;
 
         const calculationVars: number[] = [data.redAmbrosiaUpgrades[upgradeName]];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const investmentParameters = this.redAmbrosiaUpgradeCalculationCollection[upgradeName];
 
-        const investmentParameters = this.redAmbrosiaUpgradeCalculationCollection[upgradeName];
+            const upgradeValue = this.investToRedAmbrosiaUpgrade(
+                data.redAmbrosiaUpgrades[upgradeName],
+                investmentParameters.costPerLevel,
+                investmentParameters.maxLevel,
+                investmentParameters.costFunction,
+            );
 
-        const upgradeValue = this.investToRedAmbrosiaUpgrade(
-            data.redAmbrosiaUpgrades[upgradeName],
-            investmentParameters.costPerLevel,
-            investmentParameters.maxLevel,
-            investmentParameters.costFunction,
-        );
-
-        const reduced = upgradeValue;
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+            const reduced = upgradeValue;
+            return reduced;
+        });
     }
 
     investToAmbrosiaUpgrade(
@@ -1594,19 +1576,17 @@ export class AmbrosiaHelper {
         const cacheName = 'SingularityMilestoneBlueberries' as keyof CalculationCache;
         const calculationVars: number[] = [gameData.highestSingularityCount];
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            let val = 0;
 
-        let val = 0;
+            if (gameData.highestSingularityCount >= 270) val = 5;
+            else if (gameData.highestSingularityCount >= 256) val = 4;
+            else if (gameData.highestSingularityCount >= 192) val = 3;
+            else if (gameData.highestSingularityCount >= 128) val = 2;
+            else if (gameData.highestSingularityCount >= 64) val = 1;
 
-        if (gameData.highestSingularityCount >= 270) val = 5;
-        else if (gameData.highestSingularityCount >= 256) val = 4;
-        else if (gameData.highestSingularityCount >= 192) val = 3;
-        else if (gameData.highestSingularityCount >= 128) val = 2;
-        else if (gameData.highestSingularityCount >= 64) val = 1;
-
-        const reduced = val;
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+            const reduced = val;
+            return reduced;
+        });
     }
 }

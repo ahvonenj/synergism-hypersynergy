@@ -166,16 +166,8 @@ export class TalismanHelper {
             this.#api.getSingularityChallengeEffect('taxmanLastStand', 'talismanRuneEffect') ?? 0,
         ];
 
-        if (mode === 'normal') {
-            const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-            if (cached !== undefined) return cached;
-        }
-
-        const result = allTalismanRuneBonusStatsSum(this.#api, mode);
-        if (mode === 'normal') {
-            this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-        }
-        return result;
+        if (mode !== 'normal') return allTalismanRuneBonusStatsSum(this.#api, mode);
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => allTalismanRuneBonusStatsSum(this.#api, mode));
     }
 
     getTalismanEffects = <K extends TalismanKeys>(t: K, rarity?: number): TalismanTypeMap[K] => {

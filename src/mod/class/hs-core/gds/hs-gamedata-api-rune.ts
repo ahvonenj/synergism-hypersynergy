@@ -419,28 +419,15 @@ export class RuneHelper {
             runeExpLog,
         ]
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars)
-        if (cached !== undefined) {
-            this.#runeEffectiveLevelCache.set(rune, cached)
-            return cached
-        }
+        const effectiveLevel = this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            if (runeDef.isUnlocked && !runeDef.isUnlocked(data)) return 0
 
-        if (runeDef.isUnlocked && !runeDef.isUnlocked(data)) {
-            this.#api.updateCalculationCache(cacheName, { value: 0, cachedBy: calculationVars })
-            this.#runeEffectiveLevelCache.set(rune, 0)
-            return 0
-        }
+            if (data.currentChallenge.reincarnation === 9 && !runeDef.ignoreChal9) return 1
 
-        if (data.currentChallenge.reincarnation === 9 && !runeDef.ignoreChal9) {
-            this.#api.updateCalculationCache(cacheName, { value: 1, cachedBy: calculationVars })
-            this.#runeEffectiveLevelCache.set(rune, 1)
-            return 1
-        }
+            const runeLevel = this.getRuneLevelFromEXP(rune, runeEXP)
+            return (runeLevel + freeLevels) * effectiveMult
+        })
 
-        const runeLevel = this.getRuneLevelFromEXP(rune, runeEXP)
-        const effectiveLevel = (runeLevel + freeLevels) * effectiveMult
-
-        this.#api.updateCalculationCache(cacheName, { value: effectiveLevel, cachedBy: calculationVars })
         this.#runeEffectiveLevelCache.set(rune, effectiveLevel)
         return effectiveLevel
     }

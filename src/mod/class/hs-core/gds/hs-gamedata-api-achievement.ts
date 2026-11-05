@@ -117,54 +117,46 @@ export class AchievementHelper {
     #sumAchievementRewards<K extends AchievementRewards>(rewardType: K, getter: (reward: any) => number): number {
         const cacheName = getAchievementRewardCacheName(rewardType, 'sum') as keyof CalculationCache;
         const calculationVars = this.#getAchievementRewardCalculationVars(rewardType);
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const data = this.#api.getGameData();
+            const achievements = data?.achievements;
+            const rewardIndices = this.calculateAchievementsByReward[rewardType];
 
-        const data = this.#api.getGameData();
-        const achievements = data?.achievements;
-        const rewardIndices = this.calculateAchievementsByReward[rewardType];
+            const result = rewardIndices.reduce(
+                (sum, index) => sum + (achievements?.[index] ? getter(this.achievements[index].reward!) : 0),
+                0,
+            );
 
-        const result = rewardIndices.reduce(
-            (sum, index) => sum + (achievements?.[index] ? getter(this.achievements[index].reward!) : 0),
-            0,
-        );
-
-        this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-        return result;
+            return result;
+        });
     }
 
     #productAchievementRewards<K extends AchievementRewards>(rewardType: K, getter: (reward: any) => number): number {
         const cacheName = getAchievementRewardCacheName(rewardType, 'product') as keyof CalculationCache;
         const calculationVars = this.#getAchievementRewardCalculationVars(rewardType);
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const data = this.#api.getGameData();
+            const achievements = data?.achievements;
+            const rewardIndices = this.calculateAchievementsByReward[rewardType];
 
-        const data = this.#api.getGameData();
-        const achievements = data?.achievements;
-        const rewardIndices = this.calculateAchievementsByReward[rewardType];
+            const result = rewardIndices.reduce(
+                (prod, index) => prod * (achievements?.[index] ? getter(this.achievements[index].reward!) : 1),
+                1,
+            );
 
-        const result = rewardIndices.reduce(
-            (prod, index) => prod * (achievements?.[index] ? getter(this.achievements[index].reward!) : 1),
-            1,
-        );
-
-        this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-        return result;
+            return result;
+        });
     }
 
     #achievementUnlocked(rewardType: AchievementRewards): boolean {
         const cacheName = getAchievementRewardCacheName(rewardType, 'unlock') as keyof CalculationCache;
         const calculationVars = this.#getAchievementRewardCalculationVars(rewardType);
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached === 1;
-
-        const data = this.#api.getGameData();
-        const achievements = data?.achievements;
-        const indices = this.calculateAchievementsByReward[rewardType];
-        const result = indices.length > 0 && achievements?.[indices[0]] === 1;
-
-        this.#api.updateCalculationCache(cacheName, { value: result ? 1 : 0, cachedBy: calculationVars });
-        return result;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const data = this.#api.getGameData();
+            const achievements = data?.achievements;
+            const indices = this.calculateAchievementsByReward[rewardType];
+            return indices.length > 0 && achievements?.[indices[0]] === 1 ? 1 : 0;
+        }) === 1;
     }
 
     public readonly calculateAchievementsByReward: Record<AchievementRewards, number[]>;

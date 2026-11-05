@@ -57,31 +57,30 @@ export class LuckHelper {
         const mode = this.resolveMode(trueBaseOrMode);
         const cacheName = (`LuckConversion${this.modeCacheSuffix(mode)}`) as keyof CalculationCache;
         const calculationVars: number[] = [...this.getLuckConversionCalculationDeps(), mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
+        const calculateVals = (): HSCalculationComponents => {
+            const c1 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement1').conversionImprovement;
+            const c2 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement2').conversionImprovement;
+            const c3 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement3').conversionImprovement;
+            const effectiveShopRedLuck1 = this.#api.quarkShop.getShopLevel('shopRedLuck1', mode);
+            const effectiveShopRedLuck2 = this.#api.quarkShop.getShopLevel('shopRedLuck2', mode);
+            const effectiveShopRedLuck3 = this.#api.quarkShop.getShopLevel('shopRedLuck3', mode);
+            const effectiveShopRedLuck4 = this.#api.quarkShop.getShopLevel('shopRedLuck4', mode);
 
-        const c1 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement1').conversionImprovement;
-        const c2 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement2').conversionImprovement;
-        const c3 = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('conversionImprovement3').conversionImprovement;
-        const effectiveShopRedLuck1 = this.#api.quarkShop.getShopLevel('shopRedLuck1', mode);
-        const effectiveShopRedLuck2 = this.#api.quarkShop.getShopLevel('shopRedLuck2', mode);
-        const effectiveShopRedLuck3 = this.#api.quarkShop.getShopLevel('shopRedLuck3', mode);
-        const effectiveShopRedLuck4 = this.#api.quarkShop.getShopLevel('shopRedLuck4', mode);
-
-        const vals: HSCalculationComponents = {
-            'Base Conversion Value': 20,
-            'Red Ambrosia - Conversion Improvement I': c1,
-            'Red Ambrosia - Conversion Improvement II': c2,
-            'Red Ambrosia - Conversion Improvement III': c3,
-            'Low Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck1 / 20),
-            'Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck2 / 20),
-            'High Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck3 / 20),
-            'Elite Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck4 / 100),
+            const vals: HSCalculationComponents = {
+                'Base Conversion Value': 20,
+                'Red Ambrosia - Conversion Improvement I': c1,
+                'Red Ambrosia - Conversion Improvement II': c2,
+                'Red Ambrosia - Conversion Improvement III': c3,
+                'Low Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck1 / 20),
+                'Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck2 / 20),
+                'High Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck3 / 20),
+                'Elite Class Dice of Asmodeus': -0.01 * Math.floor(effectiveShopRedLuck4 / 100),
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
     calculateRedAmbrosiaLuck(reduce_vals = true, trueBaseOrMode: boolean | CalculationMode = false) {
@@ -164,45 +163,44 @@ export class LuckHelper {
             mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2,
         ].flat();
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
+        const calculateVals = (): HSCalculationComponents => {
+            const redLuck = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('redLuck').redAmbrosiaLuck;
+            const viscount = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('viscount').redLuckBonus;
+            const effectiveShopRedLuck1 = this.#api.quarkShop.getShopLevel('shopRedLuck1', mode);
+            const effectiveShopRedLuck2 = this.#api.quarkShop.getShopLevel('shopRedLuck2', mode);
+            const effectiveShopRedLuck3 = this.#api.quarkShop.getShopLevel('shopRedLuck3', mode);
+            const effectiveShopRedLuck4 = this.#api.quarkShop.getShopLevel('shopRedLuck4', mode);
+            const luckConversion = this.calculateLuckConversion(true, mode) as number;
+            const panthemaRedLuck = this.calculatePanthemaRedLuck(mode);
+            const synergismLevelBonus = Math.max(0, (this.#api.calculateSynergismLevel() ?? 0) - 259);
 
-        const redLuck = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('redLuck').redAmbrosiaLuck;
-        const viscount = this.#api.ambrosia.getRedAmbrosiaUpgradeEffects('viscount').redLuckBonus;
-        const effectiveShopRedLuck1 = this.#api.quarkShop.getShopLevel('shopRedLuck1', mode);
-        const effectiveShopRedLuck2 = this.#api.quarkShop.getShopLevel('shopRedLuck2', mode);
-        const effectiveShopRedLuck3 = this.#api.quarkShop.getShopLevel('shopRedLuck3', mode);
-        const effectiveShopRedLuck4 = this.#api.quarkShop.getShopLevel('shopRedLuck4', mode);
-        const luckConversion = this.calculateLuckConversion(true, mode) as number;
-        const panthemaRedLuck = this.calculatePanthemaRedLuck(mode);
-        const synergismLevelBonus = Math.max(0, (this.#api.calculateSynergismLevel() ?? 0) - 259);
-
-        // SynergismOfficial's red-luck statistic uses calculateAmbrosiaLuck()
-        // as its conversion input.  Reuse the mode-aware Ambrosia Luck
-        // calculation here so the normal and No-Ambrosia heater exports use
-        // exactly the same source value as the game (including its additive
-        // multiplier), rather than maintaining a second summation.
-        const totalLuck = (this.calculateLuck(true, mode) as { luckBase: number; luckMult: number; luckTotal: number }).luckTotal;
-        const vals: HSCalculationComponents = {
-            'Base Value': 100,
-            'PseudoCoin Upgrade': pseudoLuck,
-            'Synergism Level Reward': synergismLevelBonus,
-            'Luck from Ambrosia Luck': Math.floor((totalLuck - 100) / luckConversion),
-            'Red Ambrosia - The Dice That Decide Your Fate': redLuck,
-            'Exalt 5 Reward': this.#api.getSingularityChallengeEffect('noAmbrosiaUpgrades', 'redLuck'),
-            'Low Class Dice of Asmodeus': effectiveShopRedLuck1 * 0.05,
-            'Dice of Asmodeus': effectiveShopRedLuck2 * 0.075,
-            'High Class Dice of Asmodeus': effectiveShopRedLuck3 * 0.1,
-            'Elite Class Dice of Asmodeus': effectiveShopRedLuck4 * 0.2,
-            'Benefits of being a Viscount': viscount,
-            'Horse Shoe Rune Bonus': this.#api.rune.getRuneEffects('horseShoe').redLuck,
-            'Horse Shoe Talisman Bonus': this.#api.talisman.getTalismanEffects('horseShoe').redLuck,
-            'The Jack of all Trades': panthemaRedLuck,
+            // SynergismOfficial's red-luck statistic uses calculateAmbrosiaLuck()
+            // as its conversion input.  Reuse the mode-aware Ambrosia Luck
+            // calculation here so the normal and No-Ambrosia heater exports use
+            // exactly the same source value as the game (including its additive
+            // multiplier), rather than maintaining a second summation.
+            const totalLuck = (this.calculateLuck(true, mode) as { luckBase: number; luckMult: number; luckTotal: number }).luckTotal;
+            const vals: HSCalculationComponents = {
+                'Base Value': 100,
+                'PseudoCoin Upgrade': pseudoLuck,
+                'Synergism Level Reward': synergismLevelBonus,
+                'Luck from Ambrosia Luck': Math.floor((totalLuck - 100) / luckConversion),
+                'Red Ambrosia - The Dice That Decide Your Fate': redLuck,
+                'Exalt 5 Reward': this.#api.getSingularityChallengeEffect('noAmbrosiaUpgrades', 'redLuck'),
+                'Low Class Dice of Asmodeus': effectiveShopRedLuck1 * 0.05,
+                'Dice of Asmodeus': effectiveShopRedLuck2 * 0.075,
+                'High Class Dice of Asmodeus': effectiveShopRedLuck3 * 0.1,
+                'Elite Class Dice of Asmodeus': effectiveShopRedLuck4 * 0.2,
+                'Benefits of being a Viscount': viscount,
+                'Horse Shoe Rune Bonus': this.#api.rune.getRuneEffects('horseShoe').redLuck,
+                'Horse Shoe Talisman Bonus': this.#api.talisman.getTalismanEffects('horseShoe').redLuck,
+                'The Jack of all Trades': panthemaRedLuck,
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
     calculateDilatedFiveLeafBonus() {
@@ -211,20 +209,18 @@ export class LuckHelper {
 
         const cacheName = 'DilatedFiveLeafBonus' as keyof CalculationCache;
         const calculationVars: number[] = [data.highestSingularityCount];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
-
-        const thresholds = [100, 150, 200, 225, 250, 255, 260, 265, 269, 272];
-        let val = thresholds.length / 100;
-        for (let i = 0; i < thresholds.length; i++) {
-            if (data.highestSingularityCount < thresholds[i]) {
-                val = i / 100;
-                break;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            const thresholds = [100, 150, 200, 225, 250, 255, 260, 265, 269, 272];
+            let val = thresholds.length / 100;
+            for (let i = 0; i < thresholds.length; i++) {
+                if (data.highestSingularityCount < thresholds[i]) {
+                    val = i / 100;
+                    break;
+                }
             }
-        }
 
-        this.#api.updateCalculationCache(cacheName, { value: val, cachedBy: calculationVars });
-        return val;
+            return val;
+        });
     }
 
     calculateAmbrosiaLuckShopUpgrade(reduce_vals = true, trueBaseOrMode: boolean | CalculationMode = false) {
@@ -234,41 +230,34 @@ export class LuckHelper {
         const mode = this.resolveMode(trueBaseOrMode);
         const cacheName = (`AmbrosiaLuckShopUpgrade${this.modeCacheSuffix(mode)}`) as keyof CalculationCache;
         const calculationVars = [...this.getAmbrosiaLuckShopUpgradeCalculationDeps(), mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
+        const calculateVals = (): HSCalculationComponents => {
+            // Mirrors Shop.getShopLevel: bonus levels only apply to a purchased shop
+            // upgrade, and the No Quark Upgrades challenge disables non-utility levels.
+            const effectiveLevels = [
+                this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck1', mode),
+                this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck2', mode),
+                this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck3', mode),
+                this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck4', mode),
+            ];
 
-        // Mirrors Shop.getShopLevel: bonus levels only apply to a purchased shop
-        // upgrade, and the No Quark Upgrades challenge disables non-utility levels.
-        const effectiveLevels = [
-            this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck1', mode),
-            this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck2', mode),
-            this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck3', mode),
-            this.#api.quarkShop.getShopLevel('shopAmbrosiaLuck4', mode),
-        ];
-
-        const vals: HSCalculationComponents = {
-            'Quark Upgrade - Ambrosia Luck I': 2 * effectiveLevels[0],
-            'Quark Upgrade - Ambrosia Luck II': 2 * effectiveLevels[1],
-            'Quark Upgrade - Ambrosia Luck III': 2 * effectiveLevels[2],
-            'Quark Upgrade - Ambrosia Luck IV': 0.6 * effectiveLevels[3],
+            const vals: HSCalculationComponents = {
+                'Quark Upgrade - Ambrosia Luck I': 2 * effectiveLevels[0],
+                'Quark Upgrade - Ambrosia Luck II': 2 * effectiveLevels[1],
+                'Quark Upgrade - Ambrosia Luck III': 2 * effectiveLevels[2],
+                'Quark Upgrade - Ambrosia Luck IV': 0.6 * effectiveLevels[3],
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
     calculatePanthemaAmbrosiaLuck(trueBaseOrMode: boolean | CalculationMode = false) {
         const mode = this.resolveMode(trueBaseOrMode);
         const cacheName = (`PanthemaAmbrosiaLuck${this.modeCacheSuffix(mode)}`) as keyof CalculationCache;
         const calculationVars = [...this.getPanthemaAmbrosiaLuckCalculationDeps(), mode === 'normal' ? 0 : mode === 'true_base' ? 1 : 2];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
-
-        const reduced = this.#api.quarkShop.getShopUpgradeEffects('shopPanthema', 'ambrosiaLuck', mode) as number;
-
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => this.#api.quarkShop.getShopUpgradeEffects('shopPanthema', 'ambrosiaLuck', mode) as number);
     }
 
     calculatePanthemaRedLuck(trueBaseOrMode: boolean | CalculationMode = false) {
@@ -302,13 +291,7 @@ export class LuckHelper {
                 ]),
         ].flat();
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
-
-        const reduced = this.#api.quarkShop.getShopUpgradeEffects('shopPanthema', 'redLuck', mode) as number;
-
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => this.#api.quarkShop.getShopUpgradeEffects('shopPanthema', 'redLuck', mode) as number);
     }
 
     /** Mirrors campaignTokenBonuses.ambrosiaLuck in SynergismOfficial/src/Campaign.ts: 2000 tokens and Exalt 1 completed. */
@@ -317,20 +300,18 @@ export class LuckHelper {
         const exalt1Completions = this.#api.getGameData()?.singularityChallenges.noSingularityUpgrades.completions ?? 0;
         const cacheName = 'CampaignLuckBonus' as keyof CalculationCache;
         const calculationVars: number[] = [tokens, exalt1Completions];
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cached !== undefined) return cached;
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            let campaignBonus;
+            if (tokens < 2000 || exalt1Completions <= 0) {
+                campaignBonus = 0;
+            } else {
+                campaignBonus = 10
+                    + 40 * 1 / 2000 * Math.min(tokens - 2000, 2000)
+                    + 50 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2500));
+            }
 
-        let campaignBonus;
-        if (tokens < 2000 || exalt1Completions <= 0) {
-            campaignBonus = 0;
-        } else {
-            campaignBonus = 10
-                + 40 * 1 / 2000 * Math.min(tokens - 2000, 2000)
-                + 50 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2500));
-        }
-
-        this.#api.updateCalculationCache(cacheName, { value: campaignBonus, cachedBy: calculationVars });
-        return campaignBonus;
+            return campaignBonus;
+        });
     }
 
     calculateCookieUpgrade29Luck() {
@@ -380,19 +361,18 @@ export class LuckHelper {
 
         const cacheName = 'AmbrosiaLuckOcteractUpgrade' as keyof CalculationCache;
         const calculationVars = this.getAmbrosiaLuckOcteractUpgradeCalculationDeps();
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (reduce_vals && cached !== undefined) return cached;
-
-        const vals: HSCalculationComponents = {
-            'Berries of an Eight Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck', 'ambrosiaLuck'),
-            'Florentine Cranberries': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck2', 'ambrosiaLuck'),
-            'Berries of a Four Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck3', 'ambrosiaLuck'),
-            'Berries of a Ten Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck4', 'ambrosiaLuck'),
+        const calculateVals = (): HSCalculationComponents => {
+            const vals: HSCalculationComponents = {
+                'Berries of an Eight Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck', 'ambrosiaLuck'),
+                'Florentine Cranberries': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck2', 'ambrosiaLuck'),
+                'Berries of a Four Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck3', 'ambrosiaLuck'),
+                'Berries of a Ten Leaf Clover': this.#api.octeract.getOcteractUpgradeEffect('octeractAmbrosiaLuck4', 'ambrosiaLuck'),
+            };
+            return vals;
         };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0);
-        this.#api.updateCalculationCache(cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
     private getLuckCalculationComponentValues(mode: CalculationMode = 'normal'): { additiveComponents: HSCalculationComponents; rawLuckComponents: HSCalculationComponents } {

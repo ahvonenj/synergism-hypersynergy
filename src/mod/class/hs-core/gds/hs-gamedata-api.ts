@@ -1,5 +1,5 @@
 import { EventBuffType, ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
-import { AntUpgrades, CalculationCache, CalculationMode, CachedValue, HepteractType, SingularityChallengeDataKeys, SingularityDebuffs, NumberStatLine, PseudoCoinUpgradeNames, RuneKeys, SynergismLevelMilestones } from "../../../types/data-types/hs-gamedata-api-types";
+import { AntUpgrades, CalculationCache, CalculationMode, HepteractType, SingularityChallengeDataKeys, SingularityDebuffs, NumberStatLine, PseudoCoinUpgradeNames, RuneKeys, SynergismLevelMilestones } from "../../../types/data-types/hs-gamedata-api-types";
 import type { GameData, SingularityChallengeRewards, SingularityChallengeStatus } from "../../../types/data-types/hs-player-savedata";
 import type { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import type { MeData } from "../../../types/data-types/hs-me-data";
@@ -255,7 +255,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         };
     }
 
-    private memoizeCalculation<T>(cacheName: keyof CalculationCache, calculationVars: number[], calculateFn: () => T): T {
+    memoizeCalculation<T>(cacheName: keyof CalculationCache, calculationVars: number[], calculateFn: () => T): T {
         const cached = checkCalculationCache<T>(this.#calculationCache, cacheName, calculationVars);
         if (cached !== undefined) {
             return cached;
@@ -559,15 +559,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return undefined;
     }
 
-    // The helpers' check-then-update caching (memoizeCalculation does both)
-    checkCalculationCache<T = number>(cacheName: keyof CalculationCache, calculationVars: number[]): T | undefined {
-        return checkCalculationCache<T>(this.#calculationCache, cacheName, calculationVars);
-    }
-
-    updateCalculationCache(cacheName: keyof CalculationCache, item: CachedValue): void {
-        updateCalculationCache(this.#calculationCache, cacheName, item);
-    }
-
     clearCache() {
         this.#calculationCache = clearCalculationCache(this.#calculationCacheTemplate);
         this.#cacheGeneration++;
@@ -698,15 +689,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.wowOcteracts
         ]
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
-
-        if (cached !== undefined) return cached;
-
-        const reduced = this.totalWowLog10();
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-
-        return reduced;
+        return this.memoizeCalculation(cacheName, calculationVars, () => this.totalWowLog10());
     }
 
     calculateHepteractEffective = (heptType: HepteractType) => {
@@ -728,34 +711,30 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.shopUpgrades.improveQuarkHept5,
         ];
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            // SynergismOfficial/src/Hepteracts.ts applies the Quark Hepteract's
+            // non-polynomial scaling in its effect formula, not in hepteractEffective.
+            if (heptType === 'quark') {
+                const rawValue = data.hepteracts.quark.BAL;
+                return rawValue;
+            }
 
-        if (cached !== undefined) return cached;
+            let effectiveValue = Math.min(data.hepteracts[heptType].BAL, this.#hepteractEffectiveValues[heptType].LIMIT);
+            let exponentBoost = 0;
 
-        // SynergismOfficial/src/Hepteracts.ts applies the Quark Hepteract's
-        // non-polynomial scaling in its effect formula, not in hepteractEffective.
-        if (heptType === 'quark') {
-            const rawValue = data.hepteracts.quark.BAL;
-            updateCalculationCache(this.#calculationCache, cacheName, { value: rawValue, cachedBy: calculationVars });
-            return rawValue;
-        }
+            if (heptType === 'chronos') {
+                exponentBoost += 1 / 750 * data.platonicUpgrades[19];
+            }
 
-        let effectiveValue = Math.min(data.hepteracts[heptType].BAL, this.#hepteractEffectiveValues[heptType].LIMIT);
-        let exponentBoost = 0;
+            if (data.hepteracts[heptType].BAL > this.#hepteractEffectiveValues[heptType].LIMIT) {
+                effectiveValue *= Math.pow(
+                    data.hepteracts[heptType].BAL / this.#hepteractEffectiveValues[heptType].LIMIT,
+                    this.#hepteractEffectiveValues[heptType].DR + exponentBoost
+                );
+            }
 
-        if (heptType === 'chronos') {
-            exponentBoost += 1 / 750 * data.platonicUpgrades[19];
-        }
-
-        if (data.hepteracts[heptType].BAL > this.#hepteractEffectiveValues[heptType].LIMIT) {
-            effectiveValue *= Math.pow(
-                data.hepteracts[heptType].BAL / this.#hepteractEffectiveValues[heptType].LIMIT,
-                this.#hepteractEffectiveValues[heptType].DR + exponentBoost
-            );
-        }
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: effectiveValue, cachedBy: calculationVars });
-        return effectiveValue;
+            return effectiveValue;
+        });
     }
 
     // =========================
@@ -777,36 +756,32 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             true_base ? 1 : 0,
         ];
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        const calculateVals = (): HSCalculationComponents => {
+            let redu = 0;
 
-        if (reduce_vals && cached !== undefined) return cached;
-
-        let redu = 0;
-
-        if (!true_base) {
-            if (data.insideSingularityChallenge) {
-                redu = this.ambrosia.getAmbrosiaUpgradeEffects("ambrosiaSingReduction2").singularityReduction;
-            } else {
-                redu = this.ambrosia.getAmbrosiaUpgradeEffects("ambrosiaSingReduction1").singularityReduction;
+            if (!true_base) {
+                if (data.insideSingularityChallenge) {
+                    redu = this.ambrosia.getAmbrosiaUpgradeEffects("ambrosiaSingReduction2").singularityReduction;
+                } else {
+                    redu = this.ambrosia.getAmbrosiaUpgradeEffects("ambrosiaSingReduction1").singularityReduction;
+                }
             }
-        }
 
-        const vals: HSCalculationComponents = {
-            'A Singularity Tenderizer': this.quarkShop.getShopUpgradeEffects(
-                'shopSingularityPenaltyDebuff',
-                'singularityPenaltyReducers',
-                true_base ? 'true_base' : 'normal',
-            ) as number,
-            [data.insideSingularityChallenge
-                ? 'Ambrosia - Exo-Chromatic Kinetic Post-Modulated Singularity Stabilizer Module'
-                : 'Ambrosia - Singularity Stabilizer Module']: redu,
-        }
+            const vals: HSCalculationComponents = {
+                'A Singularity Tenderizer': this.quarkShop.getShopUpgradeEffects(
+                    'shopSingularityPenaltyDebuff',
+                    'singularityPenaltyReducers',
+                    true_base ? 'true_base' : 'normal',
+                ) as number,
+                [data.insideSingularityChallenge
+                    ? 'Ambrosia - Exo-Chromatic Kinetic Post-Modulated Singularity Stabilizer Module'
+                    : 'Ambrosia - Singularity Stabilizer Module']: redu,
+            }
+            return vals;
+        };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0)
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
     /**
@@ -1051,21 +1026,17 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             ...(Object.values(data.singularityChallenges) as SingularityChallengeStatus[]).map((c) => c.completions)
         ]
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            let sum = 0
 
-        if (cached !== undefined) return cached;
+            for (const challenge of Object.values(data.singularityChallenges)) {
+                sum += challenge.completions
+            }
 
-        let sum = 0
+            const reduced = sum;
 
-        for (const challenge of Object.values(data.singularityChallenges)) {
-            sum += challenge.completions
-        }
-
-        const reduced = sum;
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-
-        return reduced;
+            return reduced;
+        });
     }
 
     calculateLimitedAscensionsDebuff() {
@@ -1100,76 +1071,72 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.singularityChallenges.noOcteracts.completions
         ];
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            let effectiveSingularities = actualSingularityCount;
 
-        if (cached !== undefined) return cached;
+            effectiveSingularities *= Math.min(4.75, (0.75 * actualSingularityCount) / 10 + 1)
 
-        let effectiveSingularities = actualSingularityCount;
+            if (data.insideSingularityChallenge) {
+                if (data.singularityChallenges.noOcteracts.enabled) {
+                    effectiveSingularities *= Math.pow(data.singularityChallenges.noOcteracts.completions + 1, 3);
+                }
 
-        effectiveSingularities *= Math.min(4.75, (0.75 * actualSingularityCount) / 10 + 1)
-
-        if (data.insideSingularityChallenge) {
-            if (data.singularityChallenges.noOcteracts.enabled) {
-                effectiveSingularities *= Math.pow(data.singularityChallenges.noOcteracts.completions + 1, 3);
             }
 
-        }
+            if (actualSingularityCount > 10) {
+                effectiveSingularities *= 1.5;
+                effectiveSingularities *= Math.min(4, (1.25 * actualSingularityCount) / 10 - 0.25);
+            }
 
-        if (actualSingularityCount > 10) {
-            effectiveSingularities *= 1.5;
-            effectiveSingularities *= Math.min(4, (1.25 * actualSingularityCount) / 10 - 0.25);
-        }
+            if (actualSingularityCount > 25) {
+                effectiveSingularities *= 2.5;
+                effectiveSingularities *= Math.min(6, (1.5 * actualSingularityCount) / 25 - 0.5);
+            }
 
-        if (actualSingularityCount > 25) {
-            effectiveSingularities *= 2.5;
-            effectiveSingularities *= Math.min(6, (1.5 * actualSingularityCount) / 25 - 0.5);
-        }
+            if (actualSingularityCount > 36) {
+                effectiveSingularities *= 4;
+                effectiveSingularities *= Math.min(5, actualSingularityCount / 18 - 1);
+                effectiveSingularities *= Math.pow(1.1, Math.min(actualSingularityCount - 36, 64));
+            }
 
-        if (actualSingularityCount > 36) {
-            effectiveSingularities *= 4;
-            effectiveSingularities *= Math.min(5, actualSingularityCount / 18 - 1);
-            effectiveSingularities *= Math.pow(1.1, Math.min(actualSingularityCount - 36, 64));
-        }
+            if (actualSingularityCount > 50) {
+                effectiveSingularities *= 5;
+                effectiveSingularities *= Math.min(8, (2 * actualSingularityCount) / 50 - 1);
+                effectiveSingularities *= Math.pow(1.1, Math.min(actualSingularityCount - 50, 50));
+            }
 
-        if (actualSingularityCount > 50) {
-            effectiveSingularities *= 5;
-            effectiveSingularities *= Math.min(8, (2 * actualSingularityCount) / 50 - 1);
-            effectiveSingularities *= Math.pow(1.1, Math.min(actualSingularityCount - 50, 50));
-        }
+            if (actualSingularityCount > 100) {
+                effectiveSingularities *= 2;
+                effectiveSingularities *= actualSingularityCount / 25;
+                effectiveSingularities *= Math.pow(1.1, actualSingularityCount - 100);
+            }
 
-        if (actualSingularityCount > 100) {
-            effectiveSingularities *= 2;
-            effectiveSingularities *= actualSingularityCount / 25;
-            effectiveSingularities *= Math.pow(1.1, actualSingularityCount - 100);
-        }
+            if (actualSingularityCount > 150) {
+                effectiveSingularities *= 2;
+                effectiveSingularities *= Math.pow(1.05, actualSingularityCount - 150);
+            }
 
-        if (actualSingularityCount > 150) {
-            effectiveSingularities *= 2;
-            effectiveSingularities *= Math.pow(1.05, actualSingularityCount - 150);
-        }
+            if (actualSingularityCount > 200) {
+                effectiveSingularities *= 1.5;
+                effectiveSingularities *= Math.pow(1.275, actualSingularityCount - 200);
+            }
 
-        if (actualSingularityCount > 200) {
-            effectiveSingularities *= 1.5;
-            effectiveSingularities *= Math.pow(1.275, actualSingularityCount - 200);
-        }
+            if (actualSingularityCount > 215) {
+                effectiveSingularities *= 1.25;
+                effectiveSingularities *= Math.pow(1.2, actualSingularityCount - 215);
+            }
 
-        if (actualSingularityCount > 215) {
-            effectiveSingularities *= 1.25;
-            effectiveSingularities *= Math.pow(1.2, actualSingularityCount - 215);
-        }
+            if (actualSingularityCount > 230) {
+                effectiveSingularities *= 2;
+            }
 
-        if (actualSingularityCount > 230) {
-            effectiveSingularities *= 2;
-        }
+            if (actualSingularityCount > 269) {
+                effectiveSingularities *= 3;
+                effectiveSingularities *= Math.pow(3, actualSingularityCount - 269);
+            }
 
-        if (actualSingularityCount > 269) {
-            effectiveSingularities *= 3;
-            effectiveSingularities *= Math.pow(3, actualSingularityCount - 269);
-        }
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: effectiveSingularities, cachedBy: calculationVars });
-
-        return effectiveSingularities;
+            return effectiveSingularities;
+        });
     }
 
     calculateAscensionSpread(reduce_vals = true, mode: CalculationMode = 'normal') {
@@ -1195,18 +1162,12 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         const rewardIndex = (Object.keys(challenge15Rewards) as (keyof typeof challenge15Rewards)[]).indexOf(rewardName);
         const cacheName = 'Challenge15Reward' as keyof CalculationCache;
         const calculationVars = [exponent, rewardIndex];
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
-        if (cached !== undefined) {
-            return cached;
-        }
-
-        const reward = challenge15Rewards[rewardName];
-        const result = exponent === 0 || exponent < reward.requirement
-            ? reward.baseValue
-            : c15Functions[rewardName](exponent);
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: result, cachedBy: calculationVars });
-        return result;
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            const reward = challenge15Rewards[rewardName];
+            return exponent === 0 || exponent < reward.requirement
+                ? reward.baseValue
+                : c15Functions[rewardName](exponent);
+        });
     }
 
     // calculateCubeBankSources in SynergismOfficial/src/Calculate.ts, with the line names of cubeBankStats in Statistics.ts
@@ -1306,44 +1267,40 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             mode === 'true_base' ? 1 : mode === 'non_ambrosia' ? 2 : 0,
         ];
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        const calculateVals = (): HSCalculationComponents => {
+            const vals: HSCalculationComponents = {
+                'Ants - Mortuus Iterum Formicidae': this.antUpgrade.getAntUpgradeEffectValue(AntUpgrades.Mortuus2, 'ascensionSpeed'),
+                'Polymath Talisman - Inscription Bonus': this.talisman.getTalismanEffects('polymath').ascensionSpeedBonus,
+                'Chronometer Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer', 'ascensionSpeedMult', mode) as number,
+                'Chronometer 2 Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer2', 'ascensionSpeedMult', mode) as number,
+                'Chronometer 3 Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer3', 'ascensionSpeedMult', mode) as number,
+                'Chronos Hepteract Bonus': 1 + (0.6 / 1000) * this.calculateHepteractEffective('chronos'),
+                'Platonic OMEGA Bonus': 1 + 0.01 * (data.currentChallenge.ascension === 15 ? 20 : Math.min(20, this.corruption.getActiveEffectiveCorruptionLevel())) * data.platonicUpgrades[15],
+                'Challenge 15 Reward': this.calculateChallenge15Reward('ascensionSpeed'),
+                'Cookie Upgrade 9 Bonus': 1 + (1 / 400) * cube59,
+                'Intermediate Pack Bonus': this.goldenQuark.getGQUpgradeEffect('intermediatePack', 'ascensionSpeedMult'),
+                'Chronometer Z Shop Upgrade': this.quarkShop.getShopUpgradeEffects('chronometerZ', 'ascensionSpeedMult', mode) as number,
+                'Abstract Photokinetics': this.octeract.getOcteractUpgradeEffect('octeractImprovedAscensionSpeed', 'ascensionSpeedMult'),
+                'Abstract Exokinetics': this.octeract.getOcteractUpgradeEffect('octeractImprovedAscensionSpeed2', 'ascensionSpeedMult'),
+                'Chronometer INF Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometerInfinity', 'ascensionSpeedMult', mode) as number,
+                'EXALT - Twenty Ascensions': Math.pow(
+                    this.getSingularityChallengeEffect('limitedAscensions', 'ascensionSpeedMult'),
+                    1 + Math.max(0, Math.floor(Math.log10(data.ascensionCount))),
+                ),
+                'The Jack of all Trades': this.quarkShop.getShopUpgradeEffects('shopPanthema', 'ascensionSpeedMult', mode) as number,
+                'EXALT - Limited Time': this.getSingularityChallengeEffect('limitedTime', 'ascensionSpeed'),
+                'Chronometer S Quark Upgrade': this.quarkShop.getShopUpgradeEffects('shopChronometerS', 'ascensionSpeedMult') as number,
+                'Limited Ascensions - Too Many Ascensions': 1 / this.calculateLimitedAscensionsDebuff(),
+                'Ambrosia - The Brick of Lead': this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaBrickOfLead', mode).ascensionSpeedMult,
+                'Singularity Debuff': 1 / this.calculateSingularityDebuff('Ascension Speed'),
+                'Event Bonus': 1 + this.calculateEventSourceBuff(EventBuffType.AscensionSpeed),
+                'Lifetime Purple Honey Power': this.purple.getPurpleReactorUpgradeEffects('lifetimeHoneyAscensionSpeed', 'ascensionSpeedMultiplier'),
+            }
+            return vals;
+        };
 
-        if (reduce_vals && cached !== undefined) return cached;
-
-        const vals: HSCalculationComponents = {
-            'Ants - Mortuus Iterum Formicidae': this.antUpgrade.getAntUpgradeEffectValue(AntUpgrades.Mortuus2, 'ascensionSpeed'),
-            'Polymath Talisman - Inscription Bonus': this.talisman.getTalismanEffects('polymath').ascensionSpeedBonus,
-            'Chronometer Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer', 'ascensionSpeedMult', mode) as number,
-            'Chronometer 2 Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer2', 'ascensionSpeedMult', mode) as number,
-            'Chronometer 3 Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometer3', 'ascensionSpeedMult', mode) as number,
-            'Chronos Hepteract Bonus': 1 + (0.6 / 1000) * this.calculateHepteractEffective('chronos'),
-            'Platonic OMEGA Bonus': 1 + 0.01 * (data.currentChallenge.ascension === 15 ? 20 : Math.min(20, this.corruption.getActiveEffectiveCorruptionLevel())) * data.platonicUpgrades[15],
-            'Challenge 15 Reward': this.calculateChallenge15Reward('ascensionSpeed'),
-            'Cookie Upgrade 9 Bonus': 1 + (1 / 400) * cube59,
-            'Intermediate Pack Bonus': this.goldenQuark.getGQUpgradeEffect('intermediatePack', 'ascensionSpeedMult'),
-            'Chronometer Z Shop Upgrade': this.quarkShop.getShopUpgradeEffects('chronometerZ', 'ascensionSpeedMult', mode) as number,
-            'Abstract Photokinetics': this.octeract.getOcteractUpgradeEffect('octeractImprovedAscensionSpeed', 'ascensionSpeedMult'),
-            'Abstract Exokinetics': this.octeract.getOcteractUpgradeEffect('octeractImprovedAscensionSpeed2', 'ascensionSpeedMult'),
-            'Chronometer INF Quark Upgrade': this.quarkShop.getShopUpgradeEffects('chronometerInfinity', 'ascensionSpeedMult', mode) as number,
-            'EXALT - Twenty Ascensions': Math.pow(
-                this.getSingularityChallengeEffect('limitedAscensions', 'ascensionSpeedMult'),
-                1 + Math.max(0, Math.floor(Math.log10(data.ascensionCount))),
-            ),
-            'The Jack of all Trades': this.quarkShop.getShopUpgradeEffects('shopPanthema', 'ascensionSpeedMult', mode) as number,
-            'EXALT - Limited Time': this.getSingularityChallengeEffect('limitedTime', 'ascensionSpeed'),
-            'Chronometer S Quark Upgrade': this.quarkShop.getShopUpgradeEffects('shopChronometerS', 'ascensionSpeedMult') as number,
-            'Limited Ascensions - Too Many Ascensions': 1 / this.calculateLimitedAscensionsDebuff(),
-            'Ambrosia - The Brick of Lead': this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaBrickOfLead', mode).ascensionSpeedMult,
-            'Singularity Debuff': 1 / this.calculateSingularityDebuff('Ascension Speed'),
-            'Event Bonus': 1 + this.calculateEventSourceBuff(EventBuffType.AscensionSpeed),
-            'Lifetime Purple Honey Power': this.purple.getPurpleReactorUpgradeEffects('lifetimeHoneyAscensionSpeed', 'ascensionSpeedMultiplier'),
-        }
-
-        const reduced = Object.values(vals).reduce((a, b) => a * b, 1)
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a * b, 1));
     }
 
     calculateAscensionSpeedMult(mode: CalculationMode = 'normal') {
@@ -1381,26 +1338,21 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             runeUnlocked ? 1 : 0
         ]
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
-
-        if (cached !== undefined) return cached;
-
-        if (!runeUnlocked) {
-            updateCalculationCache(this.#calculationCache, cacheName, { value: 0, cachedBy: calculationVars });
-            return 0;
-        }
-
-        const thresholdReqs = [500, 750, 1000, 1250, 1500, 1750, 2000, 3000, 4000, 6000, 8000, 10000]
-        for (let i = 0; i < thresholdReqs.length; i++) {
-            if (tokens < thresholdReqs[i]) {
-                const reduced = i;
-                updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-                return reduced;
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            if (!runeUnlocked) {
+                return 0;
             }
-        }
-        const reduced = 12;
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-        return reduced;
+
+            const thresholdReqs = [500, 750, 1000, 1250, 1500, 1750, 2000, 3000, 4000, 6000, 8000, 10000]
+            for (let i = 0; i < thresholdReqs.length; i++) {
+                if (tokens < thresholdReqs[i]) {
+                    const reduced = i;
+                    return reduced;
+                }
+            }
+            const reduced = 12;
+            return reduced;
+        });
     }
 
 
@@ -1483,40 +1435,36 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
                 ]),
         ];
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
-
-        if (reduce_vals && cached !== undefined) return cached;
-
-        const dunno = () => {
-            if (data.highestSingularityCount >= 280) {
-                return Math.floor(0.8 * (data.highestSingularityCount - 200))
-            } else if (data.highestSingularityCount >= 250) {
-                return Math.floor(0.5 * (data.highestSingularityCount - 200))
-            } else {
-                return 0
+        const calculateVals = (): HSCalculationComponents => {
+            const dunno = () => {
+                if (data.highestSingularityCount >= 280) {
+                    return Math.floor(0.8 * (data.highestSingularityCount - 200))
+                } else if (data.highestSingularityCount >= 250) {
+                    return Math.floor(0.5 * (data.highestSingularityCount - 200))
+                } else {
+                    return 0
+                }
             }
-        }
 
-        const vals: HSCalculationComponents = {
-            'Red Vouchers [Red Ambrosia]': this.ambrosia.getRedAmbrosiaUpgradeEffects('infiniteShopUpgrades').freeLevels,
-            'Orange Vouchers [Singularity Perk]': dunno(),
-            'Yellow Vouchers [Golden Quarks]': this.goldenQuark.getGQUpgradeEffect('singInfiniteShopUpgrades', 'infinityVouchers'),
-            'Green Vouchers [Octeracts]': this.octeract.getOcteractUpgradeEffect('octeractInfiniteShopUpgrades', 'infinityVouchers'),
-            'Blue Vouchers [Quarks]': this.quarkShop.getShopUpgradeEffects('shopInfiniteShopUpgrades', 'infiniteVouchers') as number,
-            ...(data.singularityChallenges.noAmbrosiaUpgrades.enabled
-                ? {}
-                : {
-                    'Indigo Vouchers [Ambrosia 1]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades1', mode).freeLevels,
-                    'Violet Vouchers [Ambrosia 2]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades2', mode).freeLevels,
-                    'Periwinkle Vouchers [Ambrosia 3]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades3', mode).freeLevels,
-                }),
-        }
+            const vals: HSCalculationComponents = {
+                'Red Vouchers [Red Ambrosia]': this.ambrosia.getRedAmbrosiaUpgradeEffects('infiniteShopUpgrades').freeLevels,
+                'Orange Vouchers [Singularity Perk]': dunno(),
+                'Yellow Vouchers [Golden Quarks]': this.goldenQuark.getGQUpgradeEffect('singInfiniteShopUpgrades', 'infinityVouchers'),
+                'Green Vouchers [Octeracts]': this.octeract.getOcteractUpgradeEffect('octeractInfiniteShopUpgrades', 'infinityVouchers'),
+                'Blue Vouchers [Quarks]': this.quarkShop.getShopUpgradeEffects('shopInfiniteShopUpgrades', 'infiniteVouchers') as number,
+                ...(data.singularityChallenges.noAmbrosiaUpgrades.enabled
+                    ? {}
+                    : {
+                        'Indigo Vouchers [Ambrosia 1]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades1', mode).freeLevels,
+                        'Violet Vouchers [Ambrosia 2]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades2', mode).freeLevels,
+                        'Periwinkle Vouchers [Ambrosia 3]': +this.ambrosia.getAmbrosiaUpgradeEffects('ambrosiaInfiniteShopUpgrades3', mode).freeLevels,
+                    }),
+            }
+            return vals;
+        };
 
-        const reduced = Object.values(vals).reduce((a, b) => a + b, 0);
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: reduced, cachedBy: calculationVars });
-
-        return reduce_vals ? reduced : vals;
+        if (!reduce_vals) return calculateVals();
+        return this.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
 
 
@@ -1535,69 +1483,64 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             buff
         ]
 
-        const cached = checkCalculationCache(this.#calculationCache, cacheName, calculationVars);
+        return this.memoizeCalculation(cacheName, calculationVars, () => {
+            const { HAPPY_HOUR_BELL } = data;
 
-        if (cached !== undefined) return cached;
+            const happyHourInterval = HAPPY_HOUR_BELL.amount - 1
 
-        const { HAPPY_HOUR_BELL } = this.eventData;
+            if (HAPPY_HOUR_BELL.amount === 0) {
+                return 0;
+            }
 
-        const happyHourInterval = HAPPY_HOUR_BELL.amount - 1
+            let val = 0;
 
-        if (HAPPY_HOUR_BELL.amount === 0) {
-            updateCalculationCache(this.#calculationCache, cacheName, { value: 0, cachedBy: calculationVars });
-            return 0;
-        }
+            switch (buff) {
+                case EventBuffType.Quark:
+                    val = HAPPY_HOUR_BELL ? 0.25 + 0.025 * happyHourInterval : 0;
+                    break;
+                case EventBuffType.GoldenQuark:
+                    val = 0;
+                    break;
+                case EventBuffType.Cubes:
+                    val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                    break;
+                case EventBuffType.PowderConversion:
+                    val = 0;
+                    break;
+                case EventBuffType.AscensionSpeed:
+                    val = 0;
+                    break;
+                case EventBuffType.GlobalSpeed:
+                    val = 0;
+                    break;
+                case EventBuffType.AscensionScore:
+                    val = 0;
+                    break;
+                case EventBuffType.AntSacrifice:
+                    val = 0;
+                    break;
+                case EventBuffType.Offering:
+                    val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                    break;
+                case EventBuffType.Obtainium:
+                    val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
+                    break;
+                case EventBuffType.Octeract:
+                    val = 0;
+                    break;
+                case EventBuffType.OneMind:
+                    val = 0;
+                    break;
+                case EventBuffType.BlueberryTime:
+                    val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
+                    break;
+                case EventBuffType.AmbrosiaLuck:
+                    val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
+                    break;
+            }
 
-        let val = 0;
-
-        switch (buff) {
-            case EventBuffType.Quark:
-                val = HAPPY_HOUR_BELL ? 0.25 + 0.025 * happyHourInterval : 0;
-                break;
-            case EventBuffType.GoldenQuark:
-                val = 0;
-                break;
-            case EventBuffType.Cubes:
-                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
-                break;
-            case EventBuffType.PowderConversion:
-                val = 0;
-                break;
-            case EventBuffType.AscensionSpeed:
-                val = 0;
-                break;
-            case EventBuffType.GlobalSpeed:
-                val = 0;
-                break;
-            case EventBuffType.AscensionScore:
-                val = 0;
-                break;
-            case EventBuffType.AntSacrifice:
-                val = 0;
-                break;
-            case EventBuffType.Offering:
-                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
-                break;
-            case EventBuffType.Obtainium:
-                val = HAPPY_HOUR_BELL ? 0.5 + 0.05 * happyHourInterval : 0;
-                break;
-            case EventBuffType.Octeract:
-                val = 0;
-                break;
-            case EventBuffType.OneMind:
-                val = 0;
-                break;
-            case EventBuffType.BlueberryTime:
-                val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
-                break;
-            case EventBuffType.AmbrosiaLuck:
-                val = HAPPY_HOUR_BELL ? 0.1 + 0.01 * happyHourInterval : 0;
-                break;
-        }
-
-        updateCalculationCache(this.#calculationCache, cacheName, { value: val, cachedBy: calculationVars });
-
-        return val;
+            return val;
+        });
     }
 
     calculateEventSourceBuff(buffType: EventBuffType) {
