@@ -39,17 +39,16 @@ export class HSAutosingStepTimingsWindow {
     static #sort: SortKey = 'ms';
     static #getInfo: (() => HSAutosingStepTableInfo) | null = null;
 
-    /** @param panel Where the run panel is: the window opens beside it, at its height */
-    static async open(getInfo: () => HSAutosingStepTableInfo, panel: DOMRect | undefined): Promise<void> {
+    /** Opens the window, or closes it if it is open. @param panel Where the run panel is: the window opens beside it, at its height */
+    static async toggle(getInfo: () => HSAutosingStepTableInfo, panel: DOMRect | undefined): Promise<void> {
         const uiMod = HSModuleManager.getModule<HSUI>('HSUI');
         if (!uiMod || !uiMod.uiReady || HSAutosingStepTimingsWindow.#opening) return;
-        HSAutosingStepTimingsWindow.#getInfo = getInfo;
         if (HSAutosingStepTimingsWindow.#isOpen()) {
-            void uiMod.BringModalToFront(HSAutosingStepTimingsWindow.#modalId);
-            HSAutosingStepTimingsWindow.#refresh();
+            HSAutosingStepTimingsWindow.close();
             return;
         }
 
+        HSAutosingStepTimingsWindow.#getInfo = getInfo;
         HSAutosingStepTimingsWindow.#opening = true;
         try {
             const { position, width, height } = HSAutosingStepTimingsWindow.#placement(panel);

@@ -264,7 +264,7 @@ export class HSAutosingModal {
         this.#stepTimingsBtn.title       = "Step timings";
         this.#stepTimingsBtn.className   = 'hs-timer-ctrl-btn hs-timer-ctrl-btn-secondary';
         this.#stepTimingsBtn.onclick = () => {
-            void HSAutosingStepTimingsWindow.open(
+            void HSAutosingStepTimingsWindow.toggle(
                 () => ({ modVersion: this.#modVersion, loadouts: this.#loadoutsOrder }),
                 this.#timerDisplay?.getBoundingClientRect()
             );
