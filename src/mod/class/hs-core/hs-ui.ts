@@ -659,6 +659,11 @@ export class HSUI extends HSModule {
         tabHeader.innerHTML = newName;
     }
 
+    removeTab(tabId: number) {
+        this.#getTabHeader(tabId)?.remove();
+        this.#getTabBody(tabId)?.remove();
+    }
+
 
     // ========================================
     // ---- Style / DOM injection helpers -----

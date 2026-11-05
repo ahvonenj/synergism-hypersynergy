@@ -1,6 +1,6 @@
 # Dev tools (dev builds only)
 
-`HSDevTools` (`hs-core/dev/hs-dev-tools.ts`) adds rows to the Debug tab that edit the live player object (`exposedPlayer`), to set up a save for a test. It must never reach players.
+`HSDevTools` (`hs-core/dev/hs-dev-tools.ts`) adds rows to the Debug tab that edit the live player object (`exposedPlayer`), to set up a save for a test. It must never reach players. The Debug tab itself exists only in dev builds: the release build removes it (`HSUI.removeTab`).
 - **`HS_DEV_BUILD` keeps it out of the release.** esbuild defines it as `false` for `release` and `true` for `build` and `dev`. The only use of `HSDevTools` is under `if (HS_DEV_BUILD)` in `#buildDebugTab`, so the release build drops the class. It is a build-time constant, so a player can't turn it on. (The old runtime flag `window.__HS_IS_DEV` / `HSGlobal.General.isDev` was unused and is removed.)
 - **The release build checks it.** `esbuild.config.js` builds the release in memory and refuses to write the bundle if it contains `hs-dev-tools`. Keep that string out of any code the release includes.
 - **To stay droppable, the class has no static fields and no import that runs code when loaded.** It is not an `HSModule`: `#moduleClasses` references every module statically, which would pull it into the release.

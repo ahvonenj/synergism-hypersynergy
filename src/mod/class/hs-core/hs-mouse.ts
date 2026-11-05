@@ -6,6 +6,8 @@ import { HSModule } from "./module/hs-module";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
 
+declare const HS_DEV_BUILD: boolean;
+
 /**
  *  Class: HSMouse
  *  IsExplicitHSModule: Yes
@@ -71,7 +73,7 @@ export class HSMouse extends HSModule {
             y: e.clientY
         }
 
-        this.#updateDebug();
+        if (HS_DEV_BUILD) this.#updateDebug();
     }
 
     // Emits a mouse event at the current mouse position

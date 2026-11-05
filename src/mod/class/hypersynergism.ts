@@ -319,11 +319,17 @@ export class Hypersynergism {
 
             this.#buildToolsTab(hsui);
             this.#buildSettingsTab(hsui);
-            this.#buildDebugTab(hsui);
 
             hsui.renameTab(2, 'Tools');
             hsui.renameTab(3, 'Settings');
-            hsui.renameTab(4, 'Debug');
+
+            // The Debug tab is for dev builds only
+            if (HS_DEV_BUILD) {
+                this.#buildDebugTab(hsui);
+                hsui.renameTab(4, 'Debug');
+            } else {
+                hsui.removeTab(4);
+            }
         }
     }
 
