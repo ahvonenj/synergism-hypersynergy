@@ -516,6 +516,7 @@ export class HSSettingsUI {
         controlGroups: Record<string, HSSettingControlGroup>,
     ) {
         const pagesHTML: Map<string, string[]> = new Map();
+        const sections: { page: string; header: string; blocks: { html: string; isInlineButton: boolean }[] }[] = [];
         let didBuild = true;
         let currentControlGroup: string | null = null;
 
@@ -531,15 +532,16 @@ export class HSSettingsUI {
                 break;
             }
 
-            const pageHTMLs = pagesHTML.get(controls.controlPage) || [];
-
             if (controls.controlGroup !== currentControlGroup) {
                 currentControlGroup = controls.controlGroup;
-                const controlGroup = controlGroups[controls.controlGroup];
-                pageHTMLs.push(HSUIC.Div({
-                    class: 'hs-panel-grid-section-header',
-                    html: controlGroup.groupName
-                }));
+                sections.push({
+                    page: controls.controlPage,
+                    header: HSUIC.Div({
+                        class: 'hs-panel-grid-section-header',
+                        html: controlGroups[controls.controlGroup].groupName
+                    }),
+                    blocks: []
+                });
             }
 
             const blockHTML = this.#buildSettingBlock(settingObj, setting, controls);
@@ -548,8 +550,17 @@ export class HSSettingsUI {
                 break;
             }
 
-            pageHTMLs.push(blockHTML);
-            pagesHTML.set(controls.controlPage, pageHTMLs);
+            sections[sections.length - 1].blocks.push({ html: blockHTML, isInlineButton: this.#isInlineButton(controls) });
+        }
+
+        // The section's fields share a column (hs-panel-core.css)
+        for (const { page, header, blocks } of sections) {
+            const pageHTMLs = pagesHTML.get(page) ?? [];
+            pageHTMLs.push(header, HSUIC.Div({
+                class: 'hs-panel-settings-section',
+                html: this.#wrapButtonRows(blocks)
+            }));
+            pagesHTML.set(page, pageHTMLs);
         }
 
         for (const [pageName, pages] of pagesHTML.entries()) {
@@ -561,6 +572,35 @@ export class HSSettingsUI {
         }
 
         return { didBuild, pagesHTML };
+    }
+
+    static #isInlineButton(controls: HSSettingControl): boolean {
+        return controls.controlType === 'button'
+            && (controls.controlGroup === 'auto-sing-strategy-controls' || controls.controlGroup === 'save-export');
+    }
+
+    // Buttons that follow each other share one row of the section's grid
+    static #wrapButtonRows(blocks: { html: string; isInlineButton: boolean }[]): string[] {
+        const html: string[] = [];
+        let row: string[] = [];
+
+        const closeRow = () => {
+            if (row.length === 0) return;
+            html.push(HSUIC.Div({ class: 'hs-panel-settings-button-row', html: row }));
+            row = [];
+        };
+
+        for (const block of blocks) {
+            if (block.isInlineButton) {
+                row.push(block.html);
+            } else {
+                closeRow();
+                html.push(block.html);
+            }
+        }
+        closeRow();
+
+        return html;
     }
 
     static #buildSettingBlock(
@@ -612,7 +652,11 @@ export class HSSettingsUI {
         }
 
         let blockClass = 'hs-panel-setting-block';
-        if (controls.controlType === 'button' && (controls.controlGroup === 'auto-sing-strategy-controls' || controls.controlGroup === 'save-export')) {
+        // A number, text or dropdown field sits on its label's line; a multi-line list stays under its label
+        if (['number', 'text', 'select'].includes(controls.controlType) && !controls.props?.multiple) {
+            blockClass += ' hs-panel-setting-block-inline';
+        }
+        if (this.#isInlineButton(controls)) {
             blockClass += ' hs-inline-button';
         }
         // The strategy buttons keep a width of their own (hs-panel-core.css)

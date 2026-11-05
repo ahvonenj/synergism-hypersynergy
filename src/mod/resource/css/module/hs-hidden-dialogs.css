@@ -41,9 +41,10 @@
     display: none;
 }
 
-/* "Hidden dialogs" list in the panel: full width, "Restore default" below it */
+/* "Hidden dialogs" list in the panel: "Restore default" below it */
 #hs-hidden-dialogs-list {
     grid-column: 1 / span 2;
+    max-width: 400px;
     height: 70px;
 }
 

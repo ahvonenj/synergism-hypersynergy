@@ -1799,7 +1799,7 @@
   },
   "autosing3to6DCubeOpeningPercent": {
     "settingName": "autosing3to6DCubeOpeningPercent",
-    "settingDescription": "3-6D Cube opening percentage",
+    "settingDescription": "3-6D Cube opening %",
     "settingHelpText": "Percentage (1-100) for auto-opening 3-6D cubes.",
     "settingType": "numeric",
     "enabled": true,
@@ -1818,7 +1818,7 @@
   },
   "autosingTessBuildingAutoBuyPercent": {
     "settingName": "autosingTessBuildingAutoBuyPercent",
-    "settingDescription": "Tesseract building auto-buy percentage",
+    "settingDescription": "Tesseract building auto-buy %",
     "settingHelpText": "Percentage (1-100) for auto-buying tesseract buildings.",
     "settingType": "numeric",
     "enabled": true,

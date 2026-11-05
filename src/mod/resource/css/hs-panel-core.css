@@ -614,7 +614,48 @@ select::-webkit-scrollbar-corner {
 }
 
 #hs-setting-hidden-vanilla-tabs {
+    width: 180px;
     height: 70px;
+}
+
+/* A section's fields share a column, right after the longest label that has a field. Rows without a field span both
+   tracks, and a row spanning the 1fr track doesn't size the first one: a long switch label doesn't push the fields.
+   In a panel too narrow for both, the labels wrap */
+.hs-panel-settings-section {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(110px, 1fr);
+    column-gap: 5px;
+}
+
+/* A subgrid counts its padding in the first track: a child's indent is part of the column */
+.hs-panel-setting-block-inline {
+    grid-template-columns: subgrid;
+    align-items: center;
+}
+
+.hs-panel-setting-block-inline > .hs-panel-setting-block-text-wrapper {
+    grid-column: 1;
+}
+
+.hs-panel-setting-block-inline > .hs-panel-setting-block-input-row {
+    grid-column: 2;
+}
+
+.hs-panel-setting-block-inline .hs-panel-setting-block-num-input,
+.hs-panel-setting-block-inline .hs-panel-setting-block-select-input {
+    flex-shrink: 0;
+    width: 110px;
+}
+
+/* Buttons side by side: a grid would stack them */
+.hs-panel-settings-button-row {
+    grid-column: 1 / -1;
+}
+
+/* Strategy names are long */
+#hs-setting-auto-sing-strategy {
+    width: 340px;
+    max-width: 100%;
 }
 
 .hs-panel-setting-block-select-input[multiple] option:checked {
