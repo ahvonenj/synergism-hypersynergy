@@ -1,6 +1,6 @@
 # The header's edit mode: "[HS] Header" block, grid width, edit button
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 What the mod adds to the game's header edit mode: its settings block, the grid width, the edit button and long press, and the cell, minibar and button additions.
 
@@ -39,7 +39,8 @@ header setting moved there (better for everyone than the panel). Static, install
 settings sync; no patcher feature.
 - **One block, its sections side by side** (one block over several), in `SECTIONS` order: Layout,
   Ambrosia loadouts, Mod modules (Ambrosia per hour and Challenge progress only with the header modules patch, Center
-  quick bars only without it: it moves `#quickbarsRow`), Challenge progress, Corruption module, Octeracts. Title
+  quick bars only without it: it moves `#quickbarsRow`), Challenge progress, Corruption module, Singularity module,
+  Octeracts. Title
   "[HS] Header", no "[HS]" inside; checkboxes as "[HS] Keep my header layout" (small, grey label), help texts as
   tooltips.
 - **`shown` checks run at each refresh**: lines are always built and hidden with `[hidden]` CSS, a section hidden when

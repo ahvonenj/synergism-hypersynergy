@@ -1,6 +1,6 @@
 # Mod modules in the game's header (HSHeaderModules)
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 The mod's own modules in the game's editable header (`HeaderModules.ts`): the player places, hides (tray), resizes
 and stacks them like the game's own. Today: the automation quickbar, `hsAutomationHeader` (`HSAutomationQuickbarPlacement`, created by `HSQOLButtons`), the

@@ -1,6 +1,6 @@
 # Corruption level module (HSCorruptionHeader)
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 Decorates the game's `corruptionLevelHeader` ("used/max", game 4.4.0); not a mod module. Code
 `hs-core/header/hs-corruption-header.ts`, CSS `hs-corruption-header.css`. Section "Corruption module" of the block.
@@ -15,7 +15,8 @@ Decorates the game's `corruptionLevelHeader` ("used/max", game 4.4.0); not a mod
   -1, input, +1, +10, Max, the game's button classes, at their text's width + 5 px a side instead of the game's
   fixed widths) and its two toggles side by side (checkboxes at their normal size, not the tab's 1.4), all through the game's own controls (`HSCorruptionLevel`,
   `hs-core/hs-corruption-level.ts`, shared with autosing's `HSAutosingCorruption`): the game clamps and updates its
-  tab. The cleanse and the row are hidden while the max is 0, the toggles stay (they work before C11).
+  tab. The cleanse and the row are hidden while the max is 0, the toggles stay (they work before C11). The box is
+  `HSHeaderPopover` (`hs-header-popover.ts`), shared with the elevator popover.
   - **Cleanse in two clicks**, as the game's Cleanse then Confirm (a cleanse lowers the current ascension's level at
     once; one click was considered and kept at two, the button being next to the 0): the first shows "OK?" over the
     icon for 10 s (the game's "Confirm" as tooltip; over it, not beside it: the popover shouldn't grow
@@ -25,7 +26,7 @@ Decorates the game's `corruptionLevelHeader` ("used/max", game 4.4.0); not a mod
     (`cleanseToHighest`), English for everyone; the game's translated sentence is their tooltip. Closes
   on Escape, a press outside, a second click on the module, edit mode, the module hidden. In edit mode the game's
   capture listener stops the click. An emptied input changes nothing (the game would set 0). The game's texts
-  (title = the input's aria-label, Max, toggle) copied at each opening, so they follow a language switch.
+  (title = "[HS] " + the input's aria-label, Max, toggle) copied at each opening, so they follow a language switch.
 - **Level controls in the module** (hidden setting `corruptionHeaderInline`, on by default, under the setting above;
   off = the popover only). The module's size chooses how much shows, with no mode setting:
   - **S or stacked**: the game's text and ` → 30`, as without the setting.

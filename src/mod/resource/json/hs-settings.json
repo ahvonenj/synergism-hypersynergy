@@ -246,6 +246,21 @@
       "controlEnabledId": "hs-setting-corruption-header-always-shown-btn"
     }
   },
+  "singularityHeaderElevator": {
+    "settingName": "singularityHeaderElevator",
+    "settingDescription": "Singularity module: Elevator popover",
+    "settingHelpText": "Click the Singularity count module to use the Elevator.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "singularityHeaderElevatorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-singularity-header-elevator-btn"
+    }
+  },
   "rememberSubtabs": {
     "settingName": "rememberSubtabs",
     "settingDescription": "Remember last used subtab",

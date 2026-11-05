@@ -1,6 +1,6 @@
 # Challenge progress module (HSHeaderChallengeModule)
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 One mod module (`hsChallengeProgress`) for the challenges the player is in, instead of the game's three progress
 modules (one per tier, never stackable: `canJoinSlot`; they keep their room outside a challenge, `visibility:

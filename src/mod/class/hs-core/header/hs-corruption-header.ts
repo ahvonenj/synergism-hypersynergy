@@ -2,6 +2,7 @@ import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
 import { HSCorruptionLevel, HSCorruptionLevelButton, HSCorruptionToggle } from "../hs-corruption-level";
+import { HSHeaderPopover } from "./hs-header-popover";
 import { HSNumberParser } from "../../hs-utils/hs-number-parser";
 import corruptionHeaderCSS from "inline:../../../resource/css/module/hs-corruption-header.css";
 
@@ -53,7 +54,7 @@ interface HSCorruptionToggleControl {
 }
 
 interface HSCorruptionPopover {
-    element: HTMLElement;
+    shell: HSHeaderPopover;
     title: HTMLElement;
     row: HTMLElement;
     input: HTMLInputElement;
@@ -101,7 +102,6 @@ export class HSCorruptionHeader {
     static #text?: HTMLElement;
     static #next?: HTMLSpanElement;
     static #popover?: HSCorruptionPopover;
-    static #open = false;
     static #inline?: HSCorruptionInline;
     static #inlineWanted = false;
     // While ‹ or › is held
@@ -178,9 +178,10 @@ export class HSCorruptionHeader {
         if (!module || !next || document.hidden || !module.isConnected) return;
 
         const seen = module.checkVisibility?.() ?? true;
-        const editing = document.getElementById('mainHeader')?.classList.contains('headerEditMode') === true;
-        if (HSCorruptionHeader.#open && (!seen || editing)) HSCorruptionHeader.#close();
-        if (!seen || editing) HSCorruptionHeader.#stopRepeat();
+        if (!seen || HSHeaderPopover.isEditing()) {
+            HSCorruptionHeader.#close();
+            HSCorruptionHeader.#stopRepeat();
+        }
         // In the tray outside edit mode, or locked
         if (!seen) return;
 
@@ -189,7 +190,7 @@ export class HSCorruptionHeader {
             const level = HSCorruptionLevel.getNext();
             const text = Number.isFinite(level) && level !== shown ? ` → ${Intl.NumberFormat().format(level)}` : '';
             if (next.textContent !== text) next.textContent = text;
-            if (HSCorruptionHeader.#open) HSCorruptionHeader.#refreshPopover(level, max);
+            if (HSCorruptionHeader.#popover?.shell.isOpen) HSCorruptionHeader.#refreshPopover(level, max);
             HSCorruptionHeader.#refreshInline(level, shown, max);
         } catch (error) {
             HSLogger.warnOnce(`Could not draw the next corruption level: ${error}`, 'hs-corruption-header');
@@ -203,29 +204,17 @@ export class HSCorruptionHeader {
     static #onModuleClick = (event: MouseEvent): void => {
         // The controls in the module act on their own; the rest of it opens the popover
         if (event.target instanceof Element && event.target.closest(`.hs-corr-inline :is(${INLINE_CONTROLS})`)) return;
-        if (HSCorruptionHeader.#open) HSCorruptionHeader.#close();
+        if (HSCorruptionHeader.#popover?.shell.isOpen) HSCorruptionHeader.#close();
         else HSCorruptionHeader.#openPopover();
-    };
-
-    // A press outside the popover and the module closes it (the module's own click toggles it)
-    static #onDocumentPointerDown = (event: PointerEvent): void => {
-        const target = event.target;
-        if (!(target instanceof Node)) return;
-        if (HSCorruptionHeader.#popover?.element.contains(target) || HSCorruptionHeader.#module?.contains(target)) return;
-        HSCorruptionHeader.#close();
-    };
-
-    static #onKeyDown = (event: KeyboardEvent): void => {
-        if (event.key === 'Escape') HSCorruptionHeader.#close();
     };
 
     static #openPopover(): void {
         const module = HSCorruptionHeader.#module;
         if (!module) return;
-        const popover = HSCorruptionHeader.#popover ??= HSCorruptionHeader.#buildPopover();
+        const popover = HSCorruptionHeader.#popover ??= HSCorruptionHeader.#buildPopover(module);
 
         // The game's texts at each opening: they follow a language switch
-        popover.title.textContent = HSCorruptionLevel.inputLabel() ?? 'Corruption level for next Ascension';
+        popover.title.textContent = `[HS] ${HSCorruptionLevel.inputLabel() ?? 'Corruption level for next Ascension'}`;
         popover.maxButton.textContent = HSCorruptionLevel.buttonText('max') ?? 'Max';
         for (const { toggle, label, fallbackTitle } of popover.toggles) {
             label.title = HSCorruptionLevel.toggleLabel(toggle) ?? fallbackTitle;
@@ -234,26 +223,16 @@ export class HSCorruptionHeader {
         if (icon && popover.cleanse.icon.getAttribute('src') !== icon) popover.cleanse.icon.src = icon;
         HSCorruptionHeader.#disarmCleanse();
 
-        popover.element.hidden = false;
-        HSCorruptionHeader.#open = true;
-        document.addEventListener('pointerdown', HSCorruptionHeader.#onDocumentPointerDown, true);
-        document.addEventListener('keydown', HSCorruptionHeader.#onKeyDown);
+        popover.shell.open();
         HSCorruptionHeader.#refreshPopover(HSCorruptionLevel.getNext(), HSCorruptionHeader.#levels().max);
     }
 
     static #close(): void {
-        if (!HSCorruptionHeader.#open) return;
-        HSCorruptionHeader.#open = false;
-        HSCorruptionHeader.#disarmCleanse();
-        if (HSCorruptionHeader.#popover) HSCorruptionHeader.#popover.element.hidden = true;
-        document.removeEventListener('pointerdown', HSCorruptionHeader.#onDocumentPointerDown, true);
-        document.removeEventListener('keydown', HSCorruptionHeader.#onKeyDown);
+        HSCorruptionHeader.#popover?.shell.close();
     }
 
-    static #buildPopover(): HSCorruptionPopover {
-        const element = document.createElement('div');
-        element.id = POPOVER_ID;
-        element.hidden = true;
+    static #buildPopover(module: HTMLElement): HSCorruptionPopover {
+        const shell = new HSHeaderPopover(POPOVER_ID, module, () => HSCorruptionHeader.#disarmCleanse());
 
         const title = document.createElement('div');
         title.className = 'hs-corr-pop-title';
@@ -289,9 +268,8 @@ export class HSCorruptionHeader {
             return control;
         });
 
-        element.append(title, row, toggleRow);
-        document.body.append(element);
-        return { element, title, row, input, maxButton: maxButton!, cleanse, toggles };
+        shell.element.append(title, row, toggleRow);
+        return { shell, title, row, input, maxButton: maxButton!, cleanse, toggles };
     }
 
     static #buildLevelInput(className: string): HTMLInputElement {
@@ -391,8 +369,7 @@ export class HSCorruptionHeader {
 
     static #refreshPopover(level: number, max: number): void {
         const popover = HSCorruptionHeader.#popover;
-        const module = HSCorruptionHeader.#module;
-        if (!popover || !module) return;
+        if (!popover) return;
 
         // The game hides its level row while the max is 0
         popover.row.hidden = !(max > 0);
@@ -404,13 +381,7 @@ export class HSCorruptionHeader {
             if (checkbox.checked !== enabled) checkbox.checked = enabled;
         }
 
-        // Centred under the module, kept inside the page's width (the header can move: edit mode, the window's size)
-        const rect = module.getBoundingClientRect();
-        const width = popover.element.offsetWidth;
-        const pageWidth = document.documentElement.clientWidth;
-        const left = Math.max(8, Math.min(rect.left + (rect.width - width) / 2, pageWidth - width - 8));
-        popover.element.style.left = `${left + window.scrollX}px`;
-        popover.element.style.top = `${rect.bottom + window.scrollY}px`;
+        popover.shell.place();
     }
 
     // ======================================================

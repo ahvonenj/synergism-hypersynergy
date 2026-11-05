@@ -22,6 +22,7 @@ import { HSHeaderEditSettings } from "../header/hs-header-edit-settings";
 import { HSHeaderChallengeProgress } from "../header/hs-header-challenge-progress";
 import { HSHeaderChallengeModule } from "../header/hs-header-challenge-module";
 import { HSCorruptionHeader } from "../header/hs-corruption-header";
+import { HSElevatorHeader } from "../header/hs-elevator-header";
 
 // Action of an on/off setting that belongs to a module: `on` when the setting is on, `off` when it is off.
 // Does nothing if the module isn't loaded.
@@ -147,6 +148,12 @@ export class HSSettingActions {
         },
         corruptionHeaderAlwaysShownAction: async (params: HSSettingActionParams) => {
             HSCorruptionHeader.setAlwaysShown(params.disable !== true);
+        },
+
+        // The game's Singularity count header module, which is in the page from the start
+        singularityHeaderElevatorAction: async (params: HSSettingActionParams) => {
+            if (params.disable === true) HSElevatorHeader.disable();
+            else HSElevatorHeader.enable();
         },
 
         // Not awaited: the GDS start and stop run on their own.

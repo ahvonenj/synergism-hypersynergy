@@ -438,6 +438,7 @@
       "intro": "Open the game's header editor with the pencil beside the mod icon, or Settings → UI → Edit game header. HS options live beside the game's module tray, not in a separate quickbar settings page.",
       "sources": [
         "docs/features/header-edit-mode.md",
+        "docs/features/header-elevator.md",
         "docs/features/header-loadouts.md",
         "docs/features/header-modules.md",
         "src/mod/class/hs-core/header/hs-header-keep-on-import.ts",
@@ -655,6 +656,23 @@
           ],
           "settings": [
             "matchOcteractText"
+          ]
+        },
+        {
+          "id": "header-elevator",
+          "title": "Singularity Elevator from the header",
+          "where": "Click the game's Singularity count header module; [HS] Header → Singularity module → Elevator popover",
+          "summary": "Uses the Elevator without opening the Singularity tab.",
+          "details": [
+            "The popover has the target, the Teleport button, both toggles and the status line, through the game's own controls. Teleport asks the game's usual confirmations.",
+            "With future singularities locked, the status line names the target, where the next singularity really goes. The game's tab names the current singularity there.",
+            "Escape, an outside press, a second module click or entering edit mode closes the popover."
+          ],
+          "limits": [
+            "Needs live-player access. Below singularity 10, it only shows the game's out-of-order message. Teleport is refused while AutoSing runs, because AutoSing answers every confirmation."
+          ],
+          "settings": [
+            "singularityHeaderElevator"
           ]
         },
         {

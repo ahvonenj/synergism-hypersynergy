@@ -47,6 +47,7 @@ export interface HSSettingsDefinition {
     corruptionHeaderControls: HSSettingBase<boolean>;
     corruptionHeaderInline: HSSettingBase<boolean>;
     corruptionHeaderAlwaysShown: HSSettingBase<boolean>;
+    singularityHeaderElevator: HSSettingBase<boolean>;
     autoDismissOfflinePopup: AutoDismissOfflinePopupSetting;
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;

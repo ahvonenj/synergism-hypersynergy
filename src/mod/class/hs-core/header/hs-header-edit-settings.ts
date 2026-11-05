@@ -117,6 +117,13 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
         ],
     },
     {
+        title: 'Singularity module',
+        toggles: [
+            // Reads the live player (bookmarklet: no popover)
+            { setting: 'singularityHeaderElevator', label: 'Elevator popover', shown: () => !!HSGlobal.exposedPlayer },
+        ],
+    },
+    {
         title: 'Octeracts',
         toggles: [
             { setting: 'matchOcteractIconSize', label: 'Match octeract icon size' },
