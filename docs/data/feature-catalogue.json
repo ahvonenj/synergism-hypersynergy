@@ -90,7 +90,8 @@
         "src/mod/class/hs-core/hs-ui.ts",
         "src/mod/class/hs-core/settings/hs-settings-ui.ts",
         "docs/features/dialogs.md",
-        "docs/features/subtab-memory.md"
+        "docs/features/subtab-memory.md",
+        "docs/features/perks-find.md"
       ],
       "features": [
         {
@@ -142,6 +143,24 @@
           ],
           "settings": [
             "rememberSubtabs"
+          ]
+        },
+        {
+          "id": "perks-find",
+          "title": "Search the singularity perks",
+          "where": "Singularity → Perks / Penalties, above the penalties",
+          "summary": "Lists the tooltips of the perks matching what you type.",
+          "details": [
+            "Results take the place of the penalties text while you search, and the other perks are dimmed in the tree. Clear the field or press Escape to bring the penalties back.",
+            "Searches perk names and descriptions in your game language, by the start of words. Several words must all match.",
+            "A row of clickable words (quark, cube, octeract, ant, luck, salvage, token, auto) runs the common searches. The words are English; one that finds nothing is not shown.",
+            "Perks the game hasn't shown you yet stay out of the results."
+          ],
+          "limits": [
+            "Perks only, not Golden Quark or octeract upgrades. Values in the results update at your next key press or when you come back to the subtab. Not available on touch devices."
+          ],
+          "settings": [
+            "perksFind"
           ]
         },
         {

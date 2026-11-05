@@ -50,6 +50,7 @@ export interface HSSettingsDefinition {
     autoDismissOfflinePopup: AutoDismissOfflinePopupSetting;
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;
+    perksFind: PerksFindSetting;
 
     // Log Settings
     logTimestamp: LogTimestampSetting;
@@ -230,6 +231,7 @@ export interface HiddenVanillaTabsSetting extends HSSettingBase<string[]> { }
 export interface AutoDismissOfflinePopupSetting extends HSSettingBase<boolean> { }
 export interface ReloadOnLateLoaderStartSetting extends HSSettingBase<boolean> { }
 export interface RememberSubtabsSetting extends HSSettingBase<boolean> { }
+export interface PerksFindSetting extends HSSettingBase<boolean> { }
 
 // Timed save export
 export interface AutoExportSaveSetting extends HSSettingBase<number> { }

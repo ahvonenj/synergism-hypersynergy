@@ -79,7 +79,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - **Hepteract Distributor**: many of its choices were reversed at least once; update the panel's `HELP_LINES` with it. `docs/features/hepteract-distributor.md`.
 - **Version check**: `compareVersionTags` and the release helper's `compareVersions` must sort the same way. `docs/features/version-check.md`.
 - **Backup**: a backup file is untrusted. `docs/features/backup.md`.
-- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip.
+- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip, perk search.
 
 ### Dev tools (`docs/features/dev-tools.md`)
 `HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`.

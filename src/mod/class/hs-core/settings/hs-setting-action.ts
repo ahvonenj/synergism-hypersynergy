@@ -12,6 +12,7 @@ import { HSSettings } from "./hs-settings";
 import { HSSettingsUI } from "./hs-settings-ui";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
+import { HSPerksFind } from "../../hs-modules/hs-perks-find";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export";
 import { HSGlobal } from "../hs-global";
 import { HSHiddenDialogs } from "../dialogs/hs-hidden-dialogs";
@@ -277,6 +278,11 @@ export class HSSettingActions {
         enableHepteractDistributorAction: moduleToggle<HSHepteractDistributor>('HSHepteractDistributor',
             (mod) => mod.showDistributor(),
             (mod) => mod.hideDistributor()
+        ),
+
+        perksFindAction: moduleToggle<HSPerksFind>('HSPerksFind',
+            (mod) => mod.show(),
+            (mod) => mod.hide()
         ),
 
         enableAutomationQuickBarAction: moduleToggle<HSQOLButtons>('HSQOLButtons',

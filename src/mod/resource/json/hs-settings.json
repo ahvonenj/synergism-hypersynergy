@@ -336,6 +336,20 @@
       "controlEnabledId": "hs-setting-remember-subtabs-btn"
     }
   },
+  "perksFind": {
+    "settingName": "perksFind",
+    "settingDescription": "Search field for perks",
+    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "perksFindAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "ui",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-perks-find-btn"
+    }
+  },
   "autoDismissOfflinePopup": {
     "settingName": "autoDismissOfflinePopup",
     "settingDescription": "Auto-dismiss offline popup",
