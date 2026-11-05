@@ -50,9 +50,8 @@ export class HSCalculationTools {
 
         return [
             HSUIC.Div({
-                class: 'hs-panel-grid-full-span',
-                html: `Execute supported calculations on a save taken at the click and see their results. Calculations denoted with "(C)" support "calculating by components",
-                    meaning that the calculation results can be output as the named components that make up the calculations.`
+                class: 'hs-panel-grid-full-span hs-panel-grid-hint',
+                html: 'Runs a calculation on the current save. "(C)": can also list its components.'
             }),
             HSUIC.Select({
                 class: 'hs-panel-setting-block-select-input hs-panel-grid-full-span',

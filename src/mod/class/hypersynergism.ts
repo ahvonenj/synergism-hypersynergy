@@ -346,14 +346,6 @@ export class Hypersynergism {
         });
     }
 
-    #buildGridFullSpanDiv(id: string | undefined, html: string) {
-        return HSUIC.Div({
-            id,
-            class: 'hs-panel-grid-full-span',
-            html
-        });
-    }
-
 
     // ================================
     // --- Tools tab implementation ---
@@ -371,7 +363,6 @@ export class Hypersynergism {
                     this.#buildGridSectionHeader('Backup & Restore'),
                     ...HSBackup.buildToolsSection(),
                     this.#buildGridSectionHeader('Ambrosia Heater'),
-                    this.#buildGridFullSpanDiv('hs-panel-amb-heater-p', `Export an extended save file string for the <a href="${HSGlobal.General.heaterUrl}" class="hs-link" target="_blank">Ambrosia Heater sheet</a>.`),
                     HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Copy Heater Data' }),
                     HSUIC.Button({ id: 'hs-panel-amb-heater-compute-btn', text: 'Ambrosia Heater' }),
                     this.#buildGridSectionHeader('Mod links'),

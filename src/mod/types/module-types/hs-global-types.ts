@@ -25,7 +25,6 @@ export interface HSGlobalGeneral {
     modGithubUrl: string;
     modWebsiteUrl: string;
     modDiscordThreadUrl: string;
-    heaterUrl: string;
 }
 
 export interface HSGlobalCommon {
