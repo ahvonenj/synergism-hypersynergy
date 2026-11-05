@@ -237,10 +237,12 @@ export class HSAutosing extends HSModule {
     }
 
     #cacheChallengeElements(): boolean {
+        // The game's text span, not its header module: the mod adds a compact copy inside the module
+        // (HSHeaderChallengeProgress), so the module's text is never empty once the game exits the challenge
         const progressElements = {
-            transcension: document.getElementById('transcensionChallengeProgress'),
-            reincarnation: document.getElementById('reincarnationChallengeProgress'),
-            ascension: document.getElementById('ascensionChallengeProgress'),
+            transcension: document.getElementById('transcensionChallengeProgressText'),
+            reincarnation: document.getElementById('reincarnationChallengeProgressText'),
+            ascension: document.getElementById('ascensionChallengeProgressText'),
         };
         if (!this.#ensureElements(progressElements)) return false;
         this.#challengeProgressElements = [
