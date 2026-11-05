@@ -51,7 +51,7 @@ export class HSAutoExportFolder {
         if (this.#folderState === 'none') {
             // In a browser, the file is downloaded as usual
             if (this.isSteam()) {
-                this.#notifyOnce('steam-folder', 'Timed save export: choose an export folder first (Save settings). On Steam, a download would open a "Save as" dialog each time');
+                this.#notifyOnce('steam-folder', 'Timed save export: choose an export folder first (QoL settings). On Steam, a download would open a "Save as" dialog each time');
                 return false;
             }
         } else if (this.#folderState === 'locked') {
@@ -242,7 +242,7 @@ export class HSAutoExportFolder {
             if (this.#folder !== folder) return;
             this.#folderState = granted ? 'ready' : 'refused';
             this.refreshButton();
-            if (!granted) this.#notifyOnce('refused', 'Timed save export: access to the export folder was not given. Choose the folder again, or forget it (Save settings)');
+            if (!granted) this.#notifyOnce('refused', 'Timed save export: access to the export folder was not given. Choose the folder again, or forget it (QoL settings)');
         })();
     }
 
@@ -268,7 +268,7 @@ export class HSAutoExportFolder {
             if (this.#folder === folder && (error as Error)?.name === 'NotAllowedError') this.#folderState = 'locked';
             const isSteam = this.isSteam();
             HSUI.Notify(isSteam
-                ? 'Timed save export: could not write into the export folder (the rewards were collected). Choose the folder again (Save settings)'
+                ? 'Timed save export: could not write into the export folder (the rewards were collected). Choose the folder again (QoL settings)'
                 : 'Timed save export: could not write into the export folder, the file is downloaded instead', { notificationType: 'warning' });
             HSLogger.warn(`Timed save export: could not write "${fileName}" into the export folder (${error})`, this.context);
             if (!isSteam) this.#download(fileName, save);

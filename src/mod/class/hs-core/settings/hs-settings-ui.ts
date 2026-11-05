@@ -666,7 +666,8 @@ export class HSSettingsUI {
 
         // A setting that belongs to another one (controlParent) is indented under its label. With
         // controlHideWhenParentOff it is hidden while the parent is off: a CSS rule on the parent's switch, which
-        // the settings UI keeps marked .hs-disabled while off
+        // the settings UI keeps marked .hs-disabled while off. An inline button sits in a row (#wrapButtonRows):
+        // the row is what gets hidden, so all the buttons of a row need the flag
         let blockId = setting.settingBlockId;
         if (controls.controlParent) {
             blockClass += ' hs-panel-setting-block-child';
@@ -674,7 +675,8 @@ export class HSSettingsUI {
             if (controls.controlHideWhenParentOff) {
                 const parentSwitchId = HSSettings.getSetting(controls.controlParent)?.getDefinition().settingControl?.controlEnabledId;
                 if (parentSwitchId) {
-                    HSUI.injectStyle(`.hs-panel-setting-block:has(#${parentSwitchId}.hs-disabled) ~ #${blockId} { display: none; }`,
+                    const parentOff = `.hs-panel-setting-block:has(#${parentSwitchId}.hs-disabled)`;
+                    HSUI.injectStyle(`${parentOff} ~ #${blockId}, ${parentOff} ~ .hs-panel-settings-button-row:has(#${blockId}) { display: none; }`,
                         `hs-setting-child-${setting.settingName}`);
                 } else {
                     HSLogger.warn(`Setting ${setting.settingName}: its parent ${controls.controlParent} has no switch, it is always shown`, this.#context);

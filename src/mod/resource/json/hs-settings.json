@@ -490,6 +490,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
       "controlPage": "qol"
     }
   },
@@ -506,6 +507,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
       "controlPage": "qol"
     }
   },
@@ -521,6 +523,7 @@
       "controlType": "number",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
       "controlPage": "qol",
       "controlEnabledId": "hs-setting-auto-export-save-keep-btn",
       "controlOptions": {
@@ -542,6 +545,7 @@
       "controlType": "select",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
       "controlPage": "qol",
       "selectOptions": [
         {
