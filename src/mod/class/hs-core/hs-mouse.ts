@@ -101,13 +101,8 @@ export class HSMouse extends HSModule {
                     }
 
                     // If the element under cursor has some classes defined, go through them all and check the ignore list by class
-                    if(elementUnderCursor.classList.length > 0) {
-                        elementUnderCursor.classList.forEach(cls => {
-                            if(HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)) {
-                                return;
-                            }
-                        })
-                    }
+                    if(Array.from(elementUnderCursor.classList).some(cls => HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)))
+                        return;
                 }
             }
 

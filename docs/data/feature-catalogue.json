@@ -288,8 +288,8 @@
         },
         {
           "id": "reactive-hover",
-          "title": "Reactive hover while holding left Shift",
-          "where": "Settings → Input → Reactive mouse hover",
+          "title": "Repeat hover while holding left Shift",
+          "where": "Settings → Input → Repeat hover",
           "summary": "Repeatedly refreshes the hover event under the pointer.",
           "details": [
             "Enable the option and set the interval in seconds; hold left Shift to emit repeated mouseover events.",
@@ -306,10 +306,10 @@
           "summary": "Repeats clicks at the pointer with a configurable interval.",
           "details": [
             "Enable it, choose the interval in seconds, then hold left Ctrl over the desired target.",
-            "Releasing the modifier or leaving the page stops the timer. The optional ignore list avoids selected controls."
+            "Releasing the modifier or leaving the page stops the timer. Skip risky buttons, under Auto click and on by default for new players, avoids selected controls."
           ],
           "limits": [
-            "The ignore option is a convenience filter, not a guarantee against every unintended click."
+            "Skip risky buttons is a convenience filter, not a guarantee against every unintended click."
           ],
           "settings": [
             "autoClick",

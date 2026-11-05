@@ -386,8 +386,8 @@
   },
   "reactiveMouseHover": {
     "settingName": "reactiveMouseHover",
-    "settingDescription": "Reactive mouse hover (when SHIFT is held)",
-    "settingHelpText": "When enabled, mouse will emit hover events at current mouse position when SHIFT is held. Setting value is event interval in seconds (0.1 = 100ms).",
+    "settingDescription": "Repeat hover (hold left Shift)",
+    "settingHelpText": "While left Shift is held, repeats the hover on whatever is under the pointer, without moving the mouse. Value: interval in seconds.",
     "settingType": "numeric",
     "enabled": false,
     "settingValue": 0.2,
@@ -408,8 +408,8 @@
   },
   "autoClick": {
     "settingName": "autoClick",
-    "settingDescription": "Auto click (when CTRL is held)",
-    "settingHelpText": "When enabled, mouse will click automatically at current mouse position when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
+    "settingDescription": "Auto click (hold left Ctrl)",
+    "settingHelpText": "While left Ctrl is held, clicks repeatedly on whatever is under the pointer. Value: interval in seconds.",
     "settingType": "numeric",
     "enabled": false,
     "settingValue": 0.15,
@@ -430,13 +430,15 @@
   },
   "autoClickIgnoreElements": {
     "settingName": "autoClickIgnoreElements",
-    "settingDescription": "Auto click ignores certain elements",
-    "settingHelpText": "When enabled, auto click will ignore (not click on) certain elements such as some buttons which there should be no need to auto click. This is to prevent accidental clicks.",
+    "settingDescription": "Skip risky buttons",
+    "settingHelpText": "Auto click won't click auto and mode toggles, hepteract craft and cap buttons, orb and powder trades, Retry Challenge, or dialog OK/Cancel.",
     "settingType": "boolean",
-    "enabled": false,
+    "enabled": true,
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "mouse",
+      "controlParent": "autoClick",
+      "controlHideWhenParentOff": true,
       "controlPage": "input",
       "controlEnabledId": "hs-setting-autoclick-ignore-btn"
     }
