@@ -3,7 +3,6 @@ import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
 import { HSModuleManager } from "./module/hs-module-manager";
 import { HSGameDataAPI } from "./gds/hs-gamedata-api";
-import { HSUtils } from "../hs-utils/hs-utils";
 import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSCalculationDefinition, HSCalculationParamOption, HSCalculationParams } from "../../types/data-types/hs-gamedata-api-types";
 import calculationToolsCSS from "inline:../../resource/css/module/hs-calculation-tools.css";
@@ -276,7 +275,15 @@ export class HSCalculationTools {
                 .map(([key, value]) => `\n${indent}${key}: ${HSCalculationTools.#formatResult(value, depth + 1)}`)
                 .join('');
         }
-        return typeof result === 'number' ? HSUtils.N(result) : String(result);
+        return typeof result === 'number' ? HSCalculationTools.#formatNumber(result) : String(result);
+    }
+
+    // 3 decimals; scientific notation above 1e6 and below 0.01, where 3 decimals would lose the value's significant digits
+    static #formatNumber(value: number): string {
+        const size = Math.abs(value);
+        return size > 1_000_000 || (size > 0 && size < 0.01)
+            ? value.toExponential(3).replace('+', '')
+            : value.toFixed(3);
     }
 
     // Components indented under their total. A total object (luck) gives its own keys first (luckTotal),

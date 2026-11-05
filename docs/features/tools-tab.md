@@ -3,6 +3,8 @@
 How a calculation gets into the list (`toolingSupport`, `fnParams`, `options`, components): `docs/features/gds.md`.
 
 - **Each run forces a save**, so it works with GDS off; an error goes to the result line.
+- **Numbers show 3 decimals**, in scientific notation above 1e6 and below 0.01 (exact 0 stays `0.000`). The formatter is
+  local: not `HSUtils.N`, whose other callers keep their format.
 - **Names start with their topic**, a part of a value written "Parent: part" ("Ambrosia Luck: Shop Upgrade"), and the
   list is sorted A→Z (`#definitions()`). A new entry needs a topic-first name, nothing else to place.
 - **Params** get controls from `options` (a `{ label, value }` list, or a function of the save). `reduce_vals` is
