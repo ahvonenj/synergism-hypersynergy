@@ -529,22 +529,23 @@ select::-webkit-scrollbar-corner {
     color: #c4c4c4;
 }
 
-/* 20px above a title and 15px below */
+/* 12px above a title and 10px below */
 .hs-panel-grid-section-header {
     border-bottom: 1px solid limegreen;
     grid-column: span 2;
-    margin-top: 10px;
-    margin-bottom: 15px;
+    margin-top: 12px;
+    margin-bottom: 10px;
 }
 
 /* In the Settings pages, the setting block above gives 5px of padding */
 .hs-panel-settings-grid > .hs-panel-grid-section-header {
-    margin-top: 15px;
+    margin-top: 7px;
 }
 
 /* In the Tools and Debug grids, the 10px row gap adds to both margins */
 .hs-panel-grid-2col > .hs-panel-grid-section-header {
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 0;
 }
 
 .hs-panel-grid-2col > .hs-panel-grid-section-header:first-child {
