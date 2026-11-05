@@ -9,7 +9,7 @@ import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
  * IsExplicitHSModule: No
  * Description:
  *     Created by HSAmbrosia. Keeps the upgrade levels shown on the Ambrosia tab's tree (the game only shows them while
- *     its 🔎 button is hovered): the "Keep upgrade levels shown on the tree" setting, also switched by that button
+ *     its 🔎 button is hovered): the "Keep tree levels shown" setting, also switched by that button
  *     (📌 when on). The game's own hover display is used: hidden while the tree or a slot is hovered, drawn again
  *     after a tree change.
  * Author: Swiffy, Shewchou
@@ -34,7 +34,7 @@ export class HSAmbrosiaLevelsDisplay {
         this.#blueberryUpgradeContainer = await HSElementHooker.HookElement('#blueberryUpgradeContainer');
     }
 
-    /** The "Keep upgrade levels shown on the tree" setting, the only record of the 📌/🔎 state. */
+    /** The "Keep tree levels shown" setting, the only record of the 📌/🔎 state. */
     get #persistentAmbrosiaLevelsEnabled(): boolean {
         return HSSettings.getSetting('persistentAmbrosiaLevels')?.isEnabled() ?? true;
     }

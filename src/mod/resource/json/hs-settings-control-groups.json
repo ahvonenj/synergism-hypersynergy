@@ -1,66 +1,58 @@
 {
   "ui": {
-    "groupName": "UI settings",
+    "groupName": "UI",
     "order": 2
   },
   "notifications": {
-    "groupName": "Notification settings",
+    "groupName": "Notifications",
     "order": 3
   },
   "mouse": {
-    "groupName": "Mouse settings",
+    "groupName": "Mouse",
     "order": 6
   },
   "gamedata": {
-    "groupName": "Game data settings",
+    "groupName": "Game data",
     "order": 11
   },
   "save-export": {
-    "groupName": "Timed save export settings",
+    "groupName": "Timed save export",
     "order": 11.5
   },
   "debug": {
-    "groupName": "Debugging settings",
+    "groupName": "Debugging",
     "order": 10
   },
   "auto-sing": {
-    "groupName": "Auto-Sing settings",
+    "groupName": "Auto-Sing",
     "order": 14
   },
   "auto-sing-strategy-controls": {
-    "groupName": "Auto-Sing Strategy settings",
+    "groupName": "Strategy",
     "order": 15
   },
   "auto-sing-ambrosia": {
-    "groupName": "Auto-Sing Ambrosia Loadouts settings",
+    "groupName": "Ambrosia loadouts",
     "order": 16
   },
   "auto-sing-timer-modal": {
-    "groupName": "Auto-Sing Advanced settings",
+    "groupName": "Advanced",
     "order": 17
   },
   "quickbar-qol": {
-    "groupName": "Quickbar QOL settings",
+    "groupName": "Quickbar QoL",
     "order": 18
   },
   "hepteracts": {
-    "groupName": "Hepteract settings",
+    "groupName": "Hepteracts",
     "order": 18.5
   },
-  "Golden-quarks-qol-settings": {
-    "groupName": "Golden Quark settings",
+  "singularity": {
+    "groupName": "Singularity",
     "order": 19
   },
-  "Octeracts-qol-settings": {
-    "groupName": "Octeract settings",
-    "order": 20
-  },
-  "perks": {
-    "groupName": "Perks settings",
-    "order": 21
-  },
   "ambrosia": {
-    "groupName": "Ambrosia settings",
+    "groupName": "Ambrosia",
     "order": 22
   }
 }

@@ -372,7 +372,7 @@ export class HSUI extends HSModule {
                     HSLogger.flushPendingLogs();
                 }
                 HSLogger.scrollToBottom();
-                await this.#uiPanel.transition({ opacity: 0.92 });
+                await this.#uiPanel.transition({ opacity: 0.97 });
             }
         });
 

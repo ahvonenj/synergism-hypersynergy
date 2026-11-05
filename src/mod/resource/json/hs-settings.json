@@ -1,7 +1,21 @@
 {
+  "enableHepteractDistributor": {
+    "settingName": "enableHepteractDistributor",
+    "settingDescription": "Hepteract Distributor",
+    "settingHelpText": "Adds a Distributor button to the Hepteract Forge. It opens a panel that spends your hepteracts on the hepteract types following the ratios you set. It crafts through the game's Auto craft, so it ascends several times in a row and only hepteracts are spent.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "enableHepteractDistributorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "hepteracts",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-hepteract-distributor-btn"
+    }
+  },
   "expandCostProtection": {
     "settingName": "expandCostProtection",
-    "settingDescription": "Hept. quick expand cost protection",
+    "settingDescription": "Quick expand cost protection",
     "settingHelpText": "When enabled, makes clicking hepteract icons in the hepteract view (quick expand and max feature) not do anything if it would cost \u003e= settingValue percentage hepteracts",
     "settingType": "numeric",
     "enabled": true,
@@ -17,20 +31,6 @@
         "max": 1,
         "step": 0.1
       }
-    }
-  },
-  "enableHepteractDistributor": {
-    "settingName": "enableHepteractDistributor",
-    "settingDescription": "Enable Hepteract Distributor",
-    "settingHelpText": "Adds a Distributor button to the Hepteract Forge. It opens a panel that spends your hepteracts on the hepteract types following the ratios you set. It crafts through the game's Auto craft, so it ascends several times in a row and only hepteracts are spent.",
-    "settingType": "boolean",
-    "enabled": true,
-    "settingAction": "enableHepteractDistributorAction",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "hepteracts",
-      "controlPage": "qol",
-      "controlEnabledId": "hs-setting-hepteract-distributor-btn"
     }
   },
   "hepteractDistributorOpen": {
@@ -336,20 +336,6 @@
       "controlEnabledId": "hs-setting-remember-subtabs-btn"
     }
   },
-  "perksFind": {
-    "settingName": "perksFind",
-    "settingDescription": "Search field for perks",
-    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
-    "settingType": "boolean",
-    "enabled": true,
-    "settingAction": "perksFindAction",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "perks",
-      "controlPage": "qol",
-      "controlEnabledId": "hs-setting-perks-find-btn"
-    }
-  },
   "autoDismissOfflinePopup": {
     "settingName": "autoDismissOfflinePopup",
     "settingDescription": "Auto-dismiss offline popup",
@@ -631,7 +617,7 @@
   },
   "persistentAmbrosiaLevels": {
     "settingName": "persistentAmbrosiaLevels",
-    "settingDescription": "Keep upgrade levels shown on the tree",
+    "settingDescription": "Keep tree levels shown",
     "settingHelpText": "On the Ambrosia tab, keeps the game's current upgrade levels view on, except while the mouse is over the tree or a loadout. Same as clicking the game's levels button (📌 on, 🔎 off).",
     "settingType": "boolean",
     "enabled": true,
@@ -646,7 +632,7 @@
   },
   "addTimeAutoLoadouts": {
     "settingName": "addTimeAutoLoadouts",
-    "settingDescription": "Add+Time Amb loadouts auto-switch",
+    "settingDescription": "Add+Time loadouts auto-switch",
     "settingHelpText": "When enabled, the mod will automatically switch to configured ambrosia loadouts when ADD or TIME buttons are clicked.",
     "settingType": "boolean",
     "enabled": false,
@@ -660,7 +646,7 @@
   },
   "autoLoadoutAdd": {
     "settingName": "autoLoadoutAdd",
-    "settingDescription": "ADD Loadout",
+    "settingDescription": "ADD loadout",
     "settingHelpText": "Configures the Ambrosia loadout to use when the ADD button is clicked.",
     "settingType": "selectstring",
     "enabled": true,
@@ -1698,6 +1684,34 @@
       "controlEnabledId": "hs-setting-qol-header-stats-at-bottom-btn"
     }
   },
+  "enableGQDistributor": {
+    "settingName": "enableGQDistributor",
+    "settingDescription": "GQ Distributor",
+    "settingHelpText": "When enabled, adds a Distributor button to the GQ page. It opens a panel to distribute Golden Quarks among upgrades that are not maxed.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "enableGQDistributorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
+    }
+  },
+  "perksFind": {
+    "settingName": "perksFind",
+    "settingDescription": "Perks search field",
+    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "perksFindAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-perks-find-btn"
+    }
+  },
   "hideMaxedGQUpgrades": {
     "settingName": "hideMaxedGQUpgrades",
     "settingDescription": "Keep maxed GQ upgrades hidden",
@@ -1707,23 +1721,23 @@
     "settingAction": "hideMaxedGQUpgradesAction",
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "Golden-quarks-qol-settings",
+      "controlGroup": "singularity",
       "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-hide-maxed-gq-upgrades-btn"
     }
   },
-  "enableGQDistributor": {
-    "settingName": "enableGQDistributor",
-    "settingDescription": "Enable GQ Distributor",
-    "settingHelpText": "When enabled, adds a Distributor button to the GQ page. It opens a panel to distribute Golden Quarks among upgrades that are not maxed.",
+  "hideMaxedOctUpgrades": {
+    "settingName": "hideMaxedOctUpgrades",
+    "settingDescription": "Keep maxed Oct upgrades hidden",
+    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
     "settingType": "boolean",
     "enabled": true,
-    "settingAction": "enableGQDistributorAction",
+    "settingAction": "hideMaxedOctUpgradesAction",
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "Golden-quarks-qol-settings",
+      "controlGroup": "singularity",
       "controlPage": "qol",
-      "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
+      "controlEnabledId": "hs-setting-qol-hide-maxed-oct-upgrades-btn"
     }
   },
   "gqDistributorOpen": {
@@ -1754,20 +1768,6 @@
     "enabled": true,
     "hidden": true,
     "settingValue": ""
-  },
-  "hideMaxedOctUpgrades": {
-    "settingName": "hideMaxedOctUpgrades",
-    "settingDescription": "Keep maxed Octeract upgrades hidden",
-    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
-    "settingType": "boolean",
-    "enabled": true,
-    "settingAction": "hideMaxedOctUpgradesAction",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "Octeracts-qol-settings",
-      "controlPage": "qol",
-      "controlEnabledId": "hs-setting-qol-hide-maxed-oct-upgrades-btn"
-    }
   },
   "showDebugLogs": {
     "settingName": "showDebugLogs",

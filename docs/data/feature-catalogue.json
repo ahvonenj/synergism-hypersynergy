@@ -371,7 +371,7 @@
         {
           "id": "upgrade-levels",
           "title": "Keep Ambrosia upgrade levels visible",
-          "where": "Settings → QoL → Keep upgrade levels shown on the tree",
+          "where": "Settings → QoL → Keep tree levels shown",
           "summary": "Keeps the game's levels view pinned while the tree is idle.",
           "details": [
             "The display temporarily yields while the pointer is over the tree or a loadout, then returns to the pinned levels view."
@@ -383,7 +383,7 @@
         {
           "id": "code-loadouts",
           "title": "Separate ADD and TIME Auto-Loadouts",
-          "where": "Settings → QoL → Add+Time Amb loadouts auto-switch",
+          "where": "Settings → QoL → Add+Time loadouts auto-switch",
           "summary": "Loads the configured tree before a code pays out and restores the previous loadout afterward.",
           "details": [
             "Choose independent ADD and TIME slots, then enable Auto-Loadout. ADD shortcuts use the same switching path.",
@@ -1048,7 +1048,7 @@
         {
           "id": "hepteract-protection",
           "title": "Configurable quick-expand cost protection",
-          "where": "Settings → QoL → Hept. quick expand cost protection",
+          "where": "Settings → QoL → Quick expand cost protection",
           "summary": "Refuses quick expansion when its cost crosses your chosen share of stock.",
           "details": [
             "The saved fractional threshold applies to the relevant Hepteract cost check. A refused quick action is logged.",
@@ -1223,7 +1223,7 @@
         {
           "id": "oct-hide-maxed",
           "title": "Remember hidden maxed Octeract upgrades",
-          "where": "Settings → QoL → Keep maxed Octeract upgrades hidden; native shop toggle",
+          "where": "Settings → QoL → Keep maxed Oct upgrades hidden; native shop toggle",
           "summary": "Saves and restores your choice for the game's own hide-maxed toggle between sessions.",
           "details": [
             "The stored choice follows the game's own hide-maxed state and is restored on reload."
