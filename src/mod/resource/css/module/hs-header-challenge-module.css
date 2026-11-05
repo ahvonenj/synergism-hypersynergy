@@ -32,13 +32,14 @@
 .headerRegion #hsChallengeProgress > .hs-cp-text {
     position: absolute;
 }
-/* Three lines' room, filled from the top. A grid lines the columns up: challenge, completions, amount, "/",
-   requirement, resource (each row's cells are the grid's, through display: contents) */
+/* The room's lines (--hs-cp-room, set by the module: 2 or 3, 4 or 6 at 1x2 with the requirement), filled from the
+   top. A grid lines the columns up: challenge, completions, amount, "/", requirement, resource (each row's cells are
+   the grid's, through display: contents) */
 #hsChallengeProgress > .hs-cp-text.hs-cp-lines {
     display: grid;
     grid-template-columns: repeat(6, auto);
     align-content: start;
-    min-height: calc(3 * 1.2em);
+    min-height: calc(var(--hs-cp-room, 3) * 1.2em);
 }
 #hsChallengeProgress .hs-cp-row {
     display: contents;
@@ -62,7 +63,6 @@
    four columns (amount, "/", requirement, resource), indented under the challenge */
 #hsChallengeProgress > .hs-cp-text.hs-cp-lines.hs-cp-split {
     grid-template-columns: repeat(4, auto);
-    min-height: calc(6 * 1.2em);
 }
 #hsChallengeProgress .hs-cp-split .hs-cp-head {
     grid-column: 1 / -1;
