@@ -371,7 +371,7 @@
         {
           "id": "upgrade-levels",
           "title": "Keep Ambrosia upgrade levels visible",
-          "where": "Settings → Ambrosia → Keep upgrade levels shown on the tree",
+          "where": "Settings → QoL → Keep upgrade levels shown on the tree",
           "summary": "Keeps the game's levels view pinned while the tree is idle.",
           "details": [
             "The display temporarily yields while the pointer is over the tree or a loadout, then returns to the pinned levels view."
@@ -383,7 +383,7 @@
         {
           "id": "code-loadouts",
           "title": "Separate ADD and TIME Auto-Loadouts",
-          "where": "Settings → Ambrosia → Add+Time Amb loadouts auto-switch",
+          "where": "Settings → QoL → Add+Time Amb loadouts auto-switch",
           "summary": "Loads the configured tree before a code pays out and restores the previous loadout afterward.",
           "details": [
             "Choose independent ADD and TIME slots, then enable Auto-Loadout. ADD shortcuts use the same switching path.",
@@ -1048,7 +1048,7 @@
         {
           "id": "hepteract-protection",
           "title": "Configurable quick-expand cost protection",
-          "where": "Settings → Hepteracts → Hept. quick expand cost protection",
+          "where": "Settings → QoL → Hept. quick expand cost protection",
           "summary": "Refuses quick expansion when its cost crosses your chosen share of stock.",
           "details": [
             "The saved fractional threshold applies to the relevant Hepteract cost check. A refused quick action is logged.",
@@ -1211,7 +1211,7 @@
         {
           "id": "gq-hide-maxed",
           "title": "Remember hidden maxed GQ upgrades",
-          "where": "Settings → QOL → Keep maxed GQ upgrades hidden; native shop toggle",
+          "where": "Settings → QoL → Keep maxed GQ upgrades hidden; native shop toggle",
           "summary": "Saves and restores your choice for the game's own hide-maxed toggle between sessions.",
           "details": [
             "Using the game's own button synchronizes the remembered preference, and the mod reapplies it when revisiting the shop."
@@ -1223,7 +1223,7 @@
         {
           "id": "oct-hide-maxed",
           "title": "Remember hidden maxed Octeract upgrades",
-          "where": "Settings → QOL → Keep maxed Octeract upgrades hidden; native shop toggle",
+          "where": "Settings → QoL → Keep maxed Octeract upgrades hidden; native shop toggle",
           "summary": "Saves and restores your choice for the game's own hide-maxed toggle between sessions.",
           "details": [
             "The stored choice follows the game's own hide-maxed state and is restored on reload."
@@ -1247,7 +1247,7 @@
         {
           "id": "timed-export",
           "title": "Export every X minutes",
-          "where": "Settings → Game Data → Export the save every X minutes",
+          "where": "Settings → Save → Export the save every X minutes",
           "summary": "Runs the game's Export action on a configurable schedule.",
           "details": [
             "Uses the last game export time, so exporting manually restarts the interval and reloads do not normally reset it.",
@@ -1264,7 +1264,7 @@
         {
           "id": "export-folder",
           "title": "Choose and remember an export folder",
-          "where": "Settings → Game Data → Choose folder / Forget folder",
+          "where": "Settings → Save → Choose folder / Forget folder",
           "summary": "Writes timed exports directly to a folder on supported platforms.",
           "details": [
             "The folder handle is remembered locally; after a restart, your first game click/key press can renew permission.",
@@ -1282,7 +1282,7 @@
         {
           "id": "export-retention",
           "title": "Keep only the last X timed-export files",
-          "where": "Settings → Game Data → Keep only the last X files",
+          "where": "Settings → Save → Keep only the last X files",
           "summary": "Limits saved timed exports in the chosen folder.",
           "details": [
             "Deletes only files recorded as written by this feature. Other files in the folder are left alone.",
@@ -1295,7 +1295,7 @@
         {
           "id": "export-loadout",
           "title": "Dedicated Ambrosia export loadout",
-          "where": "Settings → Game Data → Export loadout",
+          "where": "Settings → Save → Export loadout",
           "summary": "Collects export rewards with the configured tree, then restores the original when possible.",
           "details": [
             "Choose None to leave the tree untouched. The exported save contains the export-time tree.",
@@ -1576,7 +1576,7 @@
         {
           "id": "gds",
           "title": "Game Data Sniffing and live-game access",
-          "where": "Settings → Game Data; automatic with patched loaders",
+          "where": "Settings → Save; automatic with patched loaders",
           "summary": "Supplies current game state to information and optimization features.",
           "details": [
             "Patched loaders read the live player; legacy loading captures saves. The engine supports the mod's game-aware calculations, caches and dependent controls.",

@@ -1,38 +1,28 @@
 {
-  "hepteract": {
-    "pageName": "Hepteracts",
-    "pageColor": "mediumpurple",
-    "order": 1
-  },
   "ui": {
     "pageName": "UI",
     "pageColor": "cyan",
     "order": 2
+  },
+  "qol": {
+    "pageName": "QoL",
+    "pageColor": "#c0c0c0",
+    "order": 3
   },
   "input": {
     "pageName": "Input",
     "pageColor": "plum",
     "order": 4
   },
-  "gamedata": {
-    "pageName": "Game Data",
+  "save": {
+    "pageName": "Save",
     "pageColor": "crimson",
     "order": 5
-  },
-  "ambrosia": {
-    "pageName": "Ambrosia",
-    "pageColor": "gold",
-    "order": 7
   },
   "auto-sing": {
     "pageName": "Auto-Sing",
     "pageColor": "#00ff7f",
     "order": 9
-  },
-  "qol-buttons": {
-    "pageName": "QOL-Buttons",
-    "pageColor": "#c0c0c0",
-    "order": 10
   },
   "debug": {
     "pageName": "Debugging",

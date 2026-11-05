@@ -557,10 +557,10 @@ export class Hypersynergism {
     }
 
     #handleGameDataIconClick(_e: Event) {
-        const subtab = document.querySelector('#hs-panel-settings-subtab-gamedata') as HTMLDivElement | null;
+        const subtab = document.querySelector('#hs-panel-settings-subtab-save') as HTMLDivElement | null;
         const color = subtab?.dataset.color;
 
-        this.#activateSettingsSubtab('gamedata', subtab, color);
+        this.#activateSettingsSubtab('save', subtab, color);
 
         const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement | null;
         gameDataSettingBlock?.scrollIntoView({

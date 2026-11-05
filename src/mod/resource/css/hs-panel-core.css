@@ -601,7 +601,7 @@ select::-webkit-scrollbar-corner {
 }
 
 #hs-setting-hidden-vanilla-tabs {
-    height: 120px;
+    height: 70px;
 }
 
 .hs-panel-setting-block-select-input[multiple] option:checked {

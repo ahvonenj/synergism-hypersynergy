@@ -1,7 +1,7 @@
 # Perk search (`HSPerksFind`, `hs-modules/hs-perks-find.ts`)
 
 A search field on the Singularity tab's Perks / Penalties subtab. The perk tree is unlabelled icons: without it, finding
-what affects something means hovering them one by one. Setting `perksFind` (Settings → UI), on by default; off gives the
+what affects something means hovering them one by one. Setting `perksFind` (Settings → QoL), on by default; off gives the
 game's exact look (element removed, CSS removed, classes cleared).
 
 ## Rules

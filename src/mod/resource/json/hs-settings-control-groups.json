@@ -1,8 +1,4 @@
 {
-  "hepteracts": {
-    "groupName": "Hepteract settings",
-    "order": 1
-  },
   "ui": {
     "groupName": "UI settings",
     "order": 2
@@ -14,14 +10,6 @@
   "mouse": {
     "groupName": "Mouse settings",
     "order": 6
-  },
-  "ambrosia": {
-    "groupName": "Add+Time Amb loadouts auto-switch settings",
-    "order": 8
-  },
-  "ambrosia-tree": {
-    "groupName": "Ambrosia tree settings",
-    "order": 7.5
   },
   "gamedata": {
     "groupName": "Game data settings",
@@ -55,12 +43,24 @@
     "groupName": "Quickbar QOL settings",
     "order": 18
   },
+  "hepteracts": {
+    "groupName": "Hepteract settings",
+    "order": 18.5
+  },
   "Golden-quarks-qol-settings": {
-    "groupName": "Golden Quarks QOL settings",
+    "groupName": "Golden Quark settings",
     "order": 19
   },
   "Octeracts-qol-settings": {
-    "groupName": "Octeracts QOL settings",
+    "groupName": "Octeract settings",
     "order": 20
+  },
+  "perks": {
+    "groupName": "Perks settings",
+    "order": 21
+  },
+  "ambrosia": {
+    "groupName": "Ambrosia settings",
+    "order": 22
   }
 }

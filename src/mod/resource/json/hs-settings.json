@@ -10,7 +10,7 @@
       "controlId": "hs-setting-expand-cost-protection-value",
       "controlType": "number",
       "controlGroup": "hepteracts",
-      "controlPage": "hepteract",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-expand-cost-protection-btn",
       "controlOptions": {
         "min": 0,
@@ -29,7 +29,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "hepteracts",
-      "controlPage": "hepteract",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-hepteract-distributor-btn"
     }
   },
@@ -100,6 +100,21 @@
     "hidden": true,
     "settingValue": -1
   },
+  "editGameHeader": {
+    "settingName": "editGameHeader",
+    "settingDescription": "Edit game header",
+    "settingHelpText": "Open the game's header editor to move and resize modules, with HS alignment and half-height controls. You can also open it by holding down on the header when Long press to edit is enabled. Click Done in the header when finished.",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "editGameHeaderAction",
+    "settingControl": {
+      "controlId": "hs-setting-edit-game-header-button",
+      "controlType": "button",
+      "controlGroup": "ui",
+      "controlPage": "ui"
+    }
+  },
   "hideGameDialogs": {
     "settingName": "hideGameDialogs",
     "settingDescription": "Hide game dialogs",
@@ -141,7 +156,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-compact-challenge-text-btn"
     }
   },
@@ -156,7 +171,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-challenge-progress-header-btn"
     }
   },
@@ -197,7 +212,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-corruption-header-controls-btn"
     }
   },
@@ -212,7 +227,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-corruption-header-inline-btn"
     }
   },
@@ -227,23 +242,8 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-corruption-header-always-shown-btn"
-    }
-  },
-  "editGameHeader": {
-    "settingName": "editGameHeader",
-    "settingDescription": "Edit game header",
-    "settingHelpText": "Open the game's header editor to move and resize modules, with HS alignment and half-height controls. You can also open it by holding down on the header when Long press to edit is enabled. Click Done in the header when finished.",
-    "settingType": "button",
-    "enabled": true,
-    "settingValue": "",
-    "settingAction": "editGameHeaderAction",
-    "settingControl": {
-      "controlId": "hs-setting-edit-game-header-button",
-      "controlType": "button",
-      "controlGroup": "ui",
-      "controlPage": "ui"
     }
   },
   "hiddenVanillaTabs": {
@@ -345,8 +345,8 @@
     "settingAction": "perksFindAction",
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ui",
-      "controlPage": "ui",
+      "controlGroup": "perks",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-perks-find-btn"
     }
   },
@@ -467,7 +467,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "gamedata",
-      "controlPage": "gamedata",
+      "controlPage": "save",
       "controlEnabledId": "hs-setting-use-game-data-btn"
     }
   },
@@ -482,7 +482,7 @@
       "controlId": "hs-setting-auto-export-save-value",
       "controlType": "number",
       "controlGroup": "save-export",
-      "controlPage": "gamedata",
+      "controlPage": "save",
       "controlEnabledId": "hs-setting-auto-export-save-btn",
       "controlOptions": {
         "min": 1,
@@ -504,7 +504,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "gamedata"
+      "controlPage": "save"
     }
   },
   "autoExportSaveForgetFolder": {
@@ -520,7 +520,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "gamedata"
+      "controlPage": "save"
     }
   },
   "autoExportSaveKeep": {
@@ -535,7 +535,7 @@
       "controlType": "number",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "gamedata",
+      "controlPage": "save",
       "controlEnabledId": "hs-setting-auto-export-save-keep-btn",
       "controlOptions": {
         "min": 1,
@@ -556,7 +556,7 @@
       "controlType": "select",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "gamedata",
+      "controlPage": "save",
       "selectOptions": [
         {
           "text": "None",
@@ -639,8 +639,8 @@
     "skipInit": true,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ambrosia-tree",
-      "controlPage": "ambrosia",
+      "controlGroup": "ambrosia",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-persistent-ambrosia-levels-btn"
     }
   },
@@ -654,7 +654,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "ambrosia",
-      "controlPage": "ambrosia",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-add-time-auto-loadouts-btn"
     }
   },
@@ -671,7 +671,7 @@
       "controlGroup": "ambrosia",
       "controlParent": "addTimeAutoLoadouts",
       "controlHideWhenParentOff": true,
-      "controlPage": "ambrosia",
+      "controlPage": "qol",
       "selectOptions": [
         {
           "text": "None",
@@ -757,7 +757,7 @@
       "controlGroup": "ambrosia",
       "controlParent": "addTimeAutoLoadouts",
       "controlHideWhenParentOff": true,
-      "controlPage": "ambrosia",
+      "controlPage": "qol",
       "selectOptions": [
         {
           "text": "None",
@@ -1514,7 +1514,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-ambrosia-minibar-btn"
     }
   },
@@ -1529,7 +1529,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-ambrosia-minibar-borders-btn"
     }
   },
@@ -1544,7 +1544,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-ambrosia-rate-header-btn"
     }
   },
@@ -1559,7 +1559,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-enable-syn-ui-btn"
     }
   },
@@ -1574,7 +1574,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-match-octeract-icon-size-btn"
     }
   },
@@ -1589,7 +1589,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-match-octeract-text-btn"
     }
   },
@@ -1604,7 +1604,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-center-quickbars-btn"
     }
   },
@@ -1619,7 +1619,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-remove-header-gap-btn"
     }
   },
@@ -1634,7 +1634,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-header-hide-loadout-icons-btn"
     }
   },
@@ -1649,7 +1649,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-header-fit-loadout-slots-btn"
     }
   },
@@ -1664,7 +1664,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-header-edit-button-btn"
     }
   },
@@ -1679,7 +1679,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-header-long-press-btn"
     }
   },
@@ -1694,7 +1694,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "quickbar-qol",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-header-stats-at-bottom-btn"
     }
   },
@@ -1708,7 +1708,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "Golden-quarks-qol-settings",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-hide-maxed-gq-upgrades-btn"
     }
   },
@@ -1722,7 +1722,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "Golden-quarks-qol-settings",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
     }
   },
@@ -1765,22 +1765,8 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "Octeracts-qol-settings",
-      "controlPage": "qol-buttons",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-qol-hide-maxed-oct-upgrades-btn"
-    }
-  },
-  "logTimestamp": {
-    "settingName": "logTimestamp",
-    "settingDescription": "Display timestamps in log",
-    "settingHelpText": "Controls whether timestamps are visible or not in the mod\u0027s log view",
-    "settingType": "boolean",
-    "enabled": false,
-    "settingAction": "logTimestamp",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "debug",
-      "controlPage": "debug",
-      "controlEnabledId": "hs-setting-display-timestamp-btn"
     }
   },
   "showDebugLogs": {
@@ -1795,6 +1781,20 @@
       "controlGroup": "debug",
       "controlPage": "debug",
       "controlEnabledId": "hs-setting-display-debug-logs-btn"
+    }
+  },
+  "logTimestamp": {
+    "settingName": "logTimestamp",
+    "settingDescription": "Display timestamps in log",
+    "settingHelpText": "Controls whether timestamps are visible or not in the mod\u0027s log view",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "logTimestamp",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "debug",
+      "controlPage": "debug",
+      "controlEnabledId": "hs-setting-display-timestamp-btn"
     }
   },
   "autosing3to6DCubeOpeningPercent": {

@@ -1,6 +1,6 @@
 # Hepteract Distributor (`HSHepteractDistributor`, `hs-modules/hs-hepteracts/hs-hepteract-distributor.ts`)
 
-The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, Hepteracts page, on by default). It spends the owned hepteracts on the hepteract types so that their balances follow ratios the player set.
+The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, QoL page, on by default). It spends the owned hepteracts on the hepteract types so that their balances follow ratios the player set.
 
 ## Panel
 - **A "Distributor" button on the forge's welcome line opens the panel**, which then takes the place of the forge's three intro lines (`#hepteractWelcome`, `#hepteractExpository1/2`, hidden by a class on `#cubeTab7`, CSS only). A minimize button closes it. Open or closed is kept (`hepteractDistributorOpen`). No game element is moved: the button is absolutely placed, and the welcome line gets side padding so a long translation wraps instead of running under it.
