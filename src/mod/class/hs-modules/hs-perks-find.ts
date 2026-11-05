@@ -15,7 +15,7 @@ const PERK_SELECTOR = '#singularityPerksGrid .singularityPerkNode';
 const ACTIVE_CLASS = 'hs-perks-find-active';
 const HIT_CLASS = 'hs-perks-find-hit';
 // The clickable words under the field: what fits on one row
-const SUBJECTS = ['quark', 'cube', 'octeract', 'ant', 'luck', 'salvage', 'token', 'auto'];
+const SUBJECTS = ['quark', 'cube', 'octeract', 'ant', 'luck', 'salvage', 'token', 'auto', 'challenge', 'purple'];
 
 interface HSReadPerk {
     perk: HTMLElement;
@@ -109,7 +109,7 @@ export class HSPerksFind extends HSModule {
         const input = document.createElement('input');
         input.id = 'hs-perks-find-input';
         input.type = 'text';
-        input.placeholder = 'Find a perk (cube, quark...)';
+        input.placeholder = '[HS] Find a perk (cube, quark...)';
         input.autocomplete = 'off';
         input.spellcheck = false;
         input.addEventListener('input', () => this.#search());
@@ -198,6 +198,8 @@ export class HSPerksFind extends HSModule {
         this.#clearButton.style.visibility = this.#input.value === '' ? 'hidden' : 'visible';
         this.#count.textContent = searching ? `${cards.length} result${cards.length === 1 ? '' : 's'}` : '';
         this.#results.scrollTop = 0;
+        // For its height down to the window's bottom (hs-perks-find.css)
+        this.#results.style.setProperty('--hs-perks-find-results-top', `${this.#results.getBoundingClientRect().top}px`);
 
         if (searching && cards.length === 0) {
             const empty = document.createElement('div');

@@ -9,16 +9,21 @@ game's exact look (element removed, CSS removed, classes cleared).
 - **Perks only**: not the Golden Quark or octeract upgrades, whose tooltips can be read the same way but give their full
   text while the game hides them; they would need a check per upgrade.
 - **A field, always visible**: not a button that opens one, a click for nothing.
-- **Results over the penalties text, in its grid cell**: not a separate window, which would cover the tree. The penalties
-  stay in place with `visibility: hidden`, so nothing moves. The other perks and the tree's lines are dimmed.
+- **Results over the penalties text, from its grid cell down to the window's bottom**: not a separate window, which would
+  cover the tree. The penalties stay in place with `visibility: hidden`, so nothing moves. The other perks and the tree's
+  lines are dimmed.
+- **Compact cards, one column**: not two columns, whose room depends on the window; not a smaller font alone, which gains
+  least. Smaller icon and text, level in small grey on the title row, next level dropped: the game's own tooltip, on the
+  lit perk in the tree, still has it.
 - **Clearing the field (its cross, or by hand) or Escape** brings the penalties back. The number of results is in grey
   to the right of the field, out of the flow. The text stays when leaving the subtab, and the search is
   read again on return. Results are a snapshot: their values update at the next key or return, not live.
 
 ## Clickable words
 
-- **One row under the field**: `quark`, `cube`, `octeract`, `ant`, `luck`, `salvage`, `token`, `auto`, what fits in the
-  room above the penalties text (33 px at full width). A click fills the field and searches.
+- **One row under the field**: `quark`, `cube`, `octeract`, `ant`, `luck`, `salvage`, `token`, `auto`, `challenge`,
+  `purple`, in the room above the penalties text. They fill the 445 px column (443 px, English): an 11th word needs a
+  second row, which needs the penalties moved. A click fills the field and searches.
 - **A word that finds nothing isn't shown**, checked each time the subtab opens: nothing unlocked yet on that subject, or
   another wording in the game's language. The words are English in every language: not a list per language, not English
   only. Where they keep matching by chance, a French "ant" finds "Antiquités".
@@ -50,3 +55,7 @@ game's exact look (element removed, CSS removed, classes cleared).
 The element is absolutely placed with `grid-column: 1 / 2` and `grid-row: 1 / 2` in `#singularityInfo`, the only way to
 fill one cell without sizing it. Both ends are needed: `grid-column: 1` alone stretches it to the container's right edge,
 over the tree. It lets the mouse through (`pointer-events: none`) except on the field and on non-empty results.
+
+The results box goes past the cell with a `min-height` from `100vh` and its own top, set at each search, so a smaller
+window shrinks it without a scrollbar. Not at the game's stacked layout (width <= 1024 px), where the tree is under it.
+That layout has no room above the penalties text, so the penalties get a top margin for the field and the words.
