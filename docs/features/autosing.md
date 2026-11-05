@@ -60,6 +60,11 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - A locked tab (its button's computed `display` is `none`) is never clicked: the game would open the next unlocked one. The player stays where the game left them (Buildings), and that tab becomes the one to bring back until they open another.
 - No return to a tab once it unlocks again: built as a setting and removed; don't propose it again.
 
+## Going to the target singularity
+Each Exalt exit lands on the highest singularity (the game's `exitChallenge`), then autosing goes down to its target.
+- **With the live player**: `player.singularityCount` is written directly. The player's saved Elevator target stays as it is: locked, it decides their next singularity.
+- **Without it** (bookmarklet players): the game's Teleport button, which goes to the saved target. So at each start, autosing writes its target into `#elevatorTargetInput` and sends `change`, the only event the game reads there; a reset keeps the target. It stays at autosing's value after the run, not restored: the next run needs it anyway.
+
 ## Corruption level
 Since the game's 4.4.0: one level (`player.corruptions.next`, used from the next ascension) instead of 8 corruptions.
 - **Setting it**: `HSAutosingCorruption` goes through the game's `#corruptionLevelInput` + a `change` event (the game's `setNextCorruptionLevel`: synchronous, no dialog, no patch, the same for bookmarklet players). It reads the level back from the live player, or from that input (the game writes the level it kept there).

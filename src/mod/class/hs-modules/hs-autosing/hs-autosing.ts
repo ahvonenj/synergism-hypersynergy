@@ -876,7 +876,9 @@ export class HSAutosing extends HSModule {
         }
 
         this.#elevatorInput.value = this.#targetSingularity.toString();
-        this.#elevatorInput.dispatchEvent(new Event('input', { bubbles: true }));
+        // Without the live player, the Teleport goes to the game's saved target: the game only reads its input on 'change'.
+        // With it, the singularity is written directly: the player's saved target isn't touched (locked, it decides their next singularity).
+        if (!this.#hasLivePlayer) this.#elevatorInput.dispatchEvent(new Event('change', { bubbles: true }));
         HSLogger.log(`Autosing requirements checked for target singularity: ${this.#targetSingularity}`, this.context);
 
         return true;
