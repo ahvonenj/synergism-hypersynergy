@@ -1,11 +1,15 @@
 {
-  "ui": {
-    "groupName": "UI",
+  "dialogs-notifications": {
+    "groupName": "Dialogs & notifications",
     "order": 2
   },
-  "notifications": {
-    "groupName": "Notifications",
+  "game-load": {
+    "groupName": "Game load",
     "order": 3
+  },
+  "header-tabs": {
+    "groupName": "Header & tabs",
+    "order": 4
   },
   "mouse": {
     "groupName": "Mouse",

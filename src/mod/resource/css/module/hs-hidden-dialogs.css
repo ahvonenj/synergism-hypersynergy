@@ -29,7 +29,7 @@
     cursor: pointer;
 }
 
-/* The "Hidden dialogs" list belongs to "Hide game dialogs", as "Show hidden dialogs as notifications" does
+/* The "Hidden dialogs" list belongs to "Hide game dialogs", as "Show as notifications" does
    (controlParent in hs-settings.json). The list is built by the module, not by the settings UI, so it has its
    own rules: indented under its label (block padding + switch width + gap)... */
 #hs-hidden-dialogs-block {

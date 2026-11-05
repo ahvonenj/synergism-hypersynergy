@@ -111,7 +111,7 @@
     "settingControl": {
       "controlId": "hs-setting-edit-game-header-button",
       "controlType": "button",
-      "controlGroup": "ui",
+      "controlGroup": "header-tabs",
       "controlPage": "ui"
     }
   },
@@ -124,7 +124,7 @@
     "settingAction": "hideGameDialogs",
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ui",
+      "controlGroup": "dialogs-notifications",
       "controlPage": "ui",
       "controlEnabledId": "hs-setting-hide-game-dialogs-btn"
     }
@@ -132,13 +132,13 @@
   "hideGameDialogsNotify": {
     "settingName": "hideGameDialogsNotify",
     "settingBlockId": "hs-setting-block-hide-game-dialogs-notify",
-    "settingDescription": "Show hidden dialogs as notifications",
+    "settingDescription": "Show as notifications",
     "settingHelpText": "When a hidden Alert is answered, its text is shown as a notification instead (e.g. how many levels a multi-buy purchased). Hidden Confirms are never shown.",
     "settingType": "boolean",
     "enabled": false,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ui",
+      "controlGroup": "dialogs-notifications",
       "controlParent": "hideGameDialogs",
       "controlHideWhenParentOff": true,
       "controlPage": "ui",
@@ -246,6 +246,19 @@
       "controlEnabledId": "hs-setting-corruption-header-always-shown-btn"
     }
   },
+  "rememberSubtabs": {
+    "settingName": "rememberSubtabs",
+    "settingDescription": "Remember last used subtab",
+    "settingHelpText": "The game goes back to the first subtab of every tab at each singularity, Exalt, save load and page load. When enabled, a tab you open comes back on the subtab you last used there. A subtab that is locked again comes back the next time you open its tab once it is unlocked.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-remember-subtabs-btn"
+    }
+  },
   "hiddenVanillaTabs": {
     "settingName": "hiddenVanillaTabs",
     "settingDescription": "Hide vanilla tabs",
@@ -257,7 +270,7 @@
     "settingControl": {
       "controlId": "hs-setting-hidden-vanilla-tabs",
       "controlType": "select",
-      "controlGroup": "ui",
+      "controlGroup": "header-tabs",
       "controlPage": "ui",
       "props": {
         "multiple": "multiple",
@@ -323,19 +336,6 @@
       ]
     }
   },
-  "rememberSubtabs": {
-    "settingName": "rememberSubtabs",
-    "settingDescription": "Remember last used subtab",
-    "settingHelpText": "The game goes back to the first subtab of every tab at each singularity, Exalt, save load and page load. When enabled, a tab you open comes back on the subtab you last used there. A subtab that is locked again comes back the next time you open its tab once it is unlocked.",
-    "settingType": "boolean",
-    "enabled": true,
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "ui",
-      "controlPage": "ui",
-      "controlEnabledId": "hs-setting-remember-subtabs-btn"
-    }
-  },
   "autoDismissOfflinePopup": {
     "settingName": "autoDismissOfflinePopup",
     "settingDescription": "Auto-dismiss offline popup",
@@ -344,7 +344,7 @@
     "enabled": true,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ui",
+      "controlGroup": "game-load",
       "controlPage": "ui",
       "controlEnabledId": "hs-setting-auto-dismiss-offline-popup-btn"
     }
@@ -358,7 +358,7 @@
     "platforms": ["userscript"],
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "ui",
+      "controlGroup": "game-load",
       "controlPage": "ui",
       "controlEnabledId": "hs-setting-reload-on-late-loader-start-btn"
     }
@@ -374,7 +374,7 @@
     "settingControl": {
       "controlId": "hs-setting-notification-opacity-value",
       "controlType": "number",
-      "controlGroup": "notifications",
+      "controlGroup": "dialogs-notifications",
       "controlPage": "ui",
       "controlEnabledId": "hs-setting-notification-opacity-btn",
       "controlOptions": {

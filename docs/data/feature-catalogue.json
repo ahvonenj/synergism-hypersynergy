@@ -211,7 +211,7 @@
         {
           "id": "dialog-notifications",
           "title": "Show suppressed alerts as notifications",
-          "where": "Settings → UI → Show hidden dialogs as notifications",
+          "where": "Settings → UI → Show as notifications",
           "summary": "Preserves useful alert results without reopening a modal.",
           "details": [
             "For example, a hidden multi-buy Alert can still report the number of purchased levels.",
