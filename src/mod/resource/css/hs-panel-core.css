@@ -598,6 +598,17 @@ select::-webkit-scrollbar-corner {
 
 .hs-panel-setting-block-select-input[multiple] {
     height: 80px;
+    min-height: 50px;
+    resize: vertical;
+}
+
+/* The browser sizes the resize grip from the scrollbar: the 5px of the other selects leave a grip too small to catch */
+.hs-panel-setting-block-select-input[multiple]::-webkit-scrollbar {
+    width: 10px;
+}
+
+.hs-panel-setting-block-select-input[multiple]::-webkit-resizer {
+    background: linear-gradient(135deg, transparent 0%, transparent 50%, #888 50%, #888 100%);
 }
 
 #hs-setting-hidden-vanilla-tabs {

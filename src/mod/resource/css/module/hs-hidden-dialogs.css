@@ -44,7 +44,7 @@
 /* "Hidden dialogs" list in the panel: full width, "Restore default" below it */
 #hs-hidden-dialogs-list {
     grid-column: 1 / span 2;
-    height: 120px;
+    height: 70px;
 }
 
 /* Hidden dialogs are marked with a class, not selected (selection changes make the browser scroll the list) */
