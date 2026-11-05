@@ -301,30 +301,124 @@
     padding-top: 0;
 }
 
-/* ===== EXPORT BUTTON ===== */
+/* ===== STEP TIMINGS WINDOW ===== */
 
-.hs-export-btn {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    border: none;
-    color: var(--timer-text-primary);
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
+/* Fills the window, whose size the player can change (its first size: HSAutosingStepTimingsWindow) */
+.hs-step-timings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    font-family: monospace;
     font-size: 12px;
-    font-weight: bold;
+    color: #ffffff;
+}
+
+.hs-step-timings-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Room for its two lines from the start: the table doesn't move when the figures arrive */
+.hs-step-timings-summary {
+    flex: 1;
+    min-height: 2.6em;
+    color: #999999;
+    white-space: pre-line;
+}
+
+.hs-step-timings-copy {
+    padding: 2px 10px;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    background: #222222;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.hs-step-timings-copy:hover:not(:disabled) {
+    background: #333333;
+}
+
+.hs-step-timings-copy:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.hs-step-timings-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.hs-step-timings-table {
     width: 100%;
-    margin-top: 10px;
-    transition: filter 0.2s, box-shadow 0.2s;
-    display: block;
+    border-collapse: collapse;
+    table-layout: fixed;
 }
 
-.hs-export-btn:hover {
-    filter: brightness(1.1);
-    box-shadow: 0 2px 10px rgba(56, 239, 125, 0.3);
+.hs-step-timings-table th {
+    position: sticky;
+    top: 0;
+    padding: 2px 6px;
+    background: #18171c;
+    color: #999999;
+    font-weight: normal;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
 }
 
-.hs-export-btn:active {
-    filter: brightness(0.9);
+.hs-step-timings-table th:hover,
+.hs-step-timings-table th.hs-step-timings-sorted {
+    color: #ffffff;
+}
+
+/* Every title keeps the arrow's room: nothing moves when the sort changes */
+.hs-step-timings-table th::after {
+    content: '▾';
+    margin-left: 2px;
+    visibility: hidden;
+}
+
+.hs-step-timings-table th.hs-step-timings-sorted::after {
+    visibility: visible;
+}
+
+.hs-step-timings-table td {
+    padding: 1px 6px;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hs-step-timings-table th:nth-child(1) { width: 24%; }
+.hs-step-timings-table th:nth-child(2) { width: 8%; }
+.hs-step-timings-table th:nth-child(4) { width: 8%; }
+.hs-step-timings-table th:nth-child(5) { width: 8%; }
+.hs-step-timings-table th:nth-child(6) { width: 7%; }
+.hs-step-timings-table th:nth-child(7) { width: 8%; }
+
+.hs-step-timings-table .hs-step-timings-num {
+    text-align: right;
+}
+
+.hs-step-timings-dim {
+    color: #888888;
+}
+
+.hs-step-timings-comment {
+    color: #888888;
+    font-style: italic;
+}
+
+.hs-step-timings-between .hs-step-timings-action,
+.hs-step-timings-other .hs-step-timings-action {
+    color: #999999;
+    font-style: italic;
 }
 
 /* ===== RESIZE HANDLE ===== */

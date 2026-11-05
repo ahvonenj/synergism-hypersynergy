@@ -81,6 +81,7 @@ export interface HSSettingsDefinition {
     startAutosing: StartAutosing;
     singularityNumber: SingularityNumber;
     autosingKeepAwake: HSSettingBase<boolean>;
+    autosingStepTimings: HSSettingBase<boolean>;
     autosingNoAmbrosiaSwitch: HSSettingBase<boolean>;
     autosingEarlyCubeLoadout: AutosingEarlyCubeLoadout;
     autosingLateCubeLoadout: AutosingLateCubeLoadout;
@@ -91,7 +92,6 @@ export interface HSSettingsDefinition {
     autosingStrategy: AutosingStrategy;
 
     // Advanced AutoSing Settings
-    advancedDataCollection: AutosingAdvancedDataCollection; // disabled for now...
     autosing3to6DCubeOpeningPercent: Autosing3to6DCubeOpeningPercent;
     autosingTessBuildingAutoBuyPercent: AutosingTessBuildingAutoBuyPercent;
     autosingAutoChallTimerStart: AutosingAutoChallTimerStart;
@@ -257,7 +257,6 @@ export interface AutosingOffLoadout extends HSSettingBase<string> { }
 export interface AutosingStrategy extends HSSettingBase<string> { }
 
 // Advanced AutoSing Settings
-export interface AutosingAdvancedDataCollection extends HSSettingBase<boolean> { }
 export interface Autosing3to6DCubeOpeningPercent extends HSSettingBase<number> { }
 export interface AutosingTessBuildingAutoBuyPercent extends HSSettingBase<number> { }
 export interface AutosingAutoChallTimerStart extends HSSettingBase<number> { }

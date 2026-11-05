@@ -866,6 +866,19 @@
       "controlEnabledId": "hs-setting-auto-sing-keep-awake-btn"
     }
   },
+  "autosingStepTimings": {
+    "settingName": "autosingStepTimings",
+    "settingDescription": "Record step timings",
+    "settingHelpText": "To tune a strategy: 📋 in the Auto-Sing window shows where the time goes, step by step. Applies at the next start.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-step-timings-btn"
+    }
+  },
   "autosingStrategy": {
     "settingName": "autosingStrategy",
     "settingDescription": "Auto-Sing Strategy",
@@ -1473,20 +1486,6 @@
           "value": "16"
         }
       ]
-    }
-  },
-  "advancedDataCollection": {
-    "hidden": true,
-    "settingName": "advancedDataCollection",
-    "settingDescription": "Advanced Data Collection",
-    "settingHelpText": "When enabled, collects advanced autosing data for debugging purposes.",
-    "settingType": "boolean",
-    "enabled": false,
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "auto-sing-timer-modal",
-      "controlPage": "auto-sing",
-      "controlEnabledId": "hs-setting-auto-sing-advanced-data"
     }
   },
   "ambrosiaMinibars": {

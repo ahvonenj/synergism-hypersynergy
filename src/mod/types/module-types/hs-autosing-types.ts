@@ -194,13 +194,16 @@ export interface Challenge {
     ifJump?: IfJumpParams;
 };
 
-// Dev builds only (HSAutosingRecorder): autosing's timings, read by the headless harness.
-// `sing` is the recorded singularity a timing belongs to (1 = the first one after the start). Times in ms.
+// With "Record step timings" on (HSAutosingRecorder): autosing's timings, read by the step timings window and the
+// headless harness. `sing` is the recorded singularity a timing belongs to (1 = the first one after the start). Times in ms.
 export interface HSAutosingTimingStep {
     sing: number;
     phase: string;
     pass: number;
+    // In the phase's running list, from 0
     index: number;
+    // As the strategy editor and the logs number it, 0 for a step inserted at load
+    number: number;
     action: string;
     comment?: string;
     // The step's challengeWaitBefore, and the time actually slept for it

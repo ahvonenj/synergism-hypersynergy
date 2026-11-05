@@ -9,7 +9,7 @@ Auto-Sing plays singularities for you, following a strategy. It's for the end ga
 3. **Ambrosia loadouts:** for each role (pre-AOAG cubes, post-AOAG cubes, quarks, obtainium, offerings, luck), pick the game slot that holds that loadout. The Ambrosia Heater (Tools tab) finds the best ones for your save. Each loadout switch resets the ambrosia bars' progress. If you don't want that, tick **Don't switch ambrosia loadouts**: Auto-Sing then never switches.
 4. Turn on **Start/Stop Auto-Sing**, or click ▶ in the menu by the mod's icon.
 
-The Auto-Sing window shows the time per singularity and the quarks and golden quarks gained per second. Its buttons: ⏸️ pause, 🔄 restart the singularity, 🟠 stop at the end of this singularity, 🔴 stop now, 📊 details.
+The Auto-Sing window shows the time per singularity and the quarks and golden quarks gained per second. Its buttons: ⏸️ pause, 🔄 restart the singularity, 🟠 stop at the end of this singularity, 🔴 stop now, 📋 step timings (with **Record step timings** on), 📊 details.
 
 ## Which singularity to farm
 
@@ -81,3 +81,16 @@ An If-jump step (an IF row in the list) jumps to its **Jump here** row when its 
 - Comments are just for you.
 
 **Save** in the actions window only keeps your changes in the strategy window. Click **Update Strategy** (or **Create Strategy**) there to save for good.
+
+### Testing a strategy
+
+Turn on **Record step timings** in Settings → Auto-Sing, then start Auto-Sing. 📋 in the Auto-Sing window shows where a singularity's time goes, step by step:
+- **Runs**: times per singularity. **ms**: time per singularity. **%**: its part of a singularity. **Wait**: the part of ms spent in the step's Wait before.
+- **Between singularities** and **Outside the steps** are the time spent in no step of your strategy.
+- Click a column's title to sort by it. **Copy** gives the table as text, to compare two runs or share one.
+
+To compare two versions of a strategy:
+- Run each for 10 to 15 singularities: one singularity alone varies too much.
+- Keep the same ambrosia loadouts: two heats at the same singularity can differ by 15%.
+- Look at both quarks and golden quarks per hour, not only the time.
+- The table is emptied at the next start: Copy it first.

@@ -4,17 +4,13 @@ import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSAutosingStrategy, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
 import { HSAutosing } from "./hs-autosing";
-// DB Disabled... See for advanced data collection re-implementation
-// import { HSAutosingDB } from './hs-autosingDB';
-import { HSAutosingExportManager } from './hs-autosingExportManager';
 import { createPhaseRowDom, updatePhaseRowDom, getPhaseStats, PhaseHistoryEntry, PhaseRowDom } from "./hs-autosingPhaseStats";
 import { SparklineDom, SparklineMetric, buildSparklineDom, updateSparkline } from './hs-autosingSparkline';
 import Decimal from "break_infinity.js";
 import { formatNumber, formatNumberWithSign, formatDecimal, formatTotalTime } from "./hs-autosingFormatUtils";
 import { getAvgAndStdLast, getLogC15Std } from "./hs-autosingStatsUtils";
-import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import { HSLogger } from "../../hs-core/hs-logger";
-import { SingularityBundle } from "./hs-autosingExportManager";
+import { HSAutosingStepTimingsWindow } from "./ui/hs-autosing-step-timings-window";
 
 // =============================
 // Class Properties and Fields
@@ -25,7 +21,7 @@ import { SingularityBundle } from "./hs-autosingExportManager";
  * IsExplicitHSModule: No
  * Description: Modal for autosing timer and quark/golden quark gain tracking.
  *   - Handles UI orchestration, DOM caching, batching updates, and chart/stat rendering.
- *   - Integrates modular helpers for phase stats, charting, and export.
+ *   - Integrates modular helpers for phase stats and charting.
  *   - Maintains unified metrics with running averages for time, quarks, and golden quarks.
  *
  * Author: XxmolkxX, Shewchou
@@ -39,7 +35,7 @@ export class HSAutosingModal {
     #timerHeader: HTMLDivElement | null = null;
     #timerContent: HTMLDivElement | null = null;
     #dynamicContent: HTMLDivElement | null = null;
-    #exportButton: HTMLButtonElement | null = null;
+    #stepTimingsBtn!: HTMLButtonElement;
     #chartToggleBtn: HTMLButtonElement | null = null;
     #minimizeBtn!: HTMLButtonElement;
     #pauseBtn!: HTMLButtonElement;
@@ -94,10 +90,9 @@ export class HSAutosingModal {
     #farmingGrid: HTMLElement | null = null;
 
     // --- Data & State ---
-    // #db: HSAutosingDB;
-    #exportManager: HSAutosingExportManager | null = null;
     #showDetailedData: boolean = true;
-    #advancedDataCollectionEnabled: boolean = false;
+    // This run records its step timings
+    #hasStepTimings: boolean = false;
     #strategy: any = null;
     #strategyName: string = '';
     #loadoutsOrder: string[] = [];
@@ -108,7 +103,6 @@ export class HSAutosingModal {
     #lastSingularityTimestamp: number = 0;
     #currentPhaseName: string = '';
     #currentPhaseStart: number = 0;
-    #currentSingularityPhases: Map<string, number> = new Map();
     #lastRecordedPhaseName: string | null = null;
     #liveTimerInterval: number | null = null;
 
@@ -176,7 +170,6 @@ export class HSAutosingModal {
     #renderPhasesPending: boolean        = false;
     #renderPhaseNamePending: boolean     = false;
     #renderSparklinesPending: boolean    = false;
-    #renderExportPending: boolean        = false;
 
     // --- Sizing & Layout ---
     #autoResized: boolean = false;
@@ -190,8 +183,6 @@ export class HSAutosingModal {
 
     /** Construct the timer modal and initialize core state and DOM. */
     constructor() {
-        // db disabled for now...
-        // this.#db = new HSAutosingDB('HSAutosingTimerDB', 'singularityBundles', 10);
         this.#createTimerDisplay();
         this.#setupDragAndResize();
     }
@@ -265,6 +256,18 @@ export class HSAutosingModal {
                 this.#finishStopBtn.style.backgroundColor = newState ? '#ff9800' : '';
             }
         };
+        // Step timings button
+        this.#stepTimingsBtn = document.createElement('button');
+        this.#stepTimingsBtn.id          = 'hs-timer-ctrl-step-timings';
+        this.#stepTimingsBtn.textContent = '📋';
+        this.#stepTimingsBtn.title       = "Step timings";
+        this.#stepTimingsBtn.className   = 'hs-timer-ctrl-btn hs-timer-ctrl-btn-secondary';
+        this.#stepTimingsBtn.onclick = () => {
+            void HSAutosingStepTimingsWindow.open(
+                () => ({ modVersion: this.#modVersion, loadouts: this.#loadoutsOrder }),
+                this.#stepTimingsPosition()
+            );
+        };
         // Detailed data toggle button
         this.#chartToggleBtn = document.createElement('button');
         this.#chartToggleBtn.id          = 'hs-timer-ctrl-chart-toggle';
@@ -296,6 +299,7 @@ export class HSAutosingModal {
         controls.appendChild(this.#restartButton);
         controls.appendChild(this.#stopButton);
         controls.appendChild(this.#finishStopBtn);
+        controls.appendChild(this.#stepTimingsBtn);
         controls.appendChild(this.#chartToggleBtn);
         controls.appendChild(this.#minimizeBtn);
         this.#timerHeader.appendChild(controls);
@@ -492,29 +496,17 @@ export class HSAutosingModal {
         this.#footerStrategySpan = document.getElementById('hs-footer-strategy');
         this.#footerLoadoutsSpan = document.getElementById('hs-footer-loadouts');
         this.#footerPatchSpan    = document.getElementById('hs-footer-patch');
+    }
 
-        /*
-        // Persistent export button
-        this.#exportButton = document.createElement('button');
-        this.#exportButton.id = 'hs-export-data-btn';
-        this.#exportButton.className = 'hs-export-btn';
-        this.#exportButton.classList.add('hs-hidden');
-        this.#exportButton.onclick = () => {
-            if (this.#exportManager) {
-                this.#exportManager.exportDataAsCSV(compressToUTF16, decompressFromUTF16);
-            }
-        };
-        this.#timerContent.appendChild(this.#exportButton);
-
-        // Initialize export manager after exportButton is created
-        this.#exportManager = new HSAutosingExportManager({
-            db: this.#db,
-            getCompressedBundles: () => this.#compressedBundles,
-            exportButton: this.#exportButton,
-            getAdvancedDataCollectionEnabled: () => this.#advancedDataCollectionEnabled,
-            getSingularityBundlesCount: () => this.#singularityBundles.length
-        });
-        */
+    /**
+     * Beside the run panel: to its right, else to its left when there is no room (the window is about 700 px wide).
+     * 30 px away: the panel widens as its figures arrive.
+     */
+    #stepTimingsPosition(): { x: number; y: number } | undefined {
+        const panel = this.#timerDisplay?.getBoundingClientRect();
+        if (!panel) return undefined;
+        const room = window.innerWidth - panel.right > 730;
+        return { x: room ? panel.right + 30 : Math.max(10, panel.left - 710), y: panel.top };
     }
 
     /** Ensure the average span structure (main/sd) exists for a given element.
@@ -534,14 +526,6 @@ export class HSAutosingModal {
         const parts = { main, sd };
         this.#avgSpanParts.set(el, parts);
         return parts;
-    }
-
-    /** Sync the advanced data collection enabled state from settings. */
-    #syncAdvancedDataCollectionEnabled(): void {
-        const setting = HSSettings.getSetting('advancedDataCollection');
-        const enabled = !!setting && setting.isEnabled();
-        if (enabled === this.#advancedDataCollectionEnabled) return;
-        this.#advancedDataCollectionEnabled = enabled;
     }
 
 
@@ -571,6 +555,7 @@ export class HSAutosingModal {
         this.#finishStopBtn.classList.toggle('hs-hidden',  isReview || this.#isMinimized || !this.#showDetailedData);
         this.#restartButton.classList.toggle('hs-hidden',  this.#isMinimized || !this.#showDetailedData);
         this.#chartToggleBtn.classList.toggle('hs-hidden', this.#isMinimized);
+        this.#stepTimingsBtn.classList.toggle('hs-hidden', !this.#hasStepTimings || this.#isMinimized || !this.#showDetailedData);
 
         // In review mode, move the "close" button to the left so it doesn't change place
         this.#stopButton.style.order = isReview ? '-1' : '';
@@ -777,7 +762,6 @@ export class HSAutosingModal {
         this.#lastSingularityTimestamp = performance.now();
         this.#currentPhaseStart = this.#lastSingularityTimestamp;
 
-        this.#currentSingularityPhases.clear();
         this.#lastRecordedPhaseName = null;
         this.#currentPhaseName = '';
     }
@@ -800,6 +784,7 @@ export class HSAutosingModal {
     public start(strategy: HSAutosingStrategy, initialQuarks: number = 0, initialGoldenQuarks: number = 0,
         exposureParts?: HSAutosingExposureParts): void {
         this.reset();
+        this.#hasStepTimings = !!window.__HS_autosingTimings;
         this.enterRunningMode();
 
         HSLogger.log('start() called: reset complete, initializing run metadata', this.#context);
@@ -851,14 +836,6 @@ export class HSAutosingModal {
             this.#cachedStrategyOrderIndex.set(this.#cachedStrategyOrder[i], i);
         }
 
-        /*
-        // Check advanced-data-collection once at autosing start (cached).
-        this.#advancedDataCollectionEnabled = !!HSSettings.getSetting('advancedDataCollection')?.isEnabled();
-        if (this.#advancedDataCollectionEnabled) {
-            this.db.clearBundles().catch(console.error);
-        }
-        */
-
         this.#startNewSingTimer();
         this.#requestRenderAll();
     }
@@ -879,9 +856,6 @@ export class HSAutosingModal {
             phaseData.sumSq     += (next * next) - (prev * prev);
             phaseData.lastTime  = next;
             phaseData.innerLoopCount++;
-            // Update Current Singularity Tracking
-            const currentVal = this.#currentSingularityPhases.get(phase) || 0;
-            this.#currentSingularityPhases.set(phase, currentVal + phaseDuration);
         } else {
             // STANDARD LOGIC: Next Phase
             if (!phaseData) {
@@ -894,7 +868,6 @@ export class HSAutosingModal {
             phaseData.totalTime  += phaseDuration;
             phaseData.sumSq      += phaseDuration * phaseDuration;
             phaseData.lastTime   = phaseDuration;
-            this.#currentSingularityPhases.set(phase, phaseDuration);
             this.#lastRecordedPhaseName = phase;
         }
 
@@ -964,26 +937,6 @@ export class HSAutosingModal {
             } catch (e) {
                 // If conversion/logging fails, skip updating online stats but keep the Decimal history
             }
-        }
-
-        // Advanced data collection
-        if (this.#advancedDataCollectionEnabled) {
-            const phasesObject: Record<string, number> = {};
-            this.#currentSingularityPhases.forEach((duration, phaseName) => {
-                phasesObject[phaseName] = duration;
-            });
-            const bundle: SingularityBundle = {
-                singularityNumber: this.#singularityCount,
-                totalTime: singularityDuration,
-                quarksGained: realQuarksGain,
-                goldenQuarksGained: gainedGoldenQuarks,
-                phases: phasesObject,
-                timestamp: Date.now()
-            };
-            if (c15Score !== undefined) {
-                bundle.c15 = c15Score.toString();
-            }
-            // this.db.addBundle(bundle, compressToUTF16).catch(console.error);
         }
 
         this.#startNewSingTimer();
@@ -1113,19 +1066,18 @@ export class HSAutosingModal {
 
     /** Request a full render update for all modal sections. */
     #requestRenderAll(): void {
-        this.#requestRender({ summaryStats: true, detailedStats: true, phases: true, phaseName: true, sparklines: true, exportBtn: true });
+        this.#requestRender({ summaryStats: true, detailedStats: true, phases: true, phaseName: true, sparklines: true });
     }
 
     /** Request a render update for specific modal sections. Data stays current,
      * while DOM work is coalesced and rate-limited so it cannot compete with AutoSing. */
-    #requestRender(opts: { summaryStats?: boolean; detailedStats?: boolean; phases?: boolean; phaseName?: boolean; sparklines?: boolean; exportBtn?: boolean } = {}): void {
+    #requestRender(opts: { summaryStats?: boolean; detailedStats?: boolean; phases?: boolean; phaseName?: boolean; sparklines?: boolean } = {}): void {
         if (this.#isMinimized) return;
         if (opts.summaryStats)  this.#renderSummaryStatsPending  = true;
         if (opts.detailedStats) this.#renderDetailedStatsPending = true;
         if (opts.phases)        this.#renderPhasesPending        = true;
         if (opts.phaseName)     this.#renderPhaseNamePending     = true;
         if (opts.sparklines)    this.#renderSparklinesPending    = true;
-        // if (opts.exportBtn)     this.#renderExportPending        = true;
 
         if (this.#renderPending) return;
         this.#renderPending = true;
@@ -1157,7 +1109,6 @@ export class HSAutosingModal {
             this.#renderPhasesPending        = false; // Every phase END
             this.#renderPhaseNamePending     = false; // Every phase START
             this.#renderSparklinesPending    = false; // Every sing
-        //  this.#renderExportPending        = false; // Unused for now...
             return;
         }
 
@@ -1181,11 +1132,6 @@ export class HSAutosingModal {
             this.#renderSparklines();
             this.#renderSparklinesPending = false;
         }
-        /*
-        if (this.#renderExportPending) 
-            this.#exportManager?.updateExportButton();
-            this.#renderExportPending = false;
-        */
     }
 
     /**
@@ -1394,7 +1340,6 @@ export class HSAutosingModal {
         this.#metricsSumDuration = 0;
         this.#metricsSumQuarks = 0;
         this.#metricsSumGoldenQuarks = 0;
-        this.#currentSingularityPhases.clear();
         this.#phaseHistory.clear();
         this.#phaseRowMap.clear();
         this.#phaseRenderOrder = [];
@@ -1428,6 +1373,7 @@ export class HSAutosingModal {
 
     /** Destroy the modal, remove event listeners, and clean up DOM elements. */
     public destroy(): void {
+        HSAutosingStepTimingsWindow.close();
         this.#clearSingularityInterval();
         if (this.#renderTimerId !== null) {
             window.clearTimeout(this.#renderTimerId);

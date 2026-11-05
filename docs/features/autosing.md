@@ -92,5 +92,17 @@ Test: `npm run test:autosing`.
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).
 - A `===== Executing phase: X =====` debug line at every phase run, kept at debug level (even though timeout warnings show without debug and then have no phase).
 - Debug lines for every step, 403 and IF jumps included, with their outcome; the step is named on C1–C10 timeout warnings.
-- The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0. The dev recorder keeps runtime indices from 0.
+- The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
+
+## Step timings (`autosingStepTimings`)
+For players tuning a strategy. `HSAutosingRecorder` records, `hs-autosingStepTable.ts` turns that into the table (pure, `test-autosing-step-table.cjs`), `ui/hs-autosing-step-timings-window.ts` shows it.
+- **Off by default, read at each start.** Off, the main loop only checks `#recordTimings` / `passRecord` and the last run's timings are cleared. Autosing runs for hours and most players never read this.
+- **The run panel's 📋 opens the window**: shown when the run records, the panel not minimized and its details on; it stays in review mode. One window at most, closed with the panel. CSV export: not this, it gave one row per singularity, which the panel already covers.
+- **Built when it opens, then at most once per singularity while it is open**, in an animation frame (never while the tab is hidden). Closed, it costs nothing.
+- **The table covers finished singularities whose steps are all held**: the one running is left out, and so is the oldest once the steps' cap has dropped part of it.
+- **Rows, per singularity:** each step (a step's ms includes its Wait before), "Between singularities" (Exalt 2, teleport, Obtainium loadout, wait for an allowed stage), "Outside the steps" (what's left of the average: quark export, final Ascend, pauses). So the % add up to 100.
+- **Sort:** longest first by default; a click on any title sorts by it, with a ▾ on that title (every title keeps its room, so nothing moves). Phase and Step give the strategy's order; a second click doesn't reverse (shortest first isn't useful). The rows that aren't steps stay last, except by ms and %. Copy always gives the strategy's order, tab-separated, so two runs line up.
+- **Steps are numbered as in the editor** (`#stepNumber`); `index` in the timings is the running list's, from 0.
+- **`window.__HS_autosingTimings`** (types in `hs-autosing-types.ts`), read by the window and `autosing-run.cjs`, which turns the setting on and writes `timings.json`. Cleared at each start. Lists, in ms, `sing` = recorded singularity (1 = the first after the start): `steps`, `passes`, `transitions` (one `#performSingularity`; `msBeforeRecord` counts in the previous singularity), `singularities`. About 125 steps and 16 KB per singularity (Basic, S275). Caps: 20000 steps (about 160 singularities), 2000 of each other list; the oldest tenth is dropped and counted in `dropped`.
+- **Not recorded:** the quark export and Ascend after the final phase, the push before a stop, a pass ended by a thrown superseded wait (DOM path only). A singularity = its passes + its transition's part after the record + the next transition's `msBeforeRecord` + about 10 ms.

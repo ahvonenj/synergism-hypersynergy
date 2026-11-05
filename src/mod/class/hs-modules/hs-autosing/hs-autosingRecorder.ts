@@ -3,10 +3,9 @@ import { SPECIAL_ACTION_BY_ID, type Challenge, type HSAutosingPassRecord, type H
 /**
  * Class: HSAutosingRecorder
  * IsExplicitHSModule: No
- * Description: Dev builds only. Records autosing's timings (each step, phase pass, singularity transition and
- *     singularity) in window.__HS_autosingTimings, for the headless harness that tunes the strategies.
- *     Cleared at each autosing start. Every call is under `if (HS_DEV_BUILD)`, so the release build drops
- *     the class: it has no static fields (its state lives on window).
+ * Description: Records autosing's timings (each step, phase pass, singularity transition and singularity) in
+ *     window.__HS_autosingTimings, with the setting "Record step timings" on: for the step timings window and
+ *     the headless harness. Cleared at each autosing start. Off, autosing never calls it during a run.
  * Author: Shewchou
  */
 export class HSAutosingRecorder {
@@ -24,6 +23,11 @@ export class HSAutosingRecorder {
         };
     }
 
+    /** A run that doesn't record starts: the last run's timings go. */
+    static clear(): void {
+        delete window.__HS_autosingTimings;
+    }
+
     /** A phase pass starts: the record to hand to step() and endPass(). */
     static startPass(phase: string): HSAutosingPassRecord | undefined {
         const t = window.__HS_autosingTimings;
@@ -33,7 +37,7 @@ export class HSAutosingRecorder {
         return { sing: t.current.sing, phase, pass, startedAt: performance.now(), steps: 0, waitMs: 0 };
     }
 
-    static step(record: HSAutosingPassRecord, step: Challenge, index: number, startedAt: number, jump: number | null): void {
+    static step(record: HSAutosingPassRecord, step: Challenge, index: number, number: number, startedAt: number, jump: number | null): void {
         const t = window.__HS_autosingTimings;
         if (!t) return;
         record.steps++;
@@ -43,6 +47,7 @@ export class HSAutosingRecorder {
             phase: record.phase,
             pass: record.pass,
             index,
+            number,
             action: n < 100 ? `C${n}` : (SPECIAL_ACTION_BY_ID.get(n)?.label ?? String(n)),
             ...(step.comment ? { comment: step.comment } : {}),
             waitBefore: step.challengeWaitBefore ?? 0,

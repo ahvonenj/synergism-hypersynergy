@@ -44,7 +44,7 @@ export class HSSettingsUI {
     static #nativeTabPreferenceObserver: MutationObserver | null = null;
     static #nativeTabClickListenerInstalled = false;
 
-    // The numbers the Auto-Sing Advanced "Reset to default" button puts back (advancedDataCollection is a hidden debug switch)
+    // The numbers the Auto-Sing Advanced "Reset to default" button puts back
     static readonly #autosingAdvancedSettings = [
         'autosing3to6DCubeOpeningPercent',
         'autosingTessBuildingAutoBuyPercent',

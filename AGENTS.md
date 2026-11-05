@@ -82,7 +82,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip.
 
 ### Dev tools (`docs/features/dev-tools.md`)
-`HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`. `HSAutosingRecorder` follows the same rules.
+`HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`.
 
 ## Working with the developer
 

@@ -1379,14 +1379,23 @@
           "summary": "Tracks run pace, phase timings, Quarks, GQ and C15 statistics.",
           "details": [
             "Shows completed singularities, latest and rolling-average times, extrema and variation.",
-            "Expandable detailed views add phase histories and sparklines for timing, currencies and C15; stopped runs can be reviewed.",
-            "CSV session export exists behind the hidden Advanced Data Collection setting and requires collected data; it is not a normally visible player control."
+            "Expandable detailed views add phase histories and sparklines for timing, currencies and C15; stopped runs can be reviewed."
+          ]
+        },
+        {
+          "id": "autosing-step-timings",
+          "title": "Step timings",
+          "where": "Settings → Auto-Sing → Record step timings; AutoSing timer window → 📋",
+          "summary": "Shows where a singularity's time goes, step by step, to help tune a strategy.",
+          "details": [
+            "Off by default; it applies at the next start. Each step shows its runs, time, share of a singularity and Wait before, per singularity, plus the time spent between singularities and outside the steps.",
+            "A click on a column's title sorts by it. Copy gives it as text with the strategy, target, loadouts, average time and hourly rates, to compare two runs or share one."
           ],
           "sources": [
-            "src/mod/class/hs-modules/hs-autosing/hs-autosingExportManager.ts"
+            "src/mod/class/hs-modules/hs-autosing/ui/hs-autosing-step-timings-window.ts"
           ],
           "settings": [
-            "advancedDataCollection"
+            "autosingStepTimings"
           ]
         },
         {
