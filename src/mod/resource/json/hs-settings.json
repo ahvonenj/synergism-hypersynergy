@@ -453,7 +453,7 @@
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "gamedata",
-      "controlPage": "save",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-use-game-data-btn"
     }
   },
@@ -468,7 +468,7 @@
       "controlId": "hs-setting-auto-export-save-value",
       "controlType": "number",
       "controlGroup": "save-export",
-      "controlPage": "save",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-auto-export-save-btn",
       "controlOptions": {
         "min": 1,
@@ -490,7 +490,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "save"
+      "controlPage": "qol"
     }
   },
   "autoExportSaveForgetFolder": {
@@ -506,7 +506,7 @@
       "controlType": "button",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "save"
+      "controlPage": "qol"
     }
   },
   "autoExportSaveKeep": {
@@ -521,7 +521,7 @@
       "controlType": "number",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "save",
+      "controlPage": "qol",
       "controlEnabledId": "hs-setting-auto-export-save-keep-btn",
       "controlOptions": {
         "min": 1,
@@ -542,7 +542,7 @@
       "controlType": "select",
       "controlGroup": "save-export",
       "controlParent": "autoExportSave",
-      "controlPage": "save",
+      "controlPage": "qol",
       "selectOptions": [
         {
           "text": "None",

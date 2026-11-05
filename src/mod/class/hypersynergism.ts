@@ -557,16 +557,13 @@ export class Hypersynergism {
     }
 
     #handleGameDataIconClick(_e: Event) {
-        const subtab = document.querySelector('#hs-panel-settings-subtab-save') as HTMLDivElement | null;
+        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
         const color = subtab?.dataset.color;
 
-        this.#activateSettingsSubtab('save', subtab, color);
+        this.#activateSettingsSubtab('qol', subtab, color);
 
-        const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement | null;
-        gameDataSettingBlock?.scrollIntoView({
-            block: 'start',
-            behavior: 'smooth',
-        });
+        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
+        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     #handleSettingsSubtabClick(e: Event) {

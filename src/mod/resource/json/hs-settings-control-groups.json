@@ -17,7 +17,7 @@
   },
   "save-export": {
     "groupName": "Timed save export",
-    "order": 11.5
+    "order": 23
   },
   "debug": {
     "groupName": "Debugging",

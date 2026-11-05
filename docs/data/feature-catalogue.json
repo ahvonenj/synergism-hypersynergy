@@ -1247,7 +1247,7 @@
         {
           "id": "timed-export",
           "title": "Export every X minutes",
-          "where": "Settings → Save → Export the save every X minutes",
+          "where": "Settings → QoL →Export the save every X minutes",
           "summary": "Runs the game's Export action on a configurable schedule.",
           "details": [
             "Uses the last game export time, so exporting manually restarts the interval and reloads do not normally reset it.",
@@ -1264,7 +1264,7 @@
         {
           "id": "export-folder",
           "title": "Choose and remember an export folder",
-          "where": "Settings → Save → Choose folder / Forget folder",
+          "where": "Settings → QoL →Choose folder / Forget folder",
           "summary": "Writes timed exports directly to a folder on supported platforms.",
           "details": [
             "The folder handle is remembered locally; after a restart, your first game click/key press can renew permission.",
@@ -1282,7 +1282,7 @@
         {
           "id": "export-retention",
           "title": "Keep only the last X timed-export files",
-          "where": "Settings → Save → Keep only the last X files",
+          "where": "Settings → QoL →Keep only the last X files",
           "summary": "Limits saved timed exports in the chosen folder.",
           "details": [
             "Deletes only files recorded as written by this feature. Other files in the folder are left alone.",
@@ -1295,7 +1295,7 @@
         {
           "id": "export-loadout",
           "title": "Dedicated Ambrosia export loadout",
-          "where": "Settings → Save → Export loadout",
+          "where": "Settings → QoL →Export loadout",
           "summary": "Collects export rewards with the configured tree, then restores the original when possible.",
           "details": [
             "Choose None to leave the tree untouched. The exported save contains the export-time tree.",
@@ -1576,7 +1576,7 @@
         {
           "id": "gds",
           "title": "Game Data Sniffing and live-game access",
-          "where": "Settings → Save; automatic with patched loaders",
+          "where": "Settings → QoL; automatic with patched loaders",
           "summary": "Supplies current game state to information and optimization features.",
           "details": [
             "Patched loaders read the live player; legacy loading captures saves. The engine supports the mod's game-aware calculations, caches and dependent controls.",

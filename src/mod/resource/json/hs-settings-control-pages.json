@@ -17,12 +17,6 @@
     "pageSelectedColor": "#674e69",
     "order": 4
   },
-  "save": {
-    "pageName": "Save",
-    "pageColor": "#d9566c",
-    "pageSelectedColor": "#8f2a3c",
-    "order": 5
-  },
   "auto-sing": {
     "pageName": "Auto-Sing",
     "pageColor": "#4fbf85",
