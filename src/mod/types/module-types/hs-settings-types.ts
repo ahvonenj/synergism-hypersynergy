@@ -171,6 +171,7 @@ export interface HSSettingControlPage {
     order: number;
     pageName: string;
     pageColor: string;
+    pageSelectedColor: string;
 }
 
 export interface HSSettingBase<T> {

@@ -491,7 +491,7 @@ export class HSSettingsUI {
             subTabs.push(HSUIC.Div({
                 class: 'hs-panel-subtab',
                 id: `hs-panel-settings-subtab-${key}`,
-                data: new Map([['subtab', key], ['color', page.pageColor || '']]),
+                data: new Map([['subtab', key], ['color', page.pageSelectedColor]]),
                 props: {
                     style: page.pageColor ? `--hs-panel-subtab-border-color: ${page.pageColor};` : ''
                 },

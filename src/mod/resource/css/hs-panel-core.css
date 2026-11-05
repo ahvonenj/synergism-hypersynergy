@@ -152,59 +152,59 @@ select::-webkit-scrollbar-corner {
 }
 
 .hs-panel-tab:hover {
-    background-color: #006;
+    background-color: #2c2b36;
     cursor: pointer;
 }
 
-/* Individual tab color schemes */
+/* Individual tab color schemes: a soft border, and a fill dark enough for the white text */
 #hs-panel-tab-1 {
-    border-top: 1px solid orange;
-    border-left: 1px solid orange;
-    border-right: 1px solid orange;
+    border-top: 1px solid #d9a441;
+    border-left: 1px solid #d9a441;
+    border-right: 1px solid #d9a441;
 }
 
 #hs-panel-tab-1.hs-tab-selected {
-    background-color: orange;
+    background-color: #8a5a10;
 }
 
 #hs-panel-tab-2 {
-    border-top: 1px solid cyan;
-    border-left: 1px solid cyan;
-    border-right: 1px solid cyan;
+    border-top: 1px solid #6f9fd8;
+    border-left: 1px solid #6f9fd8;
+    border-right: 1px solid #6f9fd8;
 }
 
 #hs-panel-tab-2.hs-tab-selected {
-    background-color: blue;
+    background-color: #24508f;
 }
 
 #hs-panel-tab-3 {
-    border-top: 1px solid maroon;
-    border-left: 1px solid maroon;
-    border-right: 1px solid maroon;
+    border-top: 1px solid #c0504d;
+    border-left: 1px solid #c0504d;
+    border-right: 1px solid #c0504d;
 }
 
 #hs-panel-tab-3.hs-tab-selected {
-    background-color: maroon;
+    background-color: #7f2a2a;
 }
 
 #hs-panel-tab-4 {
-    border-top: 1px solid plum;
-    border-left: 1px solid plum;
-    border-right: 1px solid plum;
+    border-top: 1px solid #b78fd0;
+    border-left: 1px solid #b78fd0;
+    border-right: 1px solid #b78fd0;
 }
 
 #hs-panel-tab-4.hs-tab-selected {
-    background-color: plum;
+    background-color: #6a4a78;
 }
 
 #hs-panel-tab-5 {
-    border-top: 1px solid royalblue;
-    border-left: 1px solid royalblue;
-    border-right: 1px solid royalblue;
+    border-top: 1px solid #8fa0b8;
+    border-left: 1px solid #8fa0b8;
+    border-right: 1px solid #8fa0b8;
 }
 
 #hs-panel-tab-5.hs-tab-selected {
-    background-color: royalblue;
+    background-color: #4a5a70;
 }
 
 /* ===== PANEL BODY ===== */
@@ -767,29 +767,26 @@ select::-webkit-scrollbar-corner {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
+/* Equal widths sharing one row; a panel narrowed below their basis wraps them */
 .hs-panel-subtab {
     height: 25px;
-    width: 100px;
-    max-width: 100px;
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: auto;
+    flex: 1 1 74px;
     display: flex;
     justify-content: center;
     font-weight: bold;
     line-height: 25px;
-    margin: 0px 2px 0px 2px;
+    white-space: nowrap;
     border-radius: 0px;
-    font-size: 11pt;
+    font-size: 10pt;
     border: 1px solid var(--hs-panel-subtab-border-color, gray);
     --hs-panel-subtab-border-color: gray;
 }
 
 .hs-panel-subtab:hover {
-    background-color: #006;
+    background-color: #2c2b36;
     cursor: pointer;
 }
 
