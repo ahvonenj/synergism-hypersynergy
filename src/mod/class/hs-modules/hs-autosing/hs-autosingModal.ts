@@ -10,6 +10,7 @@ import Decimal from "break_infinity.js";
 import { formatNumber, formatNumberWithSign, formatDecimal, formatTotalTime } from "./hs-autosingFormatUtils";
 import { getAvgAndStdLast, getLogC15Std } from "./hs-autosingStatsUtils";
 import { HSLogger } from "../../hs-core/hs-logger";
+import { HSUI } from "../../hs-core/hs-ui";
 import { HSAutosingStepTimingsWindow } from "./ui/hs-autosing-step-timings-window";
 
 // =============================
@@ -589,6 +590,7 @@ export class HSAutosingModal {
         if (!this.#timerHeader || !this.#timerDisplay) return;
         // Dragging
         this.#timerHeader.onmousedown = (e) => {
+            if (this.#timerDisplay) HSUI.bringToFront(this.#timerDisplay);
             if (e.target === this.#timerHeader || (e.target as HTMLElement).tagName === 'SPAN') {
                 this.#startDrag(e);
             }
@@ -1314,6 +1316,7 @@ export class HSAutosingModal {
         if (!this.#autoResized) this.#computeAndApplyAutoWidth();
 
         this.#timerDisplay.classList.remove('hs-hidden');
+        HSUI.bringToFront(this.#timerDisplay);
         this.#isVisible = true;
     }
 

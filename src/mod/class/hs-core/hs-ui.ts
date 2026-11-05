@@ -51,7 +51,7 @@ export class HSUI extends HSModule {
 
     #activeModals: Set<HTMLDivElement> = new Set();
     #modalParents: Map<string, string> = new Map();
-    #modalZIndexCounter = 7000;
+    static #modalZIndexCounter = 7000;
 
     static #injectedStyles = new Map<string, string>();
     static #injectedStylesHolder?: HTMLStyleElement;
@@ -169,13 +169,19 @@ export class HSUI extends HSModule {
     }
 
     #bringElementToFront(element: HTMLElement): void {
+        HSUI.bringToFront(element);
+    }
+
+    /** Puts a mod window above the panel and every other mod window (they share one stacking order). */
+    static bringToFront(element: HTMLElement): void {
         const highestZIndex = HSUI.getHighestActiveModalZIndex();
-        this.#modalZIndexCounter = Math.max(this.#modalZIndexCounter, highestZIndex, 6999) + 1;
-        element.style.zIndex = String(this.#modalZIndexCounter);
+        if (element.style.zIndex && Number.parseInt(element.style.zIndex, 10) >= highestZIndex) return;
+        HSUI.#modalZIndexCounter = Math.max(HSUI.#modalZIndexCounter, highestZIndex, 6999) + 1;
+        element.style.zIndex = String(HSUI.#modalZIndexCounter);
     }
 
     static getHighestActiveModalZIndex(): number {
-        const relevantElements = Array.from(document.querySelectorAll<HTMLElement>('#hs-panel, .hs-modal'));
+        const relevantElements = Array.from(document.querySelectorAll<HTMLElement>('#hs-panel, .hs-modal, #hs-autosing-timer-display'));
         let maxZ = 0;
 
         for (const element of relevantElements) {

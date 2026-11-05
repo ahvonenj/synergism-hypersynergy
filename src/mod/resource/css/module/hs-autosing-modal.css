@@ -28,7 +28,7 @@
     border-radius: 8px;
     font-family: monospace;
     font-size: 13px;
-    z-index: 10000;
+    z-index: 7000; /* same stacking as the other mod windows: HSUI.bringToFront */
     min-width: 250px;
     width: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
