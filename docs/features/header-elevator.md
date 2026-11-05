@@ -4,7 +4,7 @@ The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambros
 
 Decorates the game's `ascSingularityCountStats`; not a mod module. Code `hs-core/header/hs-elevator-header.ts`, CSS
 `hs-elevator-header.css`; the box is `HSHeaderPopover` (`hs-header-popover.ts`), shared with the corruption popover.
-Hidden setting `singularityHeaderElevator` (on by default), section "Singularity module" of the block; off gives the
+Hidden setting `singularityHeaderElevator` (on by default), "Sing elevator popover" in the block's "Mod modules" section; off gives the
 game's module back, cursor included.
 
 ## Rules

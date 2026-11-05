@@ -39,8 +39,8 @@ header setting moved there (better for everyone than the panel). Static, install
 settings sync; no patcher feature.
 - **One block, its sections side by side** (one block over several), in `SECTIONS` order: Layout,
   Ambrosia loadouts, Mod modules (Ambrosia per hour and Challenge progress only with the header modules patch, Center
-  quick bars only without it: it moves `#quickbarsRow`), Challenge progress, Corruption module, Singularity module,
-  Octeracts. Title
+  quick bars only without it: it moves `#quickbarsRow`; also the Sing elevator popover, not a section of its
+  own: one line alone took a whole column), Challenge progress, Corruption module, Octeracts. Title
   "[HS] Header", no "[HS]" inside; checkboxes as "[HS] Keep my header layout" (small, grey label), help texts as
   tooltips.
 - **`shown` checks run at each refresh**: lines are always built and hidden with `[hidden]` CSS, a section hidden when
@@ -149,8 +149,8 @@ None of them writes `player.headerLayouts` (checked at the merge). All per brows
   `hs-minibar-resize.ts`, keep the two in step): 3 bars now fit at 5 px there, 4 px before.
 - **Toggles in the "[HS] Header" block**: Remove header gap (`removeHeaderGap`, `HSHeaderGap`: pulls the tabs up to the
   last visible module, observers on the regions), Compact challenge text (`compactChallengeText`,
-  `HSHeaderChallengeProgress`: only the numbers, full text on hover), Match octeract icon size
-  (`matchOcteractIconSize`, CSS) and Match octeract text (`matchOcteractText`, `HSOcteractHeader`: a white Oct/s
+  `HSHeaderChallengeProgress`: only the numbers, full text on hover), Match Oct icon size
+  (`matchOcteractIconSize`, CSS) and Match Oct text (`matchOcteractText`, `HSOcteractHeader`: a white Oct/s
   unit). All hidden settings, off by default.
 - **"Edit game header" button** (Settings > UI, `editGameHeader`): `HSHeaderEditSettings.openEditor()` closes the panel
   and sends the game's long-press to `#headerGrid` (no module target, so no drag; without the hold wait since the

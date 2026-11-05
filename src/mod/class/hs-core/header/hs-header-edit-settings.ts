@@ -81,6 +81,8 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
             { setting: 'ambrosiaMinibarBorders', label: 'Minibars border' },
             { setting: 'ambrosiaRateHeader', label: 'Ambrosia per hour', shown: hasHeaderModules },
             { setting: 'challengeProgressHeader', label: 'Challenge progress', shown: hasHeaderModules },
+            // Decorates the game's Singularity count module; reads the live player (bookmarklet: no popover)
+            { setting: 'singularityHeaderElevator', label: 'Sing elevator popover', shown: () => !!HSGlobal.exposedPlayer },
             { setting: 'centerQuickbars', label: 'Center quick bars', shown: () => !hasHeaderModules() },
         ],
     },
@@ -117,17 +119,10 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
         ],
     },
     {
-        title: 'Singularity module',
-        toggles: [
-            // Reads the live player (bookmarklet: no popover)
-            { setting: 'singularityHeaderElevator', label: 'Elevator popover', shown: () => !!HSGlobal.exposedPlayer },
-        ],
-    },
-    {
         title: 'Octeracts',
         toggles: [
-            { setting: 'matchOcteractIconSize', label: 'Match octeract icon size' },
-            { setting: 'matchOcteractText', label: 'Match octeract text' },
+            { setting: 'matchOcteractIconSize', label: 'Match Oct icon size' },
+            { setting: 'matchOcteractText', label: 'Match Oct text' },
         ],
     },
 ];

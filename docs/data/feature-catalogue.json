@@ -661,7 +661,7 @@
         {
           "id": "header-elevator",
           "title": "Singularity Elevator from the header",
-          "where": "Click the game's Singularity count header module; [HS] Header → Singularity module → Elevator popover",
+          "where": "Click the game's Singularity count header module; [HS] Header → Mod modules → Sing elevator popover",
           "summary": "Uses the Elevator without opening the Singularity tab.",
           "details": [
             "The popover has the target, the Teleport button, both toggles and the status line, through the game's own controls. Teleport asks the game's usual confirmations.",
