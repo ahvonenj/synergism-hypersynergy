@@ -761,6 +761,18 @@ select::-webkit-scrollbar-corner {
     filter: brightness(150%);
 }
 
+.hs-panel-setting-block-aoag-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    cursor: help;
+}
+
+.hs-panel-setting-block-aoag-pre {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
 .hs-disabled {
     border: 1px solid red;
 }

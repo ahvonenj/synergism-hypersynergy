@@ -162,6 +162,8 @@ export interface HSSettingControl {
     controlParent?: keyof HSSettingsDefinition;
     /** With controlParent: hidden while the parent's switch is off */
     controlHideWhenParentOff?: boolean;
+    /** Antiquities icon before the label: dimmed for pre-AOAG, full colours for post-AOAG */
+    controlAoagIcon?: 'pre' | 'post';
     controlOptions?: HSSettingControlOptions;
     selectOptions?: HSUICSelectOption[];
     props?: HTMLProps;

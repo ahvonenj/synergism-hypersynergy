@@ -11,6 +11,7 @@ import { HSSetting } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSUtils } from "../../hs-utils/hs-utils";
+import { HSIcons } from "../../hs-utils/hs-icons";
 import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
 
 type HSSettingBaseWithHidden<T extends HSSettingType> = HSSettingBase<T> & { hidden?: boolean };
@@ -716,6 +717,10 @@ export class HSSettingsUI {
             }));
         }
 
+        if (controls.controlAoagIcon) {
+            children.push(this.#buildAoagIcon(controls.controlAoagIcon));
+        }
+
         children.push(HSUIC.P({
             class: 'hs-panel-setting-block-text',
             props: { title: setting.settingHelpText },
@@ -730,6 +735,18 @@ export class HSSettingsUI {
             class: 'hs-panel-setting-block-text-wrapper',
             html: children
         });
+    }
+
+    // The game's own rune image. The path is the fallback: the settings tab can be built before the runes tab is
+    static #buildAoagIcon(stage: 'pre' | 'post'): string {
+        const source = document.getElementById('antiquitiesRune');
+        const icon = (source ? HSIcons.fromElement(source) : null) ?? { url: 'Pictures/Runes/Antiquities.png' };
+
+        const element = document.createElement('span');
+        element.className = `hs-panel-setting-block-aoag-icon hs-panel-setting-block-aoag-${stage}`;
+        element.title = stage === 'pre' ? 'Pre-AOAG' : 'Post-AOAG';
+        HSIcons.applyBackground(element, icon, 18);
+        return element.outerHTML;
     }
 
     static #buildSettingValueChildren(

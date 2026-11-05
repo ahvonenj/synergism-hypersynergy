@@ -1497,7 +1497,7 @@
           "id": "autosing-loadouts",
           "title": "Six configurable Ambrosia roles",
           "where": "Settings → Auto-Sing → Ambrosia loadouts",
-          "summary": "Assigns pre-AOAG cubes, post-AOAG cubes, Quarks, Obtainium, Offerings and Luck slots.",
+          "summary": "Assigns the Hyperflux (H), 3-7D Cubes, Quark, Obtainium, Offerings and Ambrosia slots; an Antiquities icon shows which are for pre-AOAG (dimmed) and post-AOAG (full colours).",
           "details": [
             "AutoSing switches through its own central loadout path at the relevant steps and final actions.",
             "Heater Sync settings can populate compatible role choices."

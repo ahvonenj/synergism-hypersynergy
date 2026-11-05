@@ -990,14 +990,100 @@
       "controlEnabledId": "hs-setting-auto-sing-no-ambrosia-switch-btn"
     }
   },
+  "autosingObtLoadout": {
+    "settingName": "autosingObtLoadout",
+    "settingDescription": "Obtainium",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most obtainium.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "pre",
+      "controlId": "hs-setting-auto-sing-obt-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
   "autosingEarlyCubeLoadout": {
     "settingName": "autosingEarlyCubeLoadout",
-    "settingDescription": "Pre-AOAG Cube Loadout",
+    "settingDescription": "Hyperflux (H)",
     "settingHelpText": "This is the ambrosia loadout that gives you the most cubes in the early game",
     "settingType": "selectstring",
     "enabled": true,
     "settingValue": "",
     "settingControl": {
+      "controlAoagIcon": "pre",
       "controlId": "hs-setting-auto-sing-early-cube-loadout-value",
       "controlType": "select",
       "controlGroup": "auto-sing-ambrosia",
@@ -1076,12 +1162,13 @@
   },
   "autosingLateCubeLoadout": {
     "settingName": "autosingLateCubeLoadout",
-    "settingDescription": "Post-AOAG Cube Loadout",
+    "settingDescription": "3-7D Cubes",
     "settingHelpText": "This is the ambrosia loadout that gives you the most cubes in the late game",
     "settingType": "selectstring",
     "enabled": true,
     "settingValue": "",
     "settingControl": {
+      "controlAoagIcon": "post",
       "controlId": "hs-setting-auto-sing-late-cube-loadout-value",
       "controlType": "select",
       "controlGroup": "auto-sing-ambrosia",
@@ -1160,97 +1247,14 @@
   },
   "autosingQuarkLoadout": {
     "settingName": "autosingQuarkLoadout",
-    "settingDescription": "Quark Loadout",
+    "settingDescription": "Quark",
     "settingHelpText": "This is the ambrosia loadout that gives you the most quarks. Note: this loadout is automatically selected right before the autosing presses the singularity button, the ascension button is also clicked so you gain the extra quarks.",
     "settingType": "selectstring",
     "enabled": true,
     "settingValue": "",
     "settingControl": {
+      "controlAoagIcon": "post",
       "controlId": "hs-setting-auto-sing-quark-loadout-value",
-      "controlType": "select",
-      "controlGroup": "auto-sing-ambrosia",
-      "controlPage": "auto-sing",
-      "selectOptions": [
-        {
-          "text": "None",
-          "value": ""
-        },
-        {
-          "text": "Loadout 1",
-          "value": "1"
-        },
-        {
-          "text": "Loadout 2",
-          "value": "2"
-        },
-        {
-          "text": "Loadout 3",
-          "value": "3"
-        },
-        {
-          "text": "Loadout 4",
-          "value": "4"
-        },
-        {
-          "text": "Loadout 5",
-          "value": "5"
-        },
-        {
-          "text": "Loadout 6",
-          "value": "6"
-        },
-        {
-          "text": "Loadout 7",
-          "value": "7"
-        },
-        {
-          "text": "Loadout 8",
-          "value": "8"
-        },
-        {
-          "text": "Loadout 9",
-          "value": "9"
-        },
-        {
-          "text": "Loadout 10",
-          "value": "10"
-        },
-        {
-          "text": "Loadout 11",
-          "value": "11"
-        },
-        {
-          "text": "Loadout 12",
-          "value": "12"
-        },
-        {
-          "text": "Loadout 13",
-          "value": "13"
-        },
-        {
-          "text": "Loadout 14",
-          "value": "14"
-        },
-        {
-          "text": "Loadout 15",
-          "value": "15"
-        },
-        {
-          "text": "Loadout 16",
-          "value": "16"
-        }
-      ]
-    }
-  },
-  "autosingObtLoadout": {
-    "settingName": "autosingObtLoadout",
-    "settingDescription": "Obtainium Loadout",
-    "settingHelpText": "This is the ambrosia loadout that gives you the most obtainium.",
-    "settingType": "selectstring",
-    "enabled": true,
-    "settingValue": "",
-    "settingControl": {
-      "controlId": "hs-setting-auto-sing-obt-loadout-value",
       "controlType": "select",
       "controlGroup": "auto-sing-ambrosia",
       "controlPage": "auto-sing",
@@ -1328,12 +1332,13 @@
   },
   "autosingOffLoadout": {
     "settingName": "autosingOffLoadout",
-    "settingDescription": "Offerings Loadout",
+    "settingDescription": "Offerings",
     "settingHelpText": "This is the ambrosia loadout that gives you the most offerings.",
     "settingType": "selectstring",
     "enabled": true,
     "settingValue": "",
     "settingControl": {
+      "controlAoagIcon": "post",
       "controlId": "hs-setting-auto-sing-off-loadout-value",
       "controlType": "select",
       "controlGroup": "auto-sing-ambrosia",
@@ -1412,12 +1417,13 @@
   },
   "autosingAmbrosiaLoadout": {
     "settingName": "autosingAmbrosiaLoadout",
-    "settingDescription": "Luck Loadout",
+    "settingDescription": "Ambrosia",
     "settingHelpText": "This is the ambrosia loadout that gives you the most ambrosia.",
     "settingType": "selectstring",
     "enabled": true,
     "settingValue": "",
     "settingControl": {
+      "controlAoagIcon": "post",
       "controlId": "hs-setting-auto-sing-ambrosia-loadout-value",
       "controlType": "select",
       "controlGroup": "auto-sing-ambrosia",

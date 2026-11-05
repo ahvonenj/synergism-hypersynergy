@@ -81,6 +81,9 @@ Since the game's 4.4.0: one level (`player.corruptions.next`, used from the next
 
 Test: `npm run test:autosing`.
 
+## Ambrosia slot settings
+- An Antiquities icon before the label (`controlAoagIcon`) says when the slot is meant to be used: dimmed pre-AOAG (Hyperflux (H), Obtainium), full colours post-AOAG (3-7D Cubes, Quark, Offerings, Ambrosia).
+
 ## "Don't switch ambrosia loadouts" (`autosingNoAmbrosiaSwitch`)
 - Why: every ambrosia loadout load resets the ambrosia bars (the game's `createBlueberryTree` → `resetBlueberryTree` → `resetAmbrosiaBarProgress`: blueberry, red ambrosia and purple honey progress), even reloading the tree already in place (only the game's Auto Ascension rules skip a loaded tree).
 - With the setting on, `#setAmbrosiaLoadout` does nothing: no switch after the singularity, at the start, before the quark export, in the push, nor for steps 301–306. Every switch must go through `#setAmbrosiaLoadout`.
