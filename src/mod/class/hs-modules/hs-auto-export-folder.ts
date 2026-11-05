@@ -7,7 +7,8 @@ import { HSAutoExportStore } from "./hs-auto-export-store";
 
 const MAX_TRACKED_FILES = 1000;
 const FOLDER_BUTTON_ID = 'hs-setting-auto-export-save-folder-button';
-const FOLDER_BUTTON_TEXT = 'Choose folder';
+const FORGET_BUTTON_ID = 'hs-setting-auto-export-save-forget-folder-button';
+const FOLDER_NAME_ID = 'hs-auto-export-folder-name';
 const FOLDER_ACCESS = { mode: 'readwrite' } as const;
 // A closed picker answers at once; Steam may otherwise leave its promise pending.
 const PICKER_ANSWER_MS = 1500;
@@ -32,7 +33,6 @@ export class HSAutoExportFolder {
     #noticesShown = new Set<string>();
     #picking = false;
     #pickId = 0;
-    #folderButtonHelp?: string;
     #pickerFrame?: HTMLIFrameElement;
     #store = new HSAutoExportStore();
 
@@ -338,17 +338,25 @@ export class HSAutoExportFolder {
         document.body.removeChild(link);
     }
 
-    /** The button shows the folder. The settings panel is built after the modules: refreshed at each tick too. */
+    /** The folder's name between the two buttons. The settings panel is built after the modules: refreshed at each tick too. */
     refreshButton(): void {
         const button = document.getElementById(FOLDER_BUTTON_ID);
-        if (!button) return;
+        const forgetButton = document.getElementById(FORGET_BUTTON_ID);
+        if (!button || !forgetButton) return;
 
-        // Its help text, set by the settings panel
-        if (this.#folderButtonHelp === undefined) this.#folderButtonHelp = button.title;
+        let label = document.getElementById(FOLDER_NAME_ID);
+        if (!label) {
+            label = document.createElement('span');
+            label.id = FOLDER_NAME_ID;
+            button.parentElement?.after(label);
+        }
 
-        // The state comes first: the button's width cuts a long text at its end
-        let text = FOLDER_BUTTON_TEXT;
-        let title = this.#folderButtonHelp;
+        // Nothing moves when a folder is picked: the button keeps its room
+        forgetButton.style.visibility = this.#folder ? '' : 'hidden';
+
+        // The state comes first: the line's width cuts a long text at its end
+        let text = 'No folder';
+        let title = '';
         if (this.#folder) {
             const name = this.#folder.name;
             text = `Folder: ${name}`;
@@ -362,9 +370,9 @@ export class HSAutoExportFolder {
                 title += '. Access was not given: choose the folder again.';
             }
         }
-        if (button.textContent !== text) {
-            button.textContent = text;
-            button.title = title;
+        if (label.textContent !== text) {
+            label.textContent = text;
+            label.title = title;
         }
     }
 

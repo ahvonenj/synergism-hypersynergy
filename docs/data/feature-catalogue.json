@@ -1264,11 +1264,11 @@
         {
           "id": "export-folder",
           "title": "Choose and remember an export folder",
-          "where": "Settings → QoL →Choose folder / Forget folder",
+          "where": "Settings → QoL → Choose folder / ✕",
           "summary": "Writes timed exports directly to a folder on supported platforms.",
           "details": [
             "The folder handle is remembered locally; after a restart, your first game click/key press can renew permission.",
-            "Forget folder stops direct writes without removing existing files.",
+            "✕ forgets the folder: direct writes stop, existing files stay.",
             "Choose a subfolder if the platform refuses a protected system folder."
           ],
           "limits": [

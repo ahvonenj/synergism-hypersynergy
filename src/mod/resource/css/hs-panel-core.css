@@ -705,22 +705,46 @@ select::-webkit-scrollbar-corner {
     margin-right: 0;
 }
 
-/* Timed save export: the two folder buttons share a line, the first one shows the folder's name. Their widths
-   keep them on one line at the panel's narrowest width, indented under "Export the save every X minutes" */
+/* Timed save export: one line indented under "Export the save every X minutes": Choose folder, the folder's name
+   (added by HSAutoExportFolder), and the button that forgets it, hidden without a folder but keeping its room */
+.hs-panel-settings-button-row:has(#hs-setting-auto-export-save-folder-button) {
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+    padding-left: calc(10px + var(--hs-setting-switch-size) + 0.5em);
+    margin-bottom: 15px;
+}
+
+.hs-panel-settings-button-row:has(#hs-setting-auto-export-save-folder-button) > .hs-panel-setting-block {
+    flex-shrink: 0;
+    padding: 0;
+    margin: 0;
+}
+
 #hs-setting-auto-export-save-folder-button,
 #hs-setting-auto-export-save-forget-folder-button {
-    width: auto;
-    min-width: 125px;
-    padding: 0 12px;
+    min-width: 0;
+    padding: 0;
     box-sizing: border-box;
     white-space: nowrap;
 }
 
 #hs-setting-auto-export-save-folder-button {
-    min-width: 290px;
-    max-width: 290px;
+    width: 110px;
+}
+
+#hs-setting-auto-export-save-forget-folder-button {
+    width: 30px;
+}
+
+/* Sized by its text, so the forget button stays right after it; it shrinks first in a narrow panel */
+#hs-auto-export-folder-name {
+    flex: 0 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #aaa;
 }
 
 .hs-panel-setting-block-gamedata-icon {

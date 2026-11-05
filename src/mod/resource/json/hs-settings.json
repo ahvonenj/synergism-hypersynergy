@@ -498,8 +498,8 @@
   },
   "autoExportSaveForgetFolder": {
     "settingName": "autoExportSaveForgetFolder",
-    "settingDescription": "Forget folder",
-    "settingHelpText": "The timed export no longer writes into the folder. The files already there are left as they are. In a browser, files are downloaded as usual again. On Steam, nothing is exported until a folder is chosen.",
+    "settingDescription": "✕",
+    "settingHelpText": "Forget this folder: the timed export no longer writes into it. The files already there are left as they are. In a browser, files are downloaded as usual again. On Steam, nothing is exported until a folder is chosen.",
     "settingType": "button",
     "enabled": true,
     "settingValue": "",
