@@ -165,7 +165,7 @@ export class HSUI extends HSModule {
                 this.#bringElementToFront(this.#uiPanel);
             }
         });
-        this.#makeResizable(this.#uiPanel, panelResizeHandle);
+        this.#makeResizable(this.#uiPanel, panelResizeHandle, 300, 150);
     }
 
     #bringElementToFront(element: HTMLElement): void {
@@ -531,7 +531,7 @@ export class HSUI extends HSModule {
         dragHandle.addEventListener('mousedown', dragMouseDown);
     }
 
-    #makeResizable(element: HTMLElement, resizeHandle: HTMLElement) {
+    #makeResizable(element: HTMLElement, resizeHandle: HTMLElement, minWidth = 525, minHeight = 400) {
         const resizable = element;
         const resizer = resizeHandle;
         let isResizing = false;
@@ -562,8 +562,8 @@ export class HSUI extends HSModule {
         function resize(e: MouseEvent) {
             if (!isResizing) return;
 
-            const newWidth = clamp(startWidth + (e.clientX - startX), 525, 2500);
-            const newHeight = clamp(startHeight + (e.clientY - startY), 400, 1500);
+            const newWidth = clamp(startWidth + (e.clientX - startX), minWidth, 2500);
+            const newHeight = clamp(startHeight + (e.clientY - startY), minHeight, 1500);
 
             resizable.style.width = `${newWidth}px`;
             resizable.style.height = `${newHeight}px`;

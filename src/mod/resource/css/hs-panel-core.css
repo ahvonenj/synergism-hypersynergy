@@ -695,9 +695,14 @@ select::-webkit-scrollbar-corner {
     width: auto;
 }
 
-/* Auto-Sing strategy buttons (Edit, Create, Delete, Import, Export): narrower than the other panel buttons */
+/* Auto-Sing strategy buttons (Edit, Create, Delete, Import, Export): narrower than the other panel buttons, two fit
+   on a line at the panel's narrowest width. The block's left padding is the gap between them */
 .hs-button-group-autosing-strategy .hs-panel-btn {
-    width: 130px;
+    width: 120px;
+}
+
+.hs-inline-button.hs-button-group-autosing-strategy {
+    margin-right: 0;
 }
 
 /* Timed save export: the two folder buttons share a line, the first one shows the folder's name. Their widths

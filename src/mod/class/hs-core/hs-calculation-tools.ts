@@ -63,8 +63,8 @@ export class HSCalculationTools {
                 value: def.fnName,
             }))),
             HSUIC.Div({ id: HSCalculationTools.#paramsId, class: 'hs-panel-grid-full-span hs-calc-params' }),
-            HSUIC.Button({ id: HSCalculationTools.#reducedBtnId, text: 'Calculate reduced', class: 'hs-panel-btn-auto-width' }),
-            HSUIC.Button({ id: HSCalculationTools.#componentsBtnId, text: 'Calculate components', class: 'hs-panel-btn-auto-width' }),
+            HSUIC.Button({ id: HSCalculationTools.#reducedBtnId, text: 'Calc. reduced', class: 'hs-panel-btn-auto-width' }),
+            HSUIC.Button({ id: HSCalculationTools.#componentsBtnId, text: 'Calc. components', class: 'hs-panel-btn-auto-width' }),
             HSUIC.Button({ id: HSCalculationTools.#dumpCacheBtnId, text: 'Dump cache' }),
             HSUIC.Div({ id: HSCalculationTools.#resultId, class: 'hs-panel-grid-full-span hs-calc-result' }),
         ];

@@ -1592,7 +1592,7 @@
         {
           "id": "calculation-tools",
           "title": "Calculation picker with component breakdowns",
-          "where": "Tools → calculation picker → Calculate / Calculate components",
+          "where": "Tools → calculation picker → Calc. reduced / Calc. components",
           "summary": "Computes supported values directly from your current save.",
           "details": [
             "The alphabetized picker covers supported Ambrosia luck and generation, Red/Purple systems, runes, talismans, GQ, shop effects and other registered calculations.",
