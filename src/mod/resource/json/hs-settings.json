@@ -990,21 +990,6 @@
       "controlPage": "auto-sing"
     }
   },
-  "autosingNoAmbrosiaSwitch": {
-    "settingName": "autosingNoAmbrosiaSwitch",
-    "settingDescription": "Don't switch ambrosia loadouts",
-    "settingHelpText": "Auto-Sing never loads an ambrosia loadout, so the ambrosia bars keep their progress. The loadouts below are not used.",
-    "settingType": "boolean",
-    "enabled": false,
-    "skipInit": true,
-    "settingAction": "autosingNoAmbrosiaSwitchAction",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "auto-sing-ambrosia",
-      "controlPage": "auto-sing",
-      "controlEnabledId": "hs-setting-auto-sing-no-ambrosia-switch-btn"
-    }
-  },
   "autosingObtLoadout": {
     "settingName": "autosingObtLoadout",
     "settingDescription": "Obtainium",
@@ -1513,6 +1498,21 @@
           "value": "16"
         }
       ]
+    }
+  },
+  "autosingNoAmbrosiaSwitch": {
+    "settingName": "autosingNoAmbrosiaSwitch",
+    "settingDescription": "Don't switch ambrosia loadouts",
+    "settingHelpText": "Auto-Sing never loads an ambrosia loadout, so the ambrosia bars keep their progress. The loadouts above are not used.",
+    "settingType": "boolean",
+    "enabled": false,
+    "skipInit": true,
+    "settingAction": "autosingNoAmbrosiaSwitchAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-no-ambrosia-switch-btn"
     }
   },
   "ambrosiaMinibars": {
