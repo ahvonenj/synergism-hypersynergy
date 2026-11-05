@@ -702,13 +702,15 @@ select::-webkit-scrollbar-corner {
 }
 
 /* Auto-Sing strategy buttons (Edit, Create, Delete, Import, Export): narrower than the other panel buttons, two fit
-   on a line at the panel's narrowest width. The block's left padding is the gap between them */
+   on a line at the panel's narrowest width. The block's left padding is the gap between them; between rows, the
+   block's 5px bottom padding + 5px margin give the same 10px as the Tools grids */
 .hs-button-group-autosing-strategy .hs-panel-btn {
     width: 120px;
 }
 
 .hs-inline-button.hs-button-group-autosing-strategy {
     margin-right: 0;
+    margin-bottom: 5px;
 }
 
 /* Timed save export: one line indented under "Export the save every X minutes": Choose folder, the folder's name
