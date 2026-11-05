@@ -480,9 +480,11 @@ select::-webkit-scrollbar-corner {
 
 /* ===== SETTINGS PANEL ===== */
 
+/* No top padding: the subtabs row holds it, so nothing shows above that row when it sticks */
 #hs-settings-panel {
-    padding: 10px;
+    padding: 0 10px 10px;
     scrollbar-gutter: stable;
+    scroll-padding-top: 44px;
 }
 
 .hs-panel-setting-block {
@@ -768,10 +770,16 @@ select::-webkit-scrollbar-corner {
 
 /* ===== SUBTABS ===== */
 
+/* Stays at the top of the panel while the settings scroll under it */
 .hs-panel-subtabs {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     width: 100%;
     height: auto;
-    padding: 0px 0px 0px 0px;
+    padding: 5px 0px;
+    border-bottom: 1px solid #555;
+    background-color: #18171c;
     color: white;
     display: flex;
     flex-direction: row;
@@ -803,7 +811,7 @@ select::-webkit-scrollbar-corner {
 
 .hs-panel-settings-grid {
     display: none;
-    margin-top: 15px;
+    margin-top: 5px;
 }
 
 .hs-panel-settings-grid.open {

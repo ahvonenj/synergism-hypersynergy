@@ -585,6 +585,12 @@ export class Hypersynergism {
 
         if (!subSettingsContainer) return;
 
+        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
+        if (!subSettingsContainer.classList.contains('open')) {
+            const settingsPanel = document.querySelector('#hs-settings-panel');
+            if (settingsPanel) settingsPanel.scrollTop = 0;
+        }
+
         allSubSettingContainers.forEach(container => container.classList.remove('open'));
         allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
 
