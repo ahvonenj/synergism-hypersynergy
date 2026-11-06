@@ -140,7 +140,7 @@ export class HSHeaterUIInput {
             if (!icon) continue;
             const iconElement = modal.querySelector<HTMLElement>(`[data-heater-icon-key="${field.key}"]`);
             if (iconElement) {
-                HSIcons.applyBackground(iconElement, icon, 20);
+                HSIcons.applyBackground(iconElement, icon, 18);
             }
         }
     }

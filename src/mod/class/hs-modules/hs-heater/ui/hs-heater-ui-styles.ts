@@ -114,7 +114,7 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table {
                 table-layout: fixed;
-                font-size: 0.9em;
+                font-size: 0.75em;
             }
 
             .hs-heater-results-table,
@@ -132,17 +132,24 @@ export class HSHeaterUIStyles {
             /* === Input Table Styles === */
             .hs-heater-input-table td,
             .hs-heater-input-table th {
-                height: 20px;
-                line-height: 20px;
-                min-height: 20px;
+                height: 18px;
+                line-height: 18px;
+                min-height: 18px;
             }
 
             .hs-heater-input-table td:first-child,
             .hs-heater-input-table th:first-child {
                 white-space: nowrap;
-                width: 24px;
-                min-width: 24px;
-                max-width: 24px;
+                width: 18px;
+                min-width: 18px;
+                max-width: 18px;
+            }
+
+            /* Icons touching each other: no padding, no line between rows (not the heading and warning rows) */
+            .hs-heater-input-table td:first-child:not([colspan]) {
+                padding: 0 1px;
+                border-top: none;
+                border-bottom: none;
             }
 
             .hs-heater-input-table td:nth-child(2),
@@ -158,15 +165,20 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table input {
                 width: 100%;
-                min-width: 140px;
+                min-width: 110px;
                 box-sizing: border-box;
+            }
+
+            /* The game's inputs have min-height: 20px, taller than the rows */
+            .hs-heater-input-table input:not([type="checkbox"]) {
+                min-height: 18px;
             }
 
             .hs-heater-icon-image {
                 display: block;
                 margin: auto;
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
             }
 
             /* === Results Table Styles === */
@@ -458,14 +470,15 @@ export class HSHeaterUIStyles {
                 border-left: none;
                 border-right: none;
                 color: #9a9a9a;
-                font-size: 0.85em;
+                /* The size it had when the table was at 0.9em */
+                font-size: 1em;
                 font-weight: bold;
                 text-align: left;
             }
 
             .hs-heater-select-input {
                 width: 100%;
-                height: 20px;
+                height: 18px;
                 background-color: black;
                 color: white;
             }
@@ -479,7 +492,7 @@ export class HSHeaterUIStyles {
 
             /* === Lock Button === */
             .hs-heater-lock-button {
-                min-height: 20px;
+                min-height: 18px;
                 border: none;
                 background: transparent;
                 cursor: pointer;
