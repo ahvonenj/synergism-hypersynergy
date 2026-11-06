@@ -17,7 +17,7 @@ const BUILD_SCRIPTS = new Set(['scripts/generate-strategy-manifest.js', 'scripts
 export function isNotBundleSource(path) {
     if (BUILD_SCRIPTS.has(path)) return false;
     return path === BUNDLE_FILE
-        || /^(docs|doc|guides|scripts|\.github)\//.test(path)
+        || /^(docs|doc|scripts|\.github)\//.test(path)
         || /^[^/]+\.md$/.test(path)
         || path === 'LICENSE' || path === '.gitignore' || path === '.nojekyll';
 }

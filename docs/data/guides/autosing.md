@@ -1,4 +1,4 @@
-# Auto-Sing
+# Auto-Sing guide
 
 Auto-Sing plays singularities for you, following a strategy. It's for the end game: S216+, and it only works fully once you've cleared EXALT6. It needs Tampermonkey or Steam: with the bookmark, it's slow and unreliable.
 
@@ -22,6 +22,8 @@ The Auto-Sing window shows the time per singularity, the quarks and golden quark
 Auto-Sing keeps its speed when the game is in another tab. Two things can still stop it:
 - **The computer going to sleep.** The **Keep the PC awake** setting prevents it while the game is in view. On Steam, it also works while the window is minimized or covered and while the PC is locked. In a browser, it doesn't: for another tab, a minimized or covered window, or a locked PC, change your computer's sleep settings instead.
 - **Chrome's Energy Saver** (a leaf icon next to the address bar). It can freeze a hidden tab after 5 minutes. Turn it off in `chrome://settings/performance`, or keep the game window in view.
+
+---
 
 ## Making your own strategy
 

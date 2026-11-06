@@ -20,6 +20,8 @@ header { min-height: 156px; }
 .page-wrapper h1 { font-size: 2em; line-height: 1.25; margin: 8px 0 22px; }
 .page-wrapper h2 { margin: 28px 0 12px 10px; line-height: 1.3; }
 .page-wrapper h3 { font-size: 1.08em; line-height: 1.4; margin: 20px 0 8px 20px; }
+.page-wrapper h4 { font-size: 1em; line-height: 1.4; margin: 16px 0 6px 30px; }
+.page-wrapper hr { border: 0; border-top: 1px solid #4a4950; margin: 36px 0 0; }
 .page-wrapper p { margin: 10px 0 12px 30px; max-width: 85ch; }
 .page-wrapper ul, .page-wrapper ol { margin: 10px 0 18px 52px; padding-left: 12px; }
 .page-wrapper li { margin: 5px 0; }
@@ -72,7 +74,7 @@ footer { margin: 45px 0 18px 30px; padding-top: 15px; border-top: 1px solid #353
   #tabs a { min-width: 0; padding: 6px 8px; font-size: .8rem; }
   #page-container { padding: 16px 12px; }
   .page-wrapper { padding: 0; }
-  .page-wrapper p, .page-wrapper h2, .page-wrapper h3, .feature details, .limits, footer, .table-scroll, .feature-controls { margin-left: 0; }
+  .page-wrapper p, .page-wrapper h2, .page-wrapper h3, .page-wrapper h4, .feature details, .limits, footer, .table-scroll, .feature-controls { margin-left: 0; }
   .page-wrapper ul, .page-wrapper ol { margin-left: 12px; }
   .category-list { columns: 1; }
   .page-wrapper h1 { font-size: 1.7em; }

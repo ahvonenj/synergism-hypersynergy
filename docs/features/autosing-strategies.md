@@ -1,6 +1,6 @@
 # Autosing strategies: format, conversions, default strategies
 
-The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `guides/autosing.md`, updated with any change players see.
+The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `docs/data/guides/autosing.md` (published to the website and wiki by `scripts/tools/build-docs.py`), updated with any change players see.
 
 A strategy is JSON: phases (each from a start stage to an end stage, with its steps) plus an AOAG phase. Defaults live in `resource/json/strategies/`; validation and conversions are in `hs-strategy-manager.ts`.
 

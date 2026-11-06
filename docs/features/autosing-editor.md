@@ -1,6 +1,6 @@
 # Autosing strategy editor: strategy and actions windows
 
-The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `guides/autosing.md`, updated with any change players see.
+The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `docs/data/guides/autosing.md` (published to the website and wiki by `scripts/tools/build-docs.py`), updated with any change players see.
 
 The strategy window (`ui/hs-autosing-strategy-modal.ts`) edits a strategy's name and phases; each phase's steps are edited in an actions window (`ui/hs-autosing-challenge-modal.ts`). There is no phase window (chosen over restyling the old one). Both windows' questions use the `hs-editor-overlay*` classes.
 

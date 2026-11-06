@@ -12,7 +12,7 @@ async function load() {
 
 test('only a file that cannot reach the bundle counts as safe, an unknown one counts as code', async () => {
     const { isNotBundleSource } = await load();
-    for (const safe of ['docs/dev/releasing.md', 'doc/proj/hs-social-logo.png', 'guides/autosing.md',
+    for (const safe of ['docs/dev/releasing.md', 'doc/proj/hs-social-logo.png', 'docs/data/guides/autosing.md',
         'scripts/tests/test-version-tags.cjs', 'scripts/release-and-tag-helper.mjs', 'AGENTS.md', '.github/workflows/x.yml',
         'release/mod/hypersynergism_release.js']) {
         assert.equal(isNotBundleSource(safe), true, safe);

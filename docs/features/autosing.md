@@ -1,6 +1,6 @@
 # Autosing (`hs-modules/hs-autosing/`)
 
-The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `guides/autosing.md`, updated with any change players see. Autosing's place in the dialog queue: `docs/features/dialogs.md`.
+The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `docs/data/guides/autosing.md` (published to the website and wiki by `scripts/tools/build-docs.py`), updated with any change players see. Autosing's place in the dialog queue: `docs/features/dialogs.md`.
 
 Singularity automation driven by JSON "strategies" (`autosing-strategies.md`). The main loop is in `hs-autosing.ts`, the run panel (timer window) in `hs-autosingModal.ts`.
 
@@ -41,7 +41,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - While `document.hidden`, `HSUtils.sleep` goes through a small worker created at the first such sleep. In a visible tab it is the normal timer plus one boolean check. If the worker fails: a warning, normal timers from then on, and a sleep running in it ends early rather than never.
 - Always on: no setting, nothing is gained by turning it off.
 - These stay on normal timers and can fire about 1 s late: the restart delay (button and action 902), the 5 s text refresh limit, and the challenge time limit in `#waitForCompletion`'s DOM fallback, the only one that can cost a run time (mainly bookmarklet players). The run panel doesn't draw while hidden, whatever the timer.
-- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (`guides/autosing.md`). Not a silent audio track: Chrome doesn't count it as sound. The wake lock below doesn't help here: the browser releases it when the tab is hidden.
+- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (the players' guide). Not a silent audio track: Chrome doesn't count it as sound. The wake lock below doesn't help here: the browser releases it when the tab is hidden.
 
 ## "Keep the PC awake" (`autosingKeepAwake`)
 `HSAutosingWakeLock`.
