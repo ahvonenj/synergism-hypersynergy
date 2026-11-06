@@ -22,7 +22,9 @@ const RESULTS_HELP = `The loadouts will only be as good as your inputs, this mea
     + `- If you want an optimized p4x4 loadout, you need to actually have pre-AoAG inputs.\n`
     + `- Same for Obt/Off loadouts (but less problematic, so simply (un)checking the "post-aoag" input is enough).\n`
     + `- ??? (Feel free to contribute)\n\n`
-    + `Right-click an Import button to pin its tooltip. Esc key to un-pin all.`;
+    + `Hover a ✘ to see what ✔ needs (red: your levels / needed).
+`
+    + `Right-click an Import button or a ✘ to pin its tooltip. Esc key to un-pin all.`;
 
 type NormalizedResultRow = {
     loadoutValue:       HeaterResultRow[typeof RESULT_COL_INDEX.loadout];
@@ -34,6 +36,7 @@ type NormalizedResultRow = {
     shortfall:          HeaterResultShortfall | undefined;
     limits:             HeaterResultLimits | undefined;
     effectTitle:        string | undefined;
+    maxedReference:     string | undefined;
 };
 
 function buildTypeLabelWithIcon(label: string, semanticId?: string, infoTitle = label): string {
@@ -108,6 +111,7 @@ function normalizeArrayResultRow(row: HeaterResultRow): NormalizedResultRow {
         shortfall:          row[0] === "Unaffordable" ? (row as HeaterResultUnaffordableRow)[7] : undefined,
         limits:             row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[7],
         effectTitle:        row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[8],
+        maxedReference:     row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[9] ?? undefined,
     };
 }
 
@@ -197,6 +201,24 @@ function buildLoadoutActionControls(escapedFullLoadout: string, escapedLoadoutLa
     const copyButton = `<button class="hs-heater-copy-loadout-btn hs-heater-json-tooltip-trigger" type="button" data-loadout="${escapedFullLoadout}" data-loadout-label="${escapedLoadoutLabel}">Copy</button>`;
     const importButton = `<button class="hs-heater-import-loadout-btn" type="button" data-loadout="${escapedFullLoadout}" data-loadout-label="${escapedLoadoutLabel}">Import</button>`;
     return `${copyButton}${importButton}`;
+}
+
+// A ✘ whose row carries the reference it was compared with: hovering it
+// previews that reference against the row's own tree (the Import button's
+// preview, see HSHeaterUIResult). The title names Brick of Lead's level, as
+// it's often below its max there (docs/features/heater.md).
+function buildUnmaxedMark(rowLoadoutJson: string, referenceJson: string | undefined): string {
+    if (!referenceJson) return `<span class="hs-heater-status-unmaxed">✘</span>`;
+    let brick = 0;
+    try {
+        brick = Number((JSON.parse(referenceJson) as Record<string, number>).ambrosiaBrickOfLead ?? 0);
+    } catch {
+        return `<span class="hs-heater-status-unmaxed">✘</span>`;
+    }
+    const label = brick > 0 ? `✔ needs (Brick of Lead ${brick})` : "✔ needs";
+    return `<span class="hs-heater-status-unmaxed hs-heater-maxed-preview-trigger"`
+        + ` data-loadout="${escapeHtml(referenceJson)}" data-loadout-compare="${escapeHtml(rowLoadoutJson)}"`
+        + ` data-loadout-label="${escapeHtml(label)}">✘</span>`;
 }
 
 // Obt + Off's Effect is two numbers, each after its resource's game icon
@@ -297,7 +319,8 @@ function buildArraySectionDataRow(
         : "";
     // Max SR rows: ✔ means SR is at its max level (docs/features/heater.md)
     const maxedTitle = entry.key === "sr1" || entry.key === "sr2" ? ' title="SR at its max level, not the whole tree"' : "";
-    const maxCell = `<td>${rowModel.maxedValue === true ? `<span class="hs-heater-status-maxed"${maxedTitle}>✔</span>` :rowModel.maxedValue === false ? `<span class="hs-heater-status-unmaxed">✘</span>${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
+    const unmaxedMark = isValidJson ? buildUnmaxedMark(fullLoadout, rowModel.maxedReference) : `<span class="hs-heater-status-unmaxed">✘</span>`;
+    const maxCell = `<td>${rowModel.maxedValue === true ? `<span class="hs-heater-status-maxed"${maxedTitle}>✔</span>` :rowModel.maxedValue === false ? `${unmaxedMark}${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
     // A type picked in "Your loadout order" that can't be afforded: the whole
     // row in the orange of that slot's border. An H row that wins at no P4x4
     // is dimmed, picked or not.

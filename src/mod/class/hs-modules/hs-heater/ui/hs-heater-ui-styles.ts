@@ -1004,6 +1004,19 @@ export class HSHeaterUIStyles {
                 background-color: transparent;
             }
 
+            /* A ✘'s preview: levels the row is below, "row/needed" on the ✘ red; the rest dimmed */
+            .hs-heater-preview-button.hs-heater-preview-gap {
+                background: rgba(150, 47, 47, 0.55);
+                border-radius: 2px;
+            }
+            .hs-heater-preview-button.hs-heater-preview-gap > .level-overlay {
+                font-size: 0.8em;
+                white-space: nowrap;
+            }
+            .hs-heater-preview-button.hs-heater-preview-no-gap {
+                opacity: 0.35;
+            }
+
             /* === Heater Tooltip Overlays === */
             .hs-heater-loadout-json-tooltip {
                 position: fixed;

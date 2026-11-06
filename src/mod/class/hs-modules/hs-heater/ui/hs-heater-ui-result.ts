@@ -77,7 +77,9 @@ const HEATER_RESULT_UI_SELECTORS = {
     copyLoadoutBtn:     'hs-heater-copy-loadout-btn',
     importLoadoutBtn:   'hs-heater-import-loadout-btn',
     jsonTooltipTrigger: 'hs-heater-json-tooltip-trigger',
+    maxedPreviewTrigger: 'hs-heater-maxed-preview-trigger',
     dataLoadout:        'data-loadout',
+    dataLoadoutCompare: 'data-loadout-compare',
     importFileInputId:  'importBlueberries',
 } as const;
 
@@ -352,6 +354,7 @@ export class HSHeaterUIResult {
     static #buildLoadoutPreviewTooltip(button: HTMLElement, isHover = false): HTMLElement | null {
         const loadout = this.getLoadoutFromButton(button);
         if (!loadout) return null;
+        const compareTo = this.#getCompareLoadout(button);
 
         const preview = document.createElement('div');
         preview.classList.add('hs-heater-loadout-preview');
@@ -370,7 +373,7 @@ export class HSHeaterUIResult {
 
         const content = document.createElement('div');
         content.className = 'hs-heater-tooltip-content';
-        content.innerHTML = this.buildLoadoutPreviewHtml(loadout);
+        content.innerHTML = this.buildLoadoutPreviewHtml(loadout, compareTo);
         preview.appendChild(content);
 
         return preview;
@@ -441,16 +444,29 @@ export class HSHeaterUIResult {
         return loadout.replace(/,/g, ',\n');
     }
 
-    static buildLoadoutPreviewHtml(loadout: Record<string, number>): string {
-        const currentGrid = this.#buildCurrentLoadoutPreviewGrid(loadout);
+    // A ✘'s trigger also carries the row's own tree: the preview then shows
+    // the gap between it and the reference.
+    static #getCompareLoadout(trigger: HTMLElement): Record<string, number> | undefined {
+        const json = trigger.getAttribute(HEATER_RESULT_UI_SELECTORS.dataLoadoutCompare);
+        if (!json) return undefined;
+        try {
+            return JSON.parse(json) as Record<string, number>;
+        } catch (error) {
+            HSLogger.error(`loadout-parse-failed: ${JSON.stringify({ source: 'getCompareLoadout', loadoutPreview: json.slice(0, 180) })} ${String(error)}`, this.#context);
+            return undefined;
+        }
+    }
+
+    static buildLoadoutPreviewHtml(loadout: Record<string, number>, compareTo?: Record<string, number>): string {
+        const currentGrid = this.#buildCurrentLoadoutPreviewGrid(loadout, compareTo);
         if (currentGrid) return currentGrid;
 
         return this.#getLegacyAmbrosiaLoadoutPreviewRows()
-            .map((row) => `<div class="${HEATER_RESULT_UI_SELECTORS.previewRow}">${row.map((item) => this.buildLoadoutPreviewCell(item, loadout)).join('')}</div>`)
+            .map((row) => `<div class="${HEATER_RESULT_UI_SELECTORS.previewRow}">${row.map((item) => this.buildLoadoutPreviewCell(item, loadout, compareTo)).join('')}</div>`)
             .join('');
     }
 
-    static #buildCurrentLoadoutPreviewGrid(loadout: Record<string, number>): string | null {
+    static #buildCurrentLoadoutPreviewGrid(loadout: Record<string, number>, compareTo?: Record<string, number>): string | null {
         const source = document.getElementById('blueberryUpgradeGroups');
         if (!source?.querySelector('.blueberryUpgradeGroup')) return null;
 
@@ -475,7 +491,7 @@ export class HSHeaterUIResult {
                 key,
                 maxLevel: maxLevels.get(key),
                 iconUrl: button.querySelector('img')?.getAttribute('src') ?? undefined,
-            }, loadout);
+            }, loadout, compareTo);
         });
         grid.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
         return grid.outerHTML;
@@ -504,7 +520,9 @@ export class HSHeaterUIResult {
         return rows.length > 0 ? rows : this.#ambrosiaLoadoutPreviewRows;
     }
 
-    static buildLoadoutPreviewCell(item: LoadoutPreviewItem | null, loadout: Record<string, number>): string {
+    // compareTo: the row's own tree, for a ✘'s reference. A level the row is
+    // below shows "row/reference" on red; every other cell is dimmed.
+    static buildLoadoutPreviewCell(item: LoadoutPreviewItem | null, loadout: Record<string, number>, compareTo?: Record<string, number>): string {
         if (item === null) {
             return `
                 <div class="ambrosiaBorder Exalt5x1">
@@ -522,14 +540,17 @@ export class HSHeaterUIResult {
         }
 
         const imageClass = level > 0 ? 'dimmed' : 'superDimmed';
-        const overlayText = level > 0 ? escapeHtml(String(level)) : '';
+        const rowLevel = compareTo === undefined ? undefined : Number(compareTo[key] ?? 0);
+        const isGap = rowLevel !== undefined && rowLevel < level;
+        const overlayText = isGap ? `${rowLevel}/${level}` : level > 0 ? escapeHtml(String(level)) : '';
 
-        const maxLevelClass = maxLevel !== undefined && level >= maxLevel
+        const maxLevelClass = !isGap && maxLevel !== undefined && level >= maxLevel
             ? 'maxBlueberryLevel' 
             : '';
+        const compareClass = rowLevel === undefined ? '' : isGap ? ' hs-heater-preview-gap' : ' hs-heater-preview-no-gap';
 
         return `
-            <button class="blueberryUpgrade relative-container ${HEATER_RESULT_UI_SELECTORS.previewButton}" type="button"> 
+            <button class="blueberryUpgrade relative-container ${HEATER_RESULT_UI_SELECTORS.previewButton}${compareClass}" type="button"> 
                 <img src="${escapeHtml(imageUrl)}" class="${imageClass}" alt="${escapeHtml(key)}" />
                 <div class="level-overlay ${maxLevelClass}">${overlayText}</div>
             </button>
@@ -659,7 +680,7 @@ export class HSHeaterUIResult {
 
     // === Modal/Interaction/Event Methods ===
     static getResultInteractionTarget(modal: HTMLElement, event: Event): HTMLElement | null {
-        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}`) as HTMLElement | null;
+        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}, .${HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger}`) as HTMLElement | null;
         if (!target || !modal.contains(target)) return null;
         return target;
     }
@@ -676,7 +697,8 @@ export class HSHeaterUIResult {
     }
 
     static getOverlayKindFromTarget(target: HTMLElement): 'preview' | 'json' | null {
-        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
+        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)
+            || target.classList.contains(HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger)) {
             return 'preview';
         }
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger)) {
@@ -894,7 +916,7 @@ export class HSHeaterUIResult {
         };
 
         const onImportButtonContextMenu = (event: Event) => {
-            const button = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}`) as HTMLElement | null;
+            const button = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger}`) as HTMLElement | null;
             if (!button) return;
 
             const mouseEvent = event as MouseEvent;

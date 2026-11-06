@@ -946,6 +946,7 @@
           "details": [
             "Unaffordable rows identify insufficient Ambrosia and/or Blueberries where known.",
             "Non-maxed rows show limiting-resource icons. Missing branches and unaffordable assigned types use different slot-border colors.",
+            "Hover a non-maxed row's ✘ to see the levels it still needs to be maxed, next to your loadout's; right-click to pin.",
             "Results include loadout, effect, cost and relevant routing or P4x4 comparisons."
           ]
         },
