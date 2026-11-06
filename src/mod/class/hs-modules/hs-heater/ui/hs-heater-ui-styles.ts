@@ -1004,14 +1004,44 @@ export class HSHeaterUIStyles {
                 background-color: transparent;
             }
 
-            /* A ✘'s preview: levels the row is below, "row/needed" on the ✘ red; the rest dimmed */
+            /* A ✘'s preview: Brick of Lead's level when below its max */
+            .hs-heater-tooltip-note {
+                margin-top: 4px;
+                text-align: center;
+                font-size: 0.8em;
+                color: #999;
+            }
+
+            /* A ✘'s preview: levels the row is below on the ✘ red, the row's top left,
+               the needed one bottom right; the rest dimmed */
             .hs-heater-preview-button.hs-heater-preview-gap {
                 background: rgba(150, 47, 47, 0.55);
                 border-radius: 2px;
             }
             .hs-heater-preview-button.hs-heater-preview-gap > .level-overlay {
-                font-size: 0.8em;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: none;
+                display: block;
+                font-size: 14px;
+                line-height: 1;
                 white-space: nowrap;
+            }
+            .hs-heater-preview-gap .hs-heater-gap-have,
+            .hs-heater-preview-gap .hs-heater-gap-need,
+            .hs-heater-preview-gap .hs-heater-gap-slash {
+                position: absolute;
+            }
+            .hs-heater-preview-gap .hs-heater-gap-have { top: 1px; left: 1px; }
+            .hs-heater-preview-gap .hs-heater-gap-need { bottom: 1px; right: 1px; }
+            .hs-heater-preview-gap .hs-heater-gap-slash {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 11px;
+                opacity: 0.7;
             }
             .hs-heater-preview-button.hs-heater-preview-no-gap {
                 opacity: 0.35;

@@ -367,7 +367,16 @@ export class HSHeaterUIResult {
         if (titleText) {
             const title = document.createElement('div');
             title.className = 'hs-heater-tooltip-title';
-            title.textContent = titleText;
+            // A ✘'s "✔ needs": the ✔ in the Maxed column's green
+            titleText.split('✔').forEach((part, index) => {
+                if (index > 0) {
+                    const mark = document.createElement('span');
+                    mark.className = 'hs-heater-status-maxed';
+                    mark.textContent = '✔';
+                    title.appendChild(mark);
+                }
+                title.appendChild(document.createTextNode(part));
+            });
             preview.appendChild(title);
         }
 
@@ -376,7 +385,27 @@ export class HSHeaterUIResult {
         content.innerHTML = this.buildLoadoutPreviewHtml(loadout, compareTo);
         preview.appendChild(content);
 
+        const note = compareTo ? this.#brickOfLeadNote(loadout) : null;
+        if (note) {
+            const noteEl = document.createElement('div');
+            noteEl.className = 'hs-heater-tooltip-note';
+            noteEl.textContent = note;
+            preview.appendChild(noteEl);
+        }
+
         return preview;
+    }
+
+    // A ✘'s reference has Brick of Lead at the level best for its row, not
+    // always its max (docs/features/heater.md): said under the grid when
+    // below. Not at 0: the Ambrosia row's search leaves Brick out.
+    static #brickOfLeadNote(reference: Record<string, number>): string | null {
+        const brick = Number(reference.ambrosiaBrickOfLead ?? 0);
+        const maxLevel = this.#ambrosiaLoadoutPreviewRows
+            .flat()
+            .find((item) => item?.key === 'ambrosiaBrickOfLead')?.maxLevel;
+        if (maxLevel === undefined || brick <= 0 || brick >= maxLevel) return null;
+        return `Brick of Lead ${brick}: the best level for this row`;
     }
 
     static showLoadoutPreview(button: HTMLElement): HTMLElement | null {
@@ -521,7 +550,9 @@ export class HSHeaterUIResult {
     }
 
     // compareTo: the row's own tree, for a ✘'s reference. A level the row is
-    // below shows "row/reference" on red; every other cell is dimmed.
+    // below shows on red the row's level top left, the reference's bottom
+    // right (room for a bigger font than "row/reference" on one line); every
+    // other cell is dimmed.
     static buildLoadoutPreviewCell(item: LoadoutPreviewItem | null, loadout: Record<string, number>, compareTo?: Record<string, number>): string {
         if (item === null) {
             return `
@@ -542,7 +573,9 @@ export class HSHeaterUIResult {
         const imageClass = level > 0 ? 'dimmed' : 'superDimmed';
         const rowLevel = compareTo === undefined ? undefined : Number(compareTo[key] ?? 0);
         const isGap = rowLevel !== undefined && rowLevel < level;
-        const overlayText = isGap ? `${rowLevel}/${level}` : level > 0 ? escapeHtml(String(level)) : '';
+        const overlayText = isGap
+            ? `<span class="hs-heater-gap-have">${rowLevel}</span><span class="hs-heater-gap-slash">/</span><span class="hs-heater-gap-need">${level}</span>`
+            : level > 0 ? escapeHtml(String(level)) : '';
 
         const maxLevelClass = !isGap && maxLevel !== undefined && level >= maxLevel
             ? 'maxBlueberryLevel' 

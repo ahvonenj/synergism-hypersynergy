@@ -205,17 +205,17 @@ function buildLoadoutActionControls(escapedFullLoadout: string, escapedLoadoutLa
 
 // A ✘ whose row carries the reference it was compared with: hovering it
 // previews that reference against the row's own tree (the Import button's
-// preview, see HSHeaterUIResult). The title names Brick of Lead's level, as
-// it's often below its max there (docs/features/heater.md).
-function buildUnmaxedMark(rowLoadoutJson: string, referenceJson: string | undefined): string {
+// preview, see HSHeaterUIResult). The title names the row, like Import's; the
+// preview draws its ✔ green and notes Brick of Lead below its max
+// (docs/features/heater.md).
+function buildUnmaxedMark(rowLoadoutJson: string, referenceJson: string | undefined, rowLabel: string): string {
     if (!referenceJson) return `<span class="hs-heater-status-unmaxed">✘</span>`;
-    let brick = 0;
     try {
-        brick = Number((JSON.parse(referenceJson) as Record<string, number>).ambrosiaBrickOfLead ?? 0);
+        JSON.parse(referenceJson);
     } catch {
         return `<span class="hs-heater-status-unmaxed">✘</span>`;
     }
-    const label = brick > 0 ? `✔ needs (Brick of Lead ${brick})` : "✔ needs";
+    const label = `${rowLabel}: ✔ needs`;
     return `<span class="hs-heater-status-unmaxed hs-heater-maxed-preview-trigger"`
         + ` data-loadout="${escapeHtml(referenceJson)}" data-loadout-compare="${escapeHtml(rowLoadoutJson)}"`
         + ` data-loadout-label="${escapeHtml(label)}">✘</span>`;
@@ -319,7 +319,7 @@ function buildArraySectionDataRow(
         : "";
     // Max SR rows: ✔ means SR is at its max level (docs/features/heater.md)
     const maxedTitle = entry.key === "sr1" || entry.key === "sr2" ? ' title="SR at its max level, not the whole tree"' : "";
-    const unmaxedMark = isValidJson ? buildUnmaxedMark(fullLoadout, rowModel.maxedReference) : `<span class="hs-heater-status-unmaxed">✘</span>`;
+    const unmaxedMark = isValidJson ? buildUnmaxedMark(fullLoadout, rowModel.maxedReference, entry.label) : `<span class="hs-heater-status-unmaxed">✘</span>`;
     const maxCell = `<td>${rowModel.maxedValue === true ? `<span class="hs-heater-status-maxed"${maxedTitle}>✔</span>` :rowModel.maxedValue === false ? `${unmaxedMark}${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
     // A type picked in "Your loadout order" that can't be afforded: the whole
     // row in the orange of that slot's border. An H row that wins at no P4x4
