@@ -295,7 +295,9 @@ function buildArraySectionDataRow(
         : shortfall ? buildShortfallIcons(shortfall)
         : rowModel.limits ? buildLimitIcons(rowModel.limits)
         : "";
-    const maxCell = `<td>${rowModel.maxedValue === true ? '<span class="hs-heater-status-maxed">✔</span>' : rowModel.maxedValue === false ? `<span class="hs-heater-status-unmaxed">✘</span>${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
+    // Max SR rows: ✔ means SR is at its max level (docs/features/heater.md)
+    const maxedTitle = entry.key === "sr1" || entry.key === "sr2" ? ' title="SR at its max level, not the whole tree"' : "";
+    const maxCell = `<td>${rowModel.maxedValue === true ? `<span class="hs-heater-status-maxed"${maxedTitle}>✔</span>` :rowModel.maxedValue === false ? `<span class="hs-heater-status-unmaxed">✘</span>${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
     // A type picked in "Your loadout order" that can't be afforded: the whole
     // row in the orange of that slot's border. An H row that wins at no P4x4
     // is dimmed, picked or not.

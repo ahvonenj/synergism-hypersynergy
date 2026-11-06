@@ -1879,9 +1879,11 @@ class Loadout {
             const probe = new Loadout(base)
             probe.upgradeLevels[upgradeName] = level + 1
             probe.satisfyPrerequisites()
-            // A prerequisite over maxLoadout's level: SR1 would raise an H0-H3 row's Hyperflux
+            // A prerequisite raised over maxLoadout's level: SR1 would raise an
+            // H0-H3 row's Hyperflux. Only raised ones: the tree's own Brick can
+            // be above the reference's (withBestBrickOfLead).
             if (Object.keys(probe.upgradeLevels).some(name =>
-              (probe.upgradeLevels[name] ?? 0) > (maxLoadout.upgradeLevels[name] ?? 0)))
+              (probe.upgradeLevels[name] ?? 0) > Math.max(base.upgradeLevels[name] ?? 0, maxLoadout.upgradeLevels[name] ?? 0)))
                 continue
             if (stat === 'coinsC15' ? probe.compareStat(base, stat) <= 0 : probe.getStat(stat) <= baseStat)
                 continue
@@ -2548,6 +2550,26 @@ function addLastPriorityVouchers(
       best = candidate
       bestValue = value
       bestVouchers = vouchers
+    }
+  }
+  return best
+}
+
+// The reference a row's "Maxed" compares with: the all-max tree, with Brick
+// of Lead at the level that suits the stat best. Brick adds luck but slows
+// ascension speed, which cubes follow under One Mind: at 25 the reference
+// was below trees missing levels (S291: Cubes best at Brick 7). A tie keeps
+// the lower level.
+function withBestBrickOfLead(reference: Loadout, stat: string): Loadout {
+  let best = reference
+  let bestValue = -Infinity
+  for (let level = 0; level <= upgrades.ambrosiaBrickOfLead.maxLevel; level++) {
+    const candidate = new Loadout(reference)
+    candidate.upgradeLevels.ambrosiaBrickOfLead = level
+    const value = candidate.getStat(stat)
+    if (value > bestValue) {
+      best = candidate
+      bestValue = value
     }
   }
   return best
@@ -5122,7 +5144,8 @@ export class HSHeaterOptimizer {
 
         HSLogger.debug(() => `[HeaterDiag] options=${JSON.stringify(options)}`, 'HSHeaterOptimizer');
 
-        // Build maxLoadout (used by generateOutput to detect if a loadout is maxed)
+        // Build maxLoadout (used by generateOutput to detect if a loadout is
+        // maxed, most rows through withBestBrickOfLead)
         let maxLoadout = new Loadout();
         for (let upgrade in upgrades)
             maxLoadout.upgradeLevels[upgrade] = upgrades[upgrade].maxLevel;
@@ -5258,8 +5281,9 @@ export class HSHeaterOptimizer {
                     addLastPriorityVouchers(loadoutRLuck, tableCache.tableVoucher, "rLuck"), "rLuck",
                   )
               if (!loadoutRLuck) HSLogger.error('[HeaterDiag] calculateAmb: rLuck - findOpt returned undefined', 'HSHeaterOptimizer');
+              const redStat = stats.reactor ? 'incomeRed' : 'rLuck';
               const redOutput = loadoutRLuck.generateOutput(
-                stats.reactor ? 'incomeRed' : 'rLuck', maxLoadout,
+                redStat, withBestBrickOfLead(maxLoadout, redStat),
               );
               if (stats.reactor) redOutput[6] = Boolean(barIncomeHighBudget);
               output.rLuck = [redOutput];
@@ -5635,7 +5659,7 @@ export class HSHeaterOptimizer {
                 right: tableLuckQuark.length,
               })
               if (!loadoutQuark) HSLogger.error('[HeaterDiag] calculateQuarks - findOpt returned undefined', 'HSHeaterOptimizer');
-              output.quarks = [loadoutQuark.generateOutput("quark", maxLoadout)];
+              output.quarks = [loadoutQuark.generateOutput("quark", withBestBrickOfLead(maxLoadout, "quark"))];
               recordCubeExperimentStage("quarks", quarksStartedAt, {
                 rune: tableCache.tableRune.length,
                 luck: tableCache.tableLuck.length,
@@ -5768,7 +5792,7 @@ export class HSHeaterOptimizer {
                 spending: cubeExperimentSpending(loadoutCube),
               }
             }
-            output.cubes = [loadoutCube.generateOutput("cube", maxLoadout)];
+            output.cubes = [loadoutCube.generateOutput("cube", withBestBrickOfLead(maxLoadout, "cube"))];
           }
 
           // --- Shared oct table ---
@@ -5784,7 +5808,7 @@ export class HSHeaterOptimizer {
               HSLogger.debug(() => '[HeaterDiag] calculateOct', 'HSHeaterOptimizer');
               const loadoutOct = findCubeLuckOpt(tableCache.tableOctV, tableCache.tableLuckOct, "oct");
               if (!loadoutOct) HSLogger.error('[HeaterDiag] calculateOct - findOpt returned undefined', 'HSHeaterOptimizer');
-              output.oct = [loadoutOct.generateOutput("oct", maxLoadout)];
+              output.oct = [loadoutOct.generateOutput("oct", withBestBrickOfLead(maxLoadout, "oct"))];
 
               if (stats.ossifiedTactics < redUpgrades.regularLuck.maxLevel || stats.ossifiedTactics2 < redUpgrades.regularLuck2.maxLevel) {
                   stats.baseLuck += 2;
@@ -5907,7 +5931,7 @@ export class HSHeaterOptimizer {
                     right: tableCache.tableLuck.length,
                   })
                   if (!loadoutObt) HSLogger.error('[HeaterDiag] calculateOff: obt - findOpt returned undefined', 'HSHeaterOptimizer');
-                  output.obt = [loadoutObt.generateOutput("obt", maxLoadout)];
+                  output.obt = [loadoutObt.generateOutput("obt", withBestBrickOfLead(maxLoadout, "obt"))];
 
                   HSLogger.debug(() => '[HeaterDiag] calculateOff: off', 'HSHeaterOptimizer');
                   // Obtainium and Offering have different Pareto frontiers. An
@@ -5924,7 +5948,7 @@ export class HSHeaterOptimizer {
                     right: tableCache.tableLuck.length,
                   })
                   if (!loadoutOff) HSLogger.error('[HeaterDiag] calculateOff: off - findOpt returned undefined', 'HSHeaterOptimizer');
-                  output.off = [loadoutOff.generateOutput("off", maxLoadout)];
+                  output.off = [loadoutOff.generateOutput("off", withBestBrickOfLead(maxLoadout, "off"))];
               }
 
               if (options.calculateObtAndOff) {
@@ -5942,7 +5966,7 @@ export class HSHeaterOptimizer {
                     left: tableObtAndOffRune.length,
                     right: tableCache.tableLuck.length,
                   })
-                  output.obtAndOff = [loadoutObtAndOff.generateOutput("obtAndOff", maxLoadout)];
+                  output.obtAndOff = [loadoutObtAndOff.generateOutput("obtAndOff", withBestBrickOfLead(maxLoadout, "obtAndOff"))];
               }
               recordCubeExperimentStage("obtainium-offerings", obtainiumOfferingStartedAt, {
                 rune: tableCache.tableRune.length,
@@ -6051,7 +6075,7 @@ export class HSHeaterOptimizer {
                       }
                   }
               }
-              output.ambOct = [loadoutAmbOct.generateOutput("oct", maxLoadout)];
+              output.ambOct = [loadoutAmbOct.generateOutput("oct", withBestBrickOfLead(maxLoadout, "oct"))];
               recordCubeExperimentStage("amb-oct", ambOctStartedAt, {
                 maxAmbCost: maxAmbForOct!.cost,
                 maxAmbBlueberries: maxAmbForOct!.blueberryCost,
@@ -6221,7 +6245,7 @@ export class HSHeaterOptimizer {
                       loadoutsH[i]!.upgradeLevels.ambrosiaHyperflux = 0; // Resetting hyperflux level to compute effect without it
                       loadoutsH[i]!.getStat("cube", true); // Updating cache
                       loadoutsH[i]!.upgradeLevels.ambrosiaHyperflux = i; // Restoring hyperflux level for correct output
-                      hyperOutput.push(loadoutsH[i]!.generateOutput("cube", maxLoadoutH, thresholds[i]));
+                      hyperOutput.push(loadoutsH[i]!.generateOutput("cube", withBestBrickOfLead(maxLoadoutH, "cube"), thresholds[i]));
                   }
               }
               output.hyperflux = hyperOutput;
