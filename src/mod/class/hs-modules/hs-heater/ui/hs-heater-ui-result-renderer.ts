@@ -131,20 +131,20 @@ function buildTypeLabel(entry: NormalizedHeaterResultEntry, loadoutJson: string)
 // Next to a row's ✘: the resource(s) that would raise it, either one
 function buildLimitIcons(limits: HeaterResultLimits): string {
     const icons: string[] = [];
-    if (limits.ambrosia)
-        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="More Ambrosia would raise it" />`);
     if (limits.blueberries)
         icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Blueberries.png" alt="Blueberries" title="More Blueberries would raise it" />`);
+    if (limits.ambrosia)
+        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="More Ambrosia would raise it" />`);
     return icons.join("");
 }
 
 // Next to an unaffordable row's ✘: its short resource(s), all of them needed
 function buildShortfallIcons(shortfall: HeaterResultShortfall): string {
     const icons: string[] = [];
-    if (shortfall.ambrosia)
-        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="Not enough Ambrosia" />`);
     if (shortfall.blueberries)
         icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Blueberries.png" alt="Blueberries" title="Not enough Blueberries" />`);
+    if (shortfall.ambrosia)
+        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="Not enough Ambrosia" />`);
     return icons.join("");
 }
 
