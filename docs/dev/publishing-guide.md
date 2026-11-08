@@ -18,6 +18,38 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
 
 The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod. `--validate` runs only those catalogue checks and writes nothing: on Dev, use it instead of generating (`docs/dev/releasing.md`, "Porting a change to Live").
 
+## Update the changelog
+
+Edit `docs/data/changelog.json`, which records release and version history separately from the current feature catalogue. Keep the researched version labels and channel names as recorded, distinguish published release dates from tag or inferred commit dates, and link evidence to HTTPS GitHub sources. Validate the feature catalogue and changelog without writing files with:
+
+```sh
+python scripts/tools/build-docs.py --validate
+```
+
+Regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site:
+
+```sh
+python scripts/tools/build-docs.py --changelog-only
+python scripts/tools/build-docs.py --changelog-only --check
+python scripts/tests/test-changelog-validation.py
+node --check docs/js/changelog.js
+```
+
+The changelog keeps player-facing additions, behavior changes, removals and fixes. Source-only records are not promoted to confirmed releases; historical audit notes and change evidence stay in the data even when the displayed wording is simplified.
+
+The public page uses `display_policy: released-only`: published releases and tagged builds are shown; source-only and planned version records stay in the research data. Dev versions are labeled separately, and channel-merge notices describe verified transfers between Live and Dev.
+
+When excluding an unconfirmed record, retain its delivered changes in the first verified release that contains them. Consolidate repeated notes and omit intermediate behavior that was superseded before release; `included_version_records` records the underlying research IDs. Check the released source before describing a change as available.
+
+Contributor profiles use verified public identities, with aliases combined. Credits cover human authors and recorded co-authors in each version's changes; release-only contributions are identified. To refresh credits with all required Original, Live and Dev historical commits available locally, run:
+
+```sh
+python scripts/tools/update-changelog-contributors.py
+python scripts/tools/update-changelog-contributors.py --check
+```
+
+The attribution helper does not fetch or publish. Review any new identity before adding it to the helper's profile registry. Normal documentation builds use the stored credits and do not need Git history. Merge notices retain source commit evidence and link to the source version when it is included in the displayed history.
+
 ## Preview
 
 Open `docs/index.html` directly in a browser: the complete site, wiki, relative assets and feature search work without a server. Alternatively run `python -m http.server 8080 --directory docs` and visit `http://localhost:8080/`. No game save is needed.
@@ -29,6 +61,8 @@ Check these flows at desktop and narrow/mobile widths:
 - Features → Header customization: all header options appear, including cell alignment, half height, grid width, slot count, icon picking, row placement and keep-on-import.
 - Search nonsense: a clear no-results message appears. Clear the search or reset to restore the guide.
 - Open a feature permalink: its details open even if the shared search query would otherwise hide it.
+- Changelog → Dev versions: only labeled Dev builds appear, newest first, with dates and contributors. Search a version or contributor, then Clear to restore the list.
+- Changelog → Live → a Dev → Live notice: its version link reveals the source Dev release even when the Live filter was selected. Unconfirmed source versions have no public version cards.
 - Wiki → a category → a related setting → its feature link: each destination exists.
 - Disable JavaScript: normal navigation and every feature/detail remain available; only search requires JavaScript.
 - Keyboard Tab reaches navigation, search, category choice and detail controls with visible focus. With reduced motion enabled, the version animation stops.

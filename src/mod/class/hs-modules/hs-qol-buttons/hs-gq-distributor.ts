@@ -9,6 +9,7 @@ import type { GameData } from "../../../types/data-types/hs-player-savedata";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSUI } from "../../hs-core/hs-ui";
 import { GQPlanUpgrade, planGQDistribution } from "./hs-gq-distributor-plan";
+import { formatGQPurchaseBudget } from "./hs-gq-purchase-budget";
 import type { HSDialogSession } from "../../hs-core/dialogs/hs-game-dialogs";
 
 type SkipReason = 'maxed' | 'tooExpensive' | 'shareTooSmall' | 'aboveRatio';
@@ -569,12 +570,20 @@ export class HSGQDistributor {
         }
 
         // Let the game calculate affordable levels and enforce upgrade caps.
-        dialog.cost.value = amount.toString();
+        dialog.cost.value = formatGQPurchaseBudget(amount);
         dialog.cost.dispatchEvent(new Event('input', { bubbles: true }));
         const bought = !dialog.ok.disabled;
         if (!bought) {
             dialog.cancel.click();
         } else {
+            // Change normalizes the field to the game's exact quote as a raw JS number
+            // (not the rounded, localized summary). Fail closed before confirming a purchase.
+            dialog.cost.dispatchEvent(new Event('change', { bubbles: true }));
+            const quotedCost = Number(dialog.cost.value);
+            if (!Number.isFinite(quotedCost) || quotedCost <= 0 || quotedCost > amount) {
+                dialog.cancel.click();
+                throw new Error(`Unsafe purchase quote for ${btn.id}: ${quotedCost} GQ, allocation ${amount} GQ.`);
+            }
             // The game confirms multi-level and One Mind purchases with an Alert, chained after this click
             if (!s.act({ alert: 'dismiss' }, () => dialog.ok.click())) {
                 dialog.cancel.click();
