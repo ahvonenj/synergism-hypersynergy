@@ -22,7 +22,8 @@ Unmatched excess returns to the regular bars. Empty ticks and ordinary two-tick 
 feedback sampling and resource conservation estimate sustained fills without simulating every elapsed second.
 The warm-up drift check allows observed Red-Blue Ultrafusion bursts in both tanks: blue overflow can consume
 the opposite red tank. Extraction-rebate tolerance remains per extraction, rather than per extraction batch.
-RNG rewards use their expected value. These are fixed-stat sustained estimates, not an exact next-hour forecast
+RNG rewards use their expected value; Red-Blue Ultrafusion's 80M cap per red fill is averaged over its two roll
+counts (floor of base Red Luck / 100, or one more), never applied to the mean. These are fixed-stat sustained estimates, not an exact next-hour forecast
 with changing lifetime stats or random rewards. Tests use the upstream reactor fixture, including rare rebate
 bursts, fusion, Two Mind and Bar Dependence.
 

@@ -174,7 +174,7 @@ const HEATER_RESULT_TYPE_CONFIG = createHeaterResultTypeConfig({
 const HEATER_EXALT_RULES: Readonly<Partial<Record<number, string>>> = {
     10: "Bar Charging: the bars give time instead of Ambrosia.\n"
         + "- Blue Ambrosia = global time, Red Ambrosia = ascension time, All Ambrosia = both multiplied.\n"
-        + "- Each Purple Reactor extraction gives both bars' effect once per 100 Purple Honey Luck, so the Reactor routing matters most.\n"
+        + "- Each Purple Reactor extraction can fill each bar once, with chance 1 - 2^(-Purple Honey Luck / 100), so the Reactor routing matters most.\n"
         + "- The bar lengths are fixed: Brick of Lead only adds Luck here. TWO MIND's shorter bars are cancelled by its lower reward Luck.\n"
         + "- With One Mind, ascension speed multiplies cubes and ascension count. Brick of Lead lowers it (-25% at max) and SR2 raises it. These scores don't count that.",
 };
