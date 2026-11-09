@@ -196,7 +196,8 @@ export class HSHeaderEditSettings {
             }) as typeof window.setTimeout;
             try {
                 // Target the region itself: a module target would also begin pointer capture and dragging.
-                region.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: -1 }));
+                // isPrimary: the game ignores other pointers (a synthetic event's default is false)
+                region.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: -1, isPrimary: true }));
             } finally {
                 window.setTimeout = realSetTimeout;
                 window.__HS_headerLongPressEnabled = longPressEnabled;
@@ -205,7 +206,7 @@ export class HSHeaderEditSettings {
                 if (hold) hold();
                 else await new Promise(resolve => window.setTimeout(resolve, 750));
             } finally {
-                region.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerId: -1 }));
+                region.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerId: -1, isPrimary: true }));
                 HSHeaderEditSettings.#openingEditor = false;
             }
         }

@@ -87,6 +87,7 @@ settings sync; no patcher feature.
   more (the game's 650 ms hold, `window.setTimeout` looked up at the call in the bundle) is run right after the
   dispatch instead. Nothing caught (a game change) → the old 750 ms wait. No patcher feature. It sets
   `__HS_headerLongPressEnabled` to true during the dispatch, so it works with "Long press to edit" off.
+  The synthetic events carry `isPrimary: true`: the game ignores any other pointer (since game commit 46a9e48b6).
 - Section "Layout": "✎ Header edit button" (hidden setting `headerEditButton`, **on by default**, per browser; not "Edit button" or "✎ shortcut under the mod icon"): a class on `<html>` (`hs-header-edit-button`), so a player turns it
   off from edit mode once they know. Long-press and the panel's button still work when it's off.
 - **Kept in edit mode**: the player sees it go on and off with its checkbox. There it's fully lit
