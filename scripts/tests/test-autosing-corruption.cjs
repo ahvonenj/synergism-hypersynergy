@@ -13,7 +13,7 @@ async function main() {
         'hs-module': 'export class HSModule { constructor() { this.context = "Test"; } }',
         'hs-module-manager': 'export const HSModuleManager = { getModule() {} };',
         'hs-global': 'export const HSGlobal = { get exposedPlayer() { return globalThis.__corruptionTest.live ? globalThis.__corruptionTest.player : null; } };',
-        'hs-logger': 'export const HSLogger = { debug() {}, log() {}, warn() {}, error() {} };',
+        'hs-logger': 'export const HSLogger = { debug() {}, log(msg) { globalThis.__corruptionTest?.logs?.push(msg); }, warn() {}, error() {} };',
         'hs-ui': 'export const HSUI = { Notify() {} };',
         'hs-settings': 'export const HSSettings = {};',
         'hs-gamedata-api': 'export class HSGameDataAPI {}',
@@ -85,7 +85,7 @@ async function main() {
         const setup = ({ next = 5, used = 5, cap = 100, live = true, confirm = false, challenge = 0 } = {}) => {
             const state = globalThis.__corruptionTest = {
                 player: { corruptions: { next, used }, currentChallenge: { ascension: challenge } },
-                live, events: [], dialogWaits: 0, c15Coins: 42, savedC15Score: 0,
+                live, events: [], logs: [], dialogWaits: 0, c15Coins: 42, savedC15Score: 0,
             };
             const progress = { textContent: challenge ? 'Challenge 15: 42' : '' };
             const input = {
@@ -260,6 +260,33 @@ async function main() {
         assert.deepEqual(state.events, [['select', 20], ['ascend', 20], ['action', 20]]);
         scenarios++;
 
+        // An IF with a max jumps jumps that many times, then goes on (one log line); the count restarts at each pass.
+        ({ runner, state } = setup());
+        state.player.challenge15Exponent = 10;
+        const cappedLoop = phase([
+            step(152),
+            step(200, { ifJump: { id: 'cap', ifJumpMode: 'challenges', ifJumpChallenge: 15, ifJumpOperator: '<', ifJumpValue: 100, ifJumpIndex: 0, ifJumpMaxJumps: 3 } }),
+            step(104),
+        ]);
+        const onePass = [['action', 5], ['action', 5], ['action', 5], ['action', 5], ['ascend', 5]];
+        await runner.runPhaseForTest(cappedLoop);
+        assert.deepEqual(state.events, onePass);
+        await runner.runPhaseForTest(cappedLoop);
+        assert.deepEqual(state.events, [...onePass, ...onePass]);
+        assert.equal(state.logs.filter(line => line.includes('max jumps (3) reached')).length, 2);
+        scenarios++;
+
+        // A false condition never counts: the IF still jumps 3 times after it.
+        ({ runner, state } = setup());
+        state.player.challenge15Exponent = 10;
+        const gated = structuredClone(cappedLoop);
+        gated.strat.unshift(step(200, { ifJump: { id: 'never', ifJumpMode: 'challenges', ifJumpChallenge: 15, ifJumpOperator: '>', ifJumpValue: 100, ifJumpIndex: 3, ifJumpMaxJumps: 1 } }));
+        gated.strat[2].ifJump.ifJumpIndex = 1;
+        await runner.runPhaseForTest(gated);
+        assert.deepEqual(state.events, onePass);
+        assert.equal(state.logs.length, 1);
+        scenarios++;
+
         // A stop during the leading step's wait must not select a level or ascend afterwards.
         ({ runner, state } = setup());
         state.beforeWait = () => runner.cancelForTest();
@@ -356,6 +383,12 @@ async function main() {
             const corruption = invalid.strategy.flatMap(entry => entry.strat).find(action => action.challengeNumber === 403);
             corruption.ascendAfterCorruption = 'false';
             assert.throws(() => HSStrategyManager.validateStrategy(invalid), /corruption ascension option/);
+            const ifStep = strategy.strategy.flatMap(entry => entry.strat).find(action => action.ifJump);
+            if (ifStep) for (const bad of [-1, 1.5, '5']) {
+                const badMax = structuredClone(strategy);
+                badMax.strategy.flatMap(entry => entry.strat).find(action => action.ifJump).ifJump.ifJumpMaxJumps = bad;
+                assert.throws(() => HSStrategyManager.validateStrategy(badMax), /invalid max jumps/, `${filename}: ${bad}`);
+            }
             scenarios++;
         }
         console.log(`Passed ${scenarios} Autosing corruption scenarios.`);

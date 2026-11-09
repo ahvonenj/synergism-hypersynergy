@@ -176,6 +176,8 @@ export interface IfJumpParams {
     ifJumpValue: number;       // Comparison value (used in challenges mode)
     ifJumpMultiplier?: number; // 10^x multiplier (used in stored_c15 mode)
     ifJumpIndex: number;
+    // Jumps taken at most per phase pass, then the IF goes on to the next step (absent or 0: no limit)
+    ifJumpMaxJumps?: number;
 };
 
 export interface Challenge {
@@ -287,14 +289,8 @@ declare global {
     }
 }
 
-export type IsJumpChallenge = Challenge & {
-    ifJump: {
-        id: string;
-        ifJumpMode?: "challenges" | "stored_c15";
-        ifJumpChallenge: number;   // 1–15
-        ifJumpOperator: ">" | "<";
-        ifJumpValue: number;
-        ifJumpMultiplier?: number;
-        ifJumpIndex: number;
-    };
-};
+export type IsJumpChallenge = Challenge & { ifJump: IfJumpParams };
+
+/** A valid `ifJumpMaxJumps`: absent, or a whole number ≥ 0 (0: no limit). */
+export const isIfJumpMaxJumps = (value: unknown): boolean =>
+    value === undefined || (typeof value === 'number' && Number.isInteger(value) && value >= 0);

@@ -17,7 +17,7 @@ interface FieldContext {
 }
 
 type FieldKey = 'action' | 'challengeNum' | 'forgeItem' | 'completions' | 'corruptionLevel' | 'ascendAfterCorruption' | 'waitBefore' | 'waitInside' | 'maxTime'
-    | 'comment' | 'ifJumpMode' | 'ifJumpChallenge' | 'ifJumpMultiplier' | 'ifJumpOperator' | 'ifJumpValue';
+    | 'comment' | 'ifJumpMode' | 'ifJumpChallenge' | 'ifJumpMultiplier' | 'ifJumpOperator' | 'ifJumpValue' | 'ifJumpMaxJumps';
 
 interface FieldRowBase {
     label: string;
@@ -224,6 +224,10 @@ const FIELD_ROWS: readonly FieldRow[] = [
         label: "", note: "Compares to the current C15",
         shown: inIfJumpMode("stored_c15"),
     },
+    {
+        key: 'ifJumpMaxJumps', label: "Max jumps (0 = no limit):", attributes: `min="0"`, initial: "0", check: fixedCheck(WHOLE_NOT_NEGATIVE),
+        shown: c => c.isIfJump, load: fromIfJump(jump => jump.ifJumpMaxJumps),
+    },
 ];
 
 const INPUT_ROWS = FIELD_ROWS.filter((row): row is InputRow => 'key' in row);
@@ -238,6 +242,7 @@ const HELP_LINES: readonly [string, string][] = [
     ["IF targets", "Follow an added, duplicated or deleted step, not a moved one"],
     ["→ step N", "Click: shows the other row of the IF"],
     ["↺", "A loop: the IF jumps back"],
+    ["Max jumps", "An IF jumps at most this many times per phase pass, then goes on to the next step"],
     ["Fixed time", "Every Wait before, plus the Wait inside of challenges and C1-C10 steps. IF jumps not followed"],
     ["Corruption level", "Sets the actual level. Ascend immediately applies it now (exits an active Ascension challenge); unchecked only loads it for the next ascension. Free reward levels are added by the game"],
 ];
@@ -556,6 +561,8 @@ export class HSAutosingChallengeModal {
         const parts = [`Wait before: ${ms(step.challengeWaitBefore ?? 0)}`];
         if (inputs.has("waitTime")) parts.push(`Wait inside: ${ms(step.challengeWaitTime)}`);
         if (inputs.has("maxTime")) parts.push(`Max: ${ms(step.challengeMaxTime ?? -1)}`);
+        const maxJumps = isIfJumpStep(step) ? step.ifJump.ifJumpMaxJumps ?? 0 : 0;
+        if (maxJumps > 0) parts.push(`Max jumps: ${maxJumps}`);
         return parts.join(" | ");
     }
 
@@ -687,6 +694,8 @@ export class HSAutosingChallengeModal {
             const isChallengesMode = mode === "challenges";
             // A new IF jumps to the step after it
             const newTarget = (this.#editingIndex ?? this.#separatorIndex) + 1;
+            // Written only when set: an old IF updated without one stays unchanged
+            const maxJumps = this.#number('ifJumpMaxJumps');
             step = {
                 challengeNumber: IF_JUMP_VALUE,
                 challengeCompletions: 0,
@@ -702,6 +711,7 @@ export class HSAutosingChallengeModal {
                     ifJumpValue: isChallengesMode ? this.#number('ifJumpValue') : 0,
                     ifJumpMultiplier: isChallengesMode ? 0 : this.#number('ifJumpMultiplier'),
                     ifJumpIndex: previous?.ifJump?.ifJumpIndex ?? newTarget,
+                    ...(maxJumps > 0 ? { ifJumpMaxJumps: maxJumps } : {}),
                 },
             };
         } else {

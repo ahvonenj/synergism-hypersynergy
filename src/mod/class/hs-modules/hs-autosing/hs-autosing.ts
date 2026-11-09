@@ -1101,6 +1101,8 @@ export class HSAutosing extends HSModule {
         const passRecord = this.#recordTimings ? HSAutosingRecorder.startPass(phaseLabel) : undefined;
 
         const isEndPhase = phaseConfig.endPhase === "end";
+        // Jumps taken by each IF with a max jumps in this pass, by its index
+        const jumpCounts = new Map<number, number>();
         for (let i = 0; i < phaseConfig.strat.length; i++) {
             if (this.#autosingModal?.getIsPaused()) await this.#waitIfAutosingPaused();
 
@@ -1112,7 +1114,7 @@ export class HSAutosing extends HSModule {
             }
 
             const stepStartedAt = passRecord ? performance.now() : 0;
-            const jumpIndex = await this.#executeStrategyAction(phaseConfig, i, passRecord);
+            const jumpIndex = await this.#executeStrategyAction(phaseConfig, i, jumpCounts, passRecord);
             if (passRecord) HSAutosingRecorder.step(passRecord, phaseConfig.strat[i], i, this.#stepNumber(phaseConfig, i), stepStartedAt, jumpIndex);
             if (typeof jumpIndex === 'number') {
                 // set loop index to jumpIndex-1 because the for-loop will increment it
@@ -1134,8 +1136,12 @@ export class HSAutosing extends HSModule {
         return index + 1 - this.#insertedStepCount + this.#removedStepCount;
     }
 
-    /** @param passRecord With "Record step timings" on: the recorder's pass, which gets the time slept before the step */
-    async #executeStrategyAction(phaseConfig: AutosingStrategyPhase, actionIndex: number, passRecord?: HSAutosingPassRecord): Promise<number | null> {
+    /**
+     * @param jumpCounts The pass's jumps taken by each IF with a max jumps, by its index
+     * @param passRecord With "Record step timings" on: the recorder's pass, which gets the time slept before the step
+     */
+    async #executeStrategyAction(phaseConfig: AutosingStrategyPhase, actionIndex: number, jumpCounts: Map<number, number>,
+        passRecord?: HSAutosingPassRecord): Promise<number | null> {
         const challenge = phaseConfig.strat[actionIndex];
 
         const wb = challenge.challengeWaitBefore ?? 0;
@@ -1157,7 +1163,7 @@ export class HSAutosing extends HSModule {
                 else await this.#setCorruptionLevelAndAscend(challenge.corruptionLevel ?? 0);
                 break;
             case IF_JUMP_VALUE:
-                return this.#handleIfJumpAction(challenge, phaseConfig, tag);
+                return this.#handleIfJumpAction(challenge, phaseConfig, actionIndex, jumpCounts, tag);
             default:
                 if (challenge.challengeNumber >= 100) {
                     HSLogger.debug(() => `${tag()} - SA: ${actionText()}`, this.context);
@@ -1195,18 +1201,37 @@ export class HSAutosing extends HSModule {
         if (!HSGameDialogs.isQueueIdle()) await HSGameDialogs.whenQueueIdle();
     }
 
-    #handleIfJumpAction(challenge: Challenge, phaseConfig: AutosingStrategyPhase, tag: () => string): number | null {
+    /** @param jumpCounts The pass's jumps taken by each IF with a max jumps, by its index */
+    #handleIfJumpAction(challenge: Challenge, phaseConfig: AutosingStrategyPhase, actionIndex: number,
+        jumpCounts: Map<number, number>, tag: () => string): number | null {
         const jump = challenge.ifJump;
         const mode = jump?.ifJumpMode;
         const operator = jump?.ifJumpOperator;
         const jumpIndex = jump?.ifJumpIndex;
+        const maxJumps = jump?.ifJumpMaxJumps ?? 0;
         // condition: "C9 (12) > 5", with the values read
-        const logIfJump = (condition: string, jumped: boolean) => HSLogger.debug(() => {
+        const logIfJump = (condition: string, jumped: boolean, jumpsTaken: number) => HSLogger.debug(() => {
             const outcome = !jumped ? "no jump"
                 : jumpIndex! >= phaseConfig.strat.length ? "jump to the end of the phase"
                 : `jump to step ${this.#stepNumber(phaseConfig, jumpIndex!)}`;
-            return `${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): ${outcome}`;
+            const count = jumped && maxJumps > 0 ? ` (${jumpsTaken}/${maxJumps})` : "";
+            return `${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): ${outcome}${count}`;
         }, this.context);
+        // The condition holds: jumps unless the IF already took its max jumps in this pass
+        const jumpOrNot = (condition: string): number | null => {
+            if (maxJumps <= 0) {
+                logIfJump(condition, true, 0);
+                return jumpIndex!;
+            }
+            const taken = jumpCounts.get(actionIndex) ?? 0;
+            if (taken >= maxJumps) {
+                HSLogger.log(`${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): max jumps (${maxJumps}) reached, no jump`, this.context);
+                return null;
+            }
+            jumpCounts.set(actionIndex, taken + 1);
+            logIfJump(condition, true, taken + 1);
+            return jumpIndex!;
+        };
 
         switch (mode) {
             case "challenges": {
@@ -1222,10 +1247,9 @@ export class HSAutosing extends HSModule {
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && completions > value) ||
                         (operator === "<" && completions < value));
-                logIfJump(`C${ifIdx} (${completions}) ${operator} ${value}`, shouldJump);
-                if (shouldJump) {
-                    return jumpIndex;
-                }
+                const condition = `C${ifIdx} (${completions}) ${operator} ${value}`;
+                if (shouldJump) return jumpOrNot(condition);
+                logIfJump(condition, false, 0);
                 break;
             }
             case "stored_c15": {
@@ -1237,10 +1261,9 @@ export class HSAutosing extends HSModule {
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && threshold > c15Score) ||
                         (operator === "<" && threshold < c15Score));
-                logIfJump(`stored C15 × 10^${exponent} (${threshold}) ${operator} current C15 (${c15Score})`, shouldJump);
-                if (shouldJump) {
-                    return jumpIndex;
-                }
+                const condition = `stored C15 × 10^${exponent} (${threshold}) ${operator} current C15 (${c15Score})`;
+                if (shouldJump) return jumpOrNot(condition);
+                logIfJump(condition, false, 0);
                 break;
             }
         }

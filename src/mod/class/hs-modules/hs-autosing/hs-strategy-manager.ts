@@ -1,4 +1,4 @@
-import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, isCorruptionLevelStep } from "../../../types/module-types/hs-autosing-types";
+import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, isCorruptionLevelStep, isIfJumpMaxJumps } from "../../../types/module-types/hs-autosing-types";
 import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
 import { HSStorage } from "../../hs-core/hs-storage";
 import { HSGlobal } from "../../hs-core/hs-global";
@@ -232,6 +232,10 @@ export class HSStrategyManager {
                 && typeof step.ascendAfterCorruption !== 'boolean') ?? -1;
             if (invalidAscend !== -1) {
                 throw new Error(`Phase ${phase.startPhase} → ${phase.endPhase}: step ${invalidAscend + 1} has no valid corruption ascension option`);
+            }
+            const invalidMaxJumps = phase.strat?.findIndex(step => step.ifJump && !isIfJumpMaxJumps(step.ifJump.ifJumpMaxJumps)) ?? -1;
+            if (invalidMaxJumps !== -1) {
+                throw new Error(`Phase ${phase.startPhase} → ${phase.endPhase}: step ${invalidMaxJumps + 1} has an invalid max jumps (a whole number, 0 or more)`);
             }
         }
 

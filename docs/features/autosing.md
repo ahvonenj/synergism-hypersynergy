@@ -99,7 +99,7 @@ Test: `npm run test:autosing`.
 ## Step numbers and logs
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).
 - A `===== Executing phase: X =====` debug line at every phase run, kept at debug level (even though timeout warnings show without debug and then have no phase).
-- Debug lines for every step, 403 and IF jumps included, with their outcome; the step is named on C1–C10 timeout warnings.
+- Debug lines for every step, 403 and IF jumps included, with their outcome (a capped IF's jump with its count, "(2/5)"); the step is named on C1–C10 timeout warnings. An IF that reached its max jumps writes a normal log line instead (`autosing-strategies.md`, "IF steps").
 - The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
 

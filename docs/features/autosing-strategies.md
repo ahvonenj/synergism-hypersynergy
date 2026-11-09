@@ -4,6 +4,10 @@ The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy f
 
 A strategy is JSON: phases (each from a start stage to an end stage, with its steps) plus an AOAG phase. Defaults live in `resource/json/strategies/`; validation and conversions are in `hs-strategy-manager.ts`.
 
+## IF steps
+- **Max jumps** (`ifJump.ifJumpMaxJumps`, optional): after that many jumps in one phase pass the IF goes on to the next step even when its condition holds; absent or 0 = no limit. Counted per IF (its index in the running list) from the start of each pass (`#executePhase`), not per singularity. A false condition doesn't count. Validation refuses anything but a whole number ≥ 0. The editor writes it only when > 0, so an old IF updated with ✎ stays unchanged.
+- Reaching it writes a normal log line (`Step N - IF … : max jumps (5) reached, no jump`), not a debug line; no notification (a low-stat account hits it at every singularity). Logs are off during a run unless debug logs are on (`autosing.md`), so in practice it shows with debug logs on. Test: `test-autosing-corruption.cjs`.
+
 ## Corruption steps
 - **A level is set only by "Set corruption level" (403)**, the level in the step's `corruptionLevel` (an actual level: the game adds the free levels, `autosing.md`). Phases have no level.
 - **"Ascend immediately"** (`ascendAfterCorruption`): a strategy without the field gets `true` when loaded, and validation refuses a 403 step without a boolean. The step list shows "(ascend now)" or "(next ascension)" after the level. Test: `scripts/tests/test-autosing-corruption-editor.cjs`.
@@ -22,5 +26,6 @@ Older formats are brought to the current one at load of the player's saved strat
 
 ## Default strategies
 - **Corruption levels** (a simple base for their authors to tune): the first and AOAG phases start at 0 (`autosing.md`). Only two level steps: 20 right before the "Exit Ascension challenge" (103) that leaves the first C15 (so the next ascension gives hepteracts), and 50 as the first step of singularity → end.
+- **The C15 loop of the last phase** (`IF C15 < 1e110` jumping back) has max jumps 5 in Demon King (BTMco), Demon King (rus), Quark Factory and Quark Molker: low-stat accounts stayed in it forever. Not TAS (its `C15 < 1e15` loop is in phase 2).
 - **"-temp" suffix** on their names, file names included (players shouldn't expect them to run well yet). A default strategy is known by its file name, so renaming one makes a player who had it selected fall back to the first in the list.
 - **Every phase resets somewhere** (checked when phase passes stopped ascending, `autosing.md`). Demon King (rus) "ascension → challenge13" ends inside C13, as it did with the old phase-start Ascend (`reset('ascension')` keeps `currentChallenge.ascension`; the game credits C11–C14 itself each tick once C10's completions reach the requirement). Its old behaviour is still kept exactly: an Ascend (104) as its step 1, IF targets +1. The other default phases have none.
