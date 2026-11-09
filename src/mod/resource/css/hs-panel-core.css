@@ -274,16 +274,17 @@ select::-webkit-scrollbar-corner {
     color: red;
 }
 
-.hs-ui-log-line-debug {
-    font-style: italic;
-}
-
 .hs-log-ts {
     color: #8a8a99;
 }
 
 .hs-log-ts-hidden {
     display: none;
+}
+
+/* Keeps the label's padding spaces, so every line's context starts at the same column */
+.hs-log-level {
+    white-space: pre;
 }
 
 /* ===== LOG CONTROLS ===== */

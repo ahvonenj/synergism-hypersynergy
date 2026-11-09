@@ -281,7 +281,7 @@ export class HSLogger {
         }
 
         const hiddenTS = this.#displayTimestamp ? "" : "hs-log-ts-hidden";
-        logLine.innerHTML = `<span class="hs-log-ts ${hiddenTS}">${timeString} </span>${level}[<span class="hs-log-ctx">${contextString}</span>]: ${formattedMessage}\n`;
+        logLine.innerHTML = `<span class="hs-log-ts ${hiddenTS}">${timeString} </span><span class="hs-log-level">${level}</span>[<span class="hs-log-ctx">${contextString}</span>]: ${formattedMessage}\n`;
 
         if (this.#lastLogHash !== logHash) {
             parentElement.appendChild(logLine);
@@ -393,18 +393,19 @@ export class HSLogger {
         return color ? HSUtils.parseColorTags(context.colorTag(color)) : context;
     }
 
+    // Every level label has the same width, blank included, so the contexts line up (on screen and in copied text)
     static #getLogLevelMeta(logType: ELogType): { level: string; className: string | null } {
         switch (logType) {
             case ELogType.WARN:
-                return { level: 'WARN ', className: 'hs-ui-log-line-warn' };
+                return { level: 'WRN ', className: 'hs-ui-log-line-warn' };
             case ELogType.ERROR:
-                return { level: 'ERROR ', className: 'hs-ui-log-line-error' };
+                return { level: 'ERR ', className: 'hs-ui-log-line-error' };
             case ELogType.DEBUG:
                 return { level: 'DBG ', className: 'hs-ui-log-line-debug' };
             case ELogType.INFO:
-                return { level: '', className: 'hs-ui-log-line-info' };
+                return { level: '    ', className: 'hs-ui-log-line-info' };
             default:
-                return { level: '', className: null };
+                return { level: '    ', className: null };
         }
     }
 
