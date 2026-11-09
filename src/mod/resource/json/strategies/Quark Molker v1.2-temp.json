@@ -556,7 +556,8 @@
             "ifJumpOperator": "<",
             "ifJumpValue": 1e+110,
             "ifJumpMultiplier": 0,
-            "ifJumpIndex": 21
+            "ifJumpIndex": 21,
+            "ifJumpMaxJumps": 5
           }
         },
         {

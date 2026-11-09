@@ -1,6 +1,6 @@
 # Challenge progress module (HSHeaderChallengeModule)
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 One mod module (`hsChallengeProgress`) for the challenges the player is in, instead of the game's three progress
 modules (one per tier, never stackable: `canJoinSlot`; they keep their room outside a challenge, `visibility:
@@ -11,8 +11,12 @@ hidden`). The game's three are left alone: the player puts them in the tray (aut
   score in their place), completions and requirement (`… 9.3e34 / 1e51 Coins`, the lines layout only). No challenge
   names, no ✓, no tooltip, no click action ("none for now": max-completions look,
   tooltip with the game's lines, click opens the Challenges tab, all offered). Empty outside a challenge (the game's
-  dimmed placeholder style in edit mode). Text size fixed whatever the line count (three lines' room), shrunk to fit
-  the width. Not for players without the live player (bookmarklet). On touch devices (the game's `isMobile`) the
+  dimmed placeholder style in edit mode). **Text size (lines layout)**: room for two lines with one or two
+  challenges, three with three (twice that with the requirement on its own line), so entering a second challenge
+  keeps the size and only a third one shrinks it; not one size per line count: the text would change at each
+  challenge. The room's lines fill the cell's height, above the module's normal size if the cell is tall, then shrunk
+  to fit the width. In the tray (the text sizes the module there) and in the one-line layout, never above the
+  module's normal size. Not for players without the live player (bookmarklet). On touch devices (the game's `isMobile`) the
   module is offered without the requirement (the game never writes its progress lines there).
 - **One 250 ms timer, no observer**: only while the module is seen and the page is shown; written
   only on a change. Observers would be one on the 15 challenge buttons' `challengeActive` class plus one on the three
@@ -27,11 +31,11 @@ hidden`). The game's three are left alone: the player puts them in the tray (aut
   `#headerSizeTall` enables it again while that module is selected (the game greys it at each render in
   `updateEditToolbar`; its click handler checks nothing). A game update that adds a check there only makes the button
   do nothing. `Tall` kept in the notes (`EXTRA_SIZES`), put back only for a module that still declares it. XL: no use.
-  `#fit` unchanged: never above the module's normal size, so 1x2 gives the lines layout its normal size,
-  while its single column can make the requirement text smaller than at L (the player picks). Stacking onto it left
+  1x2 gives the lines layout a taller cell, while its single column can make the requirement text smaller than at L
+  (the player picks). Stacking onto it left
   as the game does it (not a problem). **At 1x2 with the requirement shown** (lines layout), the requirement
   goes on a line of its own under each challenge: automatic from the game's `data-size`,
-  no setting; text sized for six lines. **Short resource words in every language**:
+  no setting; text sized for four or six lines. **Short resource words in every language**:
   `Mythos`, `C10s` (was the game's "Mythos Shards" / "Challenge 10 Completions", too wide); Coins stays the game's
   translation. A text alignment setting for the cells (apart from Horizontal) was dropped. The
   text is `position: absolute` in the header's regions, so it never makes the row taller; in the tray (no cell to

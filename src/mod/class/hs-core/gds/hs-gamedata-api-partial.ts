@@ -165,7 +165,7 @@ export abstract class HSGameDataAPIPartial extends HSModule {
         await this.gameDataModule?.prepareForAutosing();
     }
 
-    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number; } | null> {
+    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number; } | null> {
         return await this.gameDataModule?.getLatestAutosingData() || null;
     }
 

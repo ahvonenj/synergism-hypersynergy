@@ -4,7 +4,7 @@
 
 A QoL mod for the [Synergism](https://synergism.cc/) game ([game's GitHub](https://github.com/Pseudo-Corp/SynergismOfficial)).
 
-![image](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/doc/img/logo.gif?raw=true)
+![image](docs/res/logo.gif)
 
 ## About the mod
 
@@ -14,7 +14,7 @@ Hypersynergism adds quality-of-life tools, game information, interface options, 
 
 Here are some of Hypersynergism’s standout features:
 
-- **AutoSing:** (S216+) Run singularities with strategies you can edit in the strategy editor (this can be considered as "not strictly QoL". You do you.)
+- **AutoSing:** (S216+) Run singularities with strategies you can edit in the strategy editor ([guide](docs/data/guides/autosing.md); this can be considered as "not strictly QoL". You do you.)
 - **Ambrosia Heater:** Find the best Ambrosia loadouts for your save with the built-in optimizer.
 - **Ambrosia tools:** Quick-switch loadouts, switch them automatically when using ADD or TIME codes, and track Ambrosia progress and income with minibars.
 - **Header:** Place an Automation quickbar, use any game image as a loadout slot icon, align modules in their cells, resize the minibars, remove the gap under the header, and more, all from the game's header editor.

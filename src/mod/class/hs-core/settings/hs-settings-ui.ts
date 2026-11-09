@@ -11,6 +11,7 @@ import { HSSetting } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSUtils } from "../../hs-utils/hs-utils";
+import { HSIcons } from "../../hs-utils/hs-icons";
 import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
 
 type HSSettingBaseWithHidden<T extends HSSettingType> = HSSettingBase<T> & { hidden?: boolean };
@@ -44,7 +45,7 @@ export class HSSettingsUI {
     static #nativeTabPreferenceObserver: MutationObserver | null = null;
     static #nativeTabClickListenerInstalled = false;
 
-    // The numbers the Auto-Sing Advanced "Reset to default" button puts back (advancedDataCollection is a hidden debug switch)
+    // The numbers the Auto-Sing Advanced "Reset to default" button puts back
     static readonly #autosingAdvancedSettings = [
         'autosing3to6DCubeOpeningPercent',
         'autosingTessBuildingAutoBuyPercent',
@@ -491,7 +492,7 @@ export class HSSettingsUI {
             subTabs.push(HSUIC.Div({
                 class: 'hs-panel-subtab',
                 id: `hs-panel-settings-subtab-${key}`,
-                data: new Map([['subtab', key], ['color', page.pageColor || '']]),
+                data: new Map([['subtab', key], ['color', page.pageSelectedColor]]),
                 props: {
                     style: page.pageColor ? `--hs-panel-subtab-border-color: ${page.pageColor};` : ''
                 },
@@ -516,6 +517,7 @@ export class HSSettingsUI {
         controlGroups: Record<string, HSSettingControlGroup>,
     ) {
         const pagesHTML: Map<string, string[]> = new Map();
+        const sections: { page: string; header: string; blocks: { html: string; isInlineButton: boolean }[] }[] = [];
         let didBuild = true;
         let currentControlGroup: string | null = null;
 
@@ -531,15 +533,16 @@ export class HSSettingsUI {
                 break;
             }
 
-            const pageHTMLs = pagesHTML.get(controls.controlPage) || [];
-
             if (controls.controlGroup !== currentControlGroup) {
                 currentControlGroup = controls.controlGroup;
-                const controlGroup = controlGroups[controls.controlGroup];
-                pageHTMLs.push(HSUIC.Div({
-                    class: 'hs-panel-grid-section-header',
-                    html: controlGroup.groupName
-                }));
+                sections.push({
+                    page: controls.controlPage,
+                    header: HSUIC.Div({
+                        class: 'hs-panel-grid-section-header',
+                        html: controlGroups[controls.controlGroup].groupName
+                    }),
+                    blocks: []
+                });
             }
 
             const blockHTML = this.#buildSettingBlock(settingObj, setting, controls);
@@ -548,8 +551,17 @@ export class HSSettingsUI {
                 break;
             }
 
-            pageHTMLs.push(blockHTML);
-            pagesHTML.set(controls.controlPage, pageHTMLs);
+            sections[sections.length - 1].blocks.push({ html: blockHTML, isInlineButton: this.#isInlineButton(controls) });
+        }
+
+        // The section's fields share a column (hs-panel-core.css)
+        for (const { page, header, blocks } of sections) {
+            const pageHTMLs = pagesHTML.get(page) ?? [];
+            pageHTMLs.push(header, HSUIC.Div({
+                class: 'hs-panel-settings-section',
+                html: this.#wrapButtonRows(blocks)
+            }));
+            pagesHTML.set(page, pageHTMLs);
         }
 
         for (const [pageName, pages] of pagesHTML.entries()) {
@@ -561,6 +573,35 @@ export class HSSettingsUI {
         }
 
         return { didBuild, pagesHTML };
+    }
+
+    static #isInlineButton(controls: HSSettingControl): boolean {
+        return controls.controlType === 'button'
+            && (controls.controlGroup === 'auto-sing-strategy-controls' || controls.controlGroup === 'save-export');
+    }
+
+    // Buttons that follow each other share one row of the section's grid
+    static #wrapButtonRows(blocks: { html: string; isInlineButton: boolean }[]): string[] {
+        const html: string[] = [];
+        let row: string[] = [];
+
+        const closeRow = () => {
+            if (row.length === 0) return;
+            html.push(HSUIC.Div({ class: 'hs-panel-settings-button-row', html: row }));
+            row = [];
+        };
+
+        for (const block of blocks) {
+            if (block.isInlineButton) {
+                row.push(block.html);
+            } else {
+                closeRow();
+                html.push(block.html);
+            }
+        }
+        closeRow();
+
+        return html;
     }
 
     static #buildSettingBlock(
@@ -612,7 +653,11 @@ export class HSSettingsUI {
         }
 
         let blockClass = 'hs-panel-setting-block';
-        if (controls.controlType === 'button' && (controls.controlGroup === 'auto-sing-strategy-controls' || controls.controlGroup === 'save-export')) {
+        // A number, text or dropdown field sits on its label's line; a multi-line list stays under its label
+        if (['number', 'text', 'select'].includes(controls.controlType) && !controls.props?.multiple) {
+            blockClass += ' hs-panel-setting-block-inline';
+        }
+        if (this.#isInlineButton(controls)) {
             blockClass += ' hs-inline-button';
         }
         // The strategy buttons keep a width of their own (hs-panel-core.css)
@@ -622,7 +667,8 @@ export class HSSettingsUI {
 
         // A setting that belongs to another one (controlParent) is indented under its label. With
         // controlHideWhenParentOff it is hidden while the parent is off: a CSS rule on the parent's switch, which
-        // the settings UI keeps marked .hs-disabled while off
+        // the settings UI keeps marked .hs-disabled while off. An inline button sits in a row (#wrapButtonRows):
+        // the row is what gets hidden, so all the buttons of a row need the flag
         let blockId = setting.settingBlockId;
         if (controls.controlParent) {
             blockClass += ' hs-panel-setting-block-child';
@@ -630,7 +676,8 @@ export class HSSettingsUI {
             if (controls.controlHideWhenParentOff) {
                 const parentSwitchId = HSSettings.getSetting(controls.controlParent)?.getDefinition().settingControl?.controlEnabledId;
                 if (parentSwitchId) {
-                    HSUI.injectStyle(`.hs-panel-setting-block:has(#${parentSwitchId}.hs-disabled) ~ #${blockId} { display: none; }`,
+                    const parentOff = `.hs-panel-setting-block:has(#${parentSwitchId}.hs-disabled)`;
+                    HSUI.injectStyle(`${parentOff} ~ #${blockId}, ${parentOff} ~ .hs-panel-settings-button-row:has(#${blockId}) { display: none; }`,
                         `hs-setting-child-${setting.settingName}`);
                 } else {
                     HSLogger.warn(`Setting ${setting.settingName}: its parent ${controls.controlParent} has no switch, it is always shown`, this.#context);
@@ -670,6 +717,10 @@ export class HSSettingsUI {
             }));
         }
 
+        if (controls.controlAoagIcon) {
+            children.push(this.#buildAoagIcon(controls.controlAoagIcon));
+        }
+
         children.push(HSUIC.P({
             class: 'hs-panel-setting-block-text',
             props: { title: setting.settingHelpText },
@@ -684,6 +735,18 @@ export class HSSettingsUI {
             class: 'hs-panel-setting-block-text-wrapper',
             html: children
         });
+    }
+
+    // The game's own rune image. The path is the fallback: the settings tab can be built before the runes tab is
+    static #buildAoagIcon(stage: 'pre' | 'post'): string {
+        const source = document.getElementById('antiquitiesRune');
+        const icon = (source ? HSIcons.fromElement(source) : null) ?? { url: 'Pictures/Runes/Antiquities.png' };
+
+        const element = document.createElement('span');
+        element.className = `hs-panel-setting-block-aoag-icon hs-panel-setting-block-aoag-${stage}`;
+        element.title = stage === 'pre' ? 'Pre-AOAG' : 'Post-AOAG';
+        HSIcons.applyBackground(element, icon, 18);
+        return element.outerHTML;
     }
 
     static #buildSettingValueChildren(

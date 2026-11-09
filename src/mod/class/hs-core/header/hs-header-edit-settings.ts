@@ -81,6 +81,8 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
             { setting: 'ambrosiaMinibarBorders', label: 'Minibars border' },
             { setting: 'ambrosiaRateHeader', label: 'Ambrosia per hour', shown: hasHeaderModules },
             { setting: 'challengeProgressHeader', label: 'Challenge progress', shown: hasHeaderModules },
+            // Decorates the game's Singularity count module; reads the live player (bookmarklet: no popover)
+            { setting: 'singularityHeaderElevator', label: 'Sing elevator popover', shown: () => !!HSGlobal.exposedPlayer },
             { setting: 'centerQuickbars', label: 'Center quick bars', shown: () => !hasHeaderModules() },
         ],
     },
@@ -111,6 +113,7 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
         title: 'Corruption module',
         toggles: [
             { setting: 'corruptionHeaderControls', label: 'Next level and controls' },
+            { setting: 'corruptionHeaderInline', label: 'Level controls in the module', shown: () => HSSettings.getSetting('corruptionHeaderControls').isEnabled() },
             // The game's unlock checks are reachable only through the header modules patch
             { setting: 'corruptionHeaderAlwaysShown', label: 'Keep visible', shown: hasHeaderModules },
         ],
@@ -118,8 +121,8 @@ const SECTIONS: { title: string; gridWidth?: true; slots?: true; choices?: HSCho
     {
         title: 'Octeracts',
         toggles: [
-            { setting: 'matchOcteractIconSize', label: 'Match octeract icon size' },
-            { setting: 'matchOcteractText', label: 'Match octeract text' },
+            { setting: 'matchOcteractIconSize', label: 'Match Oct icon size' },
+            { setting: 'matchOcteractText', label: 'Match Oct text' },
         ],
     },
 ];
@@ -193,7 +196,8 @@ export class HSHeaderEditSettings {
             }) as typeof window.setTimeout;
             try {
                 // Target the region itself: a module target would also begin pointer capture and dragging.
-                region.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: -1 }));
+                // isPrimary: the game ignores other pointers (a synthetic event's default is false)
+                region.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: -1, isPrimary: true }));
             } finally {
                 window.setTimeout = realSetTimeout;
                 window.__HS_headerLongPressEnabled = longPressEnabled;
@@ -202,7 +206,7 @@ export class HSHeaderEditSettings {
                 if (hold) hold();
                 else await new Promise(resolve => window.setTimeout(resolve, 750));
             } finally {
-                region.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerId: -1 }));
+                region.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0, pointerId: -1, isPrimary: true }));
                 HSHeaderEditSettings.#openingEditor = false;
             }
         }

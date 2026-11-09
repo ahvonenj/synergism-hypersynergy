@@ -124,32 +124,29 @@ export const computeFreeAntUpgradeLevels = (api: HSGameDataAPI): number => {
         data.challengecompletions[8],
     ];
 
-    const cached = api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
+    return api.memoizeCalculation(cacheName, calculationVars, () => {
+        let bonusLevels = 0;
+        bonusLevels += data.challengecompletions[9];
+        bonusLevels += Math.round(2000 * (1 - Math.pow(0.999, data.constantUpgrades[6] ?? 0)));
+        bonusLevels += 12 * data.challengecompletions[11];
+        bonusLevels += 2 * data.researches[97];
+        bonusLevels += 2 * data.researches[98];
+        bonusLevels += data.researches[102];
+        bonusLevels += 2 * data.researches[132];
+        bonusLevels += Math.floor((1 / 200) * data.researches[200]);
+        bonusLevels += freeAntUpgradesReward;
+        bonusLevels *= api.calculateChallenge15Reward('bonusAntLevel');
 
-    let bonusLevels = 0;
-    bonusLevels += data.challengecompletions[9];
-    bonusLevels += Math.round(2000 * (1 - Math.pow(0.999, data.constantUpgrades[6] ?? 0)));
-    bonusLevels += 12 * data.challengecompletions[11];
-    bonusLevels += 2 * data.researches[97];
-    bonusLevels += 2 * data.researches[98];
-    bonusLevels += data.researches[102];
-    bonusLevels += 2 * data.researches[132];
-    bonusLevels += Math.floor((1 / 200) * data.researches[200]);
-    bonusLevels += freeAntUpgradesReward;
-    bonusLevels *= api.calculateChallenge15Reward('bonusAntLevel');
+        if (data.currentChallenge.ascension === 11) {
+            bonusLevels += Math.floor(
+                3 * data.challengecompletions[8]
+                + 5 * data.challengecompletions[9]
+            );
+            return bonusLevels;
+        }
 
-    if (data.currentChallenge.ascension === 11) {
-        bonusLevels += Math.floor(
-            3 * data.challengecompletions[8]
-            + 5 * data.challengecompletions[9]
-        );
-        api.updateCalculationCache(cacheName, { value: bonusLevels, cachedBy: calculationVars });
         return bonusLevels;
-    }
-
-    api.updateCalculationCache(cacheName, { value: bonusLevels, cachedBy: calculationVars });
-    return bonusLevels;
+    });
 };
 
 const buildAntUpgradeData = (api: HSGameDataAPI) => ({
@@ -210,10 +207,11 @@ const buildAntUpgradeData = (api: HSGameDataAPI) => ({
     [AntUpgrades.BuildingCostScale]: {
         exemptFromCorruption: false,
         effect: (n: number) => {
-            const scalePercent = 3 * n;
+            // antConstructionEffect in SynergismOfficial/src/Features/Ants/AntUpgrades/data/data.ts
+            const construction = n > 0 ? 0.2 * Math.pow(1 + Math.log(1 + n), 2) : 0;
             const buildingPowerMult = 1 + n / 100;
             return {
-                buildingCostScale: scalePercent / 100,
+                construction,
                 buildingPowerMult,
             };
         },

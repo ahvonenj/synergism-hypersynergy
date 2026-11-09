@@ -1,10 +1,10 @@
 # Hepteract Distributor (`HSHepteractDistributor`, `hs-modules/hs-hepteracts/hs-hepteract-distributor.ts`)
 
-The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, Hepteracts page, on by default). It spends the owned hepteracts on the hepteract types so that their balances follow ratios the player set.
+The "Hepteract Distributor" setting (`enableHepteractDistributor`, QoL page, on by default). It spends the owned hepteracts on the hepteract types so that their balances follow ratios the player set.
 
 ## Panel
 - **A "Distributor" button on the forge's welcome line opens the panel**, which then takes the place of the forge's three intro lines (`#hepteractWelcome`, `#hepteractExpository1/2`, hidden by a class on `#cubeTab7`, CSS only). A minimize button closes it. Open or closed is kept (`hepteractDistributorOpen`). No game element is moved: the button is absolutely placed, and the welcome line gets side padding so a long translation wraps instead of running under it.
-- **The panel's title has a "?"** that shows the feature in a few lines on hover (`HELP_LINES`): update it when the feature changes. Its box is placed against the panel and lets the mouse through, so it closes as soon as the "?" is left. Each control keeps its own tooltip.
+- **The panel's title has a "?"** that shows the feature in a few lines on hover (`HELP_LINES`): update it when the feature changes. The mouse passes through its tooltip, so it closes as soon as the "?" is left. Each control keeps its own tooltip.
 - **A warning line is always shown under the buttons** ("Distribute ascends several times in a row…"), chosen over a checkbox.
 - **A run's status is also written to the Log tab** (`HSLogger.log`, one line, its lines joined by " | ": a log line shows no line break), and a stop as a warning, both through `escapeLogText`.
 - **Not available** (Distribute disabled, the reason in the status line, checked when the panel opens, on hover and at each press): bookmark load (no live player), before the first singularity (no Auto craft), inside Exalt 3 (`limitedAscensions`) and Exalt 7 (`limitedTime`), and while autosing is active.
@@ -19,6 +19,9 @@ The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, Hepter
 - **The rule is in `hs-hepteract-distributor-plan.ts`** (pure, no DOM): the type furthest behind its ratio (lowest balance × unit cost / ratio) gets its next step, "fill to the top", or "expand, then fill to the top" when its meter is full. Capacities only double, so a ratio that is not a power of two holds within one step.
 - **When that type can't pay its step, the run stops** and the rest stays unspent: cheaper types would otherwise end far above their ratio (a multiplier unit costs 30 chronos units).
 - **"Allow partly filled meters"** (off by default): what is left goes into that type anyway; it only expands when at least what the expansion consumes can be crafted back (the game's Auto rule), so a balance never goes down.
+  - **A partial step ends the plan**, so it holds one at most: that type is crafted last and takes all that is left. What it can't use, under one of its units, stays for the next press. Not several partial steps: a type crafted before the others' money is spent would take its 5% margin out of it.
+  - **An expansion paid back to the unit leaves the balance as it was**: the run counts a capacity change as crafted too.
+  - **The status's "Next:" line gives the cost of a whole step**, also with this option on, even if the next press could still fill partly with what is left.
 - **Overflux Orbs are a percentage, bought first** ("x % first"), not a ratio: they have no capacity.
 - Not built yet: an optimizer that computes the ratios. The planner takes plain state and ratios, so an optimizer only has to produce ratios.
 
@@ -61,7 +64,7 @@ The "Enable Hepteract Distributor" setting (`enableHepteractDistributor`, Hepter
 
 ## Shared code and testing
 - **`hs-hepteract-state.ts` is shared with `HSHepteracts`** (pure, the caller passes the live player): the game's constants per hepteract (`HEPTERACT_DATA`: base capacity, hepteracts per unit), the capacities (`hepteractCapacities`), the live read (`readHepteract`), one expansion (`expandHepteract`) and the units needed to hold a balance (`hepteractUnitsToReach`, used by the Platonic upgrade estimate). Quick expand's own estimate stays in `HSHepteracts`: it expands as soon as the balance reaches the base capacity, as the game's Expand button allows, where the Distributor only expands a full meter.
-- **Testing headless:** the real class ran in Chrome on a fake forge built from the game's own `index.html` block (`#cubeTab7`) and `Synergism.css`, with a fake ascension (the reward, the auto-craft copied from `Hepteracts.ts`, automation counters) and fake switches (`scripts/harness/`).
+- **Testing headless:** `scripts/harness/hepteract-distributor.cjs <save>` presses Distribute on the real game; `scripts/tests/test-hepteract-plan.cjs` covers the plan, against a copy of the game's auto-craft.
 - **Testing in game:** turn each hepteract's Auto off first, or the auto-craft refills and re-expands it at every ascension and overwrites `hsDev.set` values.
 
 ## Quick expand (`HSHepteracts`)

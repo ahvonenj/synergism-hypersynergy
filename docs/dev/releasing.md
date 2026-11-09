@@ -20,14 +20,17 @@ one clone to another: check `git remote -v`.
 
 ## Mod release: `npm run release-and-tag-helper`
 
-- **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`, then regenerate `docs/changelog.html`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`, run `python scripts/tools/build-docs.py --changelog-only --check` and `python scripts/tests/test-changelog-validation.py`, and include both data and generated page in the published changes. A release is not finished until its changelog is visible on the website; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
+- **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
+  - **On Live:** regenerate `docs/changelog.html`, run `python scripts/tools/build-docs.py --changelog-only --check` and `python scripts/tests/test-changelog-validation.py`, and include both data and generated page in the published changes. A Live release is not finished until its changelog is visible on the website.
+  - **On Dev:** check the entry with `python scripts/tools/build-docs.py --validate`, but never commit `docs/changelog.html`: like the site's other pages ("Porting a change to Live"), it is built from its checkout and the site is served from Live only. Dev entries appear on the website at Live's next regeneration.
 - `package.json` holds the name of the **next** release; the helper only bumps when that tag already exists. Set a name
   by hand in `package.json` and `package-lock.json` (two version lines).
 - `-- --notes-file <path>` puts a Markdown changelog into the tag message (`AGENTS.md`, "Commands").
 - **Purges:** the bundle, and `synergism_modloader/lib/patcher.js`, `src/loader/hypersynergism.user.js` and
-  `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). After a
-  release that changed a loader file, check the served file anyway: once (v2.14.6a-dev1) jsDelivr served the new bundle
-  with the old `patcher.js`, cause unknown. Purge by hand:
+  `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). An
+  accepted purge can still leave the old file served (once, v2.14.6a-dev1: the new bundle with the old `patcher.js`,
+  cause unknown), so after the purges `purgeAndCheckServedFiles` (shared with `merge-live`) compares each served file
+  with the commit, purges a stale one once more, and warns if it is still stale. Purge by hand:
   `curl https://purge.jsdelivr.net/gh/<owner>/synergism-hypersynergy@master/<path>`, then check the served file.
 - **`loaderVersion` in `patcher.js`** (the `[HS-LOADER vX.Y]` console prefix): the helper offers a y/N bump (`--yes`
   bumps) only when `patcher.js` changed since the previous `v*` tag, last number + 1 (`bumpLastNumber`); a major bump is
@@ -39,18 +42,24 @@ one clone to another: check `git remote -v`.
   The loader's self-update lists `loader-v*` tags itself (`launcherUpdater.js`), so mod releases can't push loader
   releases out of its reach.
 - **Testing the helper** without touching the real repo: a throwaway repo with a bare `origin.git` cloned to `work/`
-  (a local-path origin makes `getOriginRepo()` return '' and skips the purge); in `work/`, a copy of the script, a
-  `package.json`, a stub `esbuild.config.js` writing the bundle and the strategy manifest, a bridge userscript and a
+  (a local-path origin makes `getOriginRepo()` return '' and skips the purge); in `work/`, a copy of the script and of
+  `release-common.mjs` and `release-version-tags.mjs`, a `package.json`, a stub `esbuild.config.js` writing the bundle and the strategy manifest, a bridge userscript and a
   `patcher.js`. A node driver spawns the script, waits for each `❓` on stdout and writes the next answer; **end the
   child's stdin after the last answer**, or it prints "Completed" and hangs on readline. Each scenario is set up with
   plain git (a local-only tag, a tag on HEAD~1, a dirty file, a second clone that pushes so the branch is behind). For
-  the GitHub release step: replace `getOriginRepo()` with `'test/repo'` in the copy, and put a fake `gh.exe` first in
+  the GitHub release step: replace `getOriginRepo()` with `'test/repo'` in the script's copy, and put a fake `gh.exe` first in
   the child's PATH (Node won't run a `gh.cmd` without a shell); a small C# program compiled with
   `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe` that logs its args and stdin and answers by an env mode
   (missing / exists / viewerror / createfail). A real `gh release view` of a missing tag: stderr "release not found",
   exit 1. Not covered: the real build, the purge requests, the bridge `@version` bump.
 
 ## Merging a Live release into Dev
+
+`npm run merge-live` (`-- --dry-run` to see its decisions and stop) applies the rules below to Live's highest stable tag:
+it merges without committing, sets the version and the bundle, runs the checks, then asks before the commit, each push
+and the purge of what changed on `@master`, and compares the served files with the commit. On a conflict elsewhere it
+stops with the merge in progress, version and bundle done, and prints the steps left. It merges tags only: Live's
+commits past its tag are listed, and arrive with the next release or a hand merge.
 
 - **When:** before the next Dev release at the latest; earlier when the Live release has Ferlieloi's own code changes.
 - **Version naming (Shewchou's rule):** once a Live release is merged, Dev builds are named from it. If Live has none
@@ -61,9 +70,17 @@ one clone to another: check `git remote -v`.
   release. When Dev didn't touch the package files or the bundle since the last merge, git takes Live's silently: set
   the version by hand anyway and `git checkout master -- release/mod/hypersynergism_release.js`. A file split or moved
   on Dev comes back as a modify/delete conflict: port Live's change into the new files, then `git rm` the old one.
+  `docs/data/changelog.json` often conflicts at the top of `entries`, where both add theirs: keep both, newest first.
+- **Except when Live has all the Dev code** (since the merge base, Dev changed nothing the bundle is built from: docs,
+  `scripts/` apart from the two the build runs, a version bump, or the bundle itself, which is output and proves nothing;
+  an unknown path counts as code, the harmless side to be wrong on): keep Live's bundle, so Dev
+  players get the Live release without a Dev release, and push Live's stable tag to the Dev repo after `master`
+  (`git push origin vX`), so their version check sees it. Otherwise stable tags are not pushed to the Dev repo: the tag
+  would name a build Dev doesn't serve.
+- **Restart or carry on can't be read from git** when Dev has code since the merge base: v2.14.6a restarted with 2 Dev
+  commits, because Live had taken the whole `master` of its time. The script shows the commits and asks.
 - **`git checkout --ours <file>` takes the whole file**, dropping what merged cleanly from Live's side (it once dropped
   a script line in `package.json`): compare with Live's `master` after resolving.
-- The fetch brings Live's stable tag into the local repo; stable tags are not pushed to the Dev repo.
 - Verify (`npx tsc --noEmit`, `npm test`, `npm run build`) before the merge commit.
 
 ## Porting a change to Live (PR or direct release)
@@ -76,6 +93,10 @@ one clone to another: check `git remote -v`.
 - **Check what the change relies on in Live's version**: a fix can need an earlier Dev commit ported first, as its own
   commit.
 - **One topic per PR. No release bundle in a PR**: Ferlieloi builds his own release.
+- **Website and wiki:** Dev commits edits to `docs/data/feature-catalogue.json` and `docs/data/guides/` with their feature, checked by
+  `build-docs.py --validate`, but never the generated pages: the generator reads the version and settings of its
+  checkout, so Dev's pages would show Dev's and conflict at every merge. In the worktree, port the topic's catalogue
+  entries and guide changes, run `python scripts/tools/build-docs.py`, and commit the regenerated pages in the PR.
 - Loader tests fail in a fresh worktree until `synergism_modloader` has its `node_modules`: not a regression.
 - Check the target revision's Tools tab definitions before assuming a calculation is available there. Live includes
   the Tools tab; the node harness can also check GDS changes directly on a save.

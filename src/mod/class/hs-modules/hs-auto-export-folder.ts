@@ -7,7 +7,8 @@ import { HSAutoExportStore } from "./hs-auto-export-store";
 
 const MAX_TRACKED_FILES = 1000;
 const FOLDER_BUTTON_ID = 'hs-setting-auto-export-save-folder-button';
-const FOLDER_BUTTON_TEXT = 'Choose folder';
+const FORGET_BUTTON_ID = 'hs-setting-auto-export-save-forget-folder-button';
+const FOLDER_NAME_ID = 'hs-auto-export-folder-name';
 const FOLDER_ACCESS = { mode: 'readwrite' } as const;
 // A closed picker answers at once; Steam may otherwise leave its promise pending.
 const PICKER_ANSWER_MS = 1500;
@@ -32,7 +33,6 @@ export class HSAutoExportFolder {
     #noticesShown = new Set<string>();
     #picking = false;
     #pickId = 0;
-    #folderButtonHelp?: string;
     #pickerFrame?: HTMLIFrameElement;
     #store = new HSAutoExportStore();
 
@@ -51,7 +51,7 @@ export class HSAutoExportFolder {
         if (this.#folderState === 'none') {
             // In a browser, the file is downloaded as usual
             if (this.isSteam()) {
-                this.#notifyOnce('steam-folder', 'Timed save export: choose an export folder first (Game Data settings). On Steam, a download would open a "Save as" dialog each time');
+                this.#notifyOnce('steam-folder', 'Timed save export: choose an export folder first (QoL settings). On Steam, a download would open a "Save as" dialog each time');
                 return false;
             }
         } else if (this.#folderState === 'locked') {
@@ -242,7 +242,7 @@ export class HSAutoExportFolder {
             if (this.#folder !== folder) return;
             this.#folderState = granted ? 'ready' : 'refused';
             this.refreshButton();
-            if (!granted) this.#notifyOnce('refused', 'Timed save export: access to the export folder was not given. Choose the folder again, or forget it (Game Data settings)');
+            if (!granted) this.#notifyOnce('refused', 'Timed save export: access to the export folder was not given. Choose the folder again, or forget it (QoL settings)');
         })();
     }
 
@@ -268,7 +268,7 @@ export class HSAutoExportFolder {
             if (this.#folder === folder && (error as Error)?.name === 'NotAllowedError') this.#folderState = 'locked';
             const isSteam = this.isSteam();
             HSUI.Notify(isSteam
-                ? 'Timed save export: could not write into the export folder (the rewards were collected). Choose the folder again (Game Data settings)'
+                ? 'Timed save export: could not write into the export folder (the rewards were collected). Choose the folder again (QoL settings)'
                 : 'Timed save export: could not write into the export folder, the file is downloaded instead', { notificationType: 'warning' });
             HSLogger.warn(`Timed save export: could not write "${fileName}" into the export folder (${error})`, this.context);
             if (!isSteam) this.#download(fileName, save);
@@ -338,17 +338,25 @@ export class HSAutoExportFolder {
         document.body.removeChild(link);
     }
 
-    /** The button shows the folder. The settings panel is built after the modules: refreshed at each tick too. */
+    /** The folder's name between the two buttons. The settings panel is built after the modules: refreshed at each tick too. */
     refreshButton(): void {
         const button = document.getElementById(FOLDER_BUTTON_ID);
-        if (!button) return;
+        const forgetButton = document.getElementById(FORGET_BUTTON_ID);
+        if (!button || !forgetButton) return;
 
-        // Its help text, set by the settings panel
-        if (this.#folderButtonHelp === undefined) this.#folderButtonHelp = button.title;
+        let label = document.getElementById(FOLDER_NAME_ID);
+        if (!label) {
+            label = document.createElement('span');
+            label.id = FOLDER_NAME_ID;
+            button.parentElement?.after(label);
+        }
 
-        // The state comes first: the button's width cuts a long text at its end
-        let text = FOLDER_BUTTON_TEXT;
-        let title = this.#folderButtonHelp;
+        // Nothing moves when a folder is picked: the button keeps its room
+        forgetButton.style.visibility = this.#folder ? '' : 'hidden';
+
+        // The state comes first: the line's width cuts a long text at its end
+        let text = 'No folder';
+        let title = '';
         if (this.#folder) {
             const name = this.#folder.name;
             text = `Folder: ${name}`;
@@ -362,9 +370,9 @@ export class HSAutoExportFolder {
                 title += '. Access was not given: choose the folder again.';
             }
         }
-        if (button.textContent !== text) {
-            button.textContent = text;
-            button.title = title;
+        if (label.textContent !== text) {
+            label.textContent = text;
+            label.title = title;
         }
     }
 

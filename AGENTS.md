@@ -8,7 +8,7 @@ work with; people named elsewhere (Shewchou, Ferlieloi) are the maintainers.
 HyperSynergism is an unofficial quality-of-life mod for the browser/Steam game [Synergism](https://synergism.cc/). It doesn't automate the game, apart from the opt-in autosing module.
 
 - **Vanilla game source (read-only):** `node scripts/tools/update-game.cjs` clones or pulls the official repo into `local/game/SynergismOfficial-master`, fetches the live bundle into `local/game/out.js` and runs `patcher.js` on it. Use it for formulas, save-data shapes and DOM ids; never edit it. GitHub's `master` can be ahead of the deployed game. After a game update: `docs/game/updating.md`.
-- **`docs/` (committed):** `game/` how the game behaves, `features/` one file per feature with its rules and decisions, `dev/` procedures (`code.md`, `releasing.md`, `tricks.md`). People are named there (Shewchou, Ferlieloi), never "the user": each developer's agent would read that as its own user. No personal data.
+- **`docs/` (committed):** `game/` how the game behaves, `features/` one file per feature with its rules and decisions, `dev/` procedures (`code.md`, `releasing.md`, `tricks.md`). The rest is the player website and wiki, generated from `docs/data/` (`feature-catalogue.json` and the players' guides in `guides/`): edit those, never the generated pages (`docs/dev/publishing-guide.md`). People are named there (Shewchou, Ferlieloi), never "the user": each developer's agent would read that as its own user. No personal data.
 - **`local/` is git-ignored**: it exists only on your disk, so tracked code and docs never point to it, except to what a tool creates there (`local/game/`, `local/harness-out/`, `local/account/`). Your saves and design docs go there too. Search tools skip it by default: give the path explicitly.
 
 ## Where knowledge goes
@@ -31,9 +31,9 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 - `npm test` runs every script in `scripts/tests/`; one alone: `npm run test:autosing` / `test:auto-export` / `test:heater` / `test:heater-coins`, or `node scripts/tests/<file>.cjs`. Add a test with a task that touches pure logic (data in, data out: migrations, allocations, formulas, sorting) that was hard to get right or would regress unnoticed; never for UI, DOM, dialogs or timing.
 - `scripts/harness/` (read its README first): the real game headless in Chrome and the mod's code in node. A one-off test script goes in `local/`, built on `scripts/harness/lib/`, never in a temporary folder. Reusable scripts that need nothing from `local/`: `scripts/tools/` (also dead-code analysis).
 - `npm run build`: dev build to `build/hypersynergism.js`. `npm run dev`: watch mode, also copies `src/loader/*.js` and `patcher.js` into `build/`; restart it after changing the `package.json` version (`HS_BUILD_VERSION` is a `define`). `start-dev-server.bat`: watch build + `http-server ./build/ --cors` on port 8080, loaded in the game by the `src/loader/hypersynergism.dev.js` userscript.
-- `npm run release`: minified build to `release/mod/hypersynergism_release.js`, committed, served to players by jsDelivr, the only build without the dev tools. It is rebuilt only by a release, never by a commit. `npm run release-and-tag-helper` does a whole release. Releases, merging Live into Dev, porting to Live, loader releases: `docs/dev/releasing.md`.
+- `npm run release`: minified build to `release/mod/hypersynergism_release.js`, committed, served to players by jsDelivr, the only build without the dev tools. It is rebuilt only by a release, never by a commit. `npm run release-and-tag-helper` does a whole release, `npm run merge-live` merges a Live release into Dev. Releases, merging Live into Dev, porting to Live, loader releases: `docs/dev/releasing.md`.
 - Every build regenerates the strategy manifest (`scripts/generate-strategy-manifest.js`) and bundles the heater web worker separately (`scripts/heater-worker-plugin.cjs`).
-- **Every release requires a website changelog entry**, matching its version, channel and player-facing changes; regenerate and validate the page before publishing. Required steps: `docs/dev/releasing.md`.
+- **Every release requires a website changelog entry** in `docs/data/changelog.json`, matching its version, channel and player-facing changes. Live regenerates and validates the page before publishing; Dev only validates (`build-docs.py --validate`) and never commits `docs/changelog.html`. Required steps: `docs/dev/releasing.md`.
 - Desktop loader (`synergism_modloader/`, its own npm package and version): `npm start` (Electron app), `npm test` (`node --test test/*.test.js`), `npm run dist` (installer).
 
 ## Architecture
@@ -64,10 +64,12 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - **`HSLogger` lines are HTML**: escape with `escapeLogText`, not `escapeHtml`. A new log context needs a colour entry.
 - **Injected CSS lands late**: a module drawing game-styled elements during `init` injects its CSS and calls `HSUI.flushInjectedStyles()` first.
 - **Settings are data**: `hs-settings.json` + `HSSettingsDefinition`; a `settingAction` needs a handler and a `settingControl`, even when hidden; no double quote in a help text.
+- **Game icons**: reuse one through `HSIcons`, read from the game's element by its id (`docs/dev/sprite-icons.md`).
+- **Tooltips**: a browser `title` by default; `HSTooltip` for colours, a shorter delay or a chosen side (`docs/dev/code.md`).
 
 ### GDS (Game Data Sniffing): `hs-core/gds/` (`docs/features/gds.md`)
 - `HSGameData` reads the live player every 500 ms when patched, else captures the save. The live player is the same object at every read: never key a cache by it. `HSGameDataAPIPartial` is the actual API, `HSGameDataAPI` the game-formula calculations.
-- **The calculations re-implement vanilla formulas**: check them against the vanilla source (traps: `docs/game/formulas.md`). A shop upgrade's level goes through `getShopLevel`.
+- **The calculations re-implement vanilla formulas**: check them against the vanilla source (traps: `docs/game/formulas.md`); `test-gds-formulas.cjs` replays the real game's values (`docs/game/updating.md`). A shop upgrade's level goes through `getShopLevel`.
 - **The GDS setting (bookmarklet players only) and the engine are separate**: pause with `pauseGDS(reason)` / `resumeGDS(reason)`, check `isGDSRunning()`; nothing turns the setting off.
 - **No extra traffic to synergism.cc**: no WebSocket, no periodic fetch, every request carries `X-HyperSynergism-Version`.
 - **Every save load goes through the game's `importSynergism(input, reset)`**; `__HS_onSaveImport(reset)` stops autosing when `reset` is false. It runs at every singularity: keep the `reset` path one test.
@@ -78,10 +80,10 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - **Hepteract Distributor**: many of its choices were reversed at least once; update the panel's `HELP_LINES` with it. `docs/features/hepteract-distributor.md`.
 - **Version check**: `compareVersionTags` and the release helper's `compareVersions` must sort the same way. `docs/features/version-check.md`.
 - **Backup**: a backup file is untrusted. `docs/features/backup.md`.
-- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip.
+- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip, perk search.
 
 ### Dev tools (`docs/features/dev-tools.md`)
-`HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`. `HSAutosingRecorder` follows the same rules.
+`HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`.
 
 ## Working with the developer
 

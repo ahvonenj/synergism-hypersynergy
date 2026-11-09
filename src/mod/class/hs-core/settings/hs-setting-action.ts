@@ -12,6 +12,7 @@ import { HSSettings } from "./hs-settings";
 import { HSSettingsUI } from "./hs-settings-ui";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
+import { HSPerksFind } from "../../hs-modules/hs-perks-find";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export";
 import { HSGlobal } from "../hs-global";
 import { HSHiddenDialogs } from "../dialogs/hs-hidden-dialogs";
@@ -21,6 +22,7 @@ import { HSHeaderEditSettings } from "../header/hs-header-edit-settings";
 import { HSHeaderChallengeProgress } from "../header/hs-header-challenge-progress";
 import { HSHeaderChallengeModule } from "../header/hs-header-challenge-module";
 import { HSCorruptionHeader } from "../header/hs-corruption-header";
+import { HSElevatorHeader } from "../header/hs-elevator-header";
 
 // Action of an on/off setting that belongs to a module: `on` when the setting is on, `off` when it is off.
 // Does nothing if the module isn't loaded.
@@ -141,8 +143,17 @@ export class HSSettingActions {
             if (params.disable === true) HSCorruptionHeader.disableControls();
             else HSCorruptionHeader.enableControls();
         },
+        corruptionHeaderInlineAction: async (params: HSSettingActionParams) => {
+            HSCorruptionHeader.setInline(params.disable !== true);
+        },
         corruptionHeaderAlwaysShownAction: async (params: HSSettingActionParams) => {
             HSCorruptionHeader.setAlwaysShown(params.disable !== true);
+        },
+
+        // The game's Singularity count header module, which is in the page from the start
+        singularityHeaderElevatorAction: async (params: HSSettingActionParams) => {
+            if (params.disable === true) HSElevatorHeader.disable();
+            else HSElevatorHeader.enable();
         },
 
         // Not awaited: the GDS start and stop run on their own.
@@ -181,6 +192,16 @@ export class HSSettingActions {
                 }
             }
         },
+
+        autosingKeepAwakeAction: moduleToggle<HSAutosing>('HSAutosing',
+            (mod) => mod.setKeepAwake(true),
+            (mod) => mod.setKeepAwake(false)
+        ),
+
+        autosingNoAmbrosiaSwitchAction: moduleToggle<HSAutosing>('HSAutosing',
+            (mod) => mod.setAmbrosiaSwitchesOff(true),
+            (mod) => mod.setAmbrosiaSwitchesOff(false)
+        ),
 
         createAutosingStrategy: async (params: HSSettingActionParams) => {
             await HSAutosingStrategyModal.open();
@@ -264,6 +285,11 @@ export class HSSettingActions {
         enableHepteractDistributorAction: moduleToggle<HSHepteractDistributor>('HSHepteractDistributor',
             (mod) => mod.showDistributor(),
             (mod) => mod.hideDistributor()
+        ),
+
+        perksFindAction: moduleToggle<HSPerksFind>('HSPerksFind',
+            (mod) => mod.show(),
+            (mod) => mod.hide()
         ),
 
         enableAutomationQuickBarAction: moduleToggle<HSQOLButtons>('HSQOLButtons',

@@ -3,7 +3,7 @@ import { HSLogger } from "../hs-logger";
 import { CalculationCache, CachedValue, ShopUpgradeGroups } from "../../../types/data-types/hs-gamedata-api-types";
 import { EventBuffType } from "../../../types/data-types/hs-event-data";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import { ACHIEVEMENT_REWARD_TYPES, SHOP_UPGRADE_GROUPS_BY_KEY, SHOP_UPGRADE_TYPE_KEYS } from "./hs-gamedata-tables";
+import { SHOP_UPGRADE_GROUPS_BY_KEY, SHOP_UPGRADE_TYPE_KEYS } from "./hs-gamedata-tables";
 import type { AmbrosiaHelper } from "./hs-gamedata-api-ambrosia";
 
 export const checkCalculationCache = <T = number>(
@@ -120,22 +120,6 @@ export const createQuarkShopCalculationCacheEntries = (): Record<string, CachedV
     return entries;
 };
 
-export const createAchievementRewardCalculationCacheEntries = (): Record<string, CachedValue> => {
-    const entries: Record<string, CachedValue> = {};
-
-    const addCacheEntry = (name: string): void => {
-        entries[name] = { value: undefined, cachedBy: [] };
-    };
-
-    const suffixes = ['sum', 'product', 'unlock'] as const;
-    for (const rewardType of ACHIEVEMENT_REWARD_TYPES) {
-        for (const suffix of suffixes) {
-            addCacheEntry(`ACH_REWARD_${suffix}_${rewardType}`);
-        }
-    }
-    return entries;
-};
-
 export const createEventBuffCalculationCacheEntries = (): Record<string, CachedValue> => {
     const entries: Record<string, CachedValue> = {};
     const addCacheEntry = (name: string): void => {
@@ -237,7 +221,6 @@ export const createCalculationCache = (ambrosiaHelper: AmbrosiaHelper): Calculat
     return {
         ...createCoreCalculationCacheEntries(),
         ...createQuarkShopCalculationCacheEntries(),
-        ...createAchievementRewardCalculationCacheEntries(),
         ...createAmbrosiaCalculationCacheEntries(ambrosiaHelper),
         ...createEventBuffCalculationCacheEntries(),
     } as CalculationCache;

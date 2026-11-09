@@ -112,6 +112,7 @@ export class HSBackup {
     static readonly #exportBtnId = 'hs-panel-backup-export-btn';
     static readonly #importBtnId = 'hs-panel-backup-import-btn';
     static #exporting = false;
+    static readonly #modDataHint = 'Settings, strategies, hidden dialogs, icons';
     static readonly #gamePrefsHint = 'Kept by the game outside its save: language, theme, stat symbols, tab order, export to clipboard, dismissed announcements';
     static readonly #partIds: Record<keyof HSBackupParts, string> = {
         save: 'hs-panel-backup-part-save',
@@ -134,9 +135,12 @@ export class HSBackup {
 
         return [
             HSUIC.Div({
-                class: 'hs-panel-grid-full-span',
-                html: `Your vanilla save, the mod's data (settings, strategies, hidden dialogs, icons), the game's preferences (language, theme, tab order, ...) and the current logs, all in one file, with the heater data for bug reports. Importing reloads the page.
-                    <div class="hs-backup-parts">${part('save', 'Save')}${part('modData', 'Mod settings')}${part('gamePrefs', 'Game preferences', HSBackup.#gamePrefsHint)}${part('logs', 'Logs')}</div>`
+                class: 'hs-panel-grid-full-span hs-panel-grid-hint',
+                html: 'All in one file, with the heater data for bug reports.'
+            }),
+            HSUIC.Div({
+                class: 'hs-panel-grid-full-span hs-backup-parts',
+                html: `${part('save', 'Save')}${part('modData', 'Mod data', HSBackup.#modDataHint)}${part('gamePrefs', 'Game preferences', HSBackup.#gamePrefsHint)}${part('logs', 'Logs')}`
             }),
             HSUIC.Button({ id: HSBackup.#exportBtnId, text: 'Export to file' }),
             HSUIC.Button({ id: HSBackup.#importBtnId, text: 'Import from file…' }),
@@ -491,9 +495,9 @@ export class HSBackup {
                     <div class="hs-backup-file"></div>
                     <div class="hs-backup-details"></div>
                     ${row('save', 'Save', true)}
-                    ${row('modData', 'Mod settings', true)}
+                    ${row('modData', 'Mod data', true)}
                     ${row('gamePrefs', 'Game preferences', true)}
-                    ${row('backup', 'Download a backup of my current save, settings and preferences first', true)}
+                    ${row('backup', 'Download a backup of my current save, mod data and preferences first', true)}
                     <div>Importing replaces what is ticked, then reloads the page.</div>
                     <div class="hs-backup-status"></div>
                     <div class="hs-backup-actions">
@@ -543,6 +547,7 @@ export class HSBackup {
         }
 
         if (content.modData) {
+            (box('modData').parentElement as HTMLElement).title = HSBackup.#modDataHint;
             note('modData').textContent = `(${Object.keys(content.modData).length} stored entries)`;
         } else {
             unavailable('modData', '(not in this file)');
@@ -647,7 +652,7 @@ export class HSBackup {
         }
 
         HSBackup.#blockStorageWrites({ save, modData, gamePrefs });
-        HSBackup.#reload(`Imported ${[save ? 'the save' : '', modData ? 'the mod settings' : '', gamePrefs ? 'the game preferences' : ''].filter(Boolean).join(', ')}`);
+        HSBackup.#reload(`Imported ${[save ? 'the save' : '', modData ? 'the mod data' : '', gamePrefs ? 'the game preferences' : ''].filter(Boolean).join(', ')}`);
         return null;
     }
 

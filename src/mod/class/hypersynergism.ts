@@ -98,7 +98,7 @@ export class Hypersynergism {
         hsui?.setPanelControlVisible(true);
         HSGlobal.General.isModFullyLoaded = true;
 
-        await HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
+        void HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
             position: 'top',
             notificationType: "success"
         });
@@ -164,10 +164,7 @@ export class Hypersynergism {
         void HSUI.Notify(`Game patch: ${problems}. Some features may not work as usual, details in the Log tab.`, {
             position: 'top',
             notificationType: 'warning',
-            displayDuration: 10000,
-            // A fixed-size box that hides what overflows: two lines of this text
-            width: 440,
-            height: 60
+            displayDuration: 10000
         });
     }
 
@@ -322,11 +319,17 @@ export class Hypersynergism {
 
             this.#buildToolsTab(hsui);
             this.#buildSettingsTab(hsui);
-            this.#buildDebugTab(hsui);
 
             hsui.renameTab(2, 'Tools');
             hsui.renameTab(3, 'Settings');
-            hsui.renameTab(4, 'Debug');
+
+            // The Debug tab is for dev builds only
+            if (HS_DEV_BUILD) {
+                this.#buildDebugTab(hsui);
+                hsui.renameTab(4, 'Debug');
+            } else {
+                hsui.removeTab(4);
+            }
         }
     }
 
@@ -340,14 +343,6 @@ export class Hypersynergism {
         return HSUIC.Div({
             class: 'hs-panel-grid-section-header',
             html: text
-        });
-    }
-
-    #buildGridFullSpanDiv(id: string | undefined, html: string) {
-        return HSUIC.Div({
-            id,
-            class: 'hs-panel-grid-full-span',
-            html
         });
     }
 
@@ -368,10 +363,10 @@ export class Hypersynergism {
                     this.#buildGridSectionHeader('Backup & Restore'),
                     ...HSBackup.buildToolsSection(),
                     this.#buildGridSectionHeader('Ambrosia Heater'),
-                    this.#buildGridFullSpanDiv('hs-panel-amb-heater-p', `Export an extended save file string for the <a href="${HSGlobal.General.heaterUrl}" class="hs-link" target="_blank">Ambrosia Heater sheet</a>.`),
-                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Copy Heater Data' }),
                     HSUIC.Button({ id: 'hs-panel-amb-heater-compute-btn', text: 'Ambrosia Heater' }),
+                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Copy Heater Data' }),
                     this.#buildGridSectionHeader('Mod links'),
+                    HSUIC.Button({ id: 'hs-panel-mod-website-btn', text: 'Mod Website' }),
                     HSUIC.Button({ id: 'hs-panel-mod-github-btn', text: 'Mod Github' }),
                     HSUIC.Button({ id: 'hs-panel-discord-thread-btn', text: 'Discord Thread' }),
                     HSUIC.Button({ id: 'hs-panel-check-version-btn', text: 'CHECK VERSION' }),
@@ -431,6 +426,7 @@ export class Hypersynergism {
             await HSHeaterInputModalController.openHeaterComputationModal();
         });
 
+        this.#bindToolsButton('#hs-panel-mod-website-btn', () => this.#openUrl(HSGlobal.General.modWebsiteUrl));
         this.#bindToolsButton('#hs-panel-mod-github-btn', () => this.#openUrl(HSGlobal.General.modGithubUrl));
         this.#bindToolsButton('#hs-panel-discord-thread-btn', () => this.#openUrl(HSGlobal.General.modDiscordThreadUrl));
 
@@ -491,10 +487,7 @@ export class Hypersynergism {
     #fixExaltBug() {
         HSLogger.log('Attempting to exit an exalt by clicking the active challenge (if any).');
 
-        const singChallengesWrapper = document.querySelector('#singularityChallenges');
-        if (!singChallengesWrapper) return;
-
-        const img = singChallengesWrapper.querySelector('img.challenge[style*="background-color: orchid"]') as HTMLElement;
+        const img = HSUtils.getActiveExaltElement();
         if (img) {
             console.log('Found active challenge img, clicking:', img);
             img.click();
@@ -561,16 +554,13 @@ export class Hypersynergism {
     }
 
     #handleGameDataIconClick(_e: Event) {
-        const subtab = document.querySelector('#hs-panel-settings-subtab-gamedata') as HTMLDivElement | null;
+        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
         const color = subtab?.dataset.color;
 
-        this.#activateSettingsSubtab('gamedata', subtab, color);
+        this.#activateSettingsSubtab('qol', subtab, color);
 
-        const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement | null;
-        gameDataSettingBlock?.scrollIntoView({
-            block: 'start',
-            behavior: 'smooth',
-        });
+        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
+        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     #handleSettingsSubtabClick(e: Event) {
@@ -588,6 +578,12 @@ export class Hypersynergism {
         const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
 
         if (!subSettingsContainer) return;
+
+        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
+        if (!subSettingsContainer.classList.contains('open')) {
+            const settingsPanel = document.querySelector('#hs-settings-panel');
+            if (settingsPanel) settingsPanel.scrollTop = 0;
+        }
 
         allSubSettingContainers.forEach(container => container.classList.remove('open'));
         allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
@@ -608,10 +604,7 @@ export class Hypersynergism {
             HSUIC.Grid({
                 id: 'hs-panel-debug-grid',
                 class: 'hs-panel-grid-2col',
-                html: [
-                    this.#buildGridSectionHeader('Mouse'),
-                    HSUIC.Div({ id: 'hs-panel-debug-mousepos' }),
-                ]
+                html: []
             })
         );
 

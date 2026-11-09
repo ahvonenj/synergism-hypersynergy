@@ -88,7 +88,12 @@ export class HSPlatonicUpgradeTime {
         const element = document.querySelector<HTMLElement>(`#${elementId}`);
         const text = element?.textContent ?? '';
         const parsed = HSNumberParser.parse(text.slice(text.lastIndexOf('/') + 1));
-        return Number.isNaN(parsed) ? null : { amount: parsed, affordable: element?.style.color === 'lime' };
+        return Number.isNaN(parsed) ? null : { amount: parsed, affordable: this.#isShownAffordable(element) };
+    }
+
+    // The game's own check, only shown as the cost's colour: var(--lime-color), plain lime in older builds.
+    #isShownAffordable(element: HTMLElement | null): boolean {
+        return element?.style.color.includes('lime') ?? false;
     }
 
     // The displayed cost is cut to 3 digits: when the game says it isn't
@@ -217,7 +222,7 @@ export class HSPlatonicUpgradeTime {
         const notEstimated = [
             { resource: 'Offerings', elementId: 'platonicOfferingCost' },
             { resource: 'Obtainium', elementId: 'platonicObtainiumCost' }
-        ].filter(({ elementId }) => document.querySelector<HTMLElement>(`#${elementId}`)?.style.color !== 'lime')
+        ].filter(({ elementId }) => !this.#isShownAffordable(document.querySelector<HTMLElement>(`#${elementId}`)))
             .map(({ resource }) => resource);
         HSLogger.debug(() => `Platonic upgrade ${upgradeId}: short and not estimated: ${notEstimated.join(', ') || 'none'}`, this.#context);
 

@@ -3,7 +3,7 @@
 // Also the starting point for a one-off test: copy it into local/ and add steps after "mod loaded".
 // Usage: node scripts/harness/game-smoke.cjs [save.json|save.txt]
 // Env: PATCH=0 serves the unpatched bundle, MOD=0 skips the mod, WAIT=<ms> after the mod loads (default 15000),
-//      TAG=<name> (output folder), PORT/HTTP_PORT
+//      OFFLINE=1 keeps the save's offline progress, TAG=<name> (output folder), PORT/HTTP_PORT
 const path = require('node:path')
 const { outDir } = require('./lib/env.cjs')
 const { launchChrome } = require('./lib/chrome.cjs')
@@ -17,7 +17,7 @@ const saveFile = process.argv[2]
 
 ;(async () => {
     const server = game.startGameServer({ port: HTTP, patch: process.env.PATCH !== '0' })
-    const chrome = await launchChrome({ port: PORT, profile: outDir('profiles', 'smoke-' + tag), width: 1600, height: 1000 })
+    const chrome = await launchChrome({ port: PORT, profile: outDir('profiles', 'smoke-' + tag), width: 1600, height: 1000, fresh: true })
     try {
         const cdp = await connectCdp(PORT)
         const requests = []
@@ -30,7 +30,7 @@ const saveFile = process.argv[2]
         await game.waitGameReady(cdp, { onDialog })
         if (saveFile) {
             const backup = game.readSaveFile(saveFile)
-            await game.importSave(cdp, backup.save, out)
+            await game.importSave(cdp, backup.save, out, { offline: process.env.OFFLINE === '1' })
             await sleep(2000)
             await game.waitGameReady(cdp, { onDialog })
             console.log('save loaded: S' + await cdp.evaluate(`${game.PLAYER}?.singularityCount`))

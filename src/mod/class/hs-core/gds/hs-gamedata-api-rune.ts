@@ -248,7 +248,7 @@ export class RuneHelper {
             effectiveLevelMult: () => 1,
             freeLevels: () => this.#api.getRuneBonusLevels('infiniteAscent'),
             runeEXPPerOffering: (purchasedLevels: number) => this.universalRuneEXPMult(purchasedLevels),
-            isUnlocked: () => Boolean(this.#api.getSingularityChallengeEffect('noQuarkUpgrades', 'topHatUnlock')),
+            isUnlocked: () => Boolean(this.#api.quarkShop.getShopUpgradeEffects('infiniteAscent', 'runeUnlocked')),
         },
         antiquities: {
             ignoreChal9: true,
@@ -419,28 +419,15 @@ export class RuneHelper {
             runeExpLog,
         ]
 
-        const cached = this.#api.checkCalculationCache(cacheName, calculationVars)
-        if (cached !== undefined) {
-            this.#runeEffectiveLevelCache.set(rune, cached)
-            return cached
-        }
+        const effectiveLevel = this.#api.memoizeCalculation(cacheName, calculationVars, () => {
+            if (runeDef.isUnlocked && !runeDef.isUnlocked(data)) return 0
 
-        if (runeDef.isUnlocked && !runeDef.isUnlocked(data)) {
-            this.#api.updateCalculationCache(cacheName, { value: 0, cachedBy: calculationVars })
-            this.#runeEffectiveLevelCache.set(rune, 0)
-            return 0
-        }
+            if (data.currentChallenge.reincarnation === 9 && !runeDef.ignoreChal9) return 1
 
-        if (data.currentChallenge.reincarnation === 9 && !runeDef.ignoreChal9) {
-            this.#api.updateCalculationCache(cacheName, { value: 1, cachedBy: calculationVars })
-            this.#runeEffectiveLevelCache.set(rune, 1)
-            return 1
-        }
+            const runeLevel = this.getRuneLevelFromEXP(rune, runeEXP)
+            return (runeLevel + freeLevels) * effectiveMult
+        })
 
-        const runeLevel = this.getRuneLevelFromEXP(rune, runeEXP)
-        const effectiveLevel = (runeLevel + freeLevels) * effectiveMult
-
-        this.#api.updateCalculationCache(cacheName, { value: effectiveLevel, cachedBy: calculationVars })
         this.#runeEffectiveLevelCache.set(rune, effectiveLevel)
         return effectiveLevel
     }
@@ -467,10 +454,13 @@ export class RuneHelper {
         // Mirrors SynergismOfficial/src/Runes.ts updateLevelsFromEXP.
         // The previous log-domain shortcut used log10(EXP) - log10(cost) + 1,
         // which is not log10(EXP / cost + 1) and overcounted almost every rune.
-        const log10ExpOverCostPlus1 = Decimal.log10(
-            runeEXP.div(this.runes[rune].costCoefficient).plus(1)
-        )
-        return Math.max(0, Math.floor(this.getLevelsPerOOM(rune) * log10ExpOverCostPlus1))
+        const costCoefficient = this.runes[rune].costCoefficient
+        const levelsPerOOM = this.getLevelsPerOOM(rune)
+        const log10ExpOverCostPlus1 = Decimal.log10(runeEXP.div(costCoefficient).plus(1))
+        const levels = Math.max(0, Math.floor(levelsPerOOM * log10ExpOverCostPlus1))
+        // The game's floating point fix: an EXP that exactly pays the next level counts as that level
+        const expToNextLevel = costCoefficient.times(Decimal.pow(10, (levels + 1) / levelsPerOOM).minus(1))
+        return Decimal.max(0, expToNextLevel.minus(runeEXP)).eq(0) ? levels + 1 : levels
     }
 
     public calculateRuneEffectivenessHypercubeBlessing = () => {

@@ -60,8 +60,8 @@ select::-webkit-scrollbar-corner {
 /* ===== MAIN PANEL CONTAINER ===== */
 
 #hs-panel {
-    width: 525px;
-    height: 400px;
+    width: 425px;
+    height: 350px;
     position: absolute;
     top: 50px;
     left: 10px;
@@ -88,7 +88,7 @@ select::-webkit-scrollbar-corner {
         "Helvetica Neue",
         sans-serif;
 
-    opacity: 0.92;
+    opacity: 0.97;
 }
 
 /* ===== PANEL HEADER ===== */
@@ -152,59 +152,59 @@ select::-webkit-scrollbar-corner {
 }
 
 .hs-panel-tab:hover {
-    background-color: #006;
+    background-color: #2c2b36;
     cursor: pointer;
 }
 
-/* Individual tab color schemes */
+/* Individual tab color schemes: a soft border, and a fill dark enough for the white text */
 #hs-panel-tab-1 {
-    border-top: 1px solid orange;
-    border-left: 1px solid orange;
-    border-right: 1px solid orange;
+    border-top: 1px solid #d9a441;
+    border-left: 1px solid #d9a441;
+    border-right: 1px solid #d9a441;
 }
 
 #hs-panel-tab-1.hs-tab-selected {
-    background-color: orange;
+    background-color: #8a5a10;
 }
 
 #hs-panel-tab-2 {
-    border-top: 1px solid cyan;
-    border-left: 1px solid cyan;
-    border-right: 1px solid cyan;
+    border-top: 1px solid #6f9fd8;
+    border-left: 1px solid #6f9fd8;
+    border-right: 1px solid #6f9fd8;
 }
 
 #hs-panel-tab-2.hs-tab-selected {
-    background-color: blue;
+    background-color: #24508f;
 }
 
 #hs-panel-tab-3 {
-    border-top: 1px solid maroon;
-    border-left: 1px solid maroon;
-    border-right: 1px solid maroon;
+    border-top: 1px solid #c0504d;
+    border-left: 1px solid #c0504d;
+    border-right: 1px solid #c0504d;
 }
 
 #hs-panel-tab-3.hs-tab-selected {
-    background-color: maroon;
+    background-color: #7f2a2a;
 }
 
 #hs-panel-tab-4 {
-    border-top: 1px solid plum;
-    border-left: 1px solid plum;
-    border-right: 1px solid plum;
+    border-top: 1px solid #b78fd0;
+    border-left: 1px solid #b78fd0;
+    border-right: 1px solid #b78fd0;
 }
 
 #hs-panel-tab-4.hs-tab-selected {
-    background-color: plum;
+    background-color: #6a4a78;
 }
 
 #hs-panel-tab-5 {
-    border-top: 1px solid royalblue;
-    border-left: 1px solid royalblue;
-    border-right: 1px solid royalblue;
+    border-top: 1px solid #8fa0b8;
+    border-left: 1px solid #8fa0b8;
+    border-right: 1px solid #8fa0b8;
 }
 
 #hs-panel-tab-5.hs-tab-selected {
-    background-color: royalblue;
+    background-color: #4a5a70;
 }
 
 /* ===== PANEL BODY ===== */
@@ -274,16 +274,17 @@ select::-webkit-scrollbar-corner {
     color: red;
 }
 
-.hs-ui-log-line-debug {
-    font-style: italic;
-}
-
 .hs-log-ts {
     color: #8a8a99;
 }
 
 .hs-log-ts-hidden {
     display: none;
+}
+
+/* Keeps the label's padding spaces, so every line's context starts at the same column */
+.hs-log-level {
+    white-space: pre;
 }
 
 /* ===== LOG CONTROLS ===== */
@@ -360,7 +361,7 @@ select::-webkit-scrollbar-corner {
 /* ===== PANEL BUTTONS ===== */
 
 .hs-panel-btn {
-    border: 2px solid white;
+    border: 1px solid white;
     min-height: 30px;
     color: white;
     transition: background-color 0.15s, border-color 0.15s;
@@ -480,9 +481,11 @@ select::-webkit-scrollbar-corner {
 
 /* ===== SETTINGS PANEL ===== */
 
+/* No top padding: the subtabs row holds it, so nothing shows above that row when it sticks */
 #hs-settings-panel {
-    padding: 10px;
+    padding: 0 10px 10px;
     scrollbar-gutter: stable;
+    scroll-padding-top: 44px;
 }
 
 .hs-panel-setting-block {
@@ -522,22 +525,28 @@ select::-webkit-scrollbar-corner {
     grid-column: span 2;
 }
 
-/* 20px above a title and 15px below */
+/* A section's description line */
+.hs-panel-grid-hint {
+    color: #c4c4c4;
+}
+
+/* 12px above a title and 10px below */
 .hs-panel-grid-section-header {
     border-bottom: 1px solid limegreen;
     grid-column: span 2;
-    margin-top: 10px;
-    margin-bottom: 15px;
+    margin-top: 12px;
+    margin-bottom: 10px;
 }
 
 /* In the Settings pages, the setting block above gives 5px of padding */
 .hs-panel-settings-grid > .hs-panel-grid-section-header {
-    margin-top: 15px;
+    margin-top: 7px;
 }
 
 /* In the Tools and Debug grids, the 10px row gap adds to both margins */
 .hs-panel-grid-2col > .hs-panel-grid-section-header {
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 0;
 }
 
 .hs-panel-grid-2col > .hs-panel-grid-section-header:first-child {
@@ -598,10 +607,62 @@ select::-webkit-scrollbar-corner {
 
 .hs-panel-setting-block-select-input[multiple] {
     height: 80px;
+    min-height: 50px;
+    resize: vertical;
+}
+
+/* The browser sizes the resize grip from the scrollbar: the 5px of the other selects leave a grip too small to catch */
+.hs-panel-setting-block-select-input[multiple]::-webkit-scrollbar {
+    width: 10px;
+}
+
+.hs-panel-setting-block-select-input[multiple]::-webkit-resizer {
+    background: linear-gradient(135deg, transparent 0%, transparent 50%, #888 50%, #888 100%);
 }
 
 #hs-setting-hidden-vanilla-tabs {
-    height: 120px;
+    width: 180px;
+    height: 70px;
+}
+
+/* A section's fields share a column, right after the longest label that has a field. Rows without a field span both
+   tracks, and a row spanning the 1fr track doesn't size the first one: a long switch label doesn't push the fields.
+   In a panel too narrow for both, the labels wrap */
+.hs-panel-settings-section {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(110px, 1fr);
+    column-gap: 5px;
+}
+
+/* A subgrid counts its padding in the first track: a child's indent is part of the column */
+.hs-panel-setting-block-inline {
+    grid-template-columns: subgrid;
+    align-items: center;
+}
+
+.hs-panel-setting-block-inline > .hs-panel-setting-block-text-wrapper {
+    grid-column: 1;
+}
+
+.hs-panel-setting-block-inline > .hs-panel-setting-block-input-row {
+    grid-column: 2;
+}
+
+.hs-panel-setting-block-inline .hs-panel-setting-block-num-input,
+.hs-panel-setting-block-inline .hs-panel-setting-block-select-input {
+    flex-shrink: 0;
+    width: 110px;
+}
+
+/* Buttons side by side: a grid would stack them */
+.hs-panel-settings-button-row {
+    grid-column: 1 / -1;
+}
+
+/* Strategy names are long */
+#hs-setting-auto-sing-strategy {
+    width: 340px;
+    max-width: 100%;
 }
 
 .hs-panel-setting-block-select-input[multiple] option:checked {
@@ -641,27 +702,58 @@ select::-webkit-scrollbar-corner {
     width: auto;
 }
 
-/* Auto-Sing strategy buttons (Edit, Create, Delete, Import, Export): narrower than the other panel buttons */
+/* Auto-Sing strategy buttons (Edit, Create, Delete, Import, Export): narrower than the other panel buttons, two fit
+   on a line at the panel's narrowest width. The block's left padding is the gap between them; between rows, the
+   block's 5px bottom padding + 5px margin give the same 10px as the Tools grids */
 .hs-button-group-autosing-strategy .hs-panel-btn {
-    width: 130px;
+    width: 120px;
 }
 
-/* Timed save export: the two folder buttons share a line, the first one shows the folder's name. Their widths
-   keep them on one line at the panel's narrowest width, indented under "Export the save every X minutes" */
+.hs-inline-button.hs-button-group-autosing-strategy {
+    margin-right: 0;
+    margin-bottom: 5px;
+}
+
+/* Timed save export: one line indented under "Export the save every X minutes": Choose folder, the folder's name
+   (added by HSAutoExportFolder), and the button that forgets it, hidden without a folder but keeping its room */
+.hs-panel-settings-button-row:has(#hs-setting-auto-export-save-folder-button) {
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+    padding-left: calc(10px + var(--hs-setting-switch-size) + 0.5em);
+    margin-bottom: 15px;
+}
+
+.hs-panel-settings-button-row:has(#hs-setting-auto-export-save-folder-button) > .hs-panel-setting-block {
+    flex-shrink: 0;
+    padding: 0;
+    margin: 0;
+}
+
 #hs-setting-auto-export-save-folder-button,
 #hs-setting-auto-export-save-forget-folder-button {
-    width: auto;
-    min-width: 125px;
-    padding: 0 12px;
+    min-width: 0;
+    padding: 0;
     box-sizing: border-box;
     white-space: nowrap;
 }
 
 #hs-setting-auto-export-save-folder-button {
-    min-width: 290px;
-    max-width: 290px;
+    width: 110px;
+}
+
+#hs-setting-auto-export-save-forget-folder-button {
+    width: 30px;
+}
+
+/* Sized by its text, so the forget button stays right after it; it shrinks first in a narrow panel */
+#hs-auto-export-folder-name {
+    flex: 0 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #aaa;
 }
 
 .hs-panel-setting-block-gamedata-icon {
@@ -671,6 +763,18 @@ select::-webkit-scrollbar-corner {
 .hs-panel-setting-block-gamedata-icon:hover {
     cursor: help;
     filter: brightness(150%);
+}
+
+.hs-panel-setting-block-aoag-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    cursor: help;
+}
+
+.hs-panel-setting-block-aoag-pre {
+    filter: grayscale(100%);
+    opacity: 0.5;
 }
 
 .hs-disabled {
@@ -691,26 +795,50 @@ select::-webkit-scrollbar-corner {
 
 /* ===== NOTIFICATIONS ===== */
 
-.hs-notification {
+.hs-notifications {
     position: fixed;
-    max-width: 600px;
-    max-height: 250px;
+    max-width: calc(100vw - 30px);
+    display: flex;
+    gap: 8px;
+    z-index: 7000;
+    pointer-events: none;
+}
+
+.hs-notifications-top {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    flex-direction: column;
+}
+
+/* Same width and left edge as the game's notifications (.notification-item), new ones above the older ones */
+.hs-notifications-bottomLeft {
+    bottom: 15px;
+    left: 0;
+    width: 15vw;
+    min-width: calc(140px + 10em);
+    font-size: min(1em, 24px);
+    flex-direction: column-reverse;
+}
+
+.hs-notification {
+    min-height: 50px;
     color: #f5f6fa;
     border: 1px solid #f5f6fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 7000;
     padding: 5px;
     box-sizing: border-box;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .hs-notification-text {
-    text-overflow: ellipsis;
-    overflow: hidden;
     font-size: 10pt;
-    max-height: 250px;
     text-align: center;
+    overflow-wrap: anywhere;
     box-sizing: border-box;
 }
 
@@ -733,45 +861,48 @@ select::-webkit-scrollbar-corner {
 
 /* ===== SUBTABS ===== */
 
+/* Stays at the top of the panel while the settings scroll under it */
 .hs-panel-subtabs {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     width: 100%;
     height: auto;
-    padding: 0px 0px 0px 0px;
+    padding: 5px 0px;
+    border-bottom: 1px solid #555;
+    background-color: #18171c;
     color: white;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
+/* Equal widths sharing one row; a panel narrowed below their basis wraps them */
 .hs-panel-subtab {
     height: 25px;
-    width: 100px;
-    max-width: 100px;
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: auto;
+    flex: 1 1 74px;
     display: flex;
     justify-content: center;
     font-weight: bold;
     line-height: 25px;
-    margin: 0px 2px 0px 2px;
+    white-space: nowrap;
     border-radius: 0px;
-    font-size: 11pt;
+    font-size: 10pt;
     border: 1px solid var(--hs-panel-subtab-border-color, gray);
     --hs-panel-subtab-border-color: gray;
 }
 
 .hs-panel-subtab:hover {
-    background-color: #006;
+    background-color: #2c2b36;
     cursor: pointer;
 }
 
 .hs-panel-settings-grid {
     display: none;
-    margin-top: 15px;
+    margin-top: 5px;
 }
 
 .hs-panel-settings-grid.open {
@@ -780,39 +911,81 @@ select::-webkit-scrollbar-corner {
 
 /* ===== TOOLTIPS ===== */
 
-.hs-tooltip {
-    position: relative;
-    cursor: help;
-}
-.hs-tooltip::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: 50%;
-    top: calc(100% + 2px);
-    transform: translateX(-50%);
-    min-width: 12rem;
-    max-width: 24rem;
-    padding: 8px 10px;
-    background: rgba(30, 30, 30, 0.95);
-    color: #f5f5f5;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+/* HSTooltip. Above everything, the game's dialogs included (#confirmationBox: 10000000): the mouse passes through it */
+#hs-tooltip {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000001;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: min(420px, calc(100vw - 16px));
+    max-height: calc(100vh - 16px);
+    overflow: hidden;
+    padding: 6px 9px;
+    background: #1e1e1e;
+    color: #d3d5da;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
-    white-space: pre-line;
-    text-align: left;
-    font-size: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
-    letter-spacing: 0px !important;
-    line-height: 1.35;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-    z-index: 10000;
-    opacity: 0;
-    visibility: hidden;
+    font-size: 13px;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: 1.4;
+    text-align: left;
+    white-space: pre-line;
+    overflow-wrap: break-word;
     pointer-events: none;
-    transition: opacity 0.1s ease-in-out;
 }
-.hs-tooltip:hover::before {
-    opacity: 1;
-    visibility: visible;
+
+#hs-tooltip[hidden] {
+    display: none;
+}
+
+/* An HTML template's own line breaks aren't line breaks */
+#hs-tooltip.hs-tooltip-html {
+    white-space: normal;
+}
+
+/* wrap: false. A text keeps its \n; in HTML, only a <br> or a block breaks a line */
+#hs-tooltip.hs-tooltip-nowrap {
+    max-width: calc(100vw - 16px);
+    white-space: pre;
+}
+
+#hs-tooltip.hs-tooltip-html.hs-tooltip-nowrap {
+    white-space: nowrap;
+}
+
+#hs-tooltip .hs-tip-title {
+    margin-bottom: 3px;
+    color: #fff;
+    font-weight: 600;
+}
+
+#hs-tooltip .hs-tip-key {
+    color: #7fa1d1;
+    font-weight: 600;
+}
+
+#hs-tooltip .hs-tip-dim {
+    color: #8f8f8f;
+}
+
+#hs-tooltip .hs-tip-warn {
+    color: #e5534b;
+    font-weight: 600;
+}
+
+#hs-tooltip .hs-tip-list {
+    margin: 0;
+    padding-left: 16px;
+    list-style: disc;
+}
+
+#hs-tooltip .hs-tip-list li {
+    margin: 2px 0;
 }
 
 /* ===== RESIZERS ===== */

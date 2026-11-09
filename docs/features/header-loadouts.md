@@ -1,6 +1,6 @@
 # Ambrosia loadout modules in the header
 
-The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`.
+The header docs: `header-modules.md` (mod modules), `header-loadouts.md` (ambrosia loadout modules), `header-edit-mode.md` (the "[HS] Header" block and edit mode), `header-corruption.md` (corruption level module), `header-challenge-progress.md`, `header-elevator.md`.
 
 What the mod adds to the game's Ambrosia loadouts modules: icons, slots fitted to the cell, the slot shown as loaded, how many slots show, the module's own icon hidden.
 

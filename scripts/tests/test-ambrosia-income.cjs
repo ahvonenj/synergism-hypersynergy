@@ -56,7 +56,10 @@ function gameIncome(input, seconds = 25000, dt = 0.125) {
         ambrosia: 0, redAmbrosia: 0, lifetimeAmbrosia: 0, lifetimeRedAmbrosia: 0,
         encabulatorOvercapToggle: r.overcapEnabled, stats: { highestPurpleHoney: 0 }, singularityCounter: 0,
     };
-    const counts = { blue: 0, red: 0 };
+    const counts = { blue: 0, red: 0, purple: 0 };
+    // A golden-ratio sequence per seed: evenly spread draws, so a chance's
+    // long-run rate matches its expectation without sampling noise.
+    const draw = seed => (++counts[seed] * 0.6180339887498949) % 1;
     const env = {
         player,
         purpleReactantConversion: { ambrosiaBarPoints: 1000, redAmbrosiaBarPoints: 1, purpleBarPoints: 100 },
@@ -80,9 +83,10 @@ function gameIncome(input, seconds = 25000, dt = 0.125) {
         calculatePurpleReactantCapacity: () => r.blueCapacity,
         calculateRedAmbrosiaReactantCapacity: () => r.blueCapacity / 1000,
         calculateEncabulatorSpeed: () => r.encabulatorSpeed,
-        calculateTotalStat: () => input.purpleHoneyPerExtraction, allPurpleHoneyEfficiencyStats: {},
+        allPurpleHoneyEfficiencyStatsSum: () => input.purpleHoneyPerExtraction,
         Seed: { Ambrosia: 'blue', RedAmbrosia: 'red', PurpleHoney: 'purple' },
-        seededRandom: seed => { if (seed !== 'purple') counts[seed]++; return 0.999999; },
+        // One blue or red draw per bar fill: their counts are the fills.
+        seededRandom: draw,
         animatePurpleHoneyGain() {}, addTimers() {},
     };
     const run = new Function('env', `const {${Object.keys(env).join(',')}} = env;
@@ -154,8 +158,9 @@ income(changedInput);
 changedInput.reactor.blueRoutingPercent = 75;
 assert.deepEqual(income(changedInput), income(make({}, { blueRoutingPercent: 75 })),
     'cache follows values when the same input object changes');
+// One expected fill per extraction (2 x 0.5) x 300000 points over a 250000 bar: gain 1.2.
 assert.throws(() => income(make({}, { barDependenceEnabled: true,
-    cancerPurplePointsPerBlueOrRedFill: 200000 })), /no finite|sustained regime/,
+    cancerPurplePointsPerBlueOrRedFill: 300000 })), /no finite|sustained regime/,
     'unbounded reward feedback cannot be reported as a finite rate');
 assert.throws(() => income(make({ redRequirementWithoutTwoMind: 0 })), /requirements must be positive/);
 
@@ -181,6 +186,17 @@ const cases = [
     ['Bar Dependence', make({ purpleHoneyLuck: 100 }, {
         barDependenceEnabled: true, cancerPurplePointsPerBlueOrRedFill: 5000,
         purpleFillBluePoints: 1e6, purpleFillRedPoints: 500,
+    })],
+    // 4 rolls x 3 s x 1e7 = 1.2e8 points per red fill, capped at 8e7.
+    ['capped fusion', make({ bluePointsPerSecond: 1e7, redPointsPerSecond: 1000,
+        acceleratorSecondsPerRedAmbrosia: 3, redLuck: 400 }, {
+        purpleFillBluePoints: 1e6, purpleFillRedPoints: 500, cancerPurplePointsPerBlueOrRedFill: 5000,
+    })],
+    // 2 or 3 rolls of 3.6e7: only the third roll reaches the cap.
+    ['capped fusion on the bonus roll, no overcap', make({ bluePointsPerSecond: 1.2e7,
+        redPointsPerSecond: 1000, acceleratorSecondsPerRedAmbrosia: 3, redLuck: 250 }, {
+        overcapEnabled: false, purpleFillBluePoints: 1e6, purpleFillRedPoints: 500,
+        cancerPurplePointsPerBlueOrRedFill: 5000,
     })],
     ['Bar Dependence + Two Mind + fusion', make({
         blueRequirementWithoutTwoMind: 2e7, redRequirementWithoutTwoMind: 15000,
@@ -209,5 +225,5 @@ for (const [name, input, seconds = 25000] of cases) {
         assert.ok(actual.blueRewardPerSecond > 0 && actual.redRewardPerSecond > 0);
     }
 }
-console.log('Passed Ambrosia income checks: upstream reactor, overcap priority, rebate timing, tank bounds, fusion, Two Mind, Scorpio/Aries and Bar Dependence.');
+console.log('Passed Ambrosia income checks: upstream reactor, overcap priority, rebate timing, tank bounds, fusion and its cap, Two Mind, Scorpio/Aries and Bar Dependence.');
 module.exports = { income, gameIncome, base, make };

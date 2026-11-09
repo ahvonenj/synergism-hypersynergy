@@ -32,6 +32,12 @@ is injected only after every module's `init`. A module that draws game-styled el
 own CSS and calls `HSUI.flushInjectedStyles()` before drawing (`HSHeaderLoadoutIcons`: an unstyled `img` stretched to
 the page's height for a moment at each load).
 
+## No `:has()` on a wide ancestor
+A `:has()` with a descendant argument on `html`, `body` or another ancestor of the game's tabs is re-checked at every
+DOM change below it, and the game rewrites its texts many times a second: `html:has(#mainHeader.headerEditMode) …`
+doubled the time of the game's display updates. Use a class the mod sets, or a sibling combinator. A `:has()` scoped to
+the mod's own small elements (a settings block, a table cell) is fine.
+
 ## Settings
 
 - Declared in data: each setting is defined in `src/mod/resource/json/hs-settings.json` (type, default, UI control).
@@ -48,6 +54,28 @@ the page's height for a moment at each load).
   mod that way (`HSPlatform.get()`, `hs-core/hs-platform.ts`). The setting still exists and works everywhere.
 - A help text is also the `title` of the setting's buttons (`#buildSettingBlock`), put in an HTML attribute unescaped
   (`HSUIC.#getPropString`): no double quote in a help text.
+- `scripts/tests/test-settings-data.cjs` checks the data: handlers, a control with each action, pages, unique ids, help
+  texts.
+
+## Notifications
+
+- `HSUI.Notify(text, options?)`: a top-centre column, and a bottom-left one for what answers a player's action in the
+  game (`position: 'bottomLeft'`, hidden Alerts, below the game's own notifications and as wide). Any other `position`
+  goes top-centre.
+- 3 at most per column: a new one drops the oldest non-error first, and the same text replaces its earlier copy. Height
+  follows the text. Hover pauses the timer, a click dismisses.
+- It stays the longest of 5 s, 60 ms per character and `displayDuration`, then fades: to make one last longer, set
+  `displayDuration`.
+- Its promise resolves when it is gone, which a hover can delay: code never waits on it.
+
+## Tooltips
+
+- A browser `title` is the default. `HSTooltip` (`hs-core/hs-tooltip.ts`) is for what a `title` can't do: colours, a
+  shorter delay, a chosen side. `HSTooltip.set(element, text or options)`, or `HSTooltip.attrs(text)` in an HTML string.
+- `text` and `title` are never read as HTML; with `html`, the caller escapes. Colours in `html`: the classes `hs-tip-key`,
+  `hs-tip-dim`, `hs-tip-warn`. Default: 150 ms, below, about 420 px at most; don't put line breaks in a text to shape it,
+  it wraps by itself. Content made of lines (a list) takes `wrap: false`, not a width.
+- The mouse passes through a tooltip. A window with pins or scrolling keeps its own code and uses `HSTooltip.place()`.
 
 ## Class headers and authors
 

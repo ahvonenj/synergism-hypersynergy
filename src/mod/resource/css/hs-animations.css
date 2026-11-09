@@ -1,19 +1,17 @@
 /* ===== ANIMATIONS ===== */
 
+/* Still borders: a rotating gradient (an animated custom property) redrew the slot every frame, about 6% of the
+   main thread for as long as a slot was marked */
 .hs-rainbow-border.hs-silver-border,
 .hs-silver-border.hs-rainbow-border,
 .hs-rainbow-border {
-   --angle: 0deg;
    border: 2px solid transparent !important;
-   border-image: conic-gradient(from var(--angle), #ff5e00, #ff9a00, #ffcd00, #e5ff00, #a5ff00, #00ffc8, #00c8ff, #00a5ff, #9500ff, #00e1ff, #0095ff, #ff5e00) 1 !important;
-   animation: hue-rotate 6s linear infinite !important;
+   border-image: conic-gradient(#ff5e00, #ff9a00, #ffcd00, #e5ff00, #a5ff00, #00ffc8, #00c8ff, #00a5ff, #9500ff, #00e1ff, #0095ff, #ff5e00) 1 !important;
 }
 
 .hs-silver-border {
-   --angle: 0deg;
    border: 2px solid transparent !important;
-   border-image: conic-gradient(from var(--angle), #8c8c8c, #b0b0b0, #d0d0d0, #e8e8e8, #ffffff, #e8e8e8, #d0d0d0, #b0b0b0, #909090, #6f6f6f, #4a4a4a, #8c8c8c) 1 !important;
-   animation: hue-rotate 6s linear infinite;
+   border-image: conic-gradient(#8c8c8c, #b0b0b0, #d0d0d0, #e8e8e8, #ffffff, #e8e8e8, #d0d0d0, #b0b0b0, #909090, #6f6f6f, #4a4a4a, #8c8c8c) 1 !important;
 }
 
 .hs-rainbow-text {
@@ -47,21 +45,4 @@
     50% { color: #00ffc8; }
     75% { color: #9500ff; }
     100% { color: #ff5e00; }
-}
-
-@keyframes hue-rotate {
-    to {
-        --angle: 360deg;
-    }
-}
-@-webkit-keyframes hue-rotate {
-    to {
-        --angle: 360deg;
-    }
-}
-
-@property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
 }

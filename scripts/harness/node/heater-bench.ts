@@ -9,18 +9,23 @@ import Decimal from 'break_infinity.js'
 import { readFileSync, writeFileSync } from 'fs'
 import { HSHeaterUIInput } from '@repo/class/hs-modules/hs-heater/ui/hs-heater-ui-input'
 import { HSHeaterOptimizer } from '@repo/class/hs-modules/hs-heater/hs-heater-optimizer'
+import { heaterBellBonus } from '@repo/class/hs-modules/hs-heater/hs-heater-utils'
 
 const [file, groupArg] = process.argv.slice(2)
 if (!file || !groupArg) { console.error('usage: ... heater-bench.ts <backup.json> <branch[+branch...]>'); process.exit(1) }
 const backup = JSON.parse(readFileSync(file, 'utf8'))
 const h = backup.diagnostics?.heater
 if (!h) { console.error('no diagnostics.heater in this backup (a backup from a build before 59f71ca3?)'); process.exit(1) }
-// Backups from before the Active Bells input lack the NoBells fields
-if (h.totalAdditiveLuckMultiplierNoAmbNoBells === undefined && !h.activeBells) {
-    h.totalAdditiveLuckMultiplierNoAmbNoBells = h.totalAdditiveLuckMultiplierNoAmb
-    h.finalAmbrosiaBarPointsSNoAmbNoBells = h.finalAmbrosiaBarPointsSNoAmb
-    h.totalRedLuckNoAmbNoBells = h.totalRedLuckNoAmb
-    h.globalEventBlueBarBonus ??= 0
+// Backups from before the Active Bells input lack the NoBells fields: their bells are taken out as
+// hs-heater-export.ts does. They don't hold the global event's part of the bar speed, taken as 0.
+if (h.totalAdditiveLuckMultiplierNoAmbNoBells === undefined) {
+    const bells = heaterBellBonus(h.activeBells ?? 0)
+    const event = h.globalEventBlueBarBonus ??= 0
+    const luckMult = h.totalAdditiveLuckMultiplierNoAmb
+    const redLuckShare = (mult: number) => Math.floor((h.ambrosiaLuckNoAmb * mult - 100) / h.ambrosiaLuckPer1RedLuckNoAmb)
+    h.totalAdditiveLuckMultiplierNoAmbNoBells = luckMult - bells
+    h.finalAmbrosiaBarPointsSNoAmbNoBells = h.finalAmbrosiaBarPointsSNoAmb * (1 + event) / (1 + event + bells)
+    h.totalRedLuckNoAmbNoBells = h.totalRedLuckNoAmb - redLuckShare(luckMult) + redLuckShare(luckMult - bells)
 }
 // The backup's block is the bare hs_data: wrapped, or every input is 0
 const input = HSHeaterUIInput.buildOptimizerInput({ hs_data: h })

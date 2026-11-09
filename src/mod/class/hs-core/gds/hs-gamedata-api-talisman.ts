@@ -37,6 +37,8 @@ export class TalismanHelper {
     readonly #talismanUnlockedCache = new Map<TalismanKeys, boolean>()
     readonly #talismanEffectsCache = new Map<TalismanKeys, Map<number, unknown>>()
     #allRuneBonusesCache?: Record<RuneKeys, number>
+    // Not cleared with the caches above: see #getTalismanLevel
+    readonly #replayedLevels = new Map<TalismanKeys, { key: string; level: number }>()
     #statsComputed = false
     readonly #api: HSGameDataAPI;
 
@@ -78,6 +80,40 @@ export class TalismanHelper {
         return 1 + Math.min(6, Math.floor(6 * levelRatio)) + extraRarity;
     }
 
+    /**
+     * The live player's level is the game's own. A save holds only the fragments invested, from which the levels are
+     * replayed: tens of ms for all talismans at each data update, so each result is kept until its fragments or cap change.
+     */
+    #getTalismanLevel(t: TalismanKeys): number {
+        const data = this.#api.getGameData();
+        if (!data) return 0;
+
+        const live = window.__HS_talismans;
+        if (live && data === (HSGlobal.exposedPlayer as unknown)) return live[t].level;
+
+        const shards = getTalismanFragments(data, t);
+        const budget: Record<TalismanCostKey, Decimal> = {
+            shard: parseGameDataDecimal(shards.shard),
+            commonFragment: parseGameDataDecimal(shards.commonFragment),
+            uncommonFragment: parseGameDataDecimal(shards.uncommonFragment),
+            rareFragment: parseGameDataDecimal(shards.rareFragment),
+            epicFragment: parseGameDataDecimal(shards.epicFragment),
+            legendaryFragment: parseGameDataDecimal(shards.legendaryFragment),
+            mythicalFragment: parseGameDataDecimal(shards.mythicalFragment),
+        };
+        const cap = getTalismanLevelCap(t, this.#api);
+
+        let key = String(cap);
+        for (const item of talismanCostKeys) key += `|${budget[item].mantissa},${budget[item].exponent}`;
+
+        const kept = this.#replayedLevels.get(t);
+        if (kept?.key === key) return kept.level;
+
+        const level = replayTalismanLevel(t, budget, cap);
+        this.#replayedLevels.set(t, { key, level });
+        return level;
+    }
+
     #computeAllTalismanStats(): void {
         // Before the early return: stats computed from an older save must not be kept
         this.#clearCachesIfGameDataChanged();
@@ -90,7 +126,7 @@ export class TalismanHelper {
         }
 
         for (const key of keys) {
-            const level = getTalismanLevel(key, this.#api);
+            const level = this.#getTalismanLevel(key);
             this.#talismanLevelCache.set(key, level);
         }
 
@@ -166,16 +202,8 @@ export class TalismanHelper {
             this.#api.getSingularityChallengeEffect('taxmanLastStand', 'talismanRuneEffect') ?? 0,
         ];
 
-        if (mode === 'normal') {
-            const cached = this.#api.checkCalculationCache(cacheName, calculationVars);
-            if (cached !== undefined) return cached;
-        }
-
-        const result = allTalismanRuneBonusStatsSum(this.#api, mode);
-        if (mode === 'normal') {
-            this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-        }
-        return result;
+        if (mode !== 'normal') return allTalismanRuneBonusStatsSum(this.#api, mode);
+        return this.#api.memoizeCalculation(cacheName, calculationVars, () => allTalismanRuneBonusStatsSum(this.#api, mode));
     }
 
     getTalismanEffects = <K extends TalismanKeys>(t: K, rarity?: number): TalismanTypeMap[K] => {
@@ -191,7 +219,7 @@ export class TalismanHelper {
             return rarityCache.get(actualRarity) as TalismanTypeMap[K];
         }
 
-        const result = getTalismanEffects(t, actualRarity, this.#api);
+        const result = getTalismanEffects(t, actualRarity);
         rarityCache.set(actualRarity, result);
         return result;
     }
@@ -262,10 +290,8 @@ const allTalismanRuneBonusStatsSum = (api: HSGameDataAPI, mode: CalculationMode 
 
 const getTalismanEffects = <K extends TalismanKeys>(
     t: K,
-    rarity: number | undefined,
-    api: HSGameDataAPI,
+    rarity: number,
 ): TalismanTypeMap[K] => {
-    if (rarity === undefined) rarity = getTalismanRarity(t, api);
     const rarityIndex = Math.max(0, Math.min(10, rarity));
 
     switch (t) {
@@ -333,26 +359,11 @@ const getTalismanEffects = <K extends TalismanKeys>(
     }
 };
 
-const getTalismanLevel = (t: TalismanKeys, api: HSGameDataAPI, loadingTalismans = true): number => {
-    const data = api.getGameData();
-    if (!data) return 0;
-
-    const shards = getTalismanFragments(data, t);
-    const budget: Record<TalismanCostKey, Decimal> = {
-        shard: parseGameDataDecimal(shards.shard),
-        commonFragment: parseGameDataDecimal(shards.commonFragment),
-        uncommonFragment: parseGameDataDecimal(shards.uncommonFragment),
-        rareFragment: parseGameDataDecimal(shards.rareFragment),
-        epicFragment: parseGameDataDecimal(shards.epicFragment),
-        legendaryFragment: parseGameDataDecimal(shards.legendaryFragment),
-        mythicalFragment: parseGameDataDecimal(shards.mythicalFragment),
-    };
-
+const replayTalismanLevel = (t: TalismanKeys, budget: Record<TalismanCostKey, Decimal>, cap: number): number => {
     let level = 0;
     const baseMult = getTalismanBaseMult(t);
     const costType = getTalismanCostType(t);
-    const cap = getTalismanLevelCap(t, api);
-    const smallBufferMult = loadingTalismans ? new Decimal(1.0001) : new Decimal(1);
+    const smallBufferMult = new Decimal(1.0001);
 
     while (level < cap) {
         const costs = costType === 'regular'
@@ -380,25 +391,6 @@ const getTalismanLevel = (t: TalismanKeys, api: HSGameDataAPI, loadingTalismans 
 
     return level;
 };
-
-const getTalismanRarity = (t: TalismanKeys, api: HSGameDataAPI): number => {
-    const level = getTalismanLevel(t, api);
-    const unlocked = isTalismanUnlocked(t, api);
-    if (!unlocked) return 0;
-
-    const maxLevel = getTalismanMaxLevel(t);
-    const levelRatio = level / maxLevel;
-
-    let extraRarity = 0;
-    if (levelRatio >= 1) {
-        if (levelRatio >= 2) extraRarity += 1;
-        if (levelRatio >= 4) extraRarity += 1;
-        if (levelRatio >= 8) extraRarity += 1;
-    }
-
-    return 1 + Math.min(6, Math.floor(6 * levelRatio)) + extraRarity;
-};
-
 
 const getTalismanLevelCap = (t: TalismanKeys, api: HSGameDataAPI): number => {
     const baseMax = getTalismanMaxLevel(t);

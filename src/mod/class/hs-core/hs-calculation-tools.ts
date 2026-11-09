@@ -3,7 +3,6 @@ import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
 import { HSModuleManager } from "./module/hs-module-manager";
 import { HSGameDataAPI } from "./gds/hs-gamedata-api";
-import { HSUtils } from "../hs-utils/hs-utils";
 import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSCalculationDefinition, HSCalculationParamOption, HSCalculationParams } from "../../types/data-types/hs-gamedata-api-types";
 import calculationToolsCSS from "inline:../../resource/css/module/hs-calculation-tools.css";
@@ -51,9 +50,8 @@ export class HSCalculationTools {
 
         return [
             HSUIC.Div({
-                class: 'hs-panel-grid-full-span',
-                html: `Execute supported calculations on a save taken at the click and see their results. Calculations denoted with "(C)" support "calculating by components",
-                    meaning that the calculation results can be output as the named components that make up the calculations.`
+                class: 'hs-panel-grid-full-span hs-panel-grid-hint',
+                html: 'Runs a calculation on the current save. "(C)": can also list its components.'
             }),
             HSUIC.Select({
                 class: 'hs-panel-setting-block-select-input hs-panel-grid-full-span',
@@ -64,8 +62,8 @@ export class HSCalculationTools {
                 value: def.fnName,
             }))),
             HSUIC.Div({ id: HSCalculationTools.#paramsId, class: 'hs-panel-grid-full-span hs-calc-params' }),
-            HSUIC.Button({ id: HSCalculationTools.#reducedBtnId, text: 'Calculate reduced', class: 'hs-panel-btn-auto-width' }),
-            HSUIC.Button({ id: HSCalculationTools.#componentsBtnId, text: 'Calculate components', class: 'hs-panel-btn-auto-width' }),
+            HSUIC.Button({ id: HSCalculationTools.#reducedBtnId, text: 'Calc. reduced', class: 'hs-panel-btn-auto-width' }),
+            HSUIC.Button({ id: HSCalculationTools.#componentsBtnId, text: 'Calc. components', class: 'hs-panel-btn-auto-width' }),
             HSUIC.Button({ id: HSCalculationTools.#dumpCacheBtnId, text: 'Dump cache' }),
             HSUIC.Div({ id: HSCalculationTools.#resultId, class: 'hs-panel-grid-full-span hs-calc-result' }),
         ];
@@ -276,7 +274,15 @@ export class HSCalculationTools {
                 .map(([key, value]) => `\n${indent}${key}: ${HSCalculationTools.#formatResult(value, depth + 1)}`)
                 .join('');
         }
-        return typeof result === 'number' ? HSUtils.N(result) : String(result);
+        return typeof result === 'number' ? HSCalculationTools.#formatNumber(result) : String(result);
+    }
+
+    // 3 decimals; scientific notation above 1e6 and below 0.01, where 3 decimals would lose the value's significant digits
+    static #formatNumber(value: number): string {
+        const size = Math.abs(value);
+        return size > 1_000_000 || (size > 0 && size < 0.01)
+            ? value.toExponential(3).replace('+', '')
+            : value.toFixed(3);
     }
 
     // Components indented under their total. A total object (luck) gives its own keys first (luckTotal),

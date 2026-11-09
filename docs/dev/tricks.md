@@ -48,6 +48,20 @@ real saves:
 3. Run both on every backup at hand and `cmp` the outputs. Check they aren't all errors before trusting "identical".
 4. Remove the worktree.
 
+## Which input causes a difference between two saves
+
+When two saves behave differently (heater rows, a time), bisect the input instead of guessing from a list of fields
+that correlate: on the heater's row counts, two guesses of that kind were wrong, and a field nobody had listed turned
+out to be the cause.
+1. A node entry on `scripts/harness/node-run.mjs` builds the input of both saves, lists the fields that differ (nested
+   ones one by one, a `Decimal` as one field) and copies a given list of them from one save to the other. Anything
+   that isn't under test, such as the budget, is set after the copy.
+2. Run the save as it is, then with every differing field copied. The second run must give the other save's number
+   exactly, or the method doesn't hold. The midpoint of the two numbers is the threshold for a drop.
+3. Copy half the fields. If the number doesn't drop, try the other half; repeat on the half that does. If neither half
+   drops, the cause needs fields from both.
+4. Confirm the last field alone, in both directions.
+
 ## Number formats
 
 The game formats numbers with the browser's locale, not the game language (`docs/game/behaviours.md`).

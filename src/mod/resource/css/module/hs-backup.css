@@ -4,7 +4,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
-    margin-top: 8px;
 }
 
 .hs-backup-parts label,

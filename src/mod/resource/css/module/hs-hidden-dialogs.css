@@ -29,7 +29,7 @@
     cursor: pointer;
 }
 
-/* The "Hidden dialogs" list belongs to "Hide game dialogs", as "Show hidden dialogs as notifications" does
+/* The "Hidden dialogs" list belongs to "Hide game dialogs", as "Show as notifications" does
    (controlParent in hs-settings.json). The list is built by the module, not by the settings UI, so it has its
    own rules: indented under its label (block padding + switch width + gap)... */
 #hs-hidden-dialogs-block {
@@ -41,10 +41,11 @@
     display: none;
 }
 
-/* "Hidden dialogs" list in the panel: full width, "Restore default" below it */
+/* "Hidden dialogs" list in the panel: "Restore default" below it */
 #hs-hidden-dialogs-list {
     grid-column: 1 / span 2;
-    height: 120px;
+    max-width: 400px;
+    height: 70px;
 }
 
 /* Hidden dialogs are marked with a class, not selected (selection changes make the browser scroll the list) */

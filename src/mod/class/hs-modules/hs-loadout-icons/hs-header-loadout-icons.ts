@@ -76,7 +76,6 @@ export class HSHeaderLoadoutIcons extends HSModule {
 
     async init() {
         HSLogger.log(`Initializing HSHeaderLoadoutIcons module`, this.context);
-        HSHeaderLoadoutIcons.#removeLegacyCorruptionIcons();
 
         const modalContent = document.getElementById('modalContent');
         if (!modalContent) {
@@ -243,18 +242,6 @@ export class HSHeaderLoadoutIcons extends HSModule {
     // ======================================================
     // ----------------------- Helpers ----------------------
     // ======================================================
-
-    /**
-     * The game's 4.4.0 update removed its corruption loadout header modules: the icons the mod painted on their slots
-     * (data URLs, up to 16, next to the game's save in localStorage) have no use left. An old backup brings them back
-     * and goes through here again.
-     * Temporary (added 2026-10-24): can be removed a few releases later, with its call in init().
-     */
-    static #removeLegacyCorruptionIcons(): void {
-        try {
-            localStorage.removeItem('hs-corruption-loadout-icons');
-        } catch { /* nothing to free */ }
-    }
 
     static #kindOf(button: Element): HSHeaderLoadoutKind | null {
         const containerId = button.parentElement?.id ?? '';

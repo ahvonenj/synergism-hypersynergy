@@ -1,5 +1,5 @@
 // Reference implementation from Pseudo-Corp/SynergismOfficial (MIT).
-// Commit 97d03af5668411b18cd8aaa8fef4e4d28c9f76db, Calculate.ts and Helper.ts.
+// Commit fc9f007ca (game 4.4.1), Calculate.ts and Helper.ts.
 // Kept separate from the mod so tests do not mirror its income equations.
 /*
 MIT License
@@ -141,7 +141,9 @@ export const calculatePurpleReactantRouting = (
   }
 }
 
-export const calculatePurpleHoneyPerExtraction = () => calculateTotalStat(allPurpleHoneyEfficiencyStats)
+export const calculatePurpleHoneyPerExtraction = () => allPurpleHoneyEfficiencyStatsSum()
+
+export const calculateBarEXALTPurpleFillChance = () => 1 - Math.pow(2, -calculatePurpleHoneyRewardLuck() / 100)
 
 export const calculatePurpleHoneyExtractionMultiplier = (luck: number) => {
   const guaranteedMultiplier = Math.floor(luck / 100)
@@ -173,10 +175,11 @@ const awardAmbrosiaBarFill = (globalSpeedMult?: () => number) => {
 }
 
 /**
- * @returns seconds of Ambrosia generation granted by Red Ambrosia Accelerator
+ * @returns Ambrosia Bar Points granted by Red Ambrosia Accelerator
  */
 const awardRedAmbrosiaBarFill = () => {
-  const redAmbrosiaLuck = calculateRedAmbrosiaRewardLuck()
+  const baseRedLuck = calculateRedAmbrosiaLuck()
+  const redAmbrosiaLuck = calculateRedAmbrosiaRewardLuck(baseRedLuck)
   const RNG = seededRandom(Seed.RedAmbrosia)
   const redAmbrosiaMult = Math.floor(redAmbrosiaLuck / 100)
   const luckMult = RNG < redAmbrosiaLuck / 100 - Math.floor(redAmbrosiaLuck / 100) ? 1 : 0
@@ -191,10 +194,11 @@ const awardRedAmbrosiaBarFill = () => {
   player.purpleHoneyProgress += getPurpleAmbrosiaUpgradeEffects('cancer', 'purpleBarPointsOnFill')
 
   // Red-Blue Ultrafusion uses base Red Luck, not TWO MIND reward luck
-  const baseRedLuck = calculateRedAmbrosiaLuck()
   const acceleratorMult = Math.floor(baseRedLuck / 100)
     + (RNG < baseRedLuck / 100 - Math.floor(baseRedLuck / 100) ? 1 : 0)
-  return acceleratorMult * getRedAmbrosiaUpgradeEffects('redAmbrosiaAccelerator', 'ambrosiaTimePerRedAmbrosia')
+  const acceleratorSeconds = acceleratorMult
+    * getRedAmbrosiaUpgradeEffects('redAmbrosiaAccelerator', 'ambrosiaTimePerRedAmbrosia')
+  return Math.min(redAmbrosiaAcceleratorMaxBarPoints, calculateAmbrosiaBarPointsGenerated(acceleratorSeconds))
 }
 
 const gainAmbrosia = (globalSpeedMult?: () => number) => {
@@ -213,7 +217,7 @@ const gainAmbrosia = (globalSpeedMult?: () => number) => {
 
 /**
  * Converts Red Ambrosia Bar Points into Red Ambrosia.
- * @returns seconds of Ambrosia generation granted by Red Ambrosia Accelerator
+ * @returns Ambrosia Bar Points granted by Red Ambrosia Accelerator
  */
 const gainRedAmbrosia = () => {
   if (player.singularityChallenges.noAmbrosiaUpgrades.completions === 0) {
@@ -221,15 +225,15 @@ const gainRedAmbrosia = () => {
   }
 
   let timeToRedAmbrosia = calculateRequiredRedAmbrosiaTime()
-  let ambrosiaTimeToGrant = 0
+  let ambrosiaBarPointsToGrant = 0
 
   while (player.redAmbrosiaTime >= timeToRedAmbrosia) {
-    ambrosiaTimeToGrant += awardRedAmbrosiaBarFill()
+    ambrosiaBarPointsToGrant += awardRedAmbrosiaBarFill()
     player.redAmbrosiaTime -= timeToRedAmbrosia
     timeToRedAmbrosia = calculateRequiredRedAmbrosiaTime()
   }
 
-  return ambrosiaTimeToGrant
+  return ambrosiaBarPointsToGrant
 }
 
 /**
@@ -297,6 +301,8 @@ const calculateRedAmbrosiaBarPointsGenerated = (seconds: number) =>
     ? calculateRedAmbrosiaGenerationSpeed() * seconds
     : 0
 
+const redAmbrosiaAcceleratorMaxBarPoints = 80_000_000
+
 /**
  * Runs the Chroma-Encabulator in one pass, then converts full bars into Ambrosia/Red Ambrosia.
  * Every source of Bar Points is routed through the tanks first.
@@ -351,17 +357,23 @@ export const runPurpleReactor = (
     getPurpleAmbrosiaUpgradeEffects('gemini', 'redAmbrosiaBarPointsOnFill')
     + getShopUpgradeEffects('shopPurpleBarRebate', 'redAmbrosiaBarPointsPerFill')
   )
-  let ambrosiaTimeToGrant = 0
+  let ambrosiaBarPointsToGrant = 0
 
   if (completedExtractions > 0) {
     if (player.singularityChallenges.barDependence.enabled) {
-      // Each Purple Honey extracted (from Purple Honey Luck) grants the effect of both bars directly.
-      for (let i = 0; i < purpleHoneyExtracted; i++) {
-        if (player.singularityChallenges.noSingularityUpgrades.completions > 0) {
+      const fillChance = calculateBarEXALTPurpleFillChance()
+      for (let i = 0; i < completedExtractions; i++) {
+        if (
+          player.singularityChallenges.noSingularityUpgrades.completions > 0
+          && seededRandom(Seed.PurpleHoney) < fillChance
+        ) {
           awardAmbrosiaBarFill(globalSpeedMult)
         }
-        if (player.singularityChallenges.noAmbrosiaUpgrades.completions > 0) {
-          ambrosiaTimeToGrant += awardRedAmbrosiaBarFill()
+        if (
+          player.singularityChallenges.noAmbrosiaUpgrades.completions > 0
+          && seededRandom(Seed.PurpleHoney) < fillChance
+        ) {
+          ambrosiaBarPointsToGrant += awardRedAmbrosiaBarFill()
         }
       }
     } else {
@@ -387,9 +399,9 @@ export const runPurpleReactor = (
   }
 
   gainAmbrosia(globalSpeedMult)
-  ambrosiaTimeToGrant += gainRedAmbrosia()
-  if (ambrosiaTimeToGrant > 0) {
-    player.purpleHoneyProgress += reactPurpleReactants(calculateAmbrosiaBarPointsGenerated(ambrosiaTimeToGrant), 0, 0)
+  ambrosiaBarPointsToGrant += gainRedAmbrosia()
+  if (ambrosiaBarPointsToGrant > 0) {
+    player.purpleHoneyProgress += reactPurpleReactants(ambrosiaBarPointsToGrant, 0, 0)
     gainAmbrosia(globalSpeedMult)
   }
 }

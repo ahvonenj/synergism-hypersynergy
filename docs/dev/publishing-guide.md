@@ -6,8 +6,9 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
 
 1. Review the relevant mod implementation and developer feature docs.
 2. Edit `docs/data/feature-catalogue.json`. It is the shared source for the public site, inventory and wiki; do not edit generated pages by hand.
-3. When re-auditing behavior, update `audited_commit` to the reviewed source commit. The package version, settings registry and calculation picker entries are read from the checkout.
-4. Run:
+3. Step-by-step guides are hand-written Markdown in `docs/data/guides/<category id>.md`, starting with a `# Title` line. Each becomes `docs/wiki/<category id>-guide.html` and the wiki page `Guide-<category id>`, linked from its category, the wiki index and the sidebar. Use only headings (`#` to `####`), paragraphs, flat `-` and `1.` lists, `---` rules (blank line above), `**bold**`, `` `code` `` and `[links](url)`: the generator refuses anything else.
+4. When re-auditing behavior, update `audited_commit` to the reviewed source commit: it only records the audit in `docs/FEATURE-AUDIT.md`, source links follow `master`. The package version, settings registry and calculation picker entries are read from the checkout.
+5. Run:
 
    ```sh
    python scripts/tools/build-docs.py
@@ -15,7 +16,7 @@ The site uses GitHub Pages, matching the original project. No Sites/Cloudflare p
    node --check docs/js/guide.js
    ```
 
-The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod.
+The generator refuses duplicate feature IDs, unknown settings, unmapped settings and missing source references. It does not access the network or change the mod. `--validate` runs only those catalogue checks and writes nothing: on Dev, use it instead of generating (`docs/dev/releasing.md`, "Porting a change to Live").
 
 ## Update the changelog
 
@@ -25,7 +26,7 @@ Edit `docs/data/changelog.json`, which records release and version history separ
 python scripts/tools/build-docs.py --validate
 ```
 
-Regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site:
+On Live, regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site (Dev never commits it: `docs/dev/releasing.md`):
 
 ```sh
 python scripts/tools/build-docs.py --changelog-only
@@ -81,7 +82,7 @@ Set the repository's About → Website field to the new URL only after it is con
 
 ## Publish the native GitHub Wiki
 
-`docs/wiki-source/` contains the GitHub-compatible Markdown: Home, Mod-Features, twelve feature guides, Settings-Reference, Calculation-Reference, sidebar and footer. The site also has a complete browsable HTML wiki under `docs/wiki/`, so the guide does not depend on the native wiki being initialized.
+`docs/wiki-source/` contains the GitHub-compatible Markdown: Home, Mod-Features, one page per category, the step-by-step guides, Settings-Reference, Calculation-Reference, sidebar and footer. The site also has a complete browsable HTML wiki under `docs/wiki/`, so the guide does not depend on the native wiki being initialized.
 
 GitHub Wikis have a separate Git repository, not a `/wiki` directory in the main repo. The GitHub connector has no Wiki-writing or Pages-settings operation; an authenticated GitHub CLI can configure Pages and Git can publish an initialized wiki. If the wiki has not been initialized, first open `https://github.com/Ferlieloi/synergism-hypersynergy/wiki` and create its first page in GitHub's UI. Then, in an authenticated Git environment:
 

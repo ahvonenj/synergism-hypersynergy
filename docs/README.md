@@ -12,7 +12,7 @@ decisions behind them. Read a feature's file before changing that feature.
   update).
 - `features/`: one file per feature: its rules, what was tried and rejected, and why. The header has five (`header-*.md`).
 - `dev/`: working procedures. `code.md` (modules, logging, CSS timing, settings, class headers and authors), `releasing.md` (mod, Live merges and ports, loader), `tricks.md` (builds, git, files,
-  same-numbers check, number formats).
+  same-numbers check, number formats), `sprite-icons.md` (reusing game icons with `HSIcons`).
 - Test harnesses: `scripts/harness/README.md`.
 
 **Shewchou** is the maintainer of the Dev channel (`maenhiir/synergism-hypersynergy`); "Shewchou's choice" marks a

@@ -85,10 +85,7 @@ export const parseGameDataNumber = (value: unknown, fallback = 0): number => {
     return parsed === Number.POSITIVE_INFINITY || parsed === Number.NEGATIVE_INFINITY ? parsed : fallback;
 };
 
-export const floorLog10PlusOne = (value: number): number =>
-    value > 0 ? 1 + Math.floor(Math.log10(value)) : 1;
-
-// floor(log10(value + 1)): 0 for 0, where floorLog10PlusOne gives 1
+// floor(log10(value + 1)): 0 for 0
 export const floorLog10OfOnePlus = (value: number | Decimal | GameCount): number =>
     Math.floor(Math.log10(Number(value ?? 0) + 1));
 

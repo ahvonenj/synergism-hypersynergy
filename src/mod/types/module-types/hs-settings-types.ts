@@ -45,10 +45,13 @@ export interface HSSettingsDefinition {
     challengeProgressDetails: HSSettingBase<string>;
     challengeProgressShowNone: HSSettingBase<boolean>;
     corruptionHeaderControls: HSSettingBase<boolean>;
+    corruptionHeaderInline: HSSettingBase<boolean>;
     corruptionHeaderAlwaysShown: HSSettingBase<boolean>;
+    singularityHeaderElevator: HSSettingBase<boolean>;
     autoDismissOfflinePopup: AutoDismissOfflinePopupSetting;
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;
+    perksFind: PerksFindSetting;
 
     // Log Settings
     logTimestamp: LogTimestampSetting;
@@ -79,6 +82,8 @@ export interface HSSettingsDefinition {
     // Auto Sing Settings
     startAutosing: StartAutosing;
     singularityNumber: SingularityNumber;
+    autosingKeepAwake: HSSettingBase<boolean>;
+    autosingStepTimings: HSSettingBase<boolean>;
     autosingNoAmbrosiaSwitch: HSSettingBase<boolean>;
     autosingEarlyCubeLoadout: AutosingEarlyCubeLoadout;
     autosingLateCubeLoadout: AutosingLateCubeLoadout;
@@ -89,7 +94,6 @@ export interface HSSettingsDefinition {
     autosingStrategy: AutosingStrategy;
 
     // Advanced AutoSing Settings
-    advancedDataCollection: AutosingAdvancedDataCollection; // disabled for now...
     autosing3to6DCubeOpeningPercent: Autosing3to6DCubeOpeningPercent;
     autosingTessBuildingAutoBuyPercent: AutosingTessBuildingAutoBuyPercent;
     autosingAutoChallTimerStart: AutosingAutoChallTimerStart;
@@ -101,7 +105,7 @@ export interface HSSettingsDefinition {
     heaterTypeLoadoutSelections: HeaterTypeLoadoutSelectionsSetting;
     heaterUncheckedBranches: HeaterUncheckedBranchesSetting;
     heaterTickedBranches: HeaterTickedBranchesSetting;
-    heaterTwoWorkers: HeaterTwoWorkersSetting;
+    heaterWorkers: HeaterWorkersSetting;
 
     // QOL Buttons Settings
     hideMaxedGQUpgrades: QOLButtonsHideMaxedGQUpgradesSetting;
@@ -118,9 +122,8 @@ export interface HSSettingsDefinition {
     headerEditButton: HSSettingBase<boolean>;
     headerLongPressEditing: HSSettingBase<boolean>;
 
-    // Talismans Settings
-    enableTalismansModule: EnableTalismansModuleSetting;
     // GQ Distributor Ratio Settings
+    gqDistributorOpen: GQDistributorOpenSetting;
     gqDistributorRatios: GQDistributorRatiosSetting;
     gqDistributorBalanceInvestments: GQDistributorBalanceInvestmentsSetting;
     gqDistributorKeepSkippedShare: GQDistributorKeepSkippedShareSetting;
@@ -160,6 +163,8 @@ export interface HSSettingControl {
     controlParent?: keyof HSSettingsDefinition;
     /** With controlParent: hidden while the parent's switch is off */
     controlHideWhenParentOff?: boolean;
+    /** Antiquities icon before the label: dimmed for pre-AOAG, full colours for post-AOAG */
+    controlAoagIcon?: 'pre' | 'post';
     controlOptions?: HSSettingControlOptions;
     selectOptions?: HSUICSelectOption[];
     props?: HTMLProps;
@@ -169,6 +174,7 @@ export interface HSSettingControlPage {
     order: number;
     pageName: string;
     pageColor: string;
+    pageSelectedColor: string;
 }
 
 export interface HSSettingBase<T> {
@@ -187,6 +193,8 @@ export interface HSSettingBase<T> {
     /** Needs GDS: everywhere (true) or only on these platforms. Read it through HSSettings.usesGameData() */
     usesGameData?: boolean | HSPlatformName[];
     skipInit?: boolean;
+    /** Never drawn in the settings panel: changed from elsewhere (header edit mode, a module's own UI) */
+    hidden?: boolean;
     /** Shown in the settings panel only on these platforms (all when absent). The setting itself still works everywhere */
     platforms?: HSPlatformName[];
 }
@@ -227,6 +235,7 @@ export interface HiddenVanillaTabsSetting extends HSSettingBase<string[]> { }
 export interface AutoDismissOfflinePopupSetting extends HSSettingBase<boolean> { }
 export interface ReloadOnLateLoaderStartSetting extends HSSettingBase<boolean> { }
 export interface RememberSubtabsSetting extends HSSettingBase<boolean> { }
+export interface PerksFindSetting extends HSSettingBase<boolean> { }
 
 // Timed save export
 export interface AutoExportSaveSetting extends HSSettingBase<number> { }
@@ -254,7 +263,6 @@ export interface AutosingOffLoadout extends HSSettingBase<string> { }
 export interface AutosingStrategy extends HSSettingBase<string> { }
 
 // Advanced AutoSing Settings
-export interface AutosingAdvancedDataCollection extends HSSettingBase<boolean> { }
 export interface Autosing3to6DCubeOpeningPercent extends HSSettingBase<number> { }
 export interface AutosingTessBuildingAutoBuyPercent extends HSSettingBase<number> { }
 export interface AutosingAutoChallTimerStart extends HSSettingBase<number> { }
@@ -270,9 +278,9 @@ export interface QOLButtonsCenterQuickbarsSetting extends HSSettingBase<boolean>
 export interface QOLButtonsHeaderStatsAtBottomSetting extends HSSettingBase<boolean> { }
 
 // Talismans Settings
-export interface EnableTalismansModuleSetting extends HSSettingBase<boolean> { }
 
 // GQ Distributor Ratio Settings
+export interface GQDistributorOpenSetting extends HSSettingBase<boolean> { }
 export interface GQDistributorRatiosSetting extends HSSettingBase<string> { }
 export interface GQDistributorBalanceInvestmentsSetting extends HSSettingBase<boolean> { }
 export interface GQDistributorKeepSkippedShareSetting extends HSSettingBase<boolean> { }
@@ -281,4 +289,4 @@ export interface GQDistributorKeepSkippedShareSetting extends HSSettingBase<bool
 export interface HeaterTypeLoadoutSelectionsSetting extends HSSettingBase<string[]> { }
 export interface HeaterUncheckedBranchesSetting extends HSSettingBase<string[]> { }
 export interface HeaterTickedBranchesSetting extends HSSettingBase<string[]> { }
-export interface HeaterTwoWorkersSetting extends HSSettingBase<boolean> { }
+export interface HeaterWorkersSetting extends HSSettingBase<number> { }

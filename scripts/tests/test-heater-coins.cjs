@@ -113,7 +113,8 @@ async function main() {
   close(heaterCoinsC15LogRatio({ ...huge, globalSpeedLog10: 0.1 }, huge), 0.1, 'small speed gain survives enormous coin caps');
   assert.ok(heaterCoinsC15LogRatio({ ...huge, taxExponent: 0.99e-100 }, huge) > 1e90);
   assert.match(formatHeaterCoinsC15Effect(1e100), /^10\^\(/);
-  assert.equal(formatHeaterCoinsC15Effect(0), '1.00');
+  // formatNumber follows the locale: 1,00 on a French system
+  assert.equal(formatHeaterCoinsC15Effect(0), (1).toLocaleString(undefined, { minimumFractionDigits: 2 }));
   for (const special of [
     { ...snapshot, challenge9: true },
     { ...snapshot, runes: { ...snapshot.runes, duplication: { ...snapshot.runes.duplication, unlocked: false } } },
@@ -257,7 +258,7 @@ async function main() {
   data.researches[51] = 5; data.researches[159] = 2; data.rareFragments = '1e30';
   data.highestSingularityCount = 281; data.challengecompletions[6] = 12; data.challengecompletions[13] = 3;
   const changed = buildHeaterCoinsC15Input(api, data, 1000);
-  const campaignTax = 1 - 0.05 - 0.15 * (1 - Math.exp(-500 / 1250));
+  const campaignTax = 1 - 0.05 - 0.05 * Math.log2(1000 / 500);
   close(changed.taxExponentWithoutRunes, 0.000005 / 1.075 * 0.965 ** 12 * 0.966 ** 3
     * 0.7 * 0.98 ** (0.6 * 30 * 2) * campaignTax * 0.5, 'fixed research, campaign, fragment and Singularity tax factors');
 

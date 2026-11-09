@@ -1,0 +1,199 @@
+/* The search field of the Perks / Penalties subtab (HSPerksFind). Injected only while its setting is on. */
+
+#singularityInfo {
+    position: relative;
+}
+
+/* Fills the penalties' grid cell without taking part in its size: nothing moves */
+#hs-perks-find {
+    position: absolute;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+
+#hs-perks-find-field {
+    position: relative;
+    flex: none;
+    align-self: center;
+    width: min(260px, 100%);
+    margin-top: 4px;
+    pointer-events: auto;
+}
+
+#hs-perks-find-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 26px;
+    padding: 2px 24px 2px 8px;
+    border: 1px solid #666;
+    border-radius: 4px;
+    outline: none;
+    color: var(--white-color);
+    background-color: var(--alert-color);
+    font-size: 0.9em;
+}
+
+#hs-perks-find-input:focus {
+    border-color: var(--gold-color);
+}
+
+#hs-perks-find-clear {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 24px;
+    height: 26px;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    color: #888;
+    background: none;
+    font-size: 1.1em;
+    line-height: 26px;
+    cursor: pointer;
+}
+
+#hs-perks-find-clear:hover {
+    color: var(--white-color);
+}
+
+/* Beside the field, out of the flow: the field stays centred and its size doesn't follow the number */
+#hs-perks-find-count {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-left: 8px;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 0.85em;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* One row, in the room above the penalties text */
+#hs-perks-find-subjects {
+    display: flex;
+    flex: none;
+    justify-content: center;
+    gap: 3px;
+    height: 20px;
+}
+
+#hs-perks-find-subjects button {
+    min-height: 0;
+    height: 20px;
+    padding: 0 3px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #999;
+    background: none;
+    font-size: 0.8em;
+    line-height: 18px;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+#hs-perks-find-subjects button:hover {
+    border-color: #999;
+    color: var(--white-color);
+}
+
+#hs-perks-find-results {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #666 transparent;
+}
+
+#hs-perks-find-results:not(:empty) {
+    pointer-events: auto;
+}
+
+/* Down to the window's bottom, out of the flow: nothing moves. Not when the game stacks the tree under the penalties
+   (its own breakpoint): the results would cover it. */
+@media (width > 1024px) {
+    #hs-perks-find-results:not(:empty) {
+        min-height: calc(100vh - var(--hs-perks-find-results-top, 100vh) - 8px);
+    }
+}
+
+/* The game's tooltip, compact: several have to fit. The level sits on the title row, the next level is left to the
+   game's own tooltip, on the perk in the tree. */
+#hs-perks-find-results .singularityPerkModal {
+    display: grid;
+    flex: none;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--gold-color);
+    border-radius: 5px;
+    background-color: var(--alert-color);
+}
+
+#hs-perks-find-results .singularityPerkModalTitle {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+    font-size: 0.95em;
+    line-height: 1.2;
+    text-align: left;
+}
+
+#hs-perks-find-results .singularityPerkModalTitle img {
+    flex: none;
+    width: 24px;
+    height: 24px;
+}
+
+#hs-perks-find-results .singularityPerkModalLevel {
+    color: #888;
+    font-size: 0.75em;
+    white-space: nowrap;
+}
+
+#hs-perks-find-results .singularityPerkModalNextLevel {
+    display: none;
+}
+
+#hs-perks-find-results .singularityPerkModalDescription {
+    grid-column: 1 / -1;
+    font-size: 0.875em;
+    line-height: 1.25;
+}
+
+.hs-perks-find-empty {
+    margin-top: 16px;
+    color: #888;
+    text-align: center;
+}
+
+/* The game's stacked layout (its own breakpoint) has no room above the penalties text: make the field's and the words' */
+@media (width <= 1024px) {
+    #singularityPenaltiesMultiline {
+        margin-top: 62px;
+    }
+}
+
+#singularityInfo.hs-perks-find-active #singularityPenaltiesMultiline {
+    visibility: hidden;
+}
+
+#singularityInfo.hs-perks-find-active .singularityPerkNode:not(.hs-perks-find-hit) {
+    opacity: 0.2;
+}
+
+/* Its lit lines would otherwise stand out more than the perks found */
+#singularityInfo.hs-perks-find-active #singularityPerkTreeConnections {
+    opacity: 0.2;
+}

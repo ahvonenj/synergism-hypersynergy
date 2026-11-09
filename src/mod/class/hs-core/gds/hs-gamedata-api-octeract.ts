@@ -8,6 +8,8 @@ export const dailyOcteractFreeLevelCaps: Partial<Record<OcteractUpgradeKey, numb
     octeractAscensionsOcteractGain: 2,
 };
 
+const OCTERACT_LEVEL_TOLERANCE = 1e-10;
+
 /**
  * Class: OcteractHelper
  * IsExplicitHSModule: No
@@ -37,11 +39,14 @@ export class OcteractHelper {
         }
         if (investment < 0) return 0;
 
+        // SynergismOfficial/src/Octeracts.ts setOcteractUpgradeLevels: accumulated costs can round slightly below the
+        // cumulative level cost, so the game reads a level with this relative tolerance.
+        const budget = investment * (1 + OCTERACT_LEVEL_TOLERANCE);
         let low = 0;
         let high = definition.maxLevel;
         while (low < high) {
             const middle = low + Math.ceil((high - low) / 2);
-            if (definition.costFormula(middle) <= investment) low = middle;
+            if (definition.costFormula(middle) <= budget) low = middle;
             else high = middle - 1;
         }
         return low;

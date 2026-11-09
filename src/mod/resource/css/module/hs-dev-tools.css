@@ -47,8 +47,6 @@
 }
 
 .hs-dev-tools-group {
-    /* The help box is placed against the title's line, not against its "?" */
-    position: relative;
     margin-top: 10px;
     color: limegreen;
 }
@@ -67,34 +65,6 @@
     text-align: center;
     vertical-align: middle;
     cursor: help;
-}
-
-.hs-dev-tools-help-box {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 10;
-    box-sizing: border-box;
-    width: 100%;
-    margin: 2px 0 0;
-    padding: 8px 10px 8px 26px;
-    border: 1px solid #888;
-    background-color: #101828;
-    color: white;
-    font-size: 14px;
-    line-height: 1.4;
-    list-style: disc;
-    text-align: left;
-    cursor: default;
-}
-
-.hs-dev-tools-help-box li {
-    margin: 2px 0;
-}
-
-.hs-dev-tools-help:hover .hs-dev-tools-help-box {
-    display: block;
 }
 
 .hs-dev-tools-row {

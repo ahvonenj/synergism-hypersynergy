@@ -3,7 +3,6 @@ import { HSExternalModule, HSModule } from "./hs-module";
 import { HSCodes } from "../../hs-modules/hs-codes";
 import { HSHepteracts } from "../../hs-modules/hs-hepteracts/hs-hepteracts";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSTalismans } from "../../hs-modules/hs-talismans";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
 import { HSModuleDefinition, HSModuleOptions, HSModuleType } from "../../../types/hs-types";
@@ -18,6 +17,7 @@ import { HSGameDataAPI } from "../gds/hs-gamedata-api";
 import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
+import { HSPerksFind } from "../../hs-modules/hs-perks-find";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
 
@@ -40,7 +40,6 @@ export class HSModuleManager {
         "HSCodes": HSCodes,
         "HSHepteracts": HSHepteracts,
         "HSHepteractDistributor": HSHepteractDistributor,
-        "HSTalismans": HSTalismans,
         "HSSettings": HSSettings,
         "HSPrototypes": HSPrototypes,
         "HSMouse": HSMouse,
@@ -53,6 +52,7 @@ export class HSModuleManager {
         "HSAutosing": HSAutosing,
         "HSQOLButtons": HSQOLButtons,
         "HSSubtabMemory": HSSubtabMemory,
+        "HSPerksFind": HSPerksFind,
         "HSAutoExport": HSAutoExport,
         "HSHeaderLoadoutIcons": HSHeaderLoadoutIcons
     };

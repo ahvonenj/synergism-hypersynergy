@@ -1,6 +1,6 @@
 # Autosing (`hs-modules/hs-autosing/`)
 
-The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Autosing's place in the dialog queue: `docs/features/dialogs.md`.
+The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy format, conversions, default strategies), `autosing-editor.md` (strategy and actions windows). Players' guide: `docs/data/guides/autosing.md` (published to the website and wiki by `scripts/tools/build-docs.py`), updated with any change players see. Autosing's place in the dialog queue: `docs/features/dialogs.md`.
 
 Singularity automation driven by JSON "strategies" (`autosing-strategies.md`). The main loop is in `hs-autosing.ts`, the run panel (timer window) in `hs-autosingModal.ts`.
 
@@ -35,12 +35,35 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - Patched players still read `player.insideSingularityChallenge` and still poll it at each game tick: the attribute only wakes them earlier, and without it (a game update) the tick ends the wait. Bookmarklet players read the attribute.
 - With debug logs on, a line gives the time taken and how many waits a tick ended (0 when the attribute did).
 
+## A hidden browser tab
+`HSUtils.sleep`.
+- The browser fires a hidden tab's normal timers once a second at most, and chained ones once a minute after 5 minutes; a worker's timers aren't throttled. The game's tick uses worker timers and keeps its speed. With normal timers, autosing's waits took a singularity from about 6 s to about 15 s (S260 save, first minute hidden).
+- While `document.hidden`, `HSUtils.sleep` goes through a small worker created at the first such sleep. In a visible tab it is the normal timer plus one boolean check. If the worker fails: a warning, normal timers from then on, and a sleep running in it ends early rather than never.
+- Always on: no setting, nothing is gained by turning it off.
+- These stay on normal timers and can fire about 1 s late: the restart delay (button and action 902), the 5 s text refresh limit, and the challenge time limit in `#waitForCompletion`'s DOM fallback, the only one that can cost a run time (mainly bookmarklet players). The run panel doesn't draw while hidden, whatever the timer.
+- The mod can't prevent Chrome's Energy Saver freeze, which suspends the page's tasks: players turn it off (the players' guide). Not a silent audio track: Chrome doesn't count it as sound. The wake lock below doesn't help here: the browser releases it when the tab is hidden.
+
+## "Keep the PC awake" (`autosingKeepAwake`)
+`HSAutosingWakeLock`.
+- On by default: a player running autosing expects the PC to stay awake. Off, the mod never requests the lock.
+- A screen wake lock, held from `#autosingEnabled` turning true to `#stopAutosingCore`, so every stop, restart and save load releases it. Changing the setting during a run applies at once.
+- The browser releases it when the tab is hidden; a `visibilitychange` listener, there only during a run, requests it again when the tab comes back. So a session in another tab or a minimized window isn't protected. Nor, in Chrome on Windows, is a fully covered window or a locked PC: the lock goes, and comes back by itself (within 5 s of Win+L and of unlocking).
+- On Steam the lock stays while the window is minimized or fully covered and while the PC is locked (measured for 1 minute locked), likely because the game's window sets `backgroundThrottling: false`.
+- To check it on Windows: `powercfg /requests` in an administrator shell lists the browser or `Synergism.exe` with "Blink Wake Lock" under `DISPLAY` and `SYSTEM`.
+- The web has no "PC awake, screen off" lock: the screen stays on, and the idle auto-lock can be blocked.
+- A refusal gives one notification per start, and a log line: logs are off during a run unless debug logs are on. A tab hidden during the request isn't a refusal.
+
 ## The player's tab comes back
 `#notePlayerTab` / `#showPlayerTab`.
 - The tab is noted before each singularity, and before each DOM stage read (bookmarklet players: that read visits Settings > Stats).
 - It is opened again right after the Exalt exit, and after each DOM stage read, through `HSSubtabMemory.openForPlayer` (subtab included).
 - A locked tab (its button's computed `display` is `none`) is never clicked: the game would open the next unlocked one. The player stays where the game left them (Buildings), and that tab becomes the one to bring back until they open another.
 - No return to a tab once it unlocks again: built as a setting and removed; don't propose it again.
+
+## Going to the target singularity
+Each Exalt exit lands on the highest singularity (the game's `exitChallenge`), then autosing goes down to its target.
+- **With the live player**: `player.singularityCount` is written directly. The player's saved Elevator target stays as it is: locked, it decides their next singularity.
+- **Without it** (bookmarklet players): the game's Teleport button, which goes to the saved target. So at each start, autosing writes its target into `#elevatorTargetInput` and sends `change`, the only event the game reads there; a reset keeps the target. It stays at autosing's value after the run, not restored: the next run needs it anyway.
 
 ## Corruption level
 Since the game's 4.4.0: one level (`player.corruptions.next`, used from the next ascension) instead of 8 corruptions.
@@ -63,15 +86,37 @@ Since the game's 4.4.0: one level (`player.corruptions.next`, used from the next
 
 Test: `npm run test:autosing`.
 
+## Ambrosia slot settings
+- An Antiquities icon before the label (`controlAoagIcon`) says when the slot is meant to be used: dimmed pre-AOAG (Hyperflux (H), Obtainium), full colours post-AOAG (3-7D Cubes, Quark, Offerings, Ambrosia).
+
 ## "Don't switch ambrosia loadouts" (`autosingNoAmbrosiaSwitch`)
 - Why: every ambrosia loadout load resets the ambrosia bars (the game's `createBlueberryTree` → `resetBlueberryTree` → `resetAmbrosiaBarProgress`: blueberry, red ambrosia and purple honey progress), even reloading the tree already in place (only the game's Auto Ascension rules skip a loaded tree).
 - With the setting on, `#setAmbrosiaLoadout` does nothing: no switch after the singularity, at the start, before the quark export, in the push, nor for steps 301–306. Every switch must go through `#setAmbrosiaLoadout`.
-- Read once per run in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
+- Read at the start in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
+- Changing it during a run applies from the next step, and the footer follows. Turning it off looks up the 6 slots at that moment; a slot at "None" refuses the change: the switch goes back on, a notification says why, and the run goes on without switches. The slot settings themselves are still only read at those two moments.
 - A global switch was chosen over "None = skip that one switch" (an unset slot would silently switch nothing).
 
 ## Step numbers and logs
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).
 - A `===== Executing phase: X =====` debug line at every phase run, kept at debug level (even though timeout warnings show without debug and then have no phase).
-- Debug lines for every step, 403 and IF jumps included, with their outcome; the step is named on C1–C10 timeout warnings.
-- The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0. The dev recorder keeps runtime indices from 0.
+- Debug lines for every step, 403 and IF jumps included, with their outcome (a capped IF's jump with its count, "(2/5)"); the step is named on C1–C10 timeout warnings. An IF that reached its max jumps writes a normal log line instead (`autosing-strategies.md`, "IF steps").
+- The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
+
+## Run panel: quarks
+- **"Gained" is the balance's rise** (`worlds`, read after the Exalt), so spending lowers it. Autosing is meant for players who completed Limited Time once: without it the game resets the balance at each singularity and "Gained" stays at `-`, which is expected.
+- **`(12.34% ants)` after "Gained":** the run's total of `ants.quarksGainedFromAnts` over its total of `quarksThisSingularity`, in grey, shown with or without details; that total of ant quarks in its tooltip. Not over "Gained": spending would then raise the share with the ants earning the same.
+- Both are read at the top of `#performSingularity`, before the Exalt click: the singularity resets both. The first singularity at the start isn't counted, like every other figure. A singularity crossing the real-life day change under-reports its ant quarks (the game resets the counter then too); negligible over a run.
+
+## Step timings (`autosingStepTimings`)
+For players tuning a strategy. `HSAutosingRecorder` records, `hs-autosingStepTable.ts` turns that into the table (pure, `test-autosing-step-table.cjs`), `ui/hs-autosing-step-timings-window.ts` shows it.
+- **Off by default, read at each start.** Off, the main loop only checks `#recordTimings` / `passRecord` and the last run's timings are cleared. Autosing runs for hours and most players never read this.
+- **The run panel's 📋 opens the window, or closes it if open**: shown when the run records, the panel not minimized and its details on; it stays in review mode. One window at most, closed with the panel. It opens beside the panel, on the right if it fits, at the panel's height at that moment; it doesn't follow the panel afterwards. CSV export: not this, it gave one row per singularity, which the panel already covers.
+- **Built when it opens, then at most once per singularity while it is open**, in an animation frame (never while the tab is hidden). Closed, it costs nothing.
+- **The table covers finished singularities whose steps are all held**: the one running is left out, and so is the oldest once the steps' cap has dropped part of it. The summary then says "Last 144 of 160 singularities", because its figures and the rows cover those only, unlike the run panel's "All".
+- **The summary calculates as the run panel does:** σ divided by n, C15 as the geometric mean (not arithmetic: one high score would pull it, and the panel's `σlog` measures spread around the same mean). A score of 0 is skipped in both. Above a number's range only the panel still counts it. The recorder's 0.1 ms rounding can still change a last digit.
+- **Rows, per singularity:** each step (a step's ms includes its Wait before), "Between singularities" (Exalt 2, teleport, Obtainium loadout, wait for an allowed stage), "Outside the steps" (what's left of the average: quark export, final Ascend, pauses). So the % add up to 100.
+- **Sort:** longest first by default; a click on any title sorts by it, with a ▾ on that title (every title keeps its room, so nothing moves). Phase and Step give the strategy's order; a second click doesn't reverse (shortest first isn't useful). The rows that aren't steps stay last, except by ms and %. Copy always gives the strategy's order, tab-separated, so two runs line up.
+- **Steps are numbered as in the editor** (`#stepNumber`); `index` in the timings is the running list's, from 0.
+- **`window.__HS_autosingTimings`** (types in `hs-autosing-types.ts`), read by the window and `autosing-run.cjs`, which turns the setting on and writes `timings.json`. Cleared at each start. Lists, in ms, `sing` = recorded singularity (1 = the first after the start): `steps`, `passes`, `transitions` (one `#performSingularity`; `msBeforeRecord` counts in the previous singularity), `singularities`. About 125 steps and 16 KB per singularity (Basic, S275). Caps: 20000 steps (about 160 singularities), 2000 of each other list; the oldest tenth is dropped and counted in `dropped`.
+- **Not recorded:** the quark export and Ascend after the final phase, the push before a stop, a pass ended by a thrown superseded wait (DOM path only). A singularity = its passes + its transition's part after the record + the next transition's `msBeforeRecord` + about 10 ms.

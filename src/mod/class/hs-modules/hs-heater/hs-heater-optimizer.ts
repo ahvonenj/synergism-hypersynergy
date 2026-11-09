@@ -1806,7 +1806,7 @@ class Loadout {
         return JSON.stringify(upgradeLevels)
     }
 
-    // effectStat: the stat the Effect shows, when it isn't the one "Maxed?"
+    // effectStat: the stat the Effect shows, when it isn't the one "Maxed"
     // checks (Max SR rows: cubes, maxed on their SR level).
     generateOutput(stat: string = "", maxLoadout: Loadout, p4x4: number | null = null, effectStat: string = stat): HeaterResultRow {
 
@@ -1855,6 +1855,7 @@ class Loadout {
             const limits = this.limitingResources(stat, maxLoadout)
             if (limits)
                 row[7] = limits
+            row[9] = prunedReference(maxLoadout, stat).format
         }
         return row;
 
@@ -1879,9 +1880,11 @@ class Loadout {
             const probe = new Loadout(base)
             probe.upgradeLevels[upgradeName] = level + 1
             probe.satisfyPrerequisites()
-            // A prerequisite over maxLoadout's level: SR1 would raise an H0-H3 row's Hyperflux
+            // A prerequisite raised over maxLoadout's level: SR1 would raise an
+            // H0-H3 row's Hyperflux. Only raised ones: the tree's own Brick can
+            // be above the reference's (withBestBrickOfLead).
             if (Object.keys(probe.upgradeLevels).some(name =>
-              (probe.upgradeLevels[name] ?? 0) > (maxLoadout.upgradeLevels[name] ?? 0)))
+              (probe.upgradeLevels[name] ?? 0) > Math.max(base.upgradeLevels[name] ?? 0, maxLoadout.upgradeLevels[name] ?? 0)))
                 continue
             if (stat === 'coinsC15' ? probe.compareStat(base, stat) <= 0 : probe.getStat(stat) <= baseStat)
                 continue
@@ -2551,6 +2554,68 @@ function addLastPriorityVouchers(
     }
   }
   return best
+}
+
+// The reference a row's "Maxed" compares with: the all-max tree, with Brick
+// of Lead at the level that suits the stat best. Brick adds luck but slows
+// ascension speed, which cubes follow under One Mind: at 25 the reference
+// was below trees missing levels (S291: Cubes best at Brick 7). A tie keeps
+// the lower level.
+function withBestBrickOfLead(reference: Loadout, stat: string): Loadout {
+  let best = reference
+  let bestValue = -Infinity
+  for (let level = 0; level <= upgrades.ambrosiaBrickOfLead.maxLevel; level++) {
+    const candidate = new Loadout(reference)
+    candidate.upgradeLevels.ambrosiaBrickOfLead = level
+    const value = candidate.getStat(stat)
+    if (value > bestValue) {
+      best = candidate
+      bestValue = value
+    }
+  }
+  return best
+}
+
+// What a ✘ row's preview shows: the reference with every upgrade that doesn't
+// move the row's stat set to 0, with the upgrades that need it, so it reads
+// as what ✔ needs rather than "everything at max". Greedy, in the upgrades'
+// order; the stat never drops below the reference's, so the row's ✘ holds.
+function prunedReference(reference: Loadout, stat: string): Loadout {
+  const removeWithDependents = (loadout: Loadout, upgradeName: string): void => {
+    if ((loadout.upgradeLevels[upgradeName] ?? 0) <= 0)
+      return
+    loadout.upgradeLevels[upgradeName] = 0
+    for (const dependent of dependentUpgrades[upgradeName] ?? [])
+      removeWithDependents(loadout, dependent)
+  }
+  let pruned = new Loadout(reference)
+  for (const upgradeName in upgrades) {
+    // Patreon: every loadout keeps its level 1 (Loadout constructor)
+    if (upgradeName === 'ambrosiaPatreon' || (pruned.upgradeLevels[upgradeName] ?? 0) <= 0)
+      continue
+    const candidate = new Loadout(pruned)
+    removeWithDependents(candidate, upgradeName)
+    if (candidate.compareStat(reference, stat) >= 0)
+      pruned = candidate
+  }
+  // An upgrade kept only as a prerequisite goes down to the level its
+  // dependents need (S291 Cubes: Quarks1 20, not 100).
+  for (const upgradeName in upgrades) {
+    const level = pruned.upgradeLevels[upgradeName] ?? 0
+    if (upgradeName === 'ambrosiaPatreon' || level <= 0)
+      continue
+    let needed = 0
+    for (const dependent of dependentUpgrades[upgradeName] ?? [])
+      if ((pruned.upgradeLevels[dependent] ?? 0) > 0)
+        needed = Math.max(needed, upgrades[dependent].prerequisites[upgradeName] ?? 0)
+    if (needed <= 0 || needed >= level)
+      continue
+    const candidate = new Loadout(pruned)
+    candidate.upgradeLevels[upgradeName] = needed
+    if (candidate.compareStat(reference, stat) >= 0)
+      pruned = candidate
+  }
+  return pruned
 }
 
 // The Max Amb + Oct base is the literal fully purchased All Ambrosia build.
@@ -4820,6 +4885,21 @@ function findCoinsC15Opt(): Loadout {
     return best;
 }
 
+// The input fields holding NaN. A NaN stat passes every Pareto trim (its
+// comparisons are false), so the frontier would fill up to its memory limit
+// and report that instead. The optional blocks are left out: only some
+// branches read them, and a bad one shouldn't stop the others.
+function findNaNInputFields(value: unknown, path = ''): string[] {
+    if (typeof value === 'number')
+        return Number.isNaN(value) ? [path] : [];
+    if (typeof value !== 'object' || value === null)
+        return [];
+    return Object.entries(value).flatMap(([key, field]) =>
+        path === '' && (key === 'reactor' || key === 'purple' || key === 'coinsC15')
+            ? []
+            : findNaNInputFields(field, path === '' ? key : `${path}.${key}`));
+}
+
 function fillStatsAndOptionsFromInput(input: HeaterOptimizerInput): void {
     const {
         amb, ramb, bonusAmbrosiaPerFill, blueberries, purpleLeoLevel,
@@ -5068,6 +5148,10 @@ export class HSHeaterOptimizer {
             throw new Error('Blue bar pre-round requirement is missing; re-export current game data for Heater.');
         }
 
+        const nanFields = findNaNInputFields(input);
+        if (nanFields.length > 0)
+            throw new Error(`Heater input is not a number: ${nanFields.join(', ')}. Re-export current game data for Heater.`);
+
         // Populate stats + options from input
         fillStatsAndOptionsFromInput(input);
 
@@ -5103,7 +5187,8 @@ export class HSHeaterOptimizer {
 
         HSLogger.debug(() => `[HeaterDiag] options=${JSON.stringify(options)}`, 'HSHeaterOptimizer');
 
-        // Build maxLoadout (used by generateOutput to detect if a loadout is maxed)
+        // Build maxLoadout (used by generateOutput to detect if a loadout is
+        // maxed, most rows through withBestBrickOfLead)
         let maxLoadout = new Loadout();
         for (let upgrade in upgrades)
             maxLoadout.upgradeLevels[upgrade] = upgrades[upgrade].maxLevel;
@@ -5239,8 +5324,9 @@ export class HSHeaterOptimizer {
                     addLastPriorityVouchers(loadoutRLuck, tableCache.tableVoucher, "rLuck"), "rLuck",
                   )
               if (!loadoutRLuck) HSLogger.error('[HeaterDiag] calculateAmb: rLuck - findOpt returned undefined', 'HSHeaterOptimizer');
+              const redStat = stats.reactor ? 'incomeRed' : 'rLuck';
               const redOutput = loadoutRLuck.generateOutput(
-                stats.reactor ? 'incomeRed' : 'rLuck', maxLoadout,
+                redStat, withBestBrickOfLead(maxLoadout, redStat),
               );
               if (stats.reactor) redOutput[6] = Boolean(barIncomeHighBudget);
               output.rLuck = [redOutput];
@@ -5616,7 +5702,7 @@ export class HSHeaterOptimizer {
                 right: tableLuckQuark.length,
               })
               if (!loadoutQuark) HSLogger.error('[HeaterDiag] calculateQuarks - findOpt returned undefined', 'HSHeaterOptimizer');
-              output.quarks = [loadoutQuark.generateOutput("quark", maxLoadout)];
+              output.quarks = [loadoutQuark.generateOutput("quark", withBestBrickOfLead(maxLoadout, "quark"))];
               recordCubeExperimentStage("quarks", quarksStartedAt, {
                 rune: tableCache.tableRune.length,
                 luck: tableCache.tableLuck.length,
@@ -5749,7 +5835,7 @@ export class HSHeaterOptimizer {
                 spending: cubeExperimentSpending(loadoutCube),
               }
             }
-            output.cubes = [loadoutCube.generateOutput("cube", maxLoadout)];
+            output.cubes = [loadoutCube.generateOutput("cube", withBestBrickOfLead(maxLoadout, "cube"))];
           }
 
           // --- Shared oct table ---
@@ -5765,7 +5851,7 @@ export class HSHeaterOptimizer {
               HSLogger.debug(() => '[HeaterDiag] calculateOct', 'HSHeaterOptimizer');
               const loadoutOct = findCubeLuckOpt(tableCache.tableOctV, tableCache.tableLuckOct, "oct");
               if (!loadoutOct) HSLogger.error('[HeaterDiag] calculateOct - findOpt returned undefined', 'HSHeaterOptimizer');
-              output.oct = [loadoutOct.generateOutput("oct", maxLoadout)];
+              output.oct = [loadoutOct.generateOutput("oct", withBestBrickOfLead(maxLoadout, "oct"))];
 
               if (stats.ossifiedTactics < redUpgrades.regularLuck.maxLevel || stats.ossifiedTactics2 < redUpgrades.regularLuck2.maxLevel) {
                   stats.baseLuck += 2;
@@ -5888,7 +5974,7 @@ export class HSHeaterOptimizer {
                     right: tableCache.tableLuck.length,
                   })
                   if (!loadoutObt) HSLogger.error('[HeaterDiag] calculateOff: obt - findOpt returned undefined', 'HSHeaterOptimizer');
-                  output.obt = [loadoutObt.generateOutput("obt", maxLoadout)];
+                  output.obt = [loadoutObt.generateOutput("obt", withBestBrickOfLead(maxLoadout, "obt"))];
 
                   HSLogger.debug(() => '[HeaterDiag] calculateOff: off', 'HSHeaterOptimizer');
                   // Obtainium and Offering have different Pareto frontiers. An
@@ -5905,7 +5991,7 @@ export class HSHeaterOptimizer {
                     right: tableCache.tableLuck.length,
                   })
                   if (!loadoutOff) HSLogger.error('[HeaterDiag] calculateOff: off - findOpt returned undefined', 'HSHeaterOptimizer');
-                  output.off = [loadoutOff.generateOutput("off", maxLoadout)];
+                  output.off = [loadoutOff.generateOutput("off", withBestBrickOfLead(maxLoadout, "off"))];
               }
 
               if (options.calculateObtAndOff) {
@@ -5923,7 +6009,7 @@ export class HSHeaterOptimizer {
                     left: tableObtAndOffRune.length,
                     right: tableCache.tableLuck.length,
                   })
-                  output.obtAndOff = [loadoutObtAndOff.generateOutput("obtAndOff", maxLoadout)];
+                  output.obtAndOff = [loadoutObtAndOff.generateOutput("obtAndOff", withBestBrickOfLead(maxLoadout, "obtAndOff"))];
               }
               recordCubeExperimentStage("obtainium-offerings", obtainiumOfferingStartedAt, {
                 rune: tableCache.tableRune.length,
@@ -6032,7 +6118,7 @@ export class HSHeaterOptimizer {
                       }
                   }
               }
-              output.ambOct = [loadoutAmbOct.generateOutput("oct", maxLoadout)];
+              output.ambOct = [loadoutAmbOct.generateOutput("oct", withBestBrickOfLead(maxLoadout, "oct"))];
               recordCubeExperimentStage("amb-oct", ambOctStartedAt, {
                 maxAmbCost: maxAmbForOct!.cost,
                 maxAmbBlueberries: maxAmbForOct!.blueberryCost,
@@ -6202,7 +6288,7 @@ export class HSHeaterOptimizer {
                       loadoutsH[i]!.upgradeLevels.ambrosiaHyperflux = 0; // Resetting hyperflux level to compute effect without it
                       loadoutsH[i]!.getStat("cube", true); // Updating cache
                       loadoutsH[i]!.upgradeLevels.ambrosiaHyperflux = i; // Restoring hyperflux level for correct output
-                      hyperOutput.push(loadoutsH[i]!.generateOutput("cube", maxLoadoutH, thresholds[i]));
+                      hyperOutput.push(loadoutsH[i]!.generateOutput("cube", withBestBrickOfLead(maxLoadoutH, "cube"), thresholds[i]));
                   }
               }
               output.hyperflux = hyperOutput;

@@ -23,8 +23,8 @@ export interface HSGlobalGeneral {
     currentModVersion: string;
     isModFullyLoaded: boolean;
     modGithubUrl: string;
+    modWebsiteUrl: string;
     modDiscordThreadUrl: string;
-    heaterUrl: string;
 }
 
 export interface HSGlobalCommon {
@@ -102,6 +102,7 @@ export interface HSGlobalGameData {
 
 export interface HSGlobalHSUI {
     injectedStylesDomId: string;
+    notifyColumnClassName: string;
     notifyClassName: string;
     notifyTextClassName: string;
 }

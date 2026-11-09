@@ -26,8 +26,9 @@ const SHORT_RESOURCES: Partial<Record<HSChallengeResource, string>> = {
 };
 // The game's line height of progress modules
 const LINE_HEIGHT = 1.2;
-// The lines layout is sized for three lines, whatever the count; twice that with the requirement on its own line
-const MAX_LINES = 3;
+// The lines layout's room: two lines for one or two challenges (entering a second one keeps the size), three for
+// three; twice that with the requirement on its own line
+const MIN_ROOM = 2;
 
 /** A challenge's parts, empty when not shown: one cell each in the lines layout. */
 interface HSChallengeLine {
@@ -58,8 +59,9 @@ interface HSChallengePlayer {
  *     every 250 ms while the module is seen; the requirement is copied from the game's own progress line (its gold
  *     numbers), which the game writes on desktop only. Empty outside a challenge, or a grey "CØ"
  *     (challengeProgressShowNone). At the game's 1x2 size (Tall, one column) the requirement goes on a line of its
- *     own. The text size counts three lines in the lines layout (six with the requirement on its own line), and
- *     shrinks to fit the width. Not for players without the live player (bookmarklet).
+ *     own. The lines layout's text fills the module's height for two lines (one or two challenges) or three (four
+ *     or six with the requirement on its own line), above the module's own size if the cell is tall, and shrinks to
+ *     fit the width. Not for players without the live player (bookmarklet).
  * Author: Shewchou
  */
 export class HSHeaderChallengeModule {
@@ -122,17 +124,19 @@ export class HSHeaderChallengeModule {
             // 1x2 (the game's data-size): one column wide, so the requirement goes on a line of its own
             const split = multiLine && element.dataset.size === 'Tall' && HSHeaderChallengeModule.details() === 'requirement';
             const none = lines.length === 0 && HSSettings.getSetting('challengeProgressShowNone')?.isEnabled() === true;
+            const room = !multiLine ? 1 : Math.max(MIN_ROOM, lines.length) * (split ? 2 : 1);
             const drawn = JSON.stringify([multiLine, split, lines, none]);
             if (drawn !== HSHeaderChallengeModule.#drawn) {
                 HSHeaderChallengeModule.#drawn = drawn;
                 text.classList.toggle('hs-cp-lines', multiLine);
                 text.classList.toggle('hs-cp-split', split);
+                text.style.setProperty('--hs-cp-room', String(room));
                 if (none) text.replaceChildren(HSHeaderChallengeModule.#span('hs-cp-none', 'CØ'));
                 else if (split) text.replaceChildren(...HSHeaderChallengeModule.#drawSplit(lines));
                 else text.replaceChildren(...(multiLine ? HSHeaderChallengeModule.#drawLines(lines) : HSHeaderChallengeModule.#drawLine(lines)));
                 HSHeaderChallengeModule.#fittedWidth = -1;
             }
-            HSHeaderChallengeModule.#fit(element, text, split ? 2 * MAX_LINES : multiLine ? MAX_LINES : 1);
+            HSHeaderChallengeModule.#fit(element, text, room, multiLine);
         } catch (error) {
             HSLogger.warnOnce(`Could not draw the challenge progress module: ${error}`, 'hs-header-challenge-module');
         }
@@ -279,8 +283,12 @@ export class HSHeaderChallengeModule {
         return typeof text === 'string' && text !== key ? text : 'Coins';
     }
 
-    /** The module's own text size, smaller when its lines (the most the layout can show) don't fit its height or width. */
-    static #fit(element: HTMLElement, text: HTMLElement, maxLines: number): void {
+    /**
+     * The text size that fits the room's lines in the module's height, then shrunk to its width. The lines layout can
+     * go above the module's own size in the header's cells; never in the tray, where the text sizes the module (it
+     * would grow with it).
+     */
+    static #fit(element: HTMLElement, text: HTMLElement, room: number, canGrow: boolean): void {
         const width = element.clientWidth;
         const height = element.clientHeight;
         // A size change (edit mode, the window) since the last fit, or new text
@@ -293,8 +301,10 @@ export class HSHeaderChallengeModule {
             // The edit mode's placeholder at the module's own size
             text.style.fontSize = '';
         } else {
-            let size = Math.min(Number.parseFloat(getComputedStyle(element).fontSize),
-                height / maxLines / LINE_HEIGHT);
+            let size = height / room / LINE_HEIGHT;
+            if (!canGrow || !element.closest('.headerRegion')) {
+                size = Math.min(size, Number.parseFloat(getComputedStyle(element).fontSize));
+            }
             text.style.fontSize = `${size}px`;
             const available = width - 2;
             if (text.offsetWidth > available) {

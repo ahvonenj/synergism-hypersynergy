@@ -5,8 +5,9 @@
 // Env: TAG=<name> output folder (local/harness-out/autosing/<TAG>), DEBUG=0 mod debug logs off (they cost a little time),
 //      SETTINGS='{"key":value}' setting overrides, STRATEGIES=<hs-strategies file>, SETTLE=<ms> after the mod loads,
 //      STALL_MS=<ms> stop after that long without a singularity (default 90000),
-//      HEAT=1 the heat routine below before the timed run, LOADOUTS=<heated.json of an earlier HEAT run>
-// Output: console.log (timestamped), samples.jsonl, modal.txt (the run panel's figures), timings.json (dev recorder), end.png
+//      HEAT=1 the heat routine below before the timed run, LOADOUTS=<heated.json of an earlier HEAT run>,
+//      OFFLINE=1 keeps the save's offline progress, STEP_TIMINGS=0 leaves "Record step timings" as the backup has it
+// Output: console.log (timestamped), samples.jsonl, modal.txt (the run panel's figures), timings.json (the recorder's, null if off), end.png
 const fs = require('node:fs')
 const path = require('node:path')
 const { outDir } = require('./lib/env.cjs')
@@ -33,7 +34,7 @@ const P = game.PLAYER
 
 ;(async () => {
     const server = game.startGameServer({ port: HTTP })
-    const chrome = await launchChrome({ port: PORT, profile: outDir('profiles', 'autosing-' + tag) })
+    const chrome = await launchChrome({ port: PORT, profile: outDir('profiles', 'autosing-' + tag), fresh: true })
     fs.writeFileSync(path.join(out, 'pids.txt'), `chrome ${chrome.pid}\nnode ${process.pid}\n`)
     let intercepted = { counts: {} }
     try {
@@ -57,7 +58,7 @@ const P = game.PLAYER
         })
         await sleep(2000)
         note('import save')
-        await game.importSave(cdp, backup.save, out)
+        await game.importSave(cdp, backup.save, out, { offline: process.env.OFFLINE === '1' })
         await game.waitGameReady(cdp, { until: `${P}?.singularityCount === ${backup.info.singularity}`, onDialog: d => note('dialog ' + d) })
         await sleep(3000)
         for (let i = 0; i < 10; i++) { const a = await game.answerDialog(cdp); if (!a) break; note('dialog ' + a); await sleep(300) }
@@ -74,6 +75,8 @@ const P = game.PLAYER
         note('intercepted so far: ' + JSON.stringify(intercepted.counts))
         note('pcoin/quark: ' + await evaluate(`JSON.stringify({ pcoinLoaded: window.__HS_pcoinLevelsLoaded, quarkBonus: window.__HS_quarkBonus, failedPatches: Object.entries(window.__HS_PATCH_REPORT || {}).filter(([, v]) => !v).map(([k]) => k) })`).catch(e => String(e)))
 
+        // Clicked, not set from SETTINGS: a backup older than the setting doesn't hold it
+        if (process.env.STEP_TIMINGS !== '0') await evaluate(`document.querySelector('#hs-setting-auto-sing-step-timings-btn.hs-disabled')?.click()`)
         note('start autosing')
         await evaluate(`document.getElementById('hs-setting-auto-sing-enabled').click()`)
         if (process.env.HEAT === '1') await heatRoutine(cdp, out)
@@ -117,7 +120,7 @@ const P = game.PLAYER
             if (grid) lines.push('--- phases', ...[...grid.children].map(e => e.textContent.replace(/\\s+/g, ' ').trim()));
             return lines.join('\\n'); })()`).catch(e => String(e))
         fs.writeFileSync(path.join(out, 'modal.txt'), modal || '')
-        // The dev recorder's timings (HSAutosingRecorder), read before the stop below
+        // The recorder's timings (HSAutosingRecorder), read before the stop below
         fs.writeFileSync(path.join(out, 'timings.json'), await evaluate(`JSON.stringify(window.__HS_autosingTimings ?? null)`).catch(e => JSON.stringify({ error: String(e) })) || 'null')
         note('intercepted: ' + JSON.stringify(intercepted.counts))
         await evaluate(`document.getElementById('hs-setting-auto-sing-enabled').click()`).catch(() => { })

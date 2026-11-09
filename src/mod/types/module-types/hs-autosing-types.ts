@@ -176,6 +176,8 @@ export interface IfJumpParams {
     ifJumpValue: number;       // Comparison value (used in challenges mode)
     ifJumpMultiplier?: number; // 10^x multiplier (used in stored_c15 mode)
     ifJumpIndex: number;
+    // Jumps taken at most per phase pass, then the IF goes on to the next step (absent or 0: no limit)
+    ifJumpMaxJumps?: number;
 };
 
 export interface Challenge {
@@ -194,13 +196,16 @@ export interface Challenge {
     ifJump?: IfJumpParams;
 };
 
-// Dev builds only (HSAutosingRecorder): autosing's timings, read by the headless harness.
-// `sing` is the recorded singularity a timing belongs to (1 = the first one after the start). Times in ms.
+// With "Record step timings" on (HSAutosingRecorder): autosing's timings, read by the step timings window and the
+// headless harness. `sing` is the recorded singularity a timing belongs to (1 = the first one after the start). Times in ms.
 export interface HSAutosingTimingStep {
     sing: number;
     phase: string;
     pass: number;
+    // In the phase's running list, from 0
     index: number;
+    // As the strategy editor and the logs number it, 0 for a step inserted at load
+    number: number;
     action: string;
     comment?: string;
     // The step's challengeWaitBefore, and the time actually slept for it
@@ -284,14 +289,8 @@ declare global {
     }
 }
 
-export type IsJumpChallenge = Challenge & {
-    ifJump: {
-        id: string;
-        ifJumpMode?: "challenges" | "stored_c15";
-        ifJumpChallenge: number;   // 1–15
-        ifJumpOperator: ">" | "<";
-        ifJumpValue: number;
-        ifJumpMultiplier?: number;
-        ifJumpIndex: number;
-    };
-};
+export type IsJumpChallenge = Challenge & { ifJump: IfJumpParams };
+
+/** A valid `ifJumpMaxJumps`: absent, or a whole number ≥ 0 (0: no limit). */
+export const isIfJumpMaxJumps = (value: unknown): boolean =>
+    value === undefined || (typeof value === 'number' && Number.isInteger(value) && value >= 0);

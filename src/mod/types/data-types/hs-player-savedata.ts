@@ -843,11 +843,12 @@ export type DeepReadonly<T> =
     : T
 
 /**
- * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-10-29 with vanilla's master
- * (commit d1d7d4ab, 2026-10-27): no field here is missing from vanilla, and these vanilla fields aren't declared, as no
- * feature reads them through this type (add one when a feature needs it):
- * - firstPaidCoin … fifthPaidCoin, and the same for Diamonds, Mythos and Particles (Decimals)
+ * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-09 with vanilla's master
+ * (commit fc9f007ca, 2026-11-08, game 4.4.1): no field here is missing from vanilla, and these vanilla fields aren't
+ * declared, as no feature reads them through this type (add one when a feature needs it):
+ * - firstPaidDiamonds … fifthPaidDiamonds, and the same for Mythos and Particles (Decimals)
  * - multiplierPaid, acceleratorPaid, acceleratorBoostPaid (Decimals)
+ * - coinsThisAscension, coinsThisSingularity, ascensionAttemptCounter
  * - autoAscendRules
  * - headerLayouts (the header files read it through their own casts)
  * - spentPurpleHoney, purpleUpdateQuarkRefundAwarded
@@ -863,69 +864,34 @@ interface GameDataFields {
     coinsThisReincarnation: GameDecimal;
     coinsTotal: GameDecimal;
 
-    firstOwnedCoin: number;
     firstGeneratedCoin: GameDecimal;
-    firstProduceCoin: number;
-    secondOwnedCoin: number;
+    firstPaidCoin: GameDecimal;
     secondGeneratedCoin: GameDecimal;
-    secondProduceCoin: number;
-    thirdOwnedCoin: number;
+    secondPaidCoin: GameDecimal;
     thirdGeneratedCoin: GameDecimal;
-    thirdProduceCoin: number;
-    fourthOwnedCoin: number;
+    thirdPaidCoin: GameDecimal;
     fourthGeneratedCoin: GameDecimal;
-    fourthProduceCoin: number;
-    fifthOwnedCoin: number;
+    fourthPaidCoin: GameDecimal;
     fifthGeneratedCoin: GameDecimal;
-    fifthProduceCoin: number;
+    fifthPaidCoin: GameDecimal;
 
-    firstOwnedDiamonds: number;
     firstGeneratedDiamonds: GameDecimal;
-    firstProduceDiamonds: number;
-    secondOwnedDiamonds: number;
     secondGeneratedDiamonds: GameDecimal;
-    secondProduceDiamonds: number;
-    thirdOwnedDiamonds: number;
     thirdGeneratedDiamonds: GameDecimal;
-    thirdProduceDiamonds: number;
-    fourthOwnedDiamonds: number;
     fourthGeneratedDiamonds: GameDecimal;
-    fourthProduceDiamonds: number;
-    fifthOwnedDiamonds: number;
     fifthGeneratedDiamonds: GameDecimal;
-    fifthProduceDiamonds: number;
 
-    firstOwnedMythos: number;
     firstGeneratedMythos: GameDecimal;
-    firstProduceMythos: number;
-    secondOwnedMythos: number;
     secondGeneratedMythos: GameDecimal;
-    secondProduceMythos: number;
-    thirdOwnedMythos: number;
     thirdGeneratedMythos: GameDecimal;
-    thirdProduceMythos: number;
-    fourthOwnedMythos: number;
     fourthGeneratedMythos: GameDecimal;
-    fourthProduceMythos: number;
-    fifthOwnedMythos: number;
     fifthGeneratedMythos: GameDecimal;
-    fifthProduceMythos: number;
 
-    firstOwnedParticles: number;
     firstGeneratedParticles: GameDecimal;
-    firstProduceParticles: number;
-    secondOwnedParticles: number;
     secondGeneratedParticles: GameDecimal;
-    secondProduceParticles: number;
-    thirdOwnedParticles: number;
     thirdGeneratedParticles: GameDecimal;
-    thirdProduceParticles: number;
-    fourthOwnedParticles: number;
     fourthGeneratedParticles: GameDecimal;
-    fourthProduceParticles: number;
-    fifthOwnedParticles: number;
     fifthGeneratedParticles: GameDecimal;
-    fifthProduceParticles: number;
 
     ants: Ants;
 
@@ -935,10 +901,6 @@ interface GameDataFields {
     ascendBuilding3: AscendBuilding;
     ascendBuilding4: AscendBuilding;
     ascendBuilding5: AscendBuilding;
-
-    multiplierBought: number;
-    acceleratorBought: number;
-    acceleratorBoostBought: number;
 
     // Upgrades & Research
     upgrades: number[]; // Array of upgrade levels/statuses (0 or 1)
@@ -1106,7 +1068,6 @@ interface GameDataFields {
     historyShowPerSecond: boolean;
 
     autoChallengeRunning: boolean;
-    autoChallengeIndex: number;
     autoChallengeToggles: boolean[];
     autoChallengeTimer: {
         start: number
@@ -1209,5 +1170,6 @@ interface GameDataFields {
 
     stats: {
         totalAddCodesUsed: number;
+        talismanShardsThisAscension: GameDecimal;
     }
 }

@@ -245,7 +245,8 @@ export class HSGameData extends HSModule {
 
     // --- Quark bonuses (personal and global) ---
     // The game reads them from https://synergism.cc/api/v1/users/me (at load and at a login) and
-    // https://synergism.cc/api/v1/quark-bonus (at load, then every 15 minutes); its formulas use its copy.
+    // https://synergism.cc/api/v1/quark-bonus (at load, then every hour) with changes broadcast on its WebSocket; its
+    // formulas use its copy.
 
     #isQuarkBonusPatched(): boolean {
         return window.__HS_PATCH_REPORT?.quarkBonus === true;
@@ -461,7 +462,7 @@ export class HSGameData extends HSModule {
 
     /**
      * Follows the game's global event: the patcher hands over each answer the game gets from
-     * https://synergism.cc/events/get (Event.ts eventCheck, at load then every 5 minutes), and keeps the last one in
+     * https://synergism.cc/events/get (Event.ts eventCheck, at each save load then every 30 minutes), and keeps the last one in
      * window.__HS_globalEvent, read here once because the game's first fetch comes before the mod loads.
      * The mod doesn't fetch it (the game's dev asked for less traffic). Without the patch (bookmarklet, older patch)
      * there is no global event. A save without dayCheck makes the game skip its fetch: no event, as in the game.
@@ -668,7 +669,8 @@ export class HSGameData extends HSModule {
             this.#saveInterval = undefined;
         }
 
-        HSUI.removeInjectedStyle(HSGlobal.HSGameData.gdsCSSId);
+        // Only the save capture injects it
+        if (this.#engineSource === 'save') HSUI.removeInjectedStyle(HSGlobal.HSGameData.gdsCSSId);
 
         // The loadFromFileEventHandler is NOT removed here:
         // it must remain active to intercept save loads even when GDS is disabled.
@@ -688,10 +690,10 @@ export class HSGameData extends HSModule {
     }
 
     /**
-     * Dispatches a save event and extracts quarks and goldenQuarks from the latest save data.
-     * @returns Promise<{ quarks: number; goldenQuarks: number } | null>
+     * Dispatches a save event and extracts autosing's quark figures from the latest save data.
+     * @returns Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null>
      */
-    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number } | null> {
+    async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null> {
         const saveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
         
         saveButton.dispatchEvent(this.#saveTriggerEvent);
@@ -702,7 +704,9 @@ export class HSGameData extends HSModule {
                 const parsed = JSON.parse(this.#mitm_gamedata);
                 const quarks = typeof parsed.worlds === 'number' ? parsed.worlds : 0;
                 const goldenQuarks = typeof parsed.goldenQuarks === 'number' ? parsed.goldenQuarks : 0;
-                return { quarks, goldenQuarks };
+                const quarksFromAnts = typeof parsed.ants?.quarksGainedFromAnts === 'number' ? parsed.ants.quarksGainedFromAnts : 0;
+                const quarksThisSingularity = typeof parsed.quarksThisSingularity === 'number' ? parsed.quarksThisSingularity : 0;
+                return { quarks, goldenQuarks, quarksFromAnts, quarksThisSingularity };
             } catch (e) {
                 HSLogger.error(`Failed to parse mitm_gamedata for autosing: ${e}`, this.context);
                 return null;

@@ -13,7 +13,7 @@ async function main() {
         'hs-module': 'export class HSModule { constructor() { this.context = "Test"; } }',
         'hs-module-manager': 'export const HSModuleManager = { getModule() {} };',
         'hs-global': 'export const HSGlobal = { get exposedPlayer() { return globalThis.__corruptionTest.live ? globalThis.__corruptionTest.player : null; } };',
-        'hs-logger': 'export const HSLogger = { debug() {}, log() {}, warn() {}, error() {} };',
+        'hs-logger': 'export const HSLogger = { debug() {}, log(msg) { globalThis.__corruptionTest?.logs?.push(msg); }, warn() {}, error() {} };',
         'hs-ui': 'export const HSUI = { Notify() {} };',
         'hs-settings': 'export const HSSettings = {};',
         'hs-gamedata-api': 'export class HSGameDataAPI {}',
@@ -85,7 +85,7 @@ async function main() {
         const setup = ({ next = 5, used = 5, cap = 100, live = true, confirm = false, challenge = 0 } = {}) => {
             const state = globalThis.__corruptionTest = {
                 player: { corruptions: { next, used }, currentChallenge: { ascension: challenge } },
-                live, events: [], dialogWaits: 0, c15Coins: 42, savedC15Score: 0,
+                live, events: [], logs: [], dialogWaits: 0, c15Coins: 42, savedC15Score: 0,
             };
             const progress = { textContent: challenge ? 'Challenge 15: 42' : '' };
             const input = {
@@ -260,6 +260,33 @@ async function main() {
         assert.deepEqual(state.events, [['select', 20], ['ascend', 20], ['action', 20]]);
         scenarios++;
 
+        // An IF with a max jumps jumps that many times, then goes on (one log line); the count restarts at each pass.
+        ({ runner, state } = setup());
+        state.player.challenge15Exponent = 10;
+        const cappedLoop = phase([
+            step(152),
+            step(200, { ifJump: { id: 'cap', ifJumpMode: 'challenges', ifJumpChallenge: 15, ifJumpOperator: '<', ifJumpValue: 100, ifJumpIndex: 0, ifJumpMaxJumps: 3 } }),
+            step(104),
+        ]);
+        const onePass = [['action', 5], ['action', 5], ['action', 5], ['action', 5], ['ascend', 5]];
+        await runner.runPhaseForTest(cappedLoop);
+        assert.deepEqual(state.events, onePass);
+        await runner.runPhaseForTest(cappedLoop);
+        assert.deepEqual(state.events, [...onePass, ...onePass]);
+        assert.equal(state.logs.filter(line => line.includes('max jumps (3) reached')).length, 2);
+        scenarios++;
+
+        // A false condition never counts: the IF still jumps 3 times after it.
+        ({ runner, state } = setup());
+        state.player.challenge15Exponent = 10;
+        const gated = structuredClone(cappedLoop);
+        gated.strat.unshift(step(200, { ifJump: { id: 'never', ifJumpMode: 'challenges', ifJumpChallenge: 15, ifJumpOperator: '>', ifJumpValue: 100, ifJumpIndex: 3, ifJumpMaxJumps: 1 } }));
+        gated.strat[2].ifJump.ifJumpIndex = 1;
+        await runner.runPhaseForTest(gated);
+        assert.deepEqual(state.events, onePass);
+        assert.equal(state.logs.length, 1);
+        scenarios++;
+
         // A stop during the leading step's wait must not select a level or ascend afterwards.
         ({ runner, state } = setup());
         state.beforeWait = () => runner.cancelForTest();
@@ -295,6 +322,55 @@ async function main() {
         assert.deepEqual(HSStrategyManager.normalizeCorruptions(JSON.parse(JSON.stringify(deferred))), deferred);
         scenarios++;
 
+        // Strategies from before the game's 4.4.0: removed steps pull later IF targets up, the step added at a
+        // phase's start pushes them down. Each step reads [action, level, IF target].
+        const legacy = { strategyName: 'legacy', corruptionLoadouts: [{ name: 'Push', level: 12 }, { name: 'Bad', level: -1 }], strategy: [
+            { ...phase([
+                step(402),
+                step(400),
+                step(202, { loadoutName: 'Push' }),
+                step(202, { loadoutName: 'Gone' }),
+                step(401),
+                step(200, { ifJump: { id: 'a', ifJumpIndex: 4 } }),
+                step(200, { ifJump: { id: 'a2', ifJumpIndex: 3 } }),
+            ]), corruptionLoadoutName: 'Push' },
+            { ...phase([step(401), step(200, { ifJump: { id: 'b', ifJumpIndex: 0 } })]), corruptionLevel: 30 },
+            { ...phase([step(401), step(152), step(200, { ifJump: { id: 'c', ifJumpIndex: 1 } })]), corruptionLoadoutName: null },
+            { ...phase([step(202, { loadoutName: 'Bad', comment: 'kept' }), step(200, { ifJump: { id: 'd', ifJumpIndex: 0 } })]),
+                corruptionLoadoutName: 'Missing', corruptionLevel: 7 },
+            { ...phase([step(152)]), corruptions: [1, 2, 3, 4, 5, 6, 7, 8] },
+            phase([step(401), step(152)]),
+        ], aoagPhase: { ...phase([step(401), step(400)]), corruptionLevel: 50 } };
+        const converted = HSStrategyManager.normalizeCorruptions(legacy);
+        const steps = entry => entry.strat.map(action => [action.challengeNumber, action.corruptionLevel, action.ifJump?.ifJumpIndex]);
+        assert.deepEqual(converted.strategy.map(steps), [
+            // First phase: its level isn't added (autosing starts at 0); the jump to the 401 step still reaches it,
+            // and a jump to a removed step (it did nothing) goes to the step after it
+            [[403, 0, undefined], [403, 12, undefined], [403, 12, undefined], [200, undefined, 2], [200, undefined, 2]],
+            [[403, 30, undefined], [403, 30, undefined], [200, undefined, 1]],
+            // An empty level: its 401 step did nothing and goes
+            [[152, undefined, undefined], [200, undefined, 0]],
+            // A missing loadout name keeps the phase's level; a loadout with an invalid level gives 0
+            [[403, 7, undefined], [403, 0, undefined], [200, undefined, 1]],
+            // 8 corruption values don't make one level: 0, to set in the editor
+            [[403, 0, undefined], [152, undefined, undefined]],
+            // Current format: no phase level
+            [[152, undefined, undefined]],
+        ]);
+        assert.deepEqual(steps(converted.aoagPhase), [[403, 50, undefined], [403, 0, undefined]]);
+        assert.equal(converted.strategy[0].strat[1].comment, 'Push', 'a loadout step keeps its name as comment');
+        assert.equal(converted.strategy[3].strat[1].comment, 'kept');
+        for (const entry of [...converted.strategy, converted.aoagPhase]) {
+            assert.ok(!('corruptionLevel' in entry) && !('corruptionLoadoutName' in entry) && !('corruptions' in entry));
+            assert.ok(entry.strat.every(action => !('loadoutName' in action)));
+            assert.ok(entry.strat.filter(action => action.challengeNumber === 403).every(action => action.ascendAfterCorruption === true));
+        }
+        assert.ok(!('corruptionLoadouts' in converted));
+        assert.equal(HSStrategyManager.hasLegacyCorruptions(legacy), true);
+        assert.equal(HSStrategyManager.hasLegacyCorruptions(converted), false);
+        assert.deepEqual(HSStrategyManager.normalizeCorruptions(converted), converted);
+        scenarios++;
+
         const directory = path.join(root, 'src/mod/resource/json/strategies');
         for (const filename of fs.readdirSync(directory).filter(name => name.endsWith('.json') && name !== 'manifest.json')) {
             const strategy = JSON.parse(fs.readFileSync(path.join(directory, filename), 'utf8'));
@@ -307,6 +383,12 @@ async function main() {
             const corruption = invalid.strategy.flatMap(entry => entry.strat).find(action => action.challengeNumber === 403);
             corruption.ascendAfterCorruption = 'false';
             assert.throws(() => HSStrategyManager.validateStrategy(invalid), /corruption ascension option/);
+            const ifStep = strategy.strategy.flatMap(entry => entry.strat).find(action => action.ifJump);
+            if (ifStep) for (const bad of [-1, 1.5, '5']) {
+                const badMax = structuredClone(strategy);
+                badMax.strategy.flatMap(entry => entry.strat).find(action => action.ifJump).ifJump.ifJumpMaxJumps = bad;
+                assert.throws(() => HSStrategyManager.validateStrategy(badMax), /invalid max jumps/, `${filename}: ${bad}`);
+            }
             scenarios++;
         }
         console.log(`Passed ${scenarios} Autosing corruption scenarios.`);

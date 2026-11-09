@@ -4,6 +4,14 @@
 // For the header modules patch (see there). Self-contained: its source is written into the game bundle.
 // A copy of the player without the mod's module ids ("hs" then a capital letter) in its headerLayouts (slots, hidden,
 // sizes, positions), or the same object when there are none. Never changes what it's given.
+function capSaveSeeds(player) {
+    const seeds = player && player.seed;
+    if (!Array.isArray(seeds)) return player;
+    const now = Date.now();
+    if (!seeds.some(seed => seed > now)) return player;
+    return Object.assign({}, player, { seed: seeds.map(seed => Math.min(seed, now)) });
+}
+
 function stripHeaderModules(player) {
     const isMod = id => typeof id === 'string' && /^hs[A-Z]/.test(id);
     const layouts = player && player.headerLayouts;
@@ -683,20 +691,21 @@ function patchBundle(code, options = {}) {
 
     // ==================================================================================
     // ── PSEUDOCOIN LEVELS PATCH — expose PseudoCoinUpgrades.ts PCoinUpgrades as window.__HS_pcoinLevels
-    // The game fetches the player's PseudoCoin upgrade levels once at load (initializePCoinCache) and updates them in
-    // place after an in-game purchase (updatePCoinCache); its formulas read that object. The mod reads it too, instead
-    // of fetching https://synergism.cc/stripe/upgrades again (the game's dev asked for less traffic). At the end of
-    // both functions, window.__HS_pcoinLevelsLoaded says the levels are the server's (until then they are all 0, as
-    // for a player who has none), and window.__HS_onPCoinChange tells the mod they changed.
-    // initializePCoinCache is found by the fetch it awaits and the response it reads; the object by its reset loop
-    // and the levels it writes in it:
+    // The game fetches the player's PseudoCoin upgrade levels once at load, hands them to initializePCoinCache, and
+    // updates them in place after an in-game purchase (updatePCoinCache); its formulas read that object. The mod reads
+    // it too, instead of fetching https://synergism.cc/stripe/upgrades again (the game's dev asked for less traffic).
+    // At the end of both functions, window.__HS_pcoinLevelsLoaded says the levels are the server's (until then they
+    // are all 0, as for a player who has none), and window.__HS_onPCoinChange tells the mod they changed.
+    // initializePCoinCache is found by the levels it writes (by upgrade name) after its reset loop; the object by that
+    // loop. Since the 2026-11-06 game update it gets the upgrades from its caller; before, it awaited the fetch itself:
+    //   z_=e=>{for(let t of Object.keys(Nv))Nv[t]=0,Ww(t,0);for(let t of e)Nv[t.internalName]=t.level,Ww(...)}
     //   gF=async()=>{let e=await Ad.fetchUpgrades();for(let t of Object.keys(cv))cv[t]=0,TT(t,0);
     //       for(let t of e.playerUpgrades)cv[t.internalName]=t.level,TT(t.internalName,t.level)}
     // updatePCoinCache by the only other write of a variable into that object:  hF=async(e,t)=>{cv[e]=t,TT(e,t)}
     // The game never replaces the object, so the reference stays live. All three insertions or none.
     report.pcoinLevels = false;
     try {
-        const initResult = findEnclosingFunction(code, /\.fetchUpgrades\s*\(/g, ['.playerUpgrades', '.internalName'],
+        const initResult = findEnclosingFunction(code, /\.internalName\s*\]\s*=/g, ['Object.keys(', '.level'],
             'pcoinLevels');
         const initBody = initResult ? code.slice(initResult.bodyStart, initResult.bodyEnd) : '';
         const levelsVar = /Object\.keys\(\s*([a-zA-Z_$][\w$]*)\s*\)/.exec(initBody)?.[1];
@@ -727,7 +736,7 @@ function patchBundle(code, options = {}) {
             log(`Patched PseudoCoin levels (variable=${levelsVar}, init=${initResult.fnName}, update=${updateResult.fnName})`);
         } else {
             warn(!initResult
-                ? 'Could not patch PseudoCoin levels — initializePCoinCache (".fetchUpgrades(" with ".playerUpgrades") not found'
+                ? 'Could not patch PseudoCoin levels — initializePCoinCache ("[….internalName]=" with "Object.keys(") not found'
                 : !writesLevels
                     ? `Could not patch PseudoCoin levels — the levels object was not found in ${initResult.fnName}`
                     : `Could not patch PseudoCoin levels — expected 1 updatePCoinCache writing ${levelsVar}, found ${updateResults.length}`);
@@ -875,6 +884,35 @@ function patchBundle(code, options = {}) {
         }
     } catch (e) {
         warn('Error while patching the header modules', e);
+    }
+
+    // ==================================================================================
+    // ── SAVE SEED CAP — keep saves working when an RNG seed overtakes the clock (docs/game/behaviours.md)
+    // The game's save schema wants each player.seed below Date.now() + 1000, and each draw adds 1 to a seed that began
+    // as a timestamp in ms: over 1000 draws per second, every save throws, and the throw kills the autosave's interval.
+    // saveSynergy, found by its "testing.gameSaved" message and the talismans it writes (fragmentsInvested): its one
+    // schema parse saves a copy with the seeds capped at the clock, the live player's draws carry on untouched:
+    //   let t=Yp.parse(n)  becomes  let t=Yp.parse(window.__HS_capSaveSeeds(n))
+    // After the header modules patch: it applies with or without that one's edit of the same parse.
+    report.saveSeedCap = false;
+    try {
+        const saveResult = findEnclosingFunction(code, /["']testing\.gameSaved["']/g, ['fragmentsInvested'], 'save seed cap');
+        const schemaParse = /(?<![\w$.])(?!JSON\.)([a-zA-Z_$][\w$]*)\.parse\(\s*(window\.__HS_stripHeaderModules\(\s*[a-zA-Z_$][\w$]*\s*\)|[a-zA-Z_$][\w$]*)\s*\)/g;
+        const saveParses = saveResult ? [...code.slice(saveResult.bodyStart, saveResult.bodyEnd).matchAll(schemaParse)] : [];
+        if (saveParses.length === 1) {
+            const [match, schema, argument] = saveParses[0];
+            const at = saveResult.bodyStart + saveParses[0].index;
+            code = code.slice(0, at) + `${schema}.parse(window.__HS_capSaveSeeds(${argument}))` + code.slice(at + match.length);
+            topLines.push(`window.__HS_capSaveSeeds=${String(capSaveSeeds)};`);
+            report.saveSeedCap = true;
+            log(`Patched the save seed cap (save=${saveResult.fnName})`);
+        } else if (saveResult) {
+            warn(`Could not patch the save seed cap — expected 1 schema parse in saveSynergy (fn=${saveResult.fnName}), found ${saveParses.length}`);
+        } else {
+            warn('Could not patch the save seed cap — saveSynergy ("testing.gameSaved") not found');
+        }
+    } catch (e) {
+        warn('Error while patching the save seed cap', e);
     }
 
     // ==================================================================================
@@ -1049,7 +1087,7 @@ function startBrowserLoader(options) {
     if (window.HS_LOADER_INITIALIZED) return;
     window.HS_LOADER_INITIALIZED = true;
 
-    const loaderVersion = '4.7';
+    const loaderVersion = '4.9';
     const startTime = performance.now();
     const log = (...a) => console.log(`%c[HS-LOADER v${loaderVersion} +${(performance.now() - startTime).toFixed(0)}ms]`, 'color:#4af', ...a);
     const warn = (...a) => console.warn(`%c[HS-LOADER v${loaderVersion} +${(performance.now() - startTime).toFixed(0)}ms]`, 'color:#fa4', ...a);

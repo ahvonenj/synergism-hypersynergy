@@ -30,7 +30,7 @@ export class HSHeaterUIStyles {
                 flex: 0 0 auto;
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
+                gap: 6px;
                 min-height: 0;
                 max-height: 100%;
                 overflow-y: auto;
@@ -58,19 +58,19 @@ export class HSHeaterUIStyles {
                 display: none;
             }
 
-            .hs-heater-two-workers {
+            .hs-heater-workers {
                 display: flex;
                 align-items: center;
                 gap: 4px;
                 padding: 0px 8px;
-                /* Close to the heat button: the column's 12px gap less 8 */
-                margin-top: -8px;
+                /* Close to the heat button: the column's 6px gap less 2 */
+                margin-top: -2px;
                 color: #bbb;
                 cursor: help;
             }
 
             /* Shows there is a tooltip: a circle like the results' type info trigger */
-            .hs-heater-two-workers-help {
+            .hs-heater-workers-help {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -87,21 +87,22 @@ export class HSHeaterUIStyles {
                 user-select: none;
             }
 
-            .hs-heater-two-workers[hidden] {
+            .hs-heater-workers[hidden] {
                 display: none;
             }
 
-            /* Same as the Active Branches checkboxes */
-            .hs-heater-two-workers input {
-                width: 16px;
-                height: 16px;
-                margin: 0;
+            /* Same look as the "Your Loadout Order" dropdowns, in the heat button's red */
+            .hs-heater-workers select {
+                flex: 1 1 auto;
+                height: 22px;
+                background-color: #020525;
+                border: 1px solid #810b0b;
+                color: white;
                 cursor: pointer;
-                accent-color: #a22a2a;
-                box-sizing: border-box;
-                padding: 0;
-                border: 0;
-                flex-shrink: 0;
+            }
+
+            .hs-heater-workers select:focus {
+                outline: none;
             }
 
             /* === Shared Table Base Styles === */
@@ -113,7 +114,7 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table {
                 table-layout: fixed;
-                font-size: 0.9em;
+                font-size: 0.75em;
             }
 
             .hs-heater-results-table,
@@ -131,22 +132,29 @@ export class HSHeaterUIStyles {
             /* === Input Table Styles === */
             .hs-heater-input-table td,
             .hs-heater-input-table th {
-                height: 20px;
-                line-height: 20px;
-                min-height: 20px;
+                height: 18px;
+                line-height: 18px;
+                min-height: 18px;
             }
 
             .hs-heater-input-table td:first-child,
             .hs-heater-input-table th:first-child {
                 white-space: nowrap;
-                width: 24px;
-                min-width: 24px;
-                max-width: 24px;
+                width: 18px;
+                min-width: 18px;
+                max-width: 18px;
+            }
+
+            /* Icons touching each other: no padding, no line between rows (not the heading and warning rows) */
+            .hs-heater-input-table td:first-child:not([colspan]) {
+                padding: 0 1px;
+                border-top: none;
+                border-bottom: none;
             }
 
             .hs-heater-input-table td:nth-child(2),
             .hs-heater-input-table th:nth-child(2) {
-                width: 200px;
+                white-space: nowrap;
             }
 
             .hs-heater-input-table td:nth-child(3),
@@ -157,15 +165,20 @@ export class HSHeaterUIStyles {
 
             .hs-heater-input-table input {
                 width: 100%;
-                min-width: 165px;
+                min-width: 110px;
                 box-sizing: border-box;
+            }
+
+            /* The game's inputs have min-height: 20px, taller than the rows */
+            .hs-heater-input-table input:not([type="checkbox"]) {
+                min-height: 18px;
             }
 
             .hs-heater-icon-image {
                 display: block;
                 margin: auto;
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
             }
 
             /* === Results Table Styles === */
@@ -196,6 +209,8 @@ export class HSHeaterUIStyles {
                 margin-left: auto;
                 margin-right: auto;
                 margin-bottom: 4px;
+                /* Room for the two badges, which are out of the flow: 16 slots can't run under them */
+                padding: 0 30px;
             }
 
             .hs-heater-results-topbar > * {
@@ -204,13 +219,29 @@ export class HSHeaterUIStyles {
                 margin-bottom: 0;
             }
 
+            /* The Ambrosia tab's slots, as compact as the "Your loadout order" icons */
+            .hs-heater-results-topbar .hs-quickbar-slots-wrapper {
+                gap: 0;
+            }
+
+            .hs-heater-results-topbar .blueberryLoadoutSlot {
+                width: 26px;
+                height: 26px;
+                /* The game's buttons have min-height: 30px */
+                min-height: 0;
+                /* The number in the corner, where the game's header bar has it */
+                padding: 0 0 0 2px;
+                line-height: 1.1;
+                background-size: contain;
+            }
+
             .hs-heater-results-topbar-exalt {
                 position: absolute;
                 left: 0px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 30px;
-                height: 30px;
+                width: 26px;
+                height: 26px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -221,8 +252,8 @@ export class HSHeaterUIStyles {
             }
 
             .hs-heater-results-topbar-exalt img {
-                width: 24px;
-                height: 24px;
+                width: 22px;
+                height: 22px;
                 pointer-events: none;
             }
 
@@ -231,8 +262,8 @@ export class HSHeaterUIStyles {
                 right: 0px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 30px;
-                height: 30px;
+                width: 26px;
+                height: 26px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -248,8 +279,22 @@ export class HSHeaterUIStyles {
             /* === Results & Subtable Styles === */
             .hs-heater-results-table td, .hs-heater-results-table th,
             .hs-heater-subtable td, .hs-heater-subtable th {
-                padding: 0px 8px;
+                padding: 0px 4px;
                 text-align: center;
+                font-size: 0.85em;
+            }
+
+            /* Only the first column and the section titles keep the full size */
+            .hs-heater-results-table td:has(.hs-heater-type-cell-content),
+            .hs-heater-results-table th:first-child,
+            .hs-heater-results-table td.hs-heater-title-row {
+                font-size: 1em;
+            }
+
+            /* Centred under the slots when they are the wider of the two */
+            .hs-heater-results-table {
+                margin-left: auto;
+                margin-right: auto;
             }
 
             .hs-heater-redamb-summary {
@@ -414,6 +459,7 @@ export class HSHeaterUIStyles {
             /* === Input Controls === */
             .hs-heater-input-table td.hs-heater-input-warning {
                 height: auto;
+                white-space: normal;
                 color: #e0b84f;
                 text-align: center;
             }
@@ -424,14 +470,15 @@ export class HSHeaterUIStyles {
                 border-left: none;
                 border-right: none;
                 color: #9a9a9a;
-                font-size: 0.85em;
+                /* The size it had when the table was at 0.9em */
+                font-size: 1em;
                 font-weight: bold;
                 text-align: left;
             }
 
             .hs-heater-select-input {
                 width: 100%;
-                height: 20px;
+                height: 18px;
                 background-color: black;
                 color: white;
             }
@@ -445,7 +492,7 @@ export class HSHeaterUIStyles {
 
             /* === Lock Button === */
             .hs-heater-lock-button {
-                min-height: 20px;
+                min-height: 18px;
                 border: none;
                 background: transparent;
                 cursor: pointer;
@@ -464,7 +511,7 @@ export class HSHeaterUIStyles {
             .hs-heater-active-grid {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 2px;
+                gap: 0;
             }
 
             .hs-heater-active-branch {
@@ -473,6 +520,8 @@ export class HSHeaterUIStyles {
                 gap: 4px;
                 padding: 0px 8px;
                 border-radius: 4px;
+                font-size: 0.9em;
+                line-height: 1.2;
             }
 
             .hs-heater-active-branch-note {
@@ -524,7 +573,7 @@ export class HSHeaterUIStyles {
             .hs-heater-type-selects-grid {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 4px;
+                gap: 1px;
             }
 
             .hs-heater-type-select-row {
@@ -534,18 +583,26 @@ export class HSHeaterUIStyles {
             }
 
             .hs-heater-type-select-loadout-label {
-                width: 24px;
-                min-width: 24px;
+                width: 18px;
+                min-width: 18px;
                 text-align: center;
                 font-weight: 600;
             }
 
+            /* L10 and up */
+            .hs-heater-type-selects-two-digits .hs-heater-type-select-loadout-label {
+                width: 24px;
+                min-width: 24px;
+            }
+
             .hs-heater-type-select-icon {
                 background-repeat: no-repeat;
-                background-size: 80%;
+                background-size: contain;
                 background-position: center;
-                height: 30px;
-                width: 30px;
+                height: 26px;
+                /* The game's buttons have min-height: 30px */
+                min-height: 0;
+                width: 26px;
                 border: 2px solid blue;
                 pointer-events: none;
                 outline: none;
@@ -584,7 +641,6 @@ export class HSHeaterUIStyles {
             .hs-heater-type-select-checkbox {
                 width: 16px;
                 height: 16px;
-                margin-left: 6px;
                 cursor: pointer;
                 accent-color: #0505ad;
                 box-sizing: border-box;
@@ -621,30 +677,6 @@ export class HSHeaterUIStyles {
                 cursor: help;
             }
 
-            .hs-heater-header-tooltip::before {
-                content: attr(data-tooltip);
-                position: absolute;
-                left: 50%;
-                top: calc(100% + 2px);
-                transform: translateX(-50%);
-                min-width: 12rem;
-                max-width: 18rem;
-                padding: 8px 10px;
-                background: #1e1e1e;
-                color: #d3d5da;
-                border: 1px solid rgba(255,255,255,0.2);
-                border-radius: 4px;
-                white-space: pre-line;
-                text-align: left;
-                font-size: 0.78em;
-                line-height: 1.35;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-                z-index: 10000;
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-            }
-
             .hs-heater-header-tooltip::after {
                 content: "";
                 position: absolute;
@@ -657,12 +689,6 @@ export class HSHeaterUIStyles {
                 border-top: 5px solid rgb(122, 144, 255);
                 border-right: 5px solid rgb(122, 144, 255);
                 pointer-events: none;
-            }
-
-            .hs-heater-header-tooltip:hover::before,
-            .hs-heater-header-tooltip:focus-within::before {
-                opacity: 1;
-                visibility: visible;
             }
 
             .hs-heater-selected-type-cell,
@@ -735,7 +761,7 @@ export class HSHeaterUIStyles {
                 flex: 1;
                 text-align: center;
                 box-sizing: border-box;
-                padding: 0 18px;
+                padding: 0 4px;
             }
 
             .hs-heater-type-icon {
@@ -754,17 +780,17 @@ export class HSHeaterUIStyles {
                 min-height: 20px;
                 cursor: pointer;
                 padding: 1px 4px;
-                font-size: 0.85em;
+                /* The cell's own size: its font is already reduced */
+                font-size: 1em;
                 border: 2px solid transparent;
             }
 
             /* Common section with Purple rows: Effect and Routing are one cell spanning both
                effect columns, split at a fixed width. As two real columns,
-               the routing's width would set the p4x4 section's columns too. */
+               the routing's width would set the p4x4 section's columns too.
+               The header and data cells need the same font size, or the split moves. */
             .hs-heater-results-table .hs-heater-split-cell {
                 position: relative;
-                padding-left: 4px;
-                padding-right: 4px;
                 /* The "Effect" header in bold is about 3.35em wide */
                 --hs-heater-split-effect-width: 3.4em;
             }
@@ -790,11 +816,12 @@ export class HSHeaterUIStyles {
                are narrower than the icons, whose sides are transparent. */
             .hs-heater-purple-routing {
                 display: grid;
-                grid-template-columns: 12px 2.8em 12px 2.5em auto;
+                grid-template-columns: 11px 2.5em 11px 2.5em auto;
                 column-gap: 1px;
                 align-items: center;
                 justify-content: start;
                 justify-items: start;
+                /* This column's width sets the whole table's Effect area */
                 font-size: 0.9em;
                 white-space: nowrap;
                 cursor: help;
@@ -802,15 +829,16 @@ export class HSHeaterUIStyles {
 
             .hs-heater-purple-routing .hs-heater-apply-routing-btn {
                 padding: 0;
+                border: 0;
                 font-size: 1em;
                 line-height: 1;
                 color: var(--purple-text-color, #FF29FF);
             }
 
             .hs-heater-routing-icon {
-                width: 16px;
-                height: 16px;
-                margin: 0 -2px;
+                width: 14px;
+                height: 14px;
+                margin: 0 -1.5px;
                 object-fit: contain;
             }
 
@@ -848,6 +876,9 @@ export class HSHeaterUIStyles {
                 cursor: help;
             }
             .hs-heater-best-h-marker { color: #f2c94c; white-space: nowrap; cursor: help; }
+
+            /* Opacity, not a text colour: the ✔/✘, icons and buttons must dim too. */
+            .hs-heater-never-row td { opacity: 0.55; }
 
             /* Same orange as the slot's border in "Your loadout order". The
                type's label is in a button when it has an icon, and a button
@@ -986,12 +1017,51 @@ export class HSHeaterUIStyles {
                 background-color: transparent;
             }
 
+            /* A ✘'s preview: Brick of Lead's level when below its max */
+            .hs-heater-tooltip-note {
+                margin-top: 4px;
+                text-align: center;
+                font-size: 0.8em;
+                color: #999;
+            }
+
+            /* A ✘'s preview: levels the row is below on the ✘ red, the row's top left,
+               the needed one bottom right; the rest dimmed */
+            .hs-heater-preview-button.hs-heater-preview-gap {
+                background: rgba(150, 47, 47, 0.55);
+                border-radius: 2px;
+            }
+            .hs-heater-preview-button.hs-heater-preview-gap > .level-overlay {
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: none;
+                display: block;
+                font-size: 14px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+            .hs-heater-preview-gap .hs-heater-gap-have,
+            .hs-heater-preview-gap .hs-heater-gap-need,
+            .hs-heater-preview-gap .hs-heater-gap-slash {
+                position: absolute;
+            }
+            .hs-heater-preview-gap .hs-heater-gap-have { top: 1px; left: 1px; }
+            .hs-heater-preview-gap .hs-heater-gap-need { bottom: 1px; right: 1px; }
+            .hs-heater-preview-gap .hs-heater-gap-slash {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 11px;
+                opacity: 0.7;
+            }
+            .hs-heater-preview-button.hs-heater-preview-no-gap {
+                opacity: 0.35;
+            }
+
             /* === Heater Tooltip Overlays === */
-            .hs-heater-loadout-json-tooltip,
-            .hs-heater-type-info-tooltip,
-            #hs-heater-sync-settings-tooltip,
-            #hs-heater-start-heater-tooltip,
-            #hs-heater-topbar-help-tooltip {
+            .hs-heater-loadout-json-tooltip {
                 position: fixed;
                 z-index: 10000;
                 background: #1e1e1e;
@@ -1007,15 +1077,6 @@ export class HSHeaterUIStyles {
                 overflow-y: auto;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.5);
                 white-space: pre-wrap;
-            }
-            .hs-heater-type-info-tooltip {
-                max-width: 250px;
-            }
-            #hs-heater-sync-settings-tooltip {
-                white-space: normal !important;
-            }
-            .hs-heater-tooltip-bigger {
-                font-size: 0.95em !important;
             }
 
             .hs-heater-tooltip-title {
@@ -1053,32 +1114,6 @@ export class HSHeaterUIStyles {
 
             .hs-heater-tooltip-pinned:active {
                 cursor: grabbing;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-key {
-                color: #7fa1d1;
-                font-weight: 600;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-none {
-                color: #bc888c;
-                font-weight: 500;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-key-none-selected,
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-none-selected {
-                color: #d71928;
-                font-weight: 900;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-selected {
-                color: #667fd2e8;
-                font-weight: 700;
-            }
-
-            #hs-heater-sync-settings-tooltip .hs-heater-sync-settings-tooltip-unselected {
-                color: #7f7f7f;
-                font-weight: 500;
             }
         `;
     }

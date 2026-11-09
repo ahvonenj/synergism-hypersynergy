@@ -712,40 +712,8 @@
     border-color: #888;
 }
 
-.hs-challenges-help {
-    position: relative;
-}
-
 .hs-challenges-help-btn {
     cursor: help;
-}
-
-/* Shown over the window while "?" is hovered */
-.hs-challenges-help-box {
-    display: none;
-    position: absolute;
-    left: 0;
-    bottom: calc(100% + 8px);
-    width: 420px;
-    grid-template-columns: auto 1fr;
-    gap: 6px 12px;
-    padding: 10px 12px;
-    background-color: #353439;
-    border: 1px solid white;
-    border-radius: 3px;
-    font-size: 12px;
-    color: #c8c8c8;
-    z-index: 2;
-}
-
-.hs-challenges-help:hover .hs-challenges-help-box {
-    display: grid;
-}
-
-.hs-challenges-help-term {
-    color: white;
-    font-weight: 600;
-    white-space: nowrap;
 }
 
 .hs-challenges-undo-btn:hover {

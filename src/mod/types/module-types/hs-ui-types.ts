@@ -83,19 +83,31 @@ export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
     parentModalId?: string;
     headerClass?: string;
     bodyClass?: string;
+    // Called with the modal laid out, its CSS applied, before it is placed and shown
+    onBeforeShow?: (modal: HTMLElement) => void;
 }
 
 export type HSNotifyPosition = "topLeft" | "top" | "topRight" | "right" | "bottomRight" | "bottom" | "bottomLeft" | "left";
 export type HSNotifyType = "default" | "warning" | "error" | "success";
+export type HSNotifyColumn = "top" | "bottomLeft";
 
 export interface HSNotifyOptions {
+    // "bottomLeft" has its own column, any other value goes in the top-centre one
     position: HSNotifyPosition;
     popDuration: number;
+    // A minimum: a caller can make a notification last longer, never cut a long text short
     displayDuration: number;
     hideDuration: number;
     notificationType: HSNotifyType;
-    width: number;
-    height: number;
+}
+
+export interface HSNotification {
+    text: string;
+    notificationType: HSNotifyType;
+    column: HSNotifyColumn;
+    element: HTMLElement;
+    lifetime: Animation;
+    onRemoved: () => void;
 }
 
 export interface HSUICModalOptions extends HSUICOptions {

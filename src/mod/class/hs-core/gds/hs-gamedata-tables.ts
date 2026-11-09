@@ -1,5 +1,5 @@
 import Decimal from "break_infinity.js";
-import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection, SingularityChallengeDataKeys, ISingularityChallengeData, GoldenQuarkUpgradeKey, OcteractUpgradeKey, TalismanKeys, RuneKeys, SynergismLevelMilestones, SynergismLevelMilestoneDefinition, ShopUpgradeGroups, AchievementRewards } from "../../../types/data-types/hs-gamedata-api-types"
+import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection, SingularityChallengeDataKeys, ISingularityChallengeData, GoldenQuarkUpgradeKey, OcteractUpgradeKey, TalismanKeys, RuneKeys, SynergismLevelMilestones, SynergismLevelMilestoneDefinition, ShopUpgradeGroups } from "../../../types/data-types/hs-gamedata-api-types"
 import type { GameData, SingularityChallengeRewards } from "../../../types/data-types/hs-player-savedata"
 
 export const SHOP_UPGRADE_TYPE_KEYS: Record<ShopUpgradeGroups, string[]> = {
@@ -302,6 +302,11 @@ export const challenge15Rewards = {
     requirement: 1e11,
     HTMLColor: 'lightgoldenrodyellow'
   },
+  construction: {
+    value: 0,
+    baseValue: 0,
+    requirement: 1e13
+  },
   hepteractsUnlocked: {
     value: 0,
     baseValue: 0,
@@ -447,7 +452,7 @@ export const redAmbrosiaUpgradeCalculationCollection: RedAmbrosiaUpgradeCalculat
   },
   redAmbrosiaFreeAccumulator: {
     label: 'Red DOAa',
-    costFunction: (level: number, _cpl: number) => [100, 400, 1000, 3000, 10000, 25000, 75000, 150000, 400000, 1000000][level] ?? 0,
+    costFunction: (level: number, _cpl: number) => [100, 400, 1000, 3000, 10000, 25000, 70500, 140000, 400000, 1000000][level] ?? 0,
     maxLevel: 10,
     costPerLevel: 1,
     effects: (n: number) => {
@@ -1114,10 +1119,10 @@ export const goldenQuarkUpgradeMaxLevels: Record<GoldenQuarkUpgradeKey, GoldenQu
   singAmbrosiaGeneration3: { maxLevel: 35, qualityOfLife: true, costPerLevel: 3e8, specialCostForm: 'Default', effect: (n) => 1 + n / 100 },
   singAmbrosiaGeneration4: { maxLevel: 50, qualityOfLife: true, costPerLevel: 1e19, specialCostForm: 'Default', effect: (n) => 1 + 2 * n / 100 },
   // Effects copied from SynergismOfficial/src/singularity.ts.
-  singBonusTokens1: { maxLevel: 5, costPerLevel: 25, specialCostForm: 'Exponential2', effect: (n) => n },
+  singBonusTokens1: { maxLevel: 2, costPerLevel: 25, specialCostForm: 'Exponential2', effect: (n) => n },
   singBonusTokens2: { maxLevel: 5, costPerLevel: 10_000, specialCostForm: 'Exponential2', effect: (n) => 1 + n / 100 },
-  singBonusTokens3: { maxLevel: 5, costPerLevel: 1e8, specialCostForm: 'Exponential2', effect: (n) => 2 * n },
-  singBonusTokens4: { maxLevel: 30, costPerLevel: 1e13, specialCostForm: 'Exponential2', effect: (n) => 5 * n },
+  singBonusTokens3: { maxLevel: 2, costPerLevel: 1e8, specialCostForm: 'Exponential2', effect: (n) => n },
+  singBonusTokens4: { maxLevel: 25, costPerLevel: 1e13, specialCostForm: 'Exponential2', effect: (n) => 2 * n },
   singInfiniteShopUpgrades: { maxLevel: 80, costPerLevel: 1e18, specialCostForm: 'Default', effect: (n) => n },
   singTalismanBonusRunes1: {
     maxLevel: 5, costPerLevel: 25, specialCostForm: 'Default',
@@ -1221,10 +1226,10 @@ export const octeractUpgradeMaxLevels: Record<OcteractUpgradeKey, OcteractUpgrad
   octeractAmbrosiaGeneration3: { maxLevel: 35, qualityOfLife: true, costFormula: (n) => 1e30 * Math.pow(n, 8), effect: (n) => 1 + n / 100 },
   octeractAmbrosiaGeneration4: { maxLevel: 50, qualityOfLife: true, costFormula: (n) => 1e70 * (Math.pow(3, n) - 1), effect: (n) => 1 + 2 * n / 100 },
   // Effects copied from SynergismOfficial/src/Octeracts.ts.
-  octeractBonusTokens1: { maxLevel: 10, costFormula: (n) => 1e-5 * (Math.pow(1e2, n) - 1) / 99, effect: (n) => n },
+  octeractBonusTokens1: { maxLevel: 2, costFormula: (n) => 1e-5 * (Math.pow(1e2, n) - 1) / 99, effect: (n) => n },
   octeractBonusTokens2: { maxLevel: 5, costFormula: (n) => Math.pow(1e8, n) - 1, effect: (n) => 1 + n / 100 },
-  octeractBonusTokens3: { maxLevel: 5, costFormula: (n) => 1e40 * (Math.pow(1e10, n) - 1), effect: (n) => n },
-  octeractBonusTokens4: { maxLevel: 50, costFormula: (n) => 1e75 * (Math.pow(4, n) - 1), effect: (n) => 2 * n },
+  octeractBonusTokens3: { maxLevel: 2, costFormula: (n) => 1e40 * (Math.pow(1e10, n) - 1), effect: (n) => n },
+  octeractBonusTokens4: { maxLevel: 50, costFormula: (n) => 1e75 * (Math.pow(4, n) - 1), effect: (n) => n },
   octeractBlueberries: { maxLevel: 6, qualityOfLife: true, costFormula: (n) => OCTERACT_BLUEBERRY_COSTS[n] ?? Number.POSITIVE_INFINITY, effect: (n) => n },
   octeractInfiniteShopUpgrades: { maxLevel: 80, costFormula: (n) => 1e30 * (Math.pow(16, n) - 1), effect: (n) => n },
   octeractTalismanLevelCap1: { maxLevel: 25, costFormula: (n) => 1e-5 * Math.pow(n, 6), effect: (n: number) => n },
@@ -1571,6 +1576,7 @@ export const c15Functions: { [key in keyof typeof challenge15Rewards]: (e: numbe
   wowHepteracts: (e: number) => challenge15CubeReward(e, 0.85, 1e15),
   wowOcteracts: (e: number) => Math.sqrt(challenge15ScoreReward(e, 1e30)),
   quarks: (e: number) => 1 + (3 / 400) * Math.log2(e * 32 / 1e11),
+  construction: (e: number) => 5 + 2 * Math.log10(e / 1e13),
   hepteractsUnlocked: (e: number) => e >= 1e15 ? 1 : 0,
   challengeHepteractUnlocked: (e: number) => e >= 2e15 ? 1 : 0,
   cube5: (e: number) => 1 + (1 / 300) * Math.log2(e / (4e15 / 1024)),
@@ -1700,76 +1706,6 @@ export const TALISMAN_WOWSQUARE_INSCRIPT_VALUES = [1, 1.025, 1.05, 1.075, 1.1, 1
 export const TALISMAN_ACHIEVEMENT_EFFECT_INSCRIPT_VALUES = [0, 0.001, 0.002, 0.003, 0.004, 0.006, 0.008, 0.01, 0.015, 0.02, 0.03]
 export const TALISMAN_COOKIEGRANDMA_INSCRIPT_VALUES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 export const TALISMAN_HORSESHOE_INSCRIPT_VALUES = [0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.007, 0.01, 0.012, 0.015, 0.02]
-
-export const ACHIEVEMENT_REWARD_TYPES: AchievementRewards[] = [
-    'acceleratorPower',
-    'accelerators',
-    'multipliers',
-    'accelBoosts',
-    'crystalMultiplier',
-    'taxReduction',
-    'particleGain',
-    'conversionExponent',
-    'chronosTalisman',
-    'midasTalisman',
-    'metaphysicsTalisman',
-    'polymathTalisman',
-    'talismanPower',
-    'sacrificeMult',
-    'antSpeed',
-    'antSacrificeUnlock',
-    'preserveAnthillCount',
-    'preserveAnthillCountSingularity',
-    'antAutobuyers',
-    'inceptusAutobuy',
-    'fortunaeAutobuy',
-    'tributumAutobuy',
-    'celeritasAutobuy',
-    'exploratoremAutobuy',
-    'sacrificiumAutobuy',
-    'experientiaAutobuy',
-    'hicAutobuy',
-    'scientiaAutobuy',
-    'praemoenioAutobuy',
-    'phylacteriumAutobuy',
-    'antELOAdditive',
-    'antELOAdditiveMultiplier',
-    'wowSquareTalisman',
-    'ascensionCountMultiplier',
-    'ascensionCountAdditive',
-    'wowCubeGain',
-    'wowTesseractGain',
-    'wowHypercubeGain',
-    'wowPlatonicGain',
-    'quarkGain',
-    'wowHepteractGain',
-    'cubesBanked',
-    'constUpgrade1Buff',
-    'constUpgrade2Buff',
-    'platonicToHypercubes',
-    'statTracker',
-    'ascensionRewardScaling',
-    'overfluxConversionRate',
-    'diamondUpgrade18',
-    'diamondUpgrade19',
-    'diamondUpgrade20',
-    'prestigeCountMultiplier',
-    'transcensionCountMultiplier',
-    'reincarnationCountMultiplier',
-    'duplicationRuneUnlock',
-    'prismRuneUnlock',
-    'thriftRuneUnlock',
-    'salvage',
-    'offeringBonus',
-    'obtainiumBonus',
-    'transcendToPrestige',
-    'reincarnationToTranscend',
-    'antSacrificeCountMultiplier',
-    'freeAntUpgrades',
-    'autoAntSacrifice',
-    'antSpeed2UpgradeImprover',
-    'antSacrificeToReincarnation'
-] as const;
 
 export const FAVORITE_UPGRADE_GQ_DEPENDENCIES = ['goldenQuarks1', 'platonicDelta', 'oneMind'] as const;
 export const FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES = ['octeractImprovedFree', 'octeractCorruption', 'octeractBlueberries'] as const;

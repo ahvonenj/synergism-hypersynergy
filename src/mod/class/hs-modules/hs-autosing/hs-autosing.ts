@@ -13,17 +13,17 @@ import { HSNumberParser } from "../../hs-utils/hs-number-parser";
 import { HSAutosingStrategy, PhaseOption, phases, AutosingStrategyPhase, Challenge, SPECIAL_ACTION_BY_ID, createDefaultAoagPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, ALLOWED, type HSAutosingPassRecord, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
 import { HSAutosingModal } from "./hs-autosingModal";
 import { HSAutosingRecorder } from "./hs-autosingRecorder";
+import { HSAutosingStepTimingsWindow } from "./ui/hs-autosing-step-timings-window";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSGameState, MainView } from "../../hs-core/hs-gamestate";
 import { HSAutosingSettingsFixer } from './hs-autosingSettingsFixer';
 import { HSAutosingCorruption } from './hs-autosingCorruption';
+import { HSAutosingWakeLock } from './hs-autosingWakeLock';
 import { ELogLevel } from "../../../types/module-types/hs-logger-types";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSSubtabMemory } from "../hs-subtab-memory";
 import { MAIN_VIEW_BUTTON_IDS } from "../../../types/module-types/hs-gamestate-types";
 import { escapeLogText } from "../hs-heater/hs-heater-utils";
-
-declare const HS_DEV_BUILD: boolean;
 
 const STAGE_REGEX = /Current Game Section:\s*(.+)/;
 const CHALLENGE_COMPLETIONS_REGEX = /\((\d+)\s*\/\s*(\d+)\):/;
@@ -84,6 +84,7 @@ export class HSAutosing extends HSModule {
     #lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
     #challengeAccessors: Record<number, ChallengeAccessor> = {};
     #settingsFixer = new HSAutosingSettingsFixer();
+    #wakeLock = new HSAutosingWakeLock();
     #settingsWork?: Promise<void>;
     #settingsRestore?: Promise<void>;
     #previousQuarkAmount: number = 0;
@@ -124,8 +125,10 @@ export class HSAutosing extends HSModule {
     #ambrosia_obt!: HTMLButtonElement;
     #ambrosia_off!: HTMLButtonElement;
     #ambrosia_luck!: HTMLButtonElement;
-    // Read once per run: the slots above aren't looked up while it's on
+    // Read at the start, then kept up to date by setAmbrosiaSwitchesOff(): the slots above aren't looked up while it's on
     #ambrosiaSwitchesOff = false;
+    // "Record step timings", read at each start
+    #recordTimings = false;
 
     // DOM Elements - Misc
     #antSacrifice!: HTMLButtonElement;
@@ -234,10 +237,12 @@ export class HSAutosing extends HSModule {
     }
 
     #cacheChallengeElements(): boolean {
+        // The game's text span, not its header module: the mod adds a compact copy inside the module
+        // (HSHeaderChallengeProgress), so the module's text is never empty once the game exits the challenge
         const progressElements = {
-            transcension: document.getElementById('transcensionChallengeProgress'),
-            reincarnation: document.getElementById('reincarnationChallengeProgress'),
-            ascension: document.getElementById('ascensionChallengeProgress'),
+            transcension: document.getElementById('transcensionChallengeProgressText'),
+            reincarnation: document.getElementById('reincarnationChallengeProgressText'),
+            ascension: document.getElementById('ascensionChallengeProgressText'),
         };
         if (!this.#ensureElements(progressElements)) return false;
         this.#challengeProgressElements = [
@@ -336,6 +341,16 @@ export class HSAutosing extends HSModule {
             return true;
         }
 
+        if (!this.#findAmbrosiaLoadoutButtons()) {
+            HSUI.Notify("There is a problem with the Auto-Sing settings. Check the logs for more details.", {
+                notificationType: "warning"
+            });
+            return false;
+        }
+        return true;
+    }
+
+    #findAmbrosiaLoadoutButtons(): boolean {
         const earlyCubeVal = HSSettings.getSetting("autosingEarlyCubeLoadout").getValue();
         const lateCubeVal = HSSettings.getSetting("autosingLateCubeLoadout").getValue();
         const quarkVal = HSSettings.getSetting("autosingQuarkLoadout").getValue();
@@ -351,12 +366,8 @@ export class HSAutosing extends HSModule {
             off: document.getElementById(`blueberryLoadout${offVal}`) as HTMLButtonElement | null,
             luck: document.getElementById(`blueberryLoadout${ambrosiaVal}`) as HTMLButtonElement | null,
         };
-        if (!this.#ensureElements(elements)) {
-            HSUI.Notify("There is a problem with the Auto-Sing settings. Check the logs for more details.", {
-                notificationType: "warning"
-            });
-            return false;
-        }
+        // Not #ensureElements, which stops a running autosing: a slot at "None" during a run only refuses the change
+        if (!this.#allElementsFound(elements)) return false;
 
         this.#ambrosia_early_cube = elements.earlyCube;
         this.#ambrosia_late_cube = elements.lateCube;
@@ -365,6 +376,33 @@ export class HSAutosing extends HSModule {
         this.#ambrosia_off = elements.off;
         this.#ambrosia_luck = elements.luck;
         return true;
+    }
+
+    /**
+     * "Don't switch ambrosia loadouts" changed. During a run it applies from the next step;
+     * otherwise the next start reads the setting.
+     */
+    public setAmbrosiaSwitchesOff(off: boolean): void {
+        if (!this.#autosingEnabled && !this.#isStarting) return;
+        if (this.#ambrosiaSwitchesOff === off) return;
+
+        // The slots weren't looked up if the setting was on at the start
+        if (!off && !this.#findAmbrosiaLoadoutButtons()) {
+            HSLogger.warn("Ambrosia loadout switches stay off: an ambrosia loadout setting has no slot.", this.context);
+            HSUI.Notify("Auto-Sing still won't switch ambrosia loadouts: pick a slot for each loadout first.", { notificationType: 'warning' });
+            HSSettings.getSetting("autosingNoAmbrosiaSwitch").enable();
+            return;
+        }
+
+        this.#ambrosiaSwitchesOff = off;
+        this.#autosingModal?.refreshLoadouts();
+    }
+
+    /** "Keep the PC awake" changed. During a run it applies at once; otherwise the next start reads the setting. */
+    public setKeepAwake(on: boolean): void {
+        if (!this.#autosingEnabled) return;
+        if (on) this.#wakeLock.start();
+        else this.#wakeLock.stop();
     }
 
     #cacheMiscElements(): boolean {
@@ -605,6 +643,7 @@ export class HSAutosing extends HSModule {
         this.#cacheExposedFunctions();
 
         this.#autosingEnabled = true;
+        if (HSSettings.getSetting("autosingKeepAwake").isEnabled()) this.#wakeLock.start();
         this.#stopAtSingularitysEnd = false;
         this.#endStageDone = false;
         this.#antiquitiesObserverActivated = false;
@@ -745,6 +784,7 @@ export class HSAutosing extends HSModule {
 
     async #stopAutosingCore(options: { modalDisposition: 'review' | 'destroy', leaveExalt: boolean }): Promise<void> {
         this.#autosingEnabled = false;
+        this.#wakeLock.stop();
 
         // Stopped between entering Exalt 2 and leaving it: leave it, or the player stays inside.
         // Its own session answers its dialogs: the exit Alert is queued after stopAutosing() has stopped
@@ -838,7 +878,9 @@ export class HSAutosing extends HSModule {
         }
 
         this.#elevatorInput.value = this.#targetSingularity.toString();
-        this.#elevatorInput.dispatchEvent(new Event('input', { bubbles: true }));
+        // Without the live player, the Teleport goes to the game's saved target: the game only reads its input on 'change'.
+        // With it, the singularity is written directly: the player's saved target isn't touched (locked, it decides their next singularity).
+        if (!this.#hasLivePlayer) this.#elevatorInput.dispatchEvent(new Event('change', { bubbles: true }));
         HSLogger.log(`Autosing requirements checked for target singularity: ${this.#targetSingularity}`, this.context);
 
         return true;
@@ -933,8 +975,10 @@ export class HSAutosing extends HSModule {
             await this.#useAddAndTimeCodes();
             if (!this.#autosingEnabled) return;
 
-            // Dev builds only: the timings read by the headless harness
-            if (HS_DEV_BUILD) HSAutosingRecorder.start(this.#strategy!.strategyName, this.#targetSingularity);
+            this.#recordTimings = HSSettings.getSetting("autosingStepTimings").isEnabled();
+            if (this.#recordTimings) HSAutosingRecorder.start(this.#strategy!.strategyName, this.#targetSingularity);
+            else HSAutosingRecorder.clear();
+            HSAutosingStepTimingsWindow.requestRefresh();
 
             if (this.#autosingModal) {
                 let quarks: number;
@@ -1054,22 +1098,24 @@ export class HSAutosing extends HSModule {
         // At every phase run: the step lines below don't name their phase
         HSLogger.debug(() => `===== Executing phase: ${phaseLabel} =====`, this.context);
         this.#autosingModal?.setCurrentPhase(phaseLabel);
-        const passRecord = HS_DEV_BUILD ? HSAutosingRecorder.startPass(phaseLabel) : undefined;
+        const passRecord = this.#recordTimings ? HSAutosingRecorder.startPass(phaseLabel) : undefined;
 
         const isEndPhase = phaseConfig.endPhase === "end";
+        // Jumps taken by each IF with a max jumps in this pass, by its index
+        const jumpCounts = new Map<number, number>();
         for (let i = 0; i < phaseConfig.strat.length; i++) {
             if (this.#autosingModal?.getIsPaused()) await this.#waitIfAutosingPaused();
 
             // Autosing disabled or AOAG observer activated
             if (!this.#autosingEnabled || (this.#antiquitiesObserverActivated && !isEndPhase && !ignoreObserverActivated)) {
                 this.#autosingModal?.recordPhase(phaseLabel);
-                if (HS_DEV_BUILD && passRecord) HSAutosingRecorder.endPass(passRecord, this.#autosingEnabled ? 'aoag' : 'stopped');
+                if (passRecord) HSAutosingRecorder.endPass(passRecord, this.#autosingEnabled ? 'aoag' : 'stopped');
                 return;
             }
 
-            const stepStartedAt = HS_DEV_BUILD ? performance.now() : 0;
-            const jumpIndex = await this.#executeStrategyAction(phaseConfig, i, passRecord);
-            if (HS_DEV_BUILD && passRecord) HSAutosingRecorder.step(passRecord, phaseConfig.strat[i], i, stepStartedAt, jumpIndex);
+            const stepStartedAt = passRecord ? performance.now() : 0;
+            const jumpIndex = await this.#executeStrategyAction(phaseConfig, i, jumpCounts, passRecord);
+            if (passRecord) HSAutosingRecorder.step(passRecord, phaseConfig.strat[i], i, this.#stepNumber(phaseConfig, i), stepStartedAt, jumpIndex);
             if (typeof jumpIndex === 'number') {
                 // set loop index to jumpIndex-1 because the for-loop will increment it
                 i = jumpIndex - 1;
@@ -1080,7 +1126,7 @@ export class HSAutosing extends HSModule {
         if (phaseConfig.endPhase === "end") this.#endStageDone = true;
 
         this.#autosingModal?.recordPhase(phaseLabel);
-        if (HS_DEV_BUILD && passRecord) HSAutosingRecorder.endPass(passRecord, 'done');
+        if (passRecord) HSAutosingRecorder.endPass(passRecord, 'done');
     }
 
     /** A step's number in the strategy editor (from 1), 0 for a step inserted at load. */
@@ -1090,15 +1136,19 @@ export class HSAutosing extends HSModule {
         return index + 1 - this.#insertedStepCount + this.#removedStepCount;
     }
 
-    /** @param passRecord Dev builds only: the recorder's pass, which gets the time slept before the step */
-    async #executeStrategyAction(phaseConfig: AutosingStrategyPhase, actionIndex: number, passRecord?: HSAutosingPassRecord): Promise<number | null> {
+    /**
+     * @param jumpCounts The pass's jumps taken by each IF with a max jumps, by its index
+     * @param passRecord With "Record step timings" on: the recorder's pass, which gets the time slept before the step
+     */
+    async #executeStrategyAction(phaseConfig: AutosingStrategyPhase, actionIndex: number, jumpCounts: Map<number, number>,
+        passRecord?: HSAutosingPassRecord): Promise<number | null> {
         const challenge = phaseConfig.strat[actionIndex];
 
         const wb = challenge.challengeWaitBefore ?? 0;
         if (wb > 0) {
-            const waitStartedAt = HS_DEV_BUILD ? performance.now() : 0;
+            const waitStartedAt = passRecord ? performance.now() : 0;
             await HSUtils.sleepUntilElapsed(this.#prevActionTime, wb, this.context);
-            if (HS_DEV_BUILD && passRecord) passRecord.waitMs = performance.now() - waitStartedAt;
+            if (passRecord) passRecord.waitMs = performance.now() - waitStartedAt;
             // Stopped during the wait: don't act on the game (or restart/stop autosing again with 902/903)
             if (!this.#autosingEnabled) return null;
         }
@@ -1113,7 +1163,7 @@ export class HSAutosing extends HSModule {
                 else await this.#setCorruptionLevelAndAscend(challenge.corruptionLevel ?? 0);
                 break;
             case IF_JUMP_VALUE:
-                return this.#handleIfJumpAction(challenge, phaseConfig, tag);
+                return this.#handleIfJumpAction(challenge, phaseConfig, actionIndex, jumpCounts, tag);
             default:
                 if (challenge.challengeNumber >= 100) {
                     HSLogger.debug(() => `${tag()} - SA: ${actionText()}`, this.context);
@@ -1151,18 +1201,37 @@ export class HSAutosing extends HSModule {
         if (!HSGameDialogs.isQueueIdle()) await HSGameDialogs.whenQueueIdle();
     }
 
-    #handleIfJumpAction(challenge: Challenge, phaseConfig: AutosingStrategyPhase, tag: () => string): number | null {
+    /** @param jumpCounts The pass's jumps taken by each IF with a max jumps, by its index */
+    #handleIfJumpAction(challenge: Challenge, phaseConfig: AutosingStrategyPhase, actionIndex: number,
+        jumpCounts: Map<number, number>, tag: () => string): number | null {
         const jump = challenge.ifJump;
         const mode = jump?.ifJumpMode;
         const operator = jump?.ifJumpOperator;
         const jumpIndex = jump?.ifJumpIndex;
+        const maxJumps = jump?.ifJumpMaxJumps ?? 0;
         // condition: "C9 (12) > 5", with the values read
-        const logIfJump = (condition: string, jumped: boolean) => HSLogger.debug(() => {
+        const logIfJump = (condition: string, jumped: boolean, jumpsTaken: number) => HSLogger.debug(() => {
             const outcome = !jumped ? "no jump"
                 : jumpIndex! >= phaseConfig.strat.length ? "jump to the end of the phase"
                 : `jump to step ${this.#stepNumber(phaseConfig, jumpIndex!)}`;
-            return `${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): ${outcome}`;
+            const count = jumped && maxJumps > 0 ? ` (${jumpsTaken}/${maxJumps})` : "";
+            return `${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): ${outcome}${count}`;
         }, this.context);
+        // The condition holds: jumps unless the IF already took its max jumps in this pass
+        const jumpOrNot = (condition: string): number | null => {
+            if (maxJumps <= 0) {
+                logIfJump(condition, true, 0);
+                return jumpIndex!;
+            }
+            const taken = jumpCounts.get(actionIndex) ?? 0;
+            if (taken >= maxJumps) {
+                HSLogger.log(`${tag()} - IF ${escapeLogText(condition)} (${IF_JUMP_VALUE}): max jumps (${maxJumps}) reached, no jump`, this.context);
+                return null;
+            }
+            jumpCounts.set(actionIndex, taken + 1);
+            logIfJump(condition, true, taken + 1);
+            return jumpIndex!;
+        };
 
         switch (mode) {
             case "challenges": {
@@ -1178,10 +1247,9 @@ export class HSAutosing extends HSModule {
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && completions > value) ||
                         (operator === "<" && completions < value));
-                logIfJump(`C${ifIdx} (${completions}) ${operator} ${value}`, shouldJump);
-                if (shouldJump) {
-                    return jumpIndex;
-                }
+                const condition = `C${ifIdx} (${completions}) ${operator} ${value}`;
+                if (shouldJump) return jumpOrNot(condition);
+                logIfJump(condition, false, 0);
                 break;
             }
             case "stored_c15": {
@@ -1193,10 +1261,9 @@ export class HSAutosing extends HSModule {
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && threshold > c15Score) ||
                         (operator === "<" && threshold < c15Score));
-                logIfJump(`stored C15 × 10^${exponent} (${threshold}) ${operator} current C15 (${c15Score})`, shouldJump);
-                if (shouldJump) {
-                    return jumpIndex;
-                }
+                const condition = `stored C15 × 10^${exponent} (${threshold}) ${operator} current C15 (${c15Score})`;
+                if (shouldJump) return jumpOrNot(condition);
+                logIfJump(condition, false, 0);
                 break;
             }
         }
@@ -1586,7 +1653,7 @@ export class HSAutosing extends HSModule {
                 const isOnStageTab =
                     this.#settingsTab.classList.contains('active-tab') &&
                     this.#settingsSubTab.classList.contains('active-subtab') &&
-                    this.#misc.style.backgroundColor === 'crimson';
+                    document.getElementById('miscStats')?.classList.contains('activeStats');
 
                 try {
                     if (!isOnStageTab) {
@@ -1626,12 +1693,17 @@ export class HSAutosing extends HSModule {
 
     async #performSingularity(skipRecord: boolean = false): Promise<void> {
         HSLogger.debug(() => "Performing Singularity...", this.context);
-        const startedAt = HS_DEV_BUILD ? performance.now() : 0;
+        const startedAt = this.#recordTimings ? performance.now() : 0;
 
         let q = 0;
         let gq = 0;
+        // Read before the Exalt click: the singularity it runs resets both
+        let quarksFromAnts = 0;
+        let quarksThisSingularity = 0;
         let c15ScoreBeforeSinging: Decimal;
         if (this.#hasLivePlayer) {
+            quarksFromAnts = this.#exposedPlayer!.ants.quarksGainedFromAnts;
+            quarksThisSingularity = this.#exposedPlayer!.quarksThisSingularity;
             c15ScoreBeforeSinging = new Decimal(this.#exposedPlayer!.challenge15Exponent);
         } else {
             // A GDS fetch right after a singularity lags, so the amounts are read before it for bookmarklet:
@@ -1639,6 +1711,8 @@ export class HSAutosing extends HSModule {
             const data = await this.#gameDataAPI?.getLatestAutosingData();
             q = data?.quarks ?? 0;
             gq = data?.goldenQuarks ?? 0;
+            quarksFromAnts = data?.quarksFromAnts ?? 0;
+            quarksThisSingularity = data?.quarksThisSingularity ?? 0;
             c15ScoreBeforeSinging = this.#getChallengeAccessor(15).getCompletions();
             this.#lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
         }
@@ -1690,10 +1764,13 @@ export class HSAutosing extends HSModule {
             // The singularity done at start isn't recorded: the first recorded one starts after it
             this.#autosingModal?.restartSingularityTimer();
         } else {
-            this.#autosingModal?.recordSingularity(gqGain, gq, qGain, q, happyHourStackAmount, c15ScoreBeforeSinging);
+            this.#autosingModal?.recordSingularity(gqGain, gq, qGain, q, quarksFromAnts, quarksThisSingularity, happyHourStackAmount, c15ScoreBeforeSinging);
         }
-        const recordedAt = HS_DEV_BUILD ? performance.now() : 0;
-        if (HS_DEV_BUILD) HSAutosingRecorder.singularity(!skipRecord, gqGain, qGain, c15ScoreBeforeSinging.toNumber());
+        const recordedAt = this.#recordTimings ? performance.now() : 0;
+        if (this.#recordTimings) {
+            HSAutosingRecorder.singularity(!skipRecord, gqGain, qGain, c15ScoreBeforeSinging.toNumber());
+            HSAutosingStepTimingsWindow.requestRefresh();
+        }
 
         HSLogger.debug(() => "===== Singularity performed =====", this.context);
 
@@ -1716,7 +1793,7 @@ export class HSAutosing extends HSModule {
 
         this.#observeAntiquitiesRune();
         this.#prevActionTime = performance.now();
-        if (HS_DEV_BUILD) HSAutosingRecorder.transition(startedAt, recordedAt);
+        if (this.#recordTimings) HSAutosingRecorder.transition(startedAt, recordedAt);
     }
 
     async #enterAndLeaveExalt(): Promise<boolean> {
@@ -1750,7 +1827,7 @@ export class HSAutosing extends HSModule {
             return false;
         }
 
-        const exaltBtn = this.#getActiveExaltElement();
+        const exaltBtn = HSUtils.getActiveExaltElement();
         if (!exaltBtn) {
             HSLogger.warn("Could not find the active Exalt to leave it.", this.context);
             HSUI.Notify("Auto-Sing could not leave the Exalt. Leave it yourself, then start Auto-Sing again.", { notificationType: 'warning' });
@@ -1770,16 +1847,6 @@ export class HSAutosing extends HSModule {
             await HSUtils.sleep(50);
         }
         return true;
-    }
-
-    /** The active Exalt's icon (its id is the challenge's key): the game colours it orchid. */
-    #getActiveExaltElement(): HTMLElement | null {
-        const challenges = HSGlobal.exposedPlayer?.singularityChallenges;
-        if (challenges) {
-            const key = Object.keys(challenges).find(k => challenges[k as keyof typeof challenges]?.enabled);
-            return key ? document.getElementById(key) : null;
-        }
-        return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="background-color: orchid"]');
     }
 
 
@@ -2087,16 +2154,20 @@ export class HSAutosing extends HSModule {
     }
 
     #ensureElements<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
+        if (this.#allElementsFound(elements))
+            return true;
+
+        if (this.#autosingEnabled) this.stopAutosing();
+        return false;
+    }
+
+    #allElementsFound<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
         const missing = Object.entries(elements)
             .filter(([, element]) => !element)
             .map(([name]) => name);
 
-        if (missing.length === 0)
-            return true;
-
         for (const name of missing) { HSLogger.warn(`Required element missing: ${name}`, this.context); }
-        if (this.#autosingEnabled) this.stopAutosing();
-        return false;
+        return missing.length === 0;
     }
 
     async #waitIfAutosingPaused(): Promise<void> {

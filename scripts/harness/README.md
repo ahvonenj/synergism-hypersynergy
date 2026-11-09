@@ -34,14 +34,16 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | Script | What it does |
 |---|---|
 | `game-smoke.cjs [save]` | Real game, patched, + save + mod. Reports patches that failed, page exceptions, requests that tried to leave localhost, a screenshot. `PATCH=0` unpatched (a bookmarklet player), `MOD=0` game only. **Copy it into `local/` to start a one-off test.** |
-| `autosing-run.cjs <backup> [sings] [minutes]` | Autosing on a backup: restores its mod data, imports the save, starts autosing, samples every second. Output in `local/harness-out/autosing/<TAG>/`: `console.log`, `samples.jsonl`, `modal.txt` (the run panel's figures), `timings.json` (the dev recorder's), `end.png`. Env in the file's header (`TAG`, `DEBUG=0`, `SETTINGS`, `STRATEGIES`, `HEAT=1`…). |
+| `autosing-run.cjs <backup> [sings] [minutes]` | Autosing on a backup: restores its mod data, imports the save, starts autosing, samples every second. Output in `local/harness-out/autosing/<TAG>/`: `console.log`, `samples.jsonl`, `modal.txt` (the run panel's figures), `timings.json` (the recorder's: the run turns on "Record step timings" unless `STEP_TIMINGS=0`), `end.png`. Env in the file's header (`TAG`, `DEBUG=0`, `SETTINGS`, `STRATEGIES`, `HEAT=1`…). |
 | `autosing-sweep.cjs <backup> <target>...` | One `autosing-run` per singularity target (heat at the target, then 10 timed singularities); prints each target's figures. |
 | `autosing-watch.cjs <tag>` | Prints a running autosing run's key lines; exits when it ends. Use it rather than `tail -f`, which locks the log on Windows. |
 | `loader-https.cjs` | The browser loader on the real game page (pseudo-corp.github.io), run at document-start as Tampermonkey does. `PATCHER=local` (the repo's `patcher.js`) or `live` (jsDelivr). |
 | `node-run.mjs <entry.ts> [args]` | Bundles a TypeScript entry that imports the mod's code (`@repo/...` = `src/mod`) for node, with browser-only modules stubbed, and runs it. The entry names its stubs in a comment: `// harness-stubs: gds`, `heater` or a regex. |
 | `node/gds-on-save.ts <save> [overrides]` | `HSGameDataAPI` on a save: ambrosia per hour, luck. Copy it to check another figure. |
 | `node/heater-bench.ts <backup> <branch[+branch]>` | One heat in node on a backup's heater data, with per-stage times and peak memory. `SWAP=hs-heater-optimizer.ts=<copy>` compares a modified optimizer on the same input. |
+| `hepteract-distributor.cjs <save>` | Presses the real Hepteract Distributor on the real game, on states set through the dev tools: an expansion paid back to the unit, a partial step ending the plan, a normal run. Prints each check, exits 1 if one fails. The save needs Chronos, Hyperrealism, Challenge and Abyss unlocked, outside Exalts 3 and 7. |
 | `gds-player-keys.cjs` | After a game update: vanilla `Player` keys against the mod's `GameDataFields`. |
+| `gds-vs-game.cjs <save> [--write]` | The real game's Stats for nerds at full precision on about 50 states of a save, for `scripts/tests/test-gds-formulas.cjs`. Rewrites the served bundle to report raw values, here only. 3 minutes. How to use it: `docs/game/updating.md`. |
 
 Typical times: a game load with a save and the mod, 25 s; one autosing singularity on a S260 save, about 7 s; a full
 heat on a S260 save in node, about 100 s.
@@ -55,7 +57,18 @@ heat on a S260 save in node, about 100 s.
 - **A wait loop must throw when it gives up.** One that goes on silently lets a test "pass" on a game that never loaded.
   `waitGameReady` throws.
 - **With synergism.cc blocked, the game asks a PseudoCoin Confirm at load** and keeps the loading screen until it is
-  answered; an imported old save runs its offline progress first. `waitGameReady` answers both.
+  answered. `waitGameReady` answers it.
+- **`importSave` skips the game's offline progress** (`offlinetick` set to now in the save; 1 s to import, against over
+  3 minutes on a save a week old). `{ offline: true }`, or `OFFLINE=1` in `game-smoke` and `autosing-run`, keeps it, for
+  a test of offline progress itself. Runs since this change start without offline gains: compare them with older
+  autosing figures with care.
+- **A profile keeps the game's last save**, and the game runs its offline progress at the next load, before any import:
+  a stuck save blocks every later run on that profile. `launchChrome({ fresh: true })` empties the profile first
+  (`game-smoke`, `autosing-run`); a one-off script does the same unless it needs what the profile holds.
+- **To test a state, change the live player on one save** (`game.PLAYER`) rather than loading another save; another save
+  only to reproduce a player's report, or for values the game recomputes at load (below).
+- **`injectMod` sets `HS_LOADER_INITIALIZED`**: the mod takes itself for a userscript, even on `PATCH=0`. For a
+  bookmarklet player, add the `/mod.js` script tag without that flag (it changes `HSPlatform` and subtab memory).
 - **The "Hypersynergism loaded" notification covers the top of the header** for a few seconds: wait before clicking there.
 - **Headless Chrome formats numbers in the system's locale** (`6,336e93` in French). Parse displayed numbers with that
   in mind, or read the player object (`game.PLAYER`) instead.
@@ -63,6 +76,7 @@ heat on a S260 save in node, about 100 s.
   from `highestSingularityCompleted`. A test save that changes them must change what the game recomputes them from.
 - **Console lines from before the last navigation** are replayed by `Runtime.enable`; `cdp.logs` keeps only those after
   `cdp.navigate()`.
+- **The harness's Chrome never throttles timers** (`lib/chrome.cjs`), so a run can't show what a hidden tab does. To time one: a headed Chrome without those flags, no focus emulation, the game tab behind a second tab opened with `/json/new`. `/json/activate` and `Page.bringToFront` raise the window and take the keyboard from whoever is typing.
 - **The heater's Import All uses the clipboard**: `autosing-run.cjs` grants the permission and emulates focus.
 - **A `:hover` state can't be screenshotted**: force it with an extra style.
 - **Under about 1000 px of width the game switches to its mobile layout**: the scripts use 1400–1600.
@@ -86,6 +100,7 @@ heat on a S260 save in node, about 100 s.
   `event.isTrusted` is true), `mouse`, `setFiles`, `screenshot`, `logs`.
 - `game.cjs`: `startGameServer`, `interceptGameServer`, `waitGameReady`, `answerDialog`, `readSaveFile`, `decodeSave`,
   `importSave`, `restoreModData`, `injectMod`, `PLAYER` (the live player object's expression).
+- `node-stubs.cjs`: the esbuild stubs to run the mod's code in node (`PRESETS`, `loadStubs`), for `node-run.mjs` and tests.
 
 ## Without the real game
 
@@ -108,6 +123,5 @@ so `localStorage` and reloads behave), the real classes bundled in, driven with 
 events, so code checking `event.isTrusted` or `window.event` can be tested; `evaluate` with a `setTimeout` stands for
 mod code. Stub `hs-logger`, `hs-module-manager` and `settings/hs-settings` (an esbuild `onResolve` plugin);
 `hs-gamestate`, `hs-global`, `hs-storage`, `hs-elementhooker` and `hs-utils` bundle as they are. Used for subtab
-memory, the strategy editor windows (fake `Modal`), the Hepteract Distributor (a fake forge from the game's
-`#cubeTab7` block and a fake ascension), the timed export (an OPFS folder for the picked one) and the dev tools
-(`--dump-dom` doesn't wait for IndexedDB: use CDP).
+memory, the strategy editor windows (fake `Modal`), the timed export (an OPFS folder for the picked one) and the dev
+tools (`--dump-dom` doesn't wait for IndexedDB: use CDP).

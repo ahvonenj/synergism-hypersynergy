@@ -1,7 +1,6 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSUI } from "./hs-ui";
 import { HSModule } from "./module/hs-module";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
@@ -15,7 +14,6 @@ import { HSSettings } from "./settings/hs-settings";
 export class HSMouse extends HSModule {
 
     static #mousePosition: HSMousePosition = { x: 0, y: 0 };
-    static #mousePositionDebugElement?: HTMLDivElement;
 
     static #hoverUpdateInterval: number | null;
     static #autoClickUpdateInterval: number | null;
@@ -70,8 +68,6 @@ export class HSMouse extends HSModule {
             x: e.clientX,
             y: e.clientY
         }
-
-        this.#updateDebug();
     }
 
     // Emits a mouse event at the current mouse position
@@ -99,13 +95,8 @@ export class HSMouse extends HSModule {
                     }
 
                     // If the element under cursor has some classes defined, go through them all and check the ignore list by class
-                    if(elementUnderCursor.classList.length > 0) {
-                        elementUnderCursor.classList.forEach(cls => {
-                            if(HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)) {
-                                return;
-                            }
-                        })
-                    }
+                    if(Array.from(elementUnderCursor.classList).some(cls => HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)))
+                        return;
                 }
             }
 
@@ -118,22 +109,6 @@ export class HSMouse extends HSModule {
             
             // Dispatch the event to the element under cursor
             elementUnderCursor.dispatchEvent(mouseoverEvent);
-        }
-    }
-
-    // This updates the mouse position in the debug tab of the mod's panel
-    static #updateDebug() {
-        if(!HSUI.isModPanelOpen()) return;
-        
-        if(!this.#mousePositionDebugElement || this.#mousePositionDebugElement === undefined) {
-            const debugElement = document.querySelector('#hs-panel-debug-mousepos') as HTMLDivElement;
-
-            if(debugElement) {
-                this.#mousePositionDebugElement = debugElement;
-                this.#mousePositionDebugElement.innerHTML = `Mouse: (X: ${this.#mousePosition.x}, Y: ${this.#mousePosition.y})`;
-            }
-        } else {
-            this.#mousePositionDebugElement.innerHTML = `Mouse: (X: ${this.#mousePosition.x}, Y: ${this.#mousePosition.y})`;
         }
     }
 

@@ -110,7 +110,7 @@ export class HSHiddenDialogs {
         if (kind !== 'alert' || typeof text !== 'string') return;
         if (!HSSettings.getSetting('hideGameDialogsNotify')?.isEnabled()) return;
         const plain = HSDialogIdentity.normalize(text);
-        if (plain) void HSUI.Notify(plain, { notificationType: 'default' });
+        if (plain) void HSUI.Notify(plain, { position: 'bottomLeft', notificationType: 'default' });
     }
 
     /**

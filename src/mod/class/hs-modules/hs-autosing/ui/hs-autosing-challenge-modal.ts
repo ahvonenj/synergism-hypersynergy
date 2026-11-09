@@ -1,4 +1,5 @@
 import { AutosingStrategyPhase, Challenge, isCorruptionLevelStep, SPECIAL_ACTIONS, SPECIAL_ACTION_BY_ID, type SpecialAction, IF_JUMP_VALUE, IsJumpChallenge, ModalInput, IfJumpParams } from "../../../../types/module-types/hs-autosing-types";
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUtils } from "../../../hs-utils/hs-utils";
 import { HSUIXY } from "../../../../types/module-types/hs-ui-types";
@@ -16,7 +17,7 @@ interface FieldContext {
 }
 
 type FieldKey = 'action' | 'challengeNum' | 'forgeItem' | 'completions' | 'corruptionLevel' | 'ascendAfterCorruption' | 'waitBefore' | 'waitInside' | 'maxTime'
-    | 'comment' | 'ifJumpMode' | 'ifJumpChallenge' | 'ifJumpMultiplier' | 'ifJumpOperator' | 'ifJumpValue';
+    | 'comment' | 'ifJumpMode' | 'ifJumpChallenge' | 'ifJumpMultiplier' | 'ifJumpOperator' | 'ifJumpValue' | 'ifJumpMaxJumps';
 
 interface FieldRowBase {
     label: string;
@@ -223,11 +224,15 @@ const FIELD_ROWS: readonly FieldRow[] = [
         label: "", note: "Compares to the current C15",
         shown: inIfJumpMode("stored_c15"),
     },
+    {
+        key: 'ifJumpMaxJumps', label: "Max jumps (0 = no limit):", attributes: `min="0"`, initial: "0", check: fixedCheck(WHOLE_NOT_NEGATIVE),
+        shown: c => c.isIfJump, load: fromIfJump(jump => jump.ifJumpMaxJumps),
+    },
 ];
 
 const INPUT_ROWS = FIELD_ROWS.filter((row): row is InputRow => 'key' in row);
 
-// The footer's "?" box: a term, then what it does
+// The footer's "?" tooltip: a term, then what it does
 const HELP_LINES: readonly [string, string][] = [
     ["Enter", "In a field: Add / Update the step"],
     ["Ctrl+Z", "Undo"],
@@ -237,11 +242,10 @@ const HELP_LINES: readonly [string, string][] = [
     ["IF targets", "Follow an added, duplicated or deleted step, not a moved one"],
     ["→ step N", "Click: shows the other row of the IF"],
     ["↺", "A loop: the IF jumps back"],
+    ["Max jumps", "An IF jumps at most this many times per phase pass, then goes on to the next step"],
     ["Fixed time", "Every Wait before, plus the Wait inside of challenges and C1-C10 steps. IF jumps not followed"],
     ["Corruption level", "Sets the actual level. Ascend immediately applies it now (exits an active Ascension challenge); unchecked only loads it for the next ascension. Free reward levels are added by the game"],
 ];
-const HELP_HTML = HELP_LINES.map(([term, text]) =>
-    `<div class="hs-challenges-help-term">${escapeHtml(term)}</div><div>${escapeHtml(text)}</div>`).join("");
 
 // What is being dragged: a step, an IF jump's "Jump here" row, or the "Add Here" separator
 type DragTarget = { kind: 'step'; index: number } | { kind: 'jumpTarget'; ifId: string } | { kind: 'separator' };
@@ -372,6 +376,7 @@ export class HSAutosingChallengeModal {
         this.#redoButton = root.querySelector<HTMLElement>('[data-action="redo"]')!;
         this.#fixedTime = root.querySelector<HTMLElement>(".hs-challenges-fixed-time")!;
         this.#discardOverlay = root.querySelector<HTMLElement>(".hs-editor-overlay")!;
+        HSTooltip.set(root.querySelector<HTMLElement>(".hs-challenges-help-btn")!, { html: HSTooltip.list(HELP_LINES), delay: 0, placement: 'above' });
         for (const element of root.querySelectorAll<HTMLElement>("[data-row]")) {
             this.#rows.push({ row: FIELD_ROWS[Number(element.dataset.row)], element });
         }
@@ -432,10 +437,7 @@ export class HSAutosingChallengeModal {
                 <div class="hs-challenge-list">${this.#renderList()}</div>
             </div>
             <div class="hs-challenges-footer">
-                <div class="hs-challenges-help">
-                    <div class="hs-challenges-footer-btn hs-challenges-small-btn hs-challenges-help-btn">?</div>
-                    <div class="hs-challenges-help-box">${HELP_HTML}</div>
-                </div>
+                <div class="hs-challenges-footer-btn hs-challenges-small-btn hs-challenges-help-btn">?</div>
                 <div class="hs-challenges-footer-btn hs-challenges-small-btn hs-challenges-undo-btn" data-action="undo" title="Undo (Ctrl+Z)">↶ Undo</div>
                 <div class="hs-challenges-footer-btn hs-challenges-small-btn hs-challenges-undo-btn" data-action="redo" title="Redo (Ctrl+Y)">↷ Redo</div>
                 <div class="hs-challenges-fixed-time" title="Every Wait before, plus the Wait inside of challenges and C1-C10 steps. IF jumps not followed."></div>
@@ -559,6 +561,8 @@ export class HSAutosingChallengeModal {
         const parts = [`Wait before: ${ms(step.challengeWaitBefore ?? 0)}`];
         if (inputs.has("waitTime")) parts.push(`Wait inside: ${ms(step.challengeWaitTime)}`);
         if (inputs.has("maxTime")) parts.push(`Max: ${ms(step.challengeMaxTime ?? -1)}`);
+        const maxJumps = isIfJumpStep(step) ? step.ifJump.ifJumpMaxJumps ?? 0 : 0;
+        if (maxJumps > 0) parts.push(`Max jumps: ${maxJumps}`);
         return parts.join(" | ");
     }
 
@@ -690,6 +694,8 @@ export class HSAutosingChallengeModal {
             const isChallengesMode = mode === "challenges";
             // A new IF jumps to the step after it
             const newTarget = (this.#editingIndex ?? this.#separatorIndex) + 1;
+            // Written only when set: an old IF updated without one stays unchanged
+            const maxJumps = this.#number('ifJumpMaxJumps');
             step = {
                 challengeNumber: IF_JUMP_VALUE,
                 challengeCompletions: 0,
@@ -705,6 +711,7 @@ export class HSAutosingChallengeModal {
                     ifJumpValue: isChallengesMode ? this.#number('ifJumpValue') : 0,
                     ifJumpMultiplier: isChallengesMode ? 0 : this.#number('ifJumpMultiplier'),
                     ifJumpIndex: previous?.ifJump?.ifJumpIndex ?? newTarget,
+                    ...(maxJumps > 0 ? { ifJumpMaxJumps: maxJumps } : {}),
                 },
             };
         } else {

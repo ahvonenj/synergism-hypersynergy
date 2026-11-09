@@ -18,26 +18,48 @@ check, in order, and how the 4.4.0 update went as a worked example.
    `GameDataFields`, then check the runtime shapes on the live game (`docs/features/gds.md`).
 4. **DOM ids and names.** Subtab button ids are written once, in the `*_VIEW_BUTTON_IDS` records
    (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
-   has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it.
-5. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
-   then check the numbers on real saves (below).
-6. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
-7. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
+   has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it. If the diff
+   touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
+   one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).
+5. **Event checks.** The mod drives game handlers with synthetic events (`.click()`, `dispatchEvent`, the header's
+   long press in `HSHeaderEditSettings.openEditor`), which differ from a player's: `isTrusted` false, and
+   `isPrimary` false unless set. `git diff <old-commit> HEAD -- src/ | grep -E '^\+.*(isTrusted|isPrimary|pointerType|event\.detail|\.button !==)'`
+   lists the new checks; for each, grep the mod for events sent to that element. Missed in 4.4.1: an `isPrimary`
+   test on the header's `pointerdown` stopped the ✎ button opening edit mode, with no error.
+6. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
+   then check the numbers on real saves (below). Achievement ids and point values are copied from the game's
+   `Achievements.ts` (`hs-gamedata-api-achievement.ts`): `node scripts/tools/achievements-vs-vanilla.cjs` compares
+   them (`--print` writes the game's tables to paste). When `Buy.ts` changes,
+   `node scripts/tools/coin-curve-vs-vanilla.cjs` checks the coin buildings' cost curve, which the saves below can't
+   (their paid amounts are Infinity).
+7. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
+8. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
 
 ## Checking GDS against the game
 
-The reference is the game's own Stats for nerds (Settings, `#settingstab`, then `#switchSettingSubTab4`): each `k…`
-button (`kFreeCorruptionLevels`, `kSalvage`, `kASCMult`…) fills a container whose `innerText` lists the lines, and
-many stats have element ids (`statSalvPos2NT`, `statFreeAccel<N>`, `statFreeBoost<N>`). GDS functions return their
-components under the game's line names when asked (`reduce_vals = false`, `docs/features/gds.md`), so the two lists
-can be compared line by line.
+The reference is the game's own Stats for nerds, read at full precision. `scripts/harness/gds-vs-game.cjs <save>` runs
+the real game headless on about 50 states of a save (Exalts, singularities, upgrades at zero and at their maximum,
+random levels) and writes every value next to the player it was computed on, with no tick in between;
+`scripts/tests/test-gds-formulas.cjs` replays that in node. After a game update:
+1. Run it on your own save with `--write`, which replaces `scripts/fixtures/gds-reference.json`. If it stops on a bundle
+   anchor or a stat id, the game changed: update the script.
+2. `npm test`. A failure is a line that moved in the game and not in GDS, or an old GDS error: read the vanilla source.
+3. Other saves: run it without `--write`, then `GDS_REFERENCE=local/harness-out/gds-vs-game/reference.json node
+   scripts/tests/test-gds-formulas.cjs`. Worth doing on a low singularity and an Exalt save. A player's save never goes
+   in the fixture.
 
-The setup used for 4.4.0: the real patched game headless with the save loaded (`scripts/harness/lib/`), clicking those
-buttons and reading the lines; `HSGameDataAPI` on the same save in node (`scripts/harness/node-run.mjs` with
-`node/gds-on-save.ts`); a script that compares the two. Several test saves made from one real save by changing a
-field (corruption level, Platonic upgrades…) cover more cases than one save. Traps:
-- The game's line labels carry icons and non-breaking spaces: strip both before matching.
-- Headless Chrome formats numbers in the system's locale (`6,336e93` in French).
+Until step 1 runs, the test checks the old game: passing says nothing about a new one. A new check: the stat's id in
+the script's `TOTALS` or `LINES` and the GDS value under the same id in the test.
+
+Differences that aren't GDS errors, on a run of the script (never on a replay):
+- **A state that raises the highest singularity** (an Exalt on a low save): the game counts its campaign tokens once at
+  load, before raising it, and a reset refreshes them in real play. The Infinite Ascent rune is 1 or 2 levels off.
+- **Rune lines off on one state only**: the game caches a rune's level and refreshes it periodically. Run that state
+  again with `ONLY=`.
+
+To read a stat by hand: Settings, `#settingstab`, then `#switchSettingSubTab4`; each `k…` button fills a container
+whose `innerText` lists the lines (labels carry icons and non-breaking spaces, numbers follow the locale). GDS functions
+return their components under the game's line names (`reduce_vals = false`, `docs/features/gds.md`). Traps:
 - The game recomputes some values at load (`scripts/harness/README.md`, Pitfalls): a test save's C1–C10 changes never
   reach the game, and Exalt completions follow `highestSingularityCompleted`, so a test save must change both.
 - A save from before the update goes through the game's migration at load, which can drop progress (4.4.0 dropped
@@ -61,3 +83,14 @@ How the mod followed, one step and one commit each, every step checked against t
 
 The game kept changing the new system for days (viscosity, cube rates, level caps): run the checklist again after each
 game commit, not only after the announced update.
+
+## 4.4.1 (2026-11-06)
+
+What changed for the mod, one GDS commit each, checked by the replay (`test-gds-formulas.cjs`, 2754 checks):
+- Campaign tokens: token upgrades, starting tokens, a multiplier on the total, capped token rewards, the Infinite
+  Ascent free levels from a log2 formula. Cube rates per corruption level.
+- Achievements: an `AchievementId` enum; ids and point values unchanged, the reward changes hit rewards GDS doesn't
+  read.
+- Buildings: counts no longer saved, only what was paid (`docs/game/formulas.md`).
+- Exalt 10 reactor: fill chance and Ultrafusion cap (`docs/features/heater-optimizer.md`).
+- Patcher: the `pcoinLevels` anchor.

@@ -2,6 +2,7 @@ import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
 import { HSQuickbarIconPickerController } from "../../hs-loadout-icons/hs-loadout-icon-picker";
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { escapeHtml } from "../hs-heater-utils";
 import { buildResultTableHtmlFromNormalized } from "./hs-heater-ui-result-renderer";
 import { clearHeaterIconOverride, getEffectiveHeaterIconSrc, getOverrideHeaterIconSrc, setHeaterIconOverride, } from "../hs-heater-icon-store";
@@ -73,12 +74,12 @@ const HEATER_RESULT_UI_SELECTORS = {
     previewEmptyCell:   'hs-heater-preview-empty-cell',
     previewHoverClass:  'hs-heater-loadout-preview--hover',
     jsonTooltipHoverClass: 'hs-heater-loadout-json-tooltip--hover',
-    topbarHelpTooltipId: 'hs-heater-topbar-help-tooltip',
     copyLoadoutBtn:     'hs-heater-copy-loadout-btn',
     importLoadoutBtn:   'hs-heater-import-loadout-btn',
     jsonTooltipTrigger: 'hs-heater-json-tooltip-trigger',
-    typeInfoTrigger:    'hs-heater-type-info-trigger',
+    maxedPreviewTrigger: 'hs-heater-maxed-preview-trigger',
     dataLoadout:        'data-loadout',
+    dataLoadoutCompare: 'data-loadout-compare',
     importFileInputId:  'importBlueberries',
 } as const;
 
@@ -138,7 +139,7 @@ export class HSHeaterUIResult {
 
     static #activeHoverOverlay: {
         target: HTMLElement;
-        kind: 'preview' | 'json' | 'info';
+        kind: 'preview' | 'json';
         tooltip: HTMLElement;
         cleanup: () => void;
     } | null = null;
@@ -268,16 +269,6 @@ export class HSHeaterUIResult {
             this.#quickbarCloneCleanup = this.#setupQuickbarCloneLink(clone, slotsSource);
         }
 
-        // This runs again without a re-render (attachResultModalHandlers): wire a given badge once
-        const topbarHelp = header.querySelector<HTMLDivElement>('.hs-heater-results-topbar-help:not([data-hs-wired])');
-        if (topbarHelp) {
-            topbarHelp.dataset.hsWired = 'true';
-            topbarHelp.addEventListener('mouseenter', () => this.showTopbarHelpTooltip(topbarHelp));
-            topbarHelp.addEventListener('mouseleave', () => this.removeTopbarHelpTooltip());
-            topbarHelp.addEventListener('focus', () => this.showTopbarHelpTooltip(topbarHelp));
-            topbarHelp.addEventListener('blur', () => this.removeTopbarHelpTooltip());
-        }
-
         // The Exalt badge, opposite the help badge, when the heat ran inside an Exalt with rules to explain
         header.querySelector('.hs-heater-results-topbar-exalt')?.remove();
         const exalt = HSHeaterResultStore.getCurrentRawResult()?.input.exalt ?? 0;
@@ -289,10 +280,7 @@ export class HSHeaterUIResult {
             const exaltName = getHeaterExaltName(exalt);
             exaltBadge.setAttribute('aria-label', `How the results read in ${exaltName}`);
             exaltBadge.innerHTML = `<img src="Pictures/Default/TinySChalTime.png" alt="${escapeHtml(exaltName)}" />`;
-            exaltBadge.addEventListener('mouseenter', () => this.#showTopbarTooltip(exaltBadge, exaltRules));
-            exaltBadge.addEventListener('mouseleave', () => this.removeTopbarHelpTooltip());
-            exaltBadge.addEventListener('focus', () => this.#showTopbarTooltip(exaltBadge, exaltRules));
-            exaltBadge.addEventListener('blur', () => this.removeTopbarHelpTooltip());
+            HSTooltip.set(exaltBadge, { text: exaltRules, delay: 0 });
             header.prepend(exaltBadge);
         }
     }
@@ -366,6 +354,7 @@ export class HSHeaterUIResult {
     static #buildLoadoutPreviewTooltip(button: HTMLElement, isHover = false): HTMLElement | null {
         const loadout = this.getLoadoutFromButton(button);
         if (!loadout) return null;
+        const compareTo = this.#getCompareLoadout(button);
 
         const preview = document.createElement('div');
         preview.classList.add('hs-heater-loadout-preview');
@@ -378,16 +367,45 @@ export class HSHeaterUIResult {
         if (titleText) {
             const title = document.createElement('div');
             title.className = 'hs-heater-tooltip-title';
-            title.textContent = titleText;
+            // A ✘'s "✔ needs": the ✔ in the Maxed column's green
+            titleText.split('✔').forEach((part, index) => {
+                if (index > 0) {
+                    const mark = document.createElement('span');
+                    mark.className = 'hs-heater-status-maxed';
+                    mark.textContent = '✔';
+                    title.appendChild(mark);
+                }
+                title.appendChild(document.createTextNode(part));
+            });
             preview.appendChild(title);
         }
 
         const content = document.createElement('div');
         content.className = 'hs-heater-tooltip-content';
-        content.innerHTML = this.buildLoadoutPreviewHtml(loadout);
+        content.innerHTML = this.buildLoadoutPreviewHtml(loadout, compareTo);
         preview.appendChild(content);
 
+        const note = compareTo ? this.#brickOfLeadNote(loadout) : null;
+        if (note) {
+            const noteEl = document.createElement('div');
+            noteEl.className = 'hs-heater-tooltip-note';
+            noteEl.textContent = note;
+            preview.appendChild(noteEl);
+        }
+
         return preview;
+    }
+
+    // A ✘'s reference has Brick of Lead at the level best for its row, not
+    // always its max (docs/features/heater.md): said under the grid when
+    // below. Not at 0: the Ambrosia row's search leaves Brick out.
+    static #brickOfLeadNote(reference: Record<string, number>): string | null {
+        const brick = Number(reference.ambrosiaBrickOfLead ?? 0);
+        const maxLevel = this.#ambrosiaLoadoutPreviewRows
+            .flat()
+            .find((item) => item?.key === 'ambrosiaBrickOfLead')?.maxLevel;
+        if (maxLevel === undefined || brick <= 0 || brick >= maxLevel) return null;
+        return `Brick of Lead ${brick}: the best level for this row`;
     }
 
     static showLoadoutPreview(button: HTMLElement): HTMLElement | null {
@@ -396,7 +414,7 @@ export class HSHeaterUIResult {
         if (!preview) return null;
 
         document.body.appendChild(preview);
-        this.positionOverlayNearTarget(preview, button, { gutter: 0 });
+        HSTooltip.place(preview, button, { placement: 'right', gutter: 0 });
         return preview;
     }
 
@@ -440,7 +458,7 @@ export class HSHeaterUIResult {
         if (!tooltip) return null;
 
         document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { gutter: 0 });
+        HSTooltip.place(tooltip, trigger, { placement: 'right', gutter: 0 });
         return tooltip;
     }
 
@@ -451,83 +469,33 @@ export class HSHeaterUIResult {
         }
     }
 
-    static #buildTypeInfoTooltip(trigger: HTMLElement): HTMLElement | null {
-        const titleText = trigger.dataset.infoTitle;
-        const contentText = trigger.dataset.infoContent;
-        if (!titleText || !contentText) return null;
-
-        const tooltip = document.createElement('div');
-        tooltip.classList.add('hs-heater-type-info-tooltip');
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-
-        const title = document.createElement('div');
-        title.className = 'hs-heater-tooltip-title';
-        title.textContent = titleText;
-        tooltip.appendChild(title);
-
-        const content = document.createElement('div');
-        content.className = 'hs-heater-tooltip-content';
-        content.textContent = contentText;
-        tooltip.appendChild(content);
-
-        return tooltip;
-    }
-
-    static showTypeInfoTooltip(trigger: HTMLElement): HTMLElement | null {
-        const tooltip = this.#buildTypeInfoTooltip(trigger);
-        if (!tooltip) return null;
-
-        document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { gutter: 0 });
-        return tooltip;
-    }
-
-    static showTopbarHelpTooltip(trigger: HTMLElement): void {
-        this.#showTopbarTooltip(trigger,
-            `The loadouts will only be as good as your inputs, this means:\n`
-            + `- If you want an optimized p4x4 loadout, you need to actually have\n pre-AoAG inputs.\n`
-            + `- Same for Obt/Off loadouts (but less problematic, so simply (un)checking the "post-aoag" input is enough).\n`
-            + `- ??? (Feel free to contribute)`
-            + `\n\n`
-            + `Right-click an Import button to pin his tooltip. Esc key to un-pin all.\n`
-        );
-    }
-
-    // The help and Exalt badges share one tooltip element: only one shows at a time
-    static #showTopbarTooltip(trigger: HTMLElement, text: string): void {
-        this.removeTopbarHelpTooltip();
-
-        const tooltip = document.createElement('div');
-        tooltip.id = HEATER_RESULT_UI_SELECTORS.topbarHelpTooltipId;
-        tooltip.classList.add('hs-heater-tooltip-bigger');
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-        tooltip.textContent = text;
-
-        document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, trigger, { placement: 'below' });
-    }
-
-    static removeTopbarHelpTooltip(): void {
-        const existing = document.getElementById(HEATER_RESULT_UI_SELECTORS.topbarHelpTooltipId);
-        if (existing && existing.parentElement) {
-            existing.parentElement.removeChild(existing);
-        }
-    }
-
     static formatLoadoutJsonForTooltip(loadout: string): string {
         return loadout.replace(/,/g, ',\n');
     }
 
-    static buildLoadoutPreviewHtml(loadout: Record<string, number>): string {
-        const currentGrid = this.#buildCurrentLoadoutPreviewGrid(loadout);
+    // A ✘'s trigger also carries the row's own tree: the preview then shows
+    // the gap between it and the reference.
+    static #getCompareLoadout(trigger: HTMLElement): Record<string, number> | undefined {
+        const json = trigger.getAttribute(HEATER_RESULT_UI_SELECTORS.dataLoadoutCompare);
+        if (!json) return undefined;
+        try {
+            return JSON.parse(json) as Record<string, number>;
+        } catch (error) {
+            HSLogger.error(`loadout-parse-failed: ${JSON.stringify({ source: 'getCompareLoadout', loadoutPreview: json.slice(0, 180) })} ${String(error)}`, this.#context);
+            return undefined;
+        }
+    }
+
+    static buildLoadoutPreviewHtml(loadout: Record<string, number>, compareTo?: Record<string, number>): string {
+        const currentGrid = this.#buildCurrentLoadoutPreviewGrid(loadout, compareTo);
         if (currentGrid) return currentGrid;
 
         return this.#getLegacyAmbrosiaLoadoutPreviewRows()
-            .map((row) => `<div class="${HEATER_RESULT_UI_SELECTORS.previewRow}">${row.map((item) => this.buildLoadoutPreviewCell(item, loadout)).join('')}</div>`)
+            .map((row) => `<div class="${HEATER_RESULT_UI_SELECTORS.previewRow}">${row.map((item) => this.buildLoadoutPreviewCell(item, loadout, compareTo)).join('')}</div>`)
             .join('');
     }
 
-    static #buildCurrentLoadoutPreviewGrid(loadout: Record<string, number>): string | null {
+    static #buildCurrentLoadoutPreviewGrid(loadout: Record<string, number>, compareTo?: Record<string, number>): string | null {
         const source = document.getElementById('blueberryUpgradeGroups');
         if (!source?.querySelector('.blueberryUpgradeGroup')) return null;
 
@@ -552,7 +520,7 @@ export class HSHeaterUIResult {
                 key,
                 maxLevel: maxLevels.get(key),
                 iconUrl: button.querySelector('img')?.getAttribute('src') ?? undefined,
-            }, loadout);
+            }, loadout, compareTo);
         });
         grid.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
         return grid.outerHTML;
@@ -581,7 +549,11 @@ export class HSHeaterUIResult {
         return rows.length > 0 ? rows : this.#ambrosiaLoadoutPreviewRows;
     }
 
-    static buildLoadoutPreviewCell(item: LoadoutPreviewItem | null, loadout: Record<string, number>): string {
+    // compareTo: the row's own tree, for a ✘'s reference. A level the row is
+    // below shows on red the row's level top left, the reference's bottom
+    // right (room for a bigger font than "row/reference" on one line); every
+    // other cell is dimmed.
+    static buildLoadoutPreviewCell(item: LoadoutPreviewItem | null, loadout: Record<string, number>, compareTo?: Record<string, number>): string {
         if (item === null) {
             return `
                 <div class="ambrosiaBorder Exalt5x1">
@@ -599,14 +571,19 @@ export class HSHeaterUIResult {
         }
 
         const imageClass = level > 0 ? 'dimmed' : 'superDimmed';
-        const overlayText = level > 0 ? escapeHtml(String(level)) : '';
+        const rowLevel = compareTo === undefined ? undefined : Number(compareTo[key] ?? 0);
+        const isGap = rowLevel !== undefined && rowLevel < level;
+        const overlayText = isGap
+            ? `<span class="hs-heater-gap-have">${rowLevel}</span><span class="hs-heater-gap-slash">/</span><span class="hs-heater-gap-need">${level}</span>`
+            : level > 0 ? escapeHtml(String(level)) : '';
 
-        const maxLevelClass = maxLevel !== undefined && level >= maxLevel
+        const maxLevelClass = !isGap && maxLevel !== undefined && level >= maxLevel
             ? 'maxBlueberryLevel' 
             : '';
+        const compareClass = rowLevel === undefined ? '' : isGap ? ' hs-heater-preview-gap' : ' hs-heater-preview-no-gap';
 
         return `
-            <button class="blueberryUpgrade relative-container ${HEATER_RESULT_UI_SELECTORS.previewButton}" type="button"> 
+            <button class="blueberryUpgrade relative-container ${HEATER_RESULT_UI_SELECTORS.previewButton}${compareClass}" type="button"> 
                 <img src="${escapeHtml(imageUrl)}" class="${imageClass}" alt="${escapeHtml(key)}" />
                 <div class="level-overlay ${maxLevelClass}">${overlayText}</div>
             </button>
@@ -626,41 +603,6 @@ export class HSHeaterUIResult {
             HSLogger.error(`loadout-parse-failed: ${JSON.stringify({ source: 'getLoadoutFromButton', loadoutPreview: loadout.slice(0, 180) })} ${String(error)}`, this.#context);
             return null;
         }
-    }
-
-    static positionOverlayNearTarget(preview: HTMLElement, button: HTMLElement, options?: { placement?: 'right' | 'below'; gutter?: number }): void {
-        const buttonRect = button.getBoundingClientRect();
-        const previewRect = preview.getBoundingClientRect();
-        const gutter = options?.gutter ?? 8;
-        const placement = options?.placement ?? 'right';
-
-        let left = placement === 'below' ? buttonRect.left : buttonRect.right + gutter;
-        let top = placement === 'below' ? buttonRect.bottom + gutter : buttonRect.top;
-
-        const rightOverflow = left + previewRect.width > window.innerWidth - gutter;
-        const bottomOverflow = top + previewRect.height > window.innerHeight - gutter;
-
-        if (placement === 'right' && rightOverflow) {
-            left = buttonRect.left;
-            top = buttonRect.bottom + gutter;
-        }
-
-        if (placement === 'below' && bottomOverflow) {
-            left = buttonRect.right + gutter;
-            top = buttonRect.top;
-        }
-
-        if (left + previewRect.width > window.innerWidth - gutter)
-            left = Math.max(window.innerWidth - previewRect.width - gutter, gutter);
-        if (top + previewRect.height > window.innerHeight - gutter)
-            top = Math.max(window.innerHeight - previewRect.height - gutter, gutter);
-        if (top < gutter)
-            top = gutter;
-        if (left < gutter)
-            left = gutter;
-
-        preview.style.left = `${left}px`;
-        preview.style.top = `${top}px`;
     }
 
     static #appendPinnedTooltipButton(tooltip: HTMLElement, target: HTMLElement): void {
@@ -771,7 +713,7 @@ export class HSHeaterUIResult {
 
     // === Modal/Interaction/Event Methods ===
     static getResultInteractionTarget(modal: HTMLElement, event: Event): HTMLElement | null {
-        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}, .${HEATER_RESULT_UI_SELECTORS.typeInfoTrigger}`) as HTMLElement | null;
+        const target = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger}, .${HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger}`) as HTMLElement | null;
         if (!target || !modal.contains(target)) return null;
         return target;
     }
@@ -787,15 +729,13 @@ export class HSHeaterUIResult {
         return hoverOverlay?.target === target && hoverOverlay.tooltip.contains(related);
     }
 
-    static getOverlayKindFromTarget(target: HTMLElement): 'preview' | 'json' | 'info' | null {
-        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
+    static getOverlayKindFromTarget(target: HTMLElement): 'preview' | 'json' | null {
+        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)
+            || target.classList.contains(HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger)) {
             return 'preview';
         }
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.jsonTooltipTrigger)) {
             return 'json';
-        }
-        if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.typeInfoTrigger)) {
-            return 'info';
         }
         return null;
     }
@@ -885,9 +825,7 @@ export class HSHeaterUIResult {
 
         const tooltip = kind === 'preview'
             ? this.showLoadoutPreview(target)
-            : kind === 'json'
-                ? this.showLoadoutJsonTooltip(target)
-                : this.showTypeInfoTooltip(target);
+            : this.showLoadoutJsonTooltip(target);
         if (!tooltip) return;
 
         this.#associateTooltip(target, tooltip);
@@ -920,7 +858,7 @@ export class HSHeaterUIResult {
         if (!tooltip) return null;
 
         document.body.appendChild(tooltip);
-        this.positionOverlayNearTarget(tooltip, target);
+        HSTooltip.place(tooltip, target, { placement: 'right' });
         return tooltip;
     }
 
@@ -944,7 +882,7 @@ export class HSHeaterUIResult {
 
     static #togglePinnedOverlay(target: HTMLElement): void {
         const kind = this.getOverlayKindFromTarget(target);
-        if (!kind || kind === 'info') return;
+        if (!kind) return;
 
         if (this.#pinnedOverlays.has(target)) {
             this.#removePinnedOverlay(target);
@@ -1011,7 +949,7 @@ export class HSHeaterUIResult {
         };
 
         const onImportButtonContextMenu = (event: Event) => {
-            const button = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}`) as HTMLElement | null;
+            const button = (event.target as HTMLElement | null)?.closest(`.${HEATER_RESULT_UI_SELECTORS.importLoadoutBtn}, .${HEATER_RESULT_UI_SELECTORS.maxedPreviewTrigger}`) as HTMLElement | null;
             if (!button) return;
 
             const mouseEvent = event as MouseEvent;

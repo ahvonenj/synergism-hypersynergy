@@ -1,3 +1,4 @@
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { escapeHtml, formatNumber, HEATER_EFFECT_PAIR_SEPARATOR } from "../hs-heater-utils";
 import { getEffectiveHeaterIconSrc } from "../hs-heater-icon-store";
 import { getHeaterResultSectionDefinitions, getHeaterTypeConfig, resolveHeaterTypeDescription, type HeaterResultSectionDef } from "../hs-heater-result-config";
@@ -17,6 +18,14 @@ const RESULT_COL_INDEX = {
 
 const RESULT_TABLE_TOTAL_COLS = 7;
 
+const RESULTS_HELP = `The loadouts will only be as good as your inputs, this means:\n`
+    + `- If you want an optimized p4x4 loadout, you need to actually have pre-AoAG inputs.\n`
+    + `- Same for Obt/Off loadouts (but less problematic, so simply (un)checking the "post-aoag" input is enough).\n`
+    + `- ??? (Feel free to contribute)\n\n`
+    + `Hover a ✘ to see what ✔ needs (red: your levels / needed).
+`
+    + `Right-click an Import button or a ✘ to pin its tooltip. Esc key to un-pin all.`;
+
 type NormalizedResultRow = {
     loadoutValue:       HeaterResultRow[typeof RESULT_COL_INDEX.loadout];
     blueberryCostValue: HeaterResultRow[typeof RESULT_COL_INDEX.blueberryCost];
@@ -27,6 +36,7 @@ type NormalizedResultRow = {
     shortfall:          HeaterResultShortfall | undefined;
     limits:             HeaterResultLimits | undefined;
     effectTitle:        string | undefined;
+    maxedReference:     string | undefined;
 };
 
 function buildTypeLabelWithIcon(label: string, semanticId?: string, infoTitle = label): string {
@@ -43,8 +53,7 @@ function buildTypeLabelWithIcon(label: string, semanticId?: string, infoTitle = 
 
     const infoTrigger = description
         ? `<div class="hs-heater-type-info-trigger" tabindex="0" role="note"
-                data-info-title="${safeInfoTitle}"
-                data-info-content="${escapeHtml(description)}"
+                ${HSTooltip.attrs(description, { title: infoTitle, delay: 0, placement: 'right' })}
                 aria-label="More information about ${safeInfoTitle}">?</div>`
         : '';
 
@@ -66,6 +75,31 @@ function formatCostCellValue(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost
     return escapeHtml(`${sign}${groupedDigits}`);
 }
 
+const COMPACT_COST_UNITS: readonly (readonly [number, string])[] = [[1e9, "B"], [1e6, "M"], [1e3, "K"]];
+
+// 105 727 028 -> 105.72M, in the browser's number format and truncated like
+// formatNumber. A value under 1000, or that isn't a number, stays as it is.
+function formatCompactCost(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost]): string {
+    const raw = String(value).trim();
+    if (!/^-?\d+$/.test(raw)) return escapeHtml(String(value));
+    const number = Number(raw);
+    const unit = COMPACT_COST_UNITS.find(([size]) => Math.abs(number) >= size);
+    if (!unit) return escapeHtml(raw);
+    const compact = (number / unit[0]).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        roundingMode: "trunc",
+    });
+    return escapeHtml(`${compact}${unit[1]}`);
+}
+
+// The exact cost is in the title, when the cell shortens it
+function buildAmbrosiaCostCell(value: HeaterResultRow[typeof RESULT_COL_INDEX.cost]): string {
+    const compact = formatCompactCost(value);
+    const exact = formatCostCellValue(value);
+    return compact === exact ? `<td>${exact}</td>` : `<td title="${exact}">${compact}</td>`;
+}
+
 function normalizeArrayResultRow(row: HeaterResultRow): NormalizedResultRow {
     return {
         loadoutValue:       row[RESULT_COL_INDEX.loadout],
@@ -77,6 +111,7 @@ function normalizeArrayResultRow(row: HeaterResultRow): NormalizedResultRow {
         shortfall:          row[0] === "Unaffordable" ? (row as HeaterResultUnaffordableRow)[7] : undefined,
         limits:             row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[7],
         effectTitle:        row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[8],
+        maxedReference:     row[0] === "Unaffordable" ? undefined : (row as HeaterResultAffordableRow)[9] ?? undefined,
     };
 }
 
@@ -96,31 +131,33 @@ function buildTypeLabel(entry: NormalizedHeaterResultEntry, loadoutJson: string)
 // Next to a row's ✘: the resource(s) that would raise it, either one
 function buildLimitIcons(limits: HeaterResultLimits): string {
     const icons: string[] = [];
-    if (limits.ambrosia)
-        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="More Ambrosia would raise it" />`);
     if (limits.blueberries)
         icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Blueberries.png" alt="Blueberries" title="More Blueberries would raise it" />`);
+    if (limits.ambrosia)
+        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="More Ambrosia would raise it" />`);
     return icons.join("");
 }
 
 // Next to an unaffordable row's ✘: its short resource(s), all of them needed
 function buildShortfallIcons(shortfall: HeaterResultShortfall): string {
     const icons: string[] = [];
-    if (shortfall.ambrosia)
-        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="Not enough Ambrosia" />`);
     if (shortfall.blueberries)
         icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Blueberries.png" alt="Blueberries" title="Not enough Blueberries" />`);
+    if (shortfall.ambrosia)
+        icons.push(`<img class="hs-heater-limit-icon" src="Pictures/Default/Ambrosia.png" alt="Ambrosia" title="Not enough Ambrosia" />`);
     return icons.join("");
 }
 
-// An unaffordable row's short resource: what the tree needs, "≥" for a minimum
-function buildShortCostCell(short: HeaterShortResource, atLeast: boolean): string {
-    const need = `${atLeast ? "≥ " : ""}${formatCostCellValue(short.need)}`;
-    return `<td class="hs-heater-short-cost" title="You have ${formatCostCellValue(short.have)}">${need}</td>`;
+// An unaffordable row's short resource: what the tree needs, "≥" for a minimum.
+// The title has the exact figures, whichever way the cell writes them.
+function buildShortCostCell(short: HeaterShortResource, atLeast: boolean, formatCell = formatCostCellValue): string {
+    const prefix = atLeast ? "≥ " : "";
+    const title = `Needs ${prefix}${formatCostCellValue(short.need)}, you have ${formatCostCellValue(short.have)}`;
+    return `<td class="hs-heater-short-cost" title="${title}">${prefix}${formatCell(short.need)}</td>`;
 }
 
 function buildHeaderTooltipLabel(label: string, tooltip: string, iconHtml = ""): string {
-    return `<th class="hs-heater-header-tooltip" data-tooltip="${escapeHtml(tooltip)}">${iconHtml}${escapeHtml(label)}</th>`;
+    return `<th class="hs-heater-header-tooltip" ${HSTooltip.attrs(tooltip)}>${iconHtml}${escapeHtml(label)}</th>`;
 }
 
 function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string {
@@ -130,7 +167,7 @@ function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string 
     const ambrosiaHeader = `<img src="Pictures/Default/Ambrosia.png" class="hs-heater-header-icon hs-heater-header-icon-small" />`;
     if (showRouting) {
         const splitHeader = `<th colspan="2" class="hs-heater-split-cell"><div class="hs-heater-split"><span>${escapeHtml(effectHeader)}</span><span>Routing</span></div></th>`;
-        return `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${splitHeader}<th>Maxed?</th></tr>`;
+        return `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${splitHeader}<th>Maxed</th></tr>`;
     }
     // Every p4x4 row's Effect is a cube multiplier, SR rows included
     const cubeIcon = `<img src="Pictures/Default/TinyWow3.png" class="hs-heater-header-icon hs-heater-effect-header-icon" alt="Cubes" />`;
@@ -138,17 +175,13 @@ function buildArraySectionHeaderRow(sectionDef: HeaterResultSectionDef): string 
         ? buildHeaderTooltipLabel(effectHeader, "Effect counts Hyperflux as if you have P4x4x50", cubeIcon)
         : `<th>${escapeHtml(effectHeader)}</th>`;
     const p4x4Label = showP4x4
-        ? buildHeaderTooltipLabel("p4x4 eq", `"p4x4 eq" indicates the amount\n`
-                                            + `of p4x4 you need to buy for the\n`
-                                            + `loadout in this row to be better\n`
-                                            + `than the ones above it.\n`
-                                            + `"★ now" marks the best one\n`
-                                            + `at your current P4x4.`)
+        ? buildHeaderTooltipLabel("p4x4 eq", `"p4x4 eq" indicates the amount of p4x4 you need to buy for the loadout in this row to be better than the ones above it.\n`
+                                            + `"★ now" marks the best one at your current P4x4.`)
         : `<th>p4x4 eq</th>`;
 
     return showP4x4
-        ? `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${effectLabel}${p4x4Label}<th>Maxed?</th></tr>`
-        : `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th><th colspan="2">${escapeHtml(effectHeader)}</th><th>Maxed?</th></tr>`;
+        ? `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th>${effectLabel}${p4x4Label}<th>Maxed</th></tr>`
+        : `<tr class="hs-heater-header-row"><th>Loadout</th><th>Actions</th><th>${blueberryHeader}</th><th>${ambrosiaHeader}</th><th colspan="2">${escapeHtml(effectHeader)}</th><th>Maxed</th></tr>`;
 }
 
 // The H row that wins at the live P4x4 when the table is drawn (it's redrawn
@@ -168,6 +201,24 @@ function buildLoadoutActionControls(escapedFullLoadout: string, escapedLoadoutLa
     const copyButton = `<button class="hs-heater-copy-loadout-btn hs-heater-json-tooltip-trigger" type="button" data-loadout="${escapedFullLoadout}" data-loadout-label="${escapedLoadoutLabel}">Copy</button>`;
     const importButton = `<button class="hs-heater-import-loadout-btn" type="button" data-loadout="${escapedFullLoadout}" data-loadout-label="${escapedLoadoutLabel}">Import</button>`;
     return `${copyButton}${importButton}`;
+}
+
+// A ✘ whose row carries the reference it was compared with: hovering it
+// previews that reference against the row's own tree (the Import button's
+// preview, see HSHeaterUIResult). The title names the row, like Import's; the
+// preview draws its ✔ green and notes Brick of Lead below its max
+// (docs/features/heater.md).
+function buildUnmaxedMark(rowLoadoutJson: string, referenceJson: string | undefined, rowLabel: string): string {
+    if (!referenceJson) return `<span class="hs-heater-status-unmaxed">✘</span>`;
+    try {
+        JSON.parse(referenceJson);
+    } catch {
+        return `<span class="hs-heater-status-unmaxed">✘</span>`;
+    }
+    const label = `${rowLabel}: ✔ needs`;
+    return `<span class="hs-heater-status-unmaxed hs-heater-maxed-preview-trigger"`
+        + ` data-loadout="${escapeHtml(referenceJson)}" data-loadout-compare="${escapeHtml(rowLoadoutJson)}"`
+        + ` data-loadout-label="${escapeHtml(label)}">✘</span>`;
 }
 
 // Obt + Off's Effect is two numbers, each after its resource's game icon
@@ -246,8 +297,8 @@ function buildArraySectionDataRow(
         ? buildShortCostCell(shortfall.blueberries, shortfall.atLeast)
         : `<td>${formatCostCellValue(rowModel.blueberryCostValue)}</td>`;
     const costCell = shortfall?.ambrosia
-        ? buildShortCostCell(shortfall.ambrosia, shortfall.atLeast)
-        : `<td>${formatCostCellValue(rowModel.costValue)}</td>`;
+        ? buildShortCostCell(shortfall.ambrosia, shortfall.atLeast, formatCompactCost)
+        : buildAmbrosiaCostCell(rowModel.costValue);
     // Effect takes two columns, or shares them with p4x4 eq. With the routing,
     // it stays one cell, split inside (see .hs-heater-split-cell).
     const effectHtml = buildEffectHtml(entry, rowModel.effectValue);
@@ -266,10 +317,16 @@ function buildArraySectionDataRow(
         : shortfall ? buildShortfallIcons(shortfall)
         : rowModel.limits ? buildLimitIcons(rowModel.limits)
         : "";
-    const maxCell = `<td>${rowModel.maxedValue === true ? '<span class="hs-heater-status-maxed">✔</span>' : rowModel.maxedValue === false ? `<span class="hs-heater-status-unmaxed">✘</span>${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
+    // Max SR rows: ✔ means SR is at its max level (docs/features/heater.md)
+    const maxedTitle = entry.key === "sr1" || entry.key === "sr2" ? ' title="SR at its max level, not the whole tree"' : "";
+    const unmaxedMark = isValidJson ? buildUnmaxedMark(fullLoadout, rowModel.maxedReference, entry.label) : `<span class="hs-heater-status-unmaxed">✘</span>`;
+    const maxCell = `<td>${rowModel.maxedValue === true ? `<span class="hs-heater-status-maxed"${maxedTitle}>✔</span>` :rowModel.maxedValue === false ? `${unmaxedMark}${limitIcons}` : escapeHtml(String(rowModel.maxedValue))}</td>`;
     // A type picked in "Your loadout order" that can't be afforded: the whole
-    // row in the orange of that slot's border
-    const rowClass = isSelectedType && isUnaffordable ? ' class="hs-heater-selected-unaffordable-row"' : '';
+    // row in the orange of that slot's border. An H row that wins at no P4x4
+    // is dimmed, picked or not.
+    const rowClass = isSelectedType && isUnaffordable ? ' class="hs-heater-selected-unaffordable-row"'
+        : rowModel.p4x4Value === "Never" ? ' class="hs-heater-never-row"'
+        : '';
     return `<tr${rowClass}>${resultCell}${loadoutCell}${blueberryCostCell}${costCell}${effectCell}${p4x4Cell}${maxCell}</tr>`;
 }
 
@@ -301,7 +358,7 @@ function buildArrayResultSection(entriesByKey: Map<ResultKey, NormalizedHeaterRe
     return `
         <div class="hs-heater-results-wrapper">
             <div class="hs-heater-results-topbar">
-                <div class="hs-heater-results-topbar-help" aria-label="Heater results help" tabindex="0">?</div>
+                <div class="hs-heater-results-topbar-help" aria-label="Heater results help" tabindex="0" ${HSTooltip.attrs(RESULTS_HELP, { delay: 0 })}>?</div>
             </div>
             <table class="hs-heater-subtable hs-heater-results-table">
                 <tbody>${allRows}</tbody>

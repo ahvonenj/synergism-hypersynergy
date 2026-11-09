@@ -4,6 +4,7 @@ import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import type { HSGameState } from "../../hs-core/hs-gamestate";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
+import { HSTooltip } from "../../hs-core/hs-tooltip";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSModule } from "../../hs-core/module/hs-module";
 import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
@@ -15,7 +16,7 @@ import type { HSAutosing } from "../hs-autosing/hs-autosing";
 import type { HSAmbrosia } from "../hs-ambrosia/hs-ambrosia";
 import type { HSSingReducerSwap } from "../hs-ambrosia/hs-ambrosia-temporary-tree";
 import type { HepteractKeys } from "../../../types/data-types/hs-player-savedata";
-import { HepteractPlan, HepteractPlanState, HepteractPlanType, planHepteractDistribution } from "./hs-hepteract-distributor-plan";
+import { hepteractCraftAmount, HepteractPlan, HepteractPlanState, HepteractPlanType, planHepteractDistribution } from "./hs-hepteract-distributor-plan";
 import { HEPTERACT_DATA, HepteractState, readHepteract } from "./hs-hepteract-state";
 import { escapeLogText } from "../hs-heater/hs-heater-utils";
 import distributorCSS from "inline:../../../resource/css/module/hs-hepteract-distributor.css";
@@ -64,10 +65,6 @@ const ASCENSION_AUTOMATIONS: GameSwitch[] = [
 const ORB_COST = 250000;
 const OPENED_CLASS = 'hs-hept-distributor-opened';
 const SETTLE_TIME_LIMIT_MS = 2000;
-// The game's auto-craft stops on a full meter as long as what is left can't pay back one more expansion, which
-// takes at least a third more than the planned cost: 5% above it absorbs a cost slightly off (the cost check
-// allows 1%) without ever reaching that
-const AMOUNT_MARGIN = 1.05;
 // With hepteracts to keep, the run spends that fraction of the stock less than what is above them. The game takes
 // floor(stock x percentage / 100): on a large stock, the float rounding of a share can come out a few thousand
 // hepteracts above it, enough to end just under a power of ten, which the bonuses counted in digits would lose
@@ -213,14 +210,7 @@ export class HSHepteractDistributor extends HSModule {
         const help = document.createElement('span');
         help.className = 'hs-hept-distributor-help';
         help.textContent = '?';
-        const helpBox = document.createElement('ul');
-        helpBox.className = 'hs-hept-distributor-help-box';
-        for (const line of HELP_LINES) {
-            const item = document.createElement('li');
-            item.textContent = line;
-            helpBox.appendChild(item);
-        }
-        help.appendChild(helpBox);
+        HSTooltip.set(help, { html: HSTooltip.list(HELP_LINES), delay: 0 });
         title.appendChild(help);
         panel.appendChild(title);
 
@@ -319,8 +309,12 @@ export class HSHepteractDistributor extends HSModule {
         this.#controls.push(keepInput);
 
         type OptionSetting = 'hepteractDistributorUseReducers' | 'hepteractDistributorTalismanAlone' | 'hepteractDistributorAllowPartial';
+        // Centred as one block, rows left-aligned, so a sub-option's indent lines up under its parent's text.
         // A sub-option is only shown while the option above it is ticked (CSS)
-        const option = (text: string, hint: string, setting: OptionSetting, subOption = false) => {
+        const options = document.createElement('div');
+        options.className = 'hs-hept-distributor-options';
+        panel.appendChild(options);
+        const option =(text: string, hint: string, setting: OptionSetting, subOption = false) => {
             const label = document.createElement('label');
             label.className = subOption ? 'hs-hept-distributor-option hs-hept-distributor-suboption' : 'hs-hept-distributor-option';
             label.title = hint;
@@ -331,7 +325,7 @@ export class HSHepteractDistributor extends HSModule {
                 HSSettings.getSetting(setting).setValue(checkbox.checked);
             });
             label.append(checkbox, text);
-            panel.appendChild(label);
+            options.appendChild(label);
             this.#controls.push(checkbox);
         };
         option('Use singularity reducers and Talisman Power',
@@ -823,17 +817,22 @@ export class HSHepteractDistributor extends HSModule {
             for (const target of plan.targets) {
                 const info = HEPTERACTS.find(hepteract => hepteract.key === target.key)!;
                 const auto = HEPTERACT_AUTOS[HEPTERACTS.indexOf(info)];
-                const before = HSHepteractDistributor.#readLive(info)!.balance;
+                const liveBefore = HSHepteractDistributor.#readLive(info)!;
+                const before = liveBefore.balance;
                 const owned = HSHepteractDistributor.#ownedHepteracts();
 
                 // With one Auto on, the game gives it owned x percentage / 100. Its prompt only takes whole
                 // percentages, its formula any number: the exact share is written, and put back at the end.
                 // Never more than what is above the hepteracts to keep, the margin included
                 const spendable = HSHepteractDistributor.#spendable(owned, kept);
-                const amount = target.partial ? spendable : Math.min(spendable, (target.units * AMOUNT_MARGIN + 0.5) * HEPTERACT_DATA[info.key].conversion * costMultiplier);
+                const amount = hepteractCraftAmount(target, spendable, HEPTERACT_DATA[info.key].conversion * costMultiplier);
                 player.hepteractAutoCraftPercentage = owned > 0 ? Math.min(100, amount / owned * 100) : 0;
                 if (!turn(auto, true)) throw new Error(`Could not switch ${info.label}'s Auto on.`);
-                await this.#ascend(() => HSHepteractDistributor.#readLive(info)?.balance !== before, `The game did not craft ${info.label}.`);
+                // An expansion paid back to the unit leaves the balance as it was: only the capacity shows it
+                await this.#ascend(() => {
+                    const live = HSHepteractDistributor.#readLive(info);
+                    return live?.balance !== before || live?.finalCapacity !== liveBefore.finalCapacity;
+                }, `The game did not craft ${info.label}.`);
                 ascensions++;
                 turn(auto, false);
                 checkKept();
@@ -858,8 +857,9 @@ export class HSHepteractDistributor extends HSModule {
             }
         }
 
-        // What the last type could not afford, on what is left now (at the cost of the next press, reducers included)
-        const left = planHepteractDistribution(this.#readState(costMultiplier, kept), allowPartial);
+        // What the last type could not afford, on what is left now (at the cost of the next press, reducers included).
+        // In whole steps: a partial one first would have the status give only what is missing after it
+        const left = planHepteractDistribution(this.#readState(costMultiplier, kept), false);
         const added: string[] = [];
         if (swapApplied && reducerSwap) {
             const count = (amount: number, what: string) => `${amount} ${what}${amount > 1 ? 's' : ''}`;

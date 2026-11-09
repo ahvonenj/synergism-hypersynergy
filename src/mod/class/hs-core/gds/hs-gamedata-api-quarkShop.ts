@@ -142,21 +142,14 @@ export class ShopUpgradeHelper {
         const { rawLevel, gameData, isUtility } = this.#getShopLevelInputs(upgradeKey);
         const calculationVars = this.#getCachedShopLevelDependencies(upgradeKey);
         const cacheName = getShopLevelCacheName(upgradeKey) as keyof CalculationCache;
-        const cachedValue = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cachedValue !== undefined) {
-            this.#shopLevelCache.set(upgradeKey, cachedValue);
-            return cachedValue;
-        }
-
-        const result = buildShopLevelResult(
+        const result = this.#api.memoizeCalculation(cacheName, calculationVars, () => buildShopLevelResult(
             upgradeKey,
             rawLevel,
             gameData,
             isUtility,
             () => getShopBonusLevels(upgradeKey, this.#env),
-        );
+        ));
 
-        this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
         this.#shopLevelCache.set(upgradeKey, result);
         return result;
     }
@@ -197,21 +190,14 @@ export class ShopUpgradeHelper {
         const freeEnv = this.#getFreeLevelsOnlyEnv();
         const calculationVars = this.#getCachedShopLevelFreeLevelsDependencies(upgradeKey);
         const cacheName = (`${getShopLevelCacheName(upgradeKey)}_FREE`) as keyof CalculationCache;
-        const cachedValue = this.#api.checkCalculationCache(cacheName, calculationVars);
-        if (cachedValue !== undefined) {
-            this.#shopLevelFreeLevelsCache.set(upgradeKey, cachedValue);
-            return cachedValue;
-        }
-
-        const result = buildShopLevelResult(
+        const result = this.#api.memoizeCalculation(cacheName, calculationVars, () => buildShopLevelResult(
             upgradeKey,
             rawLevel,
             gameData,
             isUtility,
             () => getShopBonusLevels(upgradeKey, freeEnv, 'true_base'),
-        );
+        ));
 
-        this.#api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
         this.#shopLevelFreeLevelsCache.set(upgradeKey, result);
         return result;
     }
@@ -535,25 +521,13 @@ const SHOP_UPGRADE_GROUP_CONFIG: Record<ShopUpgradeGroups, ShopUpgradeGroupConfi
 const getShopUpgradeTypeBonusLevels = (type: ShopUpgradeGroups, env: ShopUpgradeEnv): number => {
     const cacheName = getShopUpgradeTypeBonusLevelsCacheName(type) as keyof CalculationCache;
     const calculationVars = getShopUpgradeTypeBonusLevelCalculationVars(type, env);
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
-
-    const result = SHOP_UPGRADE_GROUP_CONFIG[type]?.getBonusLevels(env, 'normal') ?? 0;
-
-    env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-    return result;
+    return env.api.memoizeCalculation(cacheName, calculationVars, () => SHOP_UPGRADE_GROUP_CONFIG[type]?.getBonusLevels(env, 'normal') ?? 0);
 }
 
 const getShopUpgradeTypeBonusLevelsFreeLevelsOnly = (type: ShopUpgradeGroups, env: ShopUpgradeEnv): number => {
     const cacheName = (`${getShopUpgradeTypeBonusLevelsCacheName(type)}_FREE`) as keyof CalculationCache;
     const calculationVars = getShopUpgradeTypeBonusLevelCalculationVars(type, env);
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
-
-    const result = SHOP_UPGRADE_GROUP_CONFIG[type]?.getBonusLevels(env, 'true_base') ?? 0;
-
-    env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-    return result;
+    return env.api.memoizeCalculation(cacheName, calculationVars, () => SHOP_UPGRADE_GROUP_CONFIG[type]?.getBonusLevels(env, 'true_base') ?? 0);
 }
 
 const getShopUpgradeTypeBonusLevelCalculationVars = (type: ShopUpgradeGroups, env: ShopUpgradeEnv): number[] => {
@@ -567,25 +541,22 @@ const getShopBonusLevels = (upgradeKey: string, env: ShopUpgradeEnv, mode: Calcu
             ? `${getShopBonusLevelsCacheName(upgradeKey)}_NO_AMB`
             : getShopBonusLevelsCacheName(upgradeKey)) as keyof CalculationCache;
     const calculationVars = getShopLevelDependencies(upgradeKey, env);
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
+    return env.api.memoizeCalculation(cacheName, calculationVars, () => {
+        const rawLevel = getRawShopUpgradeLevel(upgradeKey, env);
+        if (rawLevel <= 0) {
+            return 0;
+        }
 
-    const rawLevel = getRawShopUpgradeLevel(upgradeKey, env);
-    if (rawLevel <= 0) {
-        env.api.updateCalculationCache(cacheName, { value: 0, cachedBy: calculationVars });
-        return 0;
-    }
+        const result = getShopFreeUpgradeMultiplier(upgradeKey) * getShopUpgradeGroups(upgradeKey).reduce((sum, group) => sum + (
+            mode === 'true_base'
+                ? getShopUpgradeTypeBonusLevelsFreeLevelsOnly(group, env)
+                : mode === 'non_ambrosia'
+                    ? SHOP_UPGRADE_GROUP_CONFIG[group]?.getBonusLevels(env, mode) ?? 0
+                : getShopUpgradeTypeBonusLevels(group, env)
+        ), 0);
 
-    const result = getShopFreeUpgradeMultiplier(upgradeKey) * getShopUpgradeGroups(upgradeKey).reduce((sum, group) => sum + (
-        mode === 'true_base'
-            ? getShopUpgradeTypeBonusLevelsFreeLevelsOnly(group, env)
-            : mode === 'non_ambrosia'
-                ? SHOP_UPGRADE_GROUP_CONFIG[group]?.getBonusLevels(env, mode) ?? 0
-            : getShopUpgradeTypeBonusLevels(group, env)
-    ), 0);
-
-    env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-    return result;
+        return result;
+    });
 }
 
 const getRawTopHatDependencies = (env: ShopUpgradeEnv): number[] => {
@@ -639,43 +610,25 @@ const getShopLevelDependencies = (upgradeKey: string, env: ShopUpgradeEnv): numb
 }
 
 const getShopFreeLevelsCube = (env: ShopUpgradeEnv): number => {
-    // const cacheName = getShopFreeLevelsCubeCacheName() as keyof CalculationCache;
     const data = env.api.getGameData();
     if (!data) return 0;
-
-    /*
-    const calculationVars = [
-    ];
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
-    */
 
     const result = env.api.getSingularityChallengeEffect('noQuarkUpgrades', 'freeCubeLevels')
         + env.api.ambrosia.getRedAmbrosiaUpgradeEffects('freeCubeUpgrades').levels as number
         + env.getAmbrosiaUpgradeEffects('ambrosiaFreeCubeUpgrades').freeCubeUpgrades as number
         + env.api.rune.getRuneEffects('topHat').freeCubeLevels;
 
-    // env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
     return result;
 }
 
 const getShopFreeLevelsAscensionSpeed = (env: ShopUpgradeEnv): number => {
-    // const cacheName = getShopFreeLevelsAscensionSpeedCacheName() as keyof CalculationCache;
     const data = env.api.getGameData();
     if (!data) return 0;
-
-    /*
-    const calculationVars = [
-    ];
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
-    */
 
     const result = env.api.getSingularityChallengeEffect('noQuarkUpgrades', 'freeSpeedLevels')
         + env.api.ambrosia.getRedAmbrosiaUpgradeEffects('freeSpeedUpgrades').levels as number
         + env.api.rune.getRuneEffects('topHat').freeSpeedLevels;
 
-    // env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
     return result;
 }
 
@@ -689,14 +642,12 @@ const getShopFreeLevelsQuark = (env: ShopUpgradeEnv, mode: CalculationMode = 'no
         env.getAmbrosiaUpgradeEffects('ambrosiaFreeQuarkUpgrades').freeQuarkUpgrades,
         data.redAmbrosiaUpgrades.freeLevelsRow5,
     ];
-    const cached = env.api.checkCalculationCache(cacheName, calculationVars);
-    if (cached !== undefined) return cached;
+    return env.api.memoizeCalculation(cacheName, calculationVars, () => {
+        const result = env.api.getSingularityChallengeEffect('noQuarkUpgrades', 'freeQuarkLevel')
+            + env.getAmbrosiaUpgradeEffects('ambrosiaFreeQuarkUpgrades').freeQuarkUpgrades;
 
-    const result = env.api.getSingularityChallengeEffect('noQuarkUpgrades', 'freeQuarkLevel')
-        + env.getAmbrosiaUpgradeEffects('ambrosiaFreeQuarkUpgrades').freeQuarkUpgrades;
-
-    env.api.updateCalculationCache(cacheName, { value: result, cachedBy: calculationVars });
-    return result;
+        return result;
+    });
 }
 
 const getTopHatRuneEffects = (env: ShopUpgradeEnv) => env.api.rune.getRuneEffects('topHat') as {
@@ -959,8 +910,9 @@ const SHOP_UPGRADE_EFFECTS: Record<string, Record<string, (level: number, env: S
     },
     shopOcteractAmbrosiaLuck: {
         ambrosiaLuck: (level, env) => {
-            const wowOcteracts = env.api.getGameData()?.wowOcteracts ?? 0;
-            const log10Octeracts = wowOcteracts > 0 ? Math.log10(wowOcteracts) : 0;
+            // Lifetime Octeracts since game 4.4.1, the current amount before
+            const totalWowOcteracts = env.api.getGameData()?.totalWowOcteracts ?? 0;
+            const log10Octeracts = totalWowOcteracts > 0 ? Math.log10(totalWowOcteracts) : 0;
             return level * (1 + Math.floor(Math.max(0, log10Octeracts)));
         },
     },

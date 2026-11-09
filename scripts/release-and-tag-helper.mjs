@@ -1,92 +1,11 @@
 #!/usr/bin/env node
-import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, relative, resolve } from 'path';
-
-
-// ===============================
-// ------ Low-level Helpers ------
-// ===============================
-
-/** Log Helpers */
-function log(msg) { console.log(msg); }
-function logWait(msg) { console.log(`⏳\t${msg}`); }
-function success(msg) { console.log(`✅\t${msg}`); }
-function info(msg) { console.log(`ℹ️\t${msg}`); }
-function warn(msg) { console.log(`⚠️\t${msg}`); }
-function fatal(msg, result) {
-    console.error(`❌\tERROR: ${msg}`);
-    if (result) {
-        if (result.stdout) console.error(String(result.stdout));
-        if (result.stderr) console.error(String(result.stderr));
-        if (result.error) console.error(result.error.message || result.error);
-        if (typeof result.status !== 'undefined') console.error('Exit code:', result.status);
-        if (result.signal) console.error('Signal:', result.signal);
-        if (result.error && result.error.code) console.error('Code:', result.error.code);
-    }
-    process.exit(1);
-}
-/** Stop without an error: the user said no, nothing more is done. */
-function stop(msg) {
-    info(msg);
-    process.exit(0);
-}
-
-/** Format a command + args for logging. */
-function formatCommand(cmd, args) {
-    const parts = Array.isArray(args) ? args : [args];
-    return `${cmd} ${parts.map(a => `'${String(a).replace(/'/g, "\\'")}'`).join(' ')}`;
-}
-
-/** Run a command synchronously and return result. */
-function run(cmd, args, opts = {}) {
-    return spawnSync(cmd, args, { stdio: 'pipe', ...opts });
-}
-
-/** Convenience wrapper for commands that must succeed. Uses `fatal()` on any failure. */
-function runAndCheck(cmd, args, opts = {}) {
-    const r = run(cmd, args, opts);
-    const out = r.stdout ? r.stdout.toString() : '';
-    const err = r.stderr ? r.stderr.toString() : '';
-    if (r.status !== 0) {
-        fatal(`Command returned non-zero: ${formatCommand(cmd, args)}`, r);
-    }
-    return { stdout: out, stderr: err, status: r.status };
-}
-
-/** Ask user for y/n confirmation. */
-let skipPrompts = false;
-
-function askYesNo(question) {
-    if (skipPrompts) {
-        info(`[auto] ${question} -> yes`);
-        return Promise.resolve(true);
-    }
-    return new Promise(async resolve => {
-        const readline = await import('readline');
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.question(`❓ ${question} (y/N) `, ans => {
-            rl.close();
-            resolve(/^(y|yes)$/i.test((ans || '').trim()));
-        });
-    });
-}
-
-/** Ask user for free-form text input. */
-function askForInput(question) {
-    if (skipPrompts) {
-        info(`[auto] ${question} -> (default)`);
-        return Promise.resolve('');
-    }
-    return new Promise(async resolve => {
-        const readline = await import('readline');
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.question(`❓ ${question} `, ans => {
-            rl.close();
-            resolve((ans || '').trim());
-        });
-    });
-}
+import {
+    askForInput, askYesNo, fatal, getOriginRepo, info, log, logWait, purgeAndCheckServedFiles, purgeUrlFor, run, runAndCheck,
+    setSkipPrompts, skipPrompts, stop, success, warn,
+} from './release-common.mjs';
+import { parseTagList, semverSort } from './release-version-tags.mjs';
 
 
 // =============================
@@ -113,7 +32,7 @@ function printHelp() {
     log('    7) prompts to push branch and tag to origin');
     log('    8) prompts to create the GitHub release with the gh CLI (title: the tag; text: the tag message without its');
     log('       first line; marked Latest, unless the Latest release is a loader-v* one), unless it exists');
-    log('    9) prompts to purge jsDelivr (the mod, plus loader files changed since the previous release), waits 10s, purges');
+    log('    9) prompts to purge jsDelivr (the mod, plus loader files changed since the previous release), waits 10s, purges, checks the served files (purges a stale one once more)');
     log('');
     log('Flags:');
     log('  -h, --help           Show this help and exit');
@@ -158,7 +77,7 @@ for (let i = 0; i < argv.length; i++) {
     if (arg.startsWith('-')) fatal(`Unknown flag ${arg} (see --help)`);
     fatal('Positional arguments are not accepted.');
 }
-skipPrompts = opts.yes;
+setSkipPrompts(opts.yes);
 
 log('release-and-tag-helper.mjs (--help for the steps and flags)');
 
@@ -179,21 +98,8 @@ const purgeFiles = [
     { file: 'src/loader/hypersynergism.user.js' },
     { file: 'src/loader/tampermonkey-bridge.user.js' },
 ];
-/**
- * The GitHub repository releases are pushed to (from the `origin` remote), e.g. "maenhiir/synergism-hypersynergy"
- * for the dev fork, or '' if it can't be identified. No fallback: the GitHub release and the purge are for the
- * repository just pushed to, the only one with the new tag and files.
- */
-function getOriginRepo() {
-    const r = run('git', ['remote', 'get-url', 'origin']);
-    const url = r.status === 0 && !r.error ? String(r.stdout).trim() : '';
-    // https://github.com/OWNER/REPO(.git) or git@github.com:OWNER/REPO(.git)
-    const match = url.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
-    return match ? `${match[1]}/${match[2]}` : '';
-}
 const originRepo = getOriginRepo();
 const purgePathFor = (file) => `/gh/${originRepo}@master/${file}`;
-const purgeUrlFor = (purgePath) => `https://purge.jsdelivr.net${purgePath}`;
 
 // Read the notes now, so a wrong path or an empty file stops the script before any change
 let releaseNotes = null;
@@ -213,51 +119,6 @@ logWait('Gathering data, please wait...');
 // =============================
 // -------- Git Helpers --------
 // =============================
-
-// Compares embedded numbers as numbers ("2.9.0" < "2.10.0"), not character by character
-const versionCollator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
-
-/**
- * Compare two version strings like "2.10.0", "2.14.4b" or "2.14.4b-dev1".
- * The part before the first "-" is compared numerically (a letter suffix comes after the plain
- * version: 2.10.2 < 2.10.2c); a dev build ("-dev1") is named from the release it is built on, so it
- * comes after it: 2.14.4b < 2.14.4b-dev1. Same order as the mod's version check (hs-version-tags.ts).
- */
-function compareVersions(a, b) {
-    const [aMain, ...aPreParts] = a.split('-');
-    const [bMain, ...bPreParts] = b.split('-');
-    const mainOrder = versionCollator.compare(aMain, bMain);
-    if (mainOrder !== 0) return mainOrder;
-
-    const aPre = aPreParts.join('-');
-    const bPre = bPreParts.join('-');
-    if (aPre === bPre) return 0;
-    if (!aPre) return -1;
-    if (!bPre) return 1;
-    return versionCollator.compare(aPre, bPre);
-}
-
-/** Sort version strings in descending order (latest first). */
-function semverSort(array) {
-    return array.slice().sort((a, b) => compareVersions(b, a));
-}
-
-/** Parse git tag output (local or remote) into normalized version strings. */
-function parseTagList(raw) {
-    return Array.from(new Set((raw || '').split(/\r?\n/).filter(Boolean)
-        .map(line => {
-            const trimmed = line.trim();
-            // remote `ls-remote --tags` lines are `hash\trefs/tags/v1.2.3` or `refs/tags/v1.2.3^{} `
-            const remoteMatch = trimmed.match(/refs\/tags\/(?:v)?(.+?)(?:\^\{\})?$/);
-            if (remoteMatch) return remoteMatch[1];
-            // local tag names are direct lines from `git tag`, maybe with or without prefix v
-            const localMatch = trimmed.match(/^(?:v)?(.+)$/);
-            return localMatch ? localMatch[1] : null;
-        })
-        // Mod versions only: other tags (e.g. the launcher's loader-vX.Y.Z) have their own versioning
-        .filter(version => version && /^\d/.test(version))
-    ));
-}
 
 /** Validate basic git environment and abort on rebase/merge in progress. */
 function checkGitBase() {
@@ -855,22 +716,8 @@ async function purgeModCache(status) {
     logWait('Waiting 10 seconds after the push before purging jsDelivr...');
     await new Promise(resolve => setTimeout(resolve, 10_000));
 
-    // One request per file, each checked on its own
-    for (const purgePath of purgePaths) {
-        const purgeUrl = purgeUrlFor(purgePath);
-        try {
-            const response = await fetch(purgeUrl, { signal: AbortSignal.timeout(15_000) });
-            const body = await response.text();
-            if (!response.ok) throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
-            const result = JSON.parse(body);
-            if (!result.paths?.[purgePath] || result.paths[purgePath].throttled || result.status === 'error') {
-                throw new Error(`Purge was throttled or rejected: ${body.slice(0, 200)}`);
-            }
-            success(`jsDelivr purge request accepted: ${purgeUrl}`);
-        } catch (error) {
-            warn(`jsDelivr purge could not be confirmed (${error.message || error}). Purge manually: ${purgeUrl}`);
-        }
-    }
+    // One request per file, then each served file compared with the commit (purged again once if stale)
+    await purgeAndCheckServedFiles(originRepo, purgePaths.map(purgePath => purgePath.split('@master/')[1]));
 }
 
 // ==========================

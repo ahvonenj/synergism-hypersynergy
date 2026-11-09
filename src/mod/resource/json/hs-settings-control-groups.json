@@ -1,70 +1,62 @@
 {
-  "hepteracts": {
-    "groupName": "Hepteract settings",
-    "order": 1
-  },
-  "ui": {
-    "groupName": "UI settings",
+  "dialogs-notifications": {
+    "groupName": "Dialogs & notifications",
     "order": 2
   },
-  "notifications": {
-    "groupName": "Notification settings",
+  "game-load": {
+    "groupName": "Game load",
     "order": 3
   },
-  "talismans": {
-    "groupName": "Talisman settings",
-    "order": 5
+  "header-tabs": {
+    "groupName": "Header & tabs",
+    "order": 4
   },
   "mouse": {
-    "groupName": "Mouse settings",
+    "groupName": "Mouse",
     "order": 6
   },
-  "ambrosia": {
-    "groupName": "Add+Time Amb loadouts auto-switch settings",
-    "order": 8
-  },
-  "ambrosia-tree": {
-    "groupName": "Ambrosia tree settings",
-    "order": 7.5
-  },
   "gamedata": {
-    "groupName": "Game data settings",
+    "groupName": "Game data",
     "order": 11
   },
   "save-export": {
-    "groupName": "Timed save export settings",
-    "order": 11.5
+    "groupName": "Timed save export",
+    "order": 23
   },
   "debug": {
-    "groupName": "Debugging settings",
+    "groupName": "Debugging",
     "order": 10
   },
   "auto-sing": {
-    "groupName": "Auto-Sing settings",
+    "groupName": "Auto-Sing",
     "order": 14
   },
   "auto-sing-strategy-controls": {
-    "groupName": "Auto-Sing Strategy settings",
+    "groupName": "Strategy",
     "order": 15
   },
   "auto-sing-ambrosia": {
-    "groupName": "Auto-Sing Ambrosia Loadouts settings",
+    "groupName": "Ambrosia loadouts",
     "order": 16
   },
   "auto-sing-timer-modal": {
-    "groupName": "Auto-Sing Advanced settings",
+    "groupName": "Advanced",
     "order": 17
   },
   "quickbar-qol": {
-    "groupName": "Quickbar QOL settings",
+    "groupName": "Quickbar QoL",
     "order": 18
   },
-  "Golden-quarks-qol-settings": {
-    "groupName": "Golden Quarks QOL settings",
+  "hepteracts": {
+    "groupName": "Hepteracts",
+    "order": 18.5
+  },
+  "singularity": {
+    "groupName": "Singularity",
     "order": 19
   },
-  "Octeracts-qol-settings": {
-    "groupName": "Octeracts QOL settings",
-    "order": 20
+  "ambrosia": {
+    "groupName": "Ambrosia",
+    "order": 22
   }
 }

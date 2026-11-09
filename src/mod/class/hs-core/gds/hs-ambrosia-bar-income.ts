@@ -4,6 +4,9 @@ import type {
 } from "../../../types/data-types/hs-ambrosia-income-types";
 import { calculateReactorIncome } from "./hs-ambrosia-reactor-income";
 
+// Helper.ts redAmbrosiaAcceleratorMaxBarPoints
+const RED_FILL_FUSION_MAX_POINTS = 80_000_000;
+
 /**
  * Expected sustained fill rates for a fixed Ambrosia loadout. Vanilla routes,
  * converts and fills bars in 0.125-second batches; fractional fills here are
@@ -30,6 +33,22 @@ export function calculateAmbrosiaBarIncome(input: AmbrosiaBarIncomeInput): Ambro
         * (input.twoMind ? redRequirement / input.redRequirementWithoutTwoMind : 1);
     const purpleHoneyRewardLuck = input.purpleHoneyLuck
         * (input.twoMind ? purpleRequirement / reactor.purpleRequirementWithoutTwoMind : 1);
+    // SynergismOfficial/src/Helper.ts runPurpleReactor: inside Bar Dependence,
+    // each extraction fills each of the blue and red bars at most once, each
+    // with this chance (calculateBarEXALTPurpleFillChance).
+    const barDependenceFillChance = 1 - Math.pow(2, -purpleHoneyRewardLuck / 100);
+    // Helper.ts awardRedAmbrosiaBarFill: Red-Blue Ultrafusion gives
+    // floor(base Red Luck / 100) rolls, +1 with the remaining chance, each worth
+    // the upgrade's seconds of blue bar points, at most 80M points per red fill.
+    // Averaging the two roll counts keeps the cap exact.
+    const fusionPointsPerRoll = Math.max(0, input.bluePointsPerSecond)
+        * Math.max(0, input.acceleratorSecondsPerRedAmbrosia);
+    const fusionRolls = Math.max(0, input.redLuck) / 100;
+    const guaranteedFusionRolls = Math.floor(fusionRolls);
+    const bonusFusionRollChance = fusionRolls - guaranteedFusionRolls;
+    const fusionPointsPerRedFill = fusionPointsPerRoll === 0 ? 0
+        : (1 - bonusFusionRollChance) * Math.min(RED_FILL_FUSION_MAX_POINTS, guaranteedFusionRolls * fusionPointsPerRoll)
+        + bonusFusionRollChance * Math.min(RED_FILL_FUSION_MAX_POINTS, (guaranteedFusionRolls + 1) * fusionPointsPerRoll);
     const blueRoute = Math.min(1, Math.max(0, reactor.blueRoutingPercent / 100));
     const redRoute = Math.min(1, Math.max(0, reactor.redRoutingPercent / 100));
 
@@ -74,9 +93,8 @@ export function calculateAmbrosiaBarIncome(input: AmbrosiaBarIncomeInput): Ambro
             cancer,
             blueRebate: reactor.purpleFillBluePoints / recipeBlue,
             redRebate: reactor.purpleFillRedPoints,
-            fusionBluePerRedFill: Math.max(0, input.bluePointsPerSecond)
-                * Math.max(0, input.acceleratorSecondsPerRedAmbrosia) * input.redLuck / 100 / recipeBlue,
-            directFillsPerExtraction: reactor.barDependenceEnabled ? purpleHoneyRewardLuck / 100 : 0,
+            fusionBluePerRedFill: fusionPointsPerRedFill / recipeBlue,
+            directFillsPerExtraction: reactor.barDependenceEnabled ? barDependenceFillChance : 0,
         }));
     }
 
@@ -93,11 +111,10 @@ export function calculateAmbrosiaBarIncome(input: AmbrosiaBarIncomeInput): Ambro
         const regularRedFills = Math.max(0,
             (redSupply - normalBatches) / redRequirement);
         const purplePoints = normalBatches * recipePurple;
-        // SynergismOfficial/src/Helper.ts: inside Bar Dependence, each Purple
-        // Honey an extraction would yield (reward luck / 100 on average)
-        // grants one blue and one red bar reward instead.
+        // Inside Bar Dependence, an extraction fills each bar with
+        // barDependenceFillChance instead of yielding Purple Honey.
         const purpleBarRewards = reactor.barDependenceEnabled
-            ? purpleFills * purpleHoneyRewardLuck / 100 : 0;
+            ? purpleFills * barDependenceFillChance : 0;
         // Cancer bar points are granted after each blue/red fill and count
         // toward the following extraction, rather than feeding this tick.
         const bonusFills = 2 * purpleBarRewards;
@@ -109,16 +126,14 @@ export function calculateAmbrosiaBarIncome(input: AmbrosiaBarIncomeInput): Ambro
         };
     };
 
-    // Red-Blue Ultrafusion grants blue-bar time on red fills using base Red
-    // Luck. Its feedback is piecewise linear at the red-reactant and reactor
-    // throughput limits, so solve those regions directly instead of iterating
-    // through thousands of game ticks.
+    // Red-Blue Ultrafusion grants blue bar points on red fills. Its feedback
+    // is piecewise linear at the red-reactant and reactor throughput limits,
+    // so solve those regions directly instead of iterating through thousands
+    // of game ticks.
     const baseBlueProduction = Math.max(0, input.bluePointsPerSecond);
-    const accelerator = Math.max(0, input.acceleratorSecondsPerRedAmbrosia)
-        * input.redLuck / 100;
     const solveAtPurpleFills = (purpleFills: number) => {
         let blueProduction = baseBlueProduction;
-        if (accelerator > 0) {
+        if (fusionPointsPerRedFill > 0) {
             const redBatches = redRoute * (baseRedProduction + purpleFills * reactor.purpleFillRedPoints);
             const rebatedBlue = purpleFills * reactor.purpleFillBluePoints;
             const breakpoints = [0,
@@ -135,10 +150,10 @@ export function calculateAmbrosiaBarIncome(input: AmbrosiaBarIncomeInput): Ambro
                 if (probe <= left) continue;
                 const leftRedFills = ratesAtBlueProduction(left, purpleFills).red;
                 const slope = (ratesAtBlueProduction(probe, purpleFills).red - leftRedFills) / (probe - left);
-                const denominator = 1 - baseBlueProduction * accelerator * slope;
+                const denominator = 1 - fusionPointsPerRedFill * slope;
                 if (denominator <= 0) continue;
-                const candidate = baseBlueProduction
-                    * (1 + accelerator * (leftRedFills - slope * left)) / denominator;
+                const candidate = (baseBlueProduction
+                    + fusionPointsPerRedFill * (leftRedFills - slope * left)) / denominator;
                 if (candidate >= left - 1e-9 * Math.max(1, left)
                     && candidate <= right + 1e-9 * Math.max(1, right)) {
                     blueProduction = Math.max(0, candidate);

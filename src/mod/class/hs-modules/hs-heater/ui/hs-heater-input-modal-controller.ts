@@ -1,15 +1,15 @@
 import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUIC } from "../../../hs-core/hs-ui-components";
 import { HSGameDataAPI } from "../../../hs-core/gds/hs-gamedata-api";
-import { HSHeatCancelledError, HSHeaterOptimizerRunner } from "../hs-heater-optimizer-runner";
+import { HEATER_WORKER_COUNTS, heaterWorkerCount, HSHeatCancelledError, HSHeaterOptimizerRunner } from "../hs-heater-optimizer-runner";
 import { HSUtils } from "../../../hs-utils/hs-utils";
 import { HSHeaterUIStyles } from "./hs-heater-ui-styles";
 import { HSHeaterUIInput } from "./hs-heater-ui-input";
 import { HSHeaterResultStore } from "../hs-heater-result-store";
 import { HSHeaterResultModalController } from "./hs-heater-result-modal-controller";
 import { HSHeaterRedAmbrosiaModalController } from "./hs-heater-red-ambrosia-modal-controller";
-import { HSHeaterUIResult } from "./hs-heater-ui-result";
 import { HEATER_BEST_H_SEMANTIC_ID, resolveHeaterTypeLabel } from "../hs-heater-result-config";
 import { escapeHtml, escapeLogText } from "../hs-heater-utils";
 import { getHeaterTypeDropdownOptionsWithIcons } from "../hs-heater-icon-store";
@@ -24,7 +24,8 @@ export class HSHeaterInputModalController {
 
     static currentInputsModalId: string | null = null;
     static #currentInputsModalObserver: MutationObserver | null = null;
-    static #syncSettingsTooltipId = 'hs-heater-sync-settings-tooltip';
+    // Down to the screen's bottom: the modal opens at y = 10
+    static readonly #MAX_MODAL_HEIGHT = 'calc(100vh - 10px)';
 
     static #cachedInputsModal: HTMLElement | null = null;
     static #cachedTypeSelects: HTMLSelectElement[] = [];
@@ -40,6 +41,7 @@ export class HSHeaterInputModalController {
         autosingAmbrosiaLoadout:            { label: 'Autosing Amb',            preferences: ["allAmb"] },
         autoLoadoutAdd:                     { label: 'Auto-Loadout Add',        preferences: ["allAmb"] },
         autoLoadoutTime:                    { label: 'Auto-Loadout Time',       preferences: ["allAmb"] },
+        autoExportSaveLoadout:              { label: 'Timed Export',            preferences: ["quarks"] },
     };
 
 
@@ -98,12 +100,12 @@ export class HSHeaterInputModalController {
             <div id="hs-heater-inputs-body-right" class="hs-scrollbar-themed">
                 <div>${HSUIC.Button({ id: 'hs-heater-update-inputs-btn', class: 'redButton',  text: 'Update 🔓 Inputs' })}</div>
                 <div>${HSHeaterUIInput.buildHeaterOptionToggleGrid(initialInput.heaterOptions)}</div>
-                <div class="hs-heater-start-row">${HSUIC.Button({ id: 'hs-heater-recalculate-btn',   class: 'redButton hs-heater-start-heater-tooltip-trigger', text: '🔥 Start Heater', styles: { cursor: 'help' } })}${HSUIC.Button({ id: 'hs-heater-cancel-btn', class: 'redButton', text: '✖', props: { title: 'Cancel this heat', hidden: '' } })}</div>
-                ${this.#buildTwoWorkersCheckbox()}
-                <div id="hs-heater-type-selects" class="hs-heater-type-selects-grid">${heaterTypeDropdowns}</div>
+                <div class="hs-heater-start-row">${HSUIC.Button({ id: 'hs-heater-recalculate-btn',   class: 'redButton', text: '🔥 Start Heater', styles: { cursor: 'help' } })}${HSUIC.Button({ id: 'hs-heater-cancel-btn', class: 'redButton', text: '✖', props: { title: 'Cancel this heat', hidden: '' } })}</div>
+                ${this.#buildWorkersSelect()}
+                <div id="hs-heater-type-selects" class="hs-heater-type-selects-grid${loadoutsAmount > 9 ? ' hs-heater-type-selects-two-digits' : ''}">${heaterTypeDropdowns}</div>
                 <div>${HSUIC.Button({ id: 'hs-heater-import-all-btn',    class: 'blueButton', text: 'Import All <span style="color: #338eef;">☑</span> Loadouts' })}</div>
                 <div>${HSUIC.Button({ id: 'hs-heater-sync-icons-btn',    class: 'blueButton', text:   'Sync All Icons' })}</div>
-                <div>${HSUIC.Button({ id: 'hs-heater-sync-settings-btn', class: 'blueButton hs-heater-sync-settings-tooltip-trigger', text: 'Sync All Loadout Settings', styles: { cursor: 'help' } })}</div>
+                <div>${HSUIC.Button({ id: 'hs-heater-sync-settings-btn', class: 'blueButton', text: 'Sync All Loadout Settings', styles: { cursor: 'help' } })}</div>
             </div>
         `;
 
@@ -115,8 +117,9 @@ export class HSHeaterInputModalController {
             position: { x: 50, y: 10 },
             styles: {
                 width: 'auto',
-                height: 'calc(100vh - 50px)',
-            }
+                height: this.#MAX_MODAL_HEIGHT,
+            },
+            onBeforeShow: (modal) => this.#fitHeightToRightColumn(modal),
         });
 
         this.currentInputsModalId = modalId;
@@ -125,16 +128,36 @@ export class HSHeaterInputModalController {
     }
 
 
-    // Without a worker the heat runs on the page, one group at a time: no checkbox
-    static #buildTwoWorkersCheckbox(): string {
-        const checked = HSSettings.getSetting('heaterTwoWorkers').getValue() === true ? ' checked' : '';
-        const help = 'Heats in two workers at once, on two CPU cores: about 40% faster on late saves. '
-            + 'The tab uses more memory during a heat: untick it if the game crashes or freezes while heating. '
+    // Shows the whole right column when the screen allows it; the left one scrolls
+    static #fitHeightToRightColumn(modal: HTMLElement): void {
+        const column = modal.querySelector<HTMLElement>('#hs-heater-inputs-body-right');
+        if (!column) return;
+
+        const chromeHeight = modal.offsetHeight - column.offsetHeight;
+        column.style.alignSelf = 'flex-start';
+        column.style.maxHeight = 'none';
+        const contentHeight = column.scrollHeight;
+        column.style.alignSelf = '';
+        column.style.maxHeight = '';
+
+        // Spare room: at a fractional display scale, rounding alone can bring a scrollbar
+        modal.style.height = `min(${this.#MAX_MODAL_HEIGHT}, ${chromeHeight + contentHeight + 10}px)`;
+    }
+
+
+    // Without a worker the heat runs on the page, one group at a time: no select
+    static #buildWorkersSelect(): string {
+        const selected = heaterWorkerCount(HSSettings.getSetting('heaterWorkers').getValue());
+        const options = HEATER_WORKER_COUNTS.map(count =>
+            `<option value="${count}"${count === selected ? ' selected' : ''}>${count} worker${count > 1 ? 's' : ''}</option>`).join('');
+        const help = 'More workers heat faster but use more memory. '
+            + 'Pick fewer if the game crashes or freezes while heating. '
             + 'A computer that reports under 8 GB of memory or fewer than 4 CPU threads heats in one worker anyway.';
         return `
-            <label class="hs-heater-two-workers" title="${help}"${HSHeaterOptimizerRunner.canCancel ? '' : ' hidden'}>
-                <input type="checkbox" id="hs-heater-two-workers"${checked} />
-                Faster heat (2 workers) <span class="hs-heater-two-workers-help">?</span>
+            <label class="hs-heater-workers" ${HSTooltip.attrs(help)}${HSHeaterOptimizerRunner.canCancel ? '' : ' hidden'}>
+                Heat with:
+                <select id="hs-heater-workers">${options}</select>
+                <span class="hs-heater-workers-help">?</span>
             </label>
         `;
     }
@@ -217,25 +240,21 @@ export class HSHeaterInputModalController {
 
         const recalcButton = modal.querySelector('#hs-heater-recalculate-btn') as HTMLElement | null;
         if (recalcButton) {
-            recalcButton.addEventListener('mouseenter', () => this.showStartHeaterTooltip(recalcButton));
-            recalcButton.addEventListener('mouseleave', () => this.removeStartHeaterTooltip());
-            recalcButton.addEventListener('focus', () => this.showStartHeaterTooltip(recalcButton));
-            recalcButton.addEventListener('blur', () => this.removeStartHeaterTooltip());
+            HSTooltip.set(recalcButton, '⚠️ This can take a few seconds... ⚠️\n⚠️ And will take longer and longer the more amb you have ⚠️');
         }
 
         const cancelButton = modal.querySelector('#hs-heater-cancel-btn') as HTMLElement | null;
         cancelButton?.addEventListener('click', () => HSHeaterOptimizerRunner.cancel());
 
-        const twoWorkersCheckbox = modal.querySelector<HTMLInputElement>('#hs-heater-two-workers');
-        twoWorkersCheckbox?.addEventListener('change', () => {
-            HSSettings.getSetting('heaterTwoWorkers').setValue(twoWorkersCheckbox.checked);
-            HSSettings.saveSettingsToStorage();
+        const workersSelect = modal.querySelector<HTMLSelectElement>('#hs-heater-workers');
+        workersSelect?.addEventListener('change', () => {
+            HSSettings.getSetting('heaterWorkers').setValue(heaterWorkerCount(Number(workersSelect.value)));
         });
 
         recalcButton?.addEventListener('click', async () => {
             const branchCheckboxes = Array.from(modal.querySelectorAll<HTMLInputElement>('.hs-heater-active-checkbox'));
             const hasActiveBranch = branchCheckboxes.some((checkbox) => checkbox.checked);
-            if (!hasActiveBranch) { HSUI.Notify('Select at least one active branch before starting the heater.', { position: 'top', notificationType: 'warning' }); return; }
+            if (!hasActiveBranch) { HSUI.Notify('Tick at least one line in Loadouts to heat before starting the heater.', { position: 'top', notificationType: 'warning' }); return; }
 
             const originalText = recalcButton.textContent;
             recalcButton.style.pointerEvents = 'none';
@@ -248,7 +267,7 @@ export class HSHeaterInputModalController {
             const showElapsed = () => {
                 const seconds = Math.floor((performance.now() - startedAt) / 1000);
                 const icon = seconds >= 120 ? '🥵' : seconds >= 90 ? '🤒' : seconds >= 60 ? '😵' : '🌡️';
-                recalcButton.textContent = `🔥 Heating${progress}... ⏳ ${seconds}s ${icon}`;
+                recalcButton.textContent = `🔥 Heating${progress}... ${seconds}s ${icon}`;
             };
             showElapsed();
             const elapsedTimer = setInterval(showElapsed, 1000);
@@ -270,7 +289,7 @@ export class HSHeaterInputModalController {
                     updatedResult = await HSHeaterOptimizerRunner.createResult(updatedInput, (group, groupCount) => {
                         progress = groupCount > 1 ? ` ${group}/${groupCount}` : '';
                         showElapsed();
-                    }, twoWorkersCheckbox?.checked ?? false);
+                    }, workersSelect ? heaterWorkerCount(Number(workersSelect.value)) : 1);
                 } finally {
                     if (cancelButton) cancelButton.hidden = true;
                 }
@@ -367,7 +386,6 @@ export class HSHeaterInputModalController {
 
                 const clipboardText = loadoutJsons.join('\n');
                 await navigator.clipboard.writeText(clipboardText);
-                HSUI.Notify('Loadouts copied to clipboard.', { position: 'top', notificationType: 'success' });
 
                 const quickImportBtn = document.getElementById('hs-ambrosia-extra-btn') as HTMLElement | null;
                 if (quickImportBtn) {
@@ -421,14 +439,9 @@ export class HSHeaterInputModalController {
 
         const syncSettingsButton = modal.querySelector('#hs-heater-sync-settings-btn') as HTMLElement | null;
         if (syncSettingsButton) {
-            syncSettingsButton.addEventListener('mouseenter', () => this.showSyncSettingsTooltip(syncSettingsButton));
-            syncSettingsButton.addEventListener('mouseleave', () => this.removeSyncSettingsTooltip());
-            syncSettingsButton.addEventListener('focus', () => this.showSyncSettingsTooltip(syncSettingsButton));
-            syncSettingsButton.addEventListener('blur',  () => this.removeSyncSettingsTooltip());
+            HSTooltip.set(syncSettingsButton, { html: () => this.getSyncSettingsTooltipHtml(modal), placement: 'right', wrap: false });
 
             syncSettingsButton.addEventListener('click', async () => {
-                this.removeSyncSettingsTooltip();
-
                 try {
                     const loadoutSlots = this.buildLoadoutSlotMap(modal);
                     HSLogger.info(
@@ -585,21 +598,8 @@ export class HSHeaterInputModalController {
     // ================================================================
 
 
-    private static showSyncSettingsTooltip(trigger: HTMLElement): void {
-        this.removeSyncSettingsTooltip();
-
-        const modal = this.getActiveInputsModal();
-        const tooltip = document.createElement('div');
-        tooltip.id = this.#syncSettingsTooltipId;
-        tooltip.innerHTML = this.getSyncSettingsTooltipHtml(modal);
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-
-        document.body.appendChild(tooltip);
-        HSHeaterUIResult.positionOverlayNearTarget(tooltip, trigger);
-    }
-
-    private static getSyncSettingsTooltipHtml(modal: HTMLElement | null): string {
-        const loadoutSlots = modal ? this.buildLoadoutSlotMap(modal) : new Map<string, string[]>();
+    private static getSyncSettingsTooltipHtml(modal: HTMLElement): string {
+        const loadoutSlots = this.buildLoadoutSlotMap(modal);
 
         const lines = Object.entries(this.#loadoutSettingPreferences)
             .map(([, config]) => this.getSyncSettingsTooltipLine(config, loadoutSlots));
@@ -618,21 +618,15 @@ export class HSHeaterInputModalController {
         const preferenceHtml = config.preferences
             .map((preference) => {
                 const label = this.formatSyncPreferenceLabel(preference);
-                const preferenceClass = preference === selectedPreference
-                    ? 'hs-heater-sync-settings-tooltip-selected'
-                    : 'hs-heater-sync-settings-tooltip-unselected';
-                return `<span class="${preferenceClass}">${label}</span>`;
+                return `<span class="${preference === selectedPreference ? 'hs-tip-key' : 'hs-tip-dim'}">${label}</span>`;
             })
             .join(' > ');
 
-        const keyClasses = selectedPreference === ''
-            ? 'hs-heater-sync-settings-tooltip-key hs-heater-sync-settings-tooltip-key-none-selected'
-            : 'hs-heater-sync-settings-tooltip-key';
-        const noneTextClass = selectedPreference === ''
-            ? 'hs-heater-sync-settings-tooltip-none-selected'
-            : 'hs-heater-sync-settings-tooltip-unselected';
+        // Nothing picked for this setting: its name and "none" stand out
+        const keyClass = selectedPreference === '' ? 'hs-tip-warn' : 'hs-tip-key';
+        const noneClass = selectedPreference === '' ? 'hs-tip-warn' : 'hs-tip-dim';
         return `
-            <span><span class="${keyClasses}">${escapeHtml(config.label)}</span>: ${preferenceHtml} > <span class="${noneTextClass}">none</span></span>
+            <span><span class="${keyClass}">${escapeHtml(config.label)}</span>: ${preferenceHtml} > <span class="${noneClass}">none</span></span>
         `;
     }
 
@@ -649,31 +643,5 @@ export class HSHeaterInputModalController {
 
     private static formatSyncPreferenceLabel(preference: string): string {
         return escapeHtml(resolveHeaterTypeLabel(preference) ?? preference);
-    }
-
-    private static showStartHeaterTooltip(trigger: HTMLElement): void {
-        this.removeStartHeaterTooltip();
-
-        const tooltip = document.createElement('div');
-        tooltip.id = 'hs-heater-start-heater-tooltip';
-        tooltip.textContent = '⚠️ This can take a few seconds... ⚠️\n⚠️ And will take longer and longer the more amb you have ⚠️';
-        tooltip.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
-
-        document.body.appendChild(tooltip);
-        HSHeaterUIResult.positionOverlayNearTarget(tooltip, trigger, { placement: 'below' });
-    }
-
-    private static removeStartHeaterTooltip(): void {
-        const existing = document.getElementById('hs-heater-start-heater-tooltip');
-        if (existing && existing.parentElement) {
-            existing.parentElement.removeChild(existing);
-        }
-    }
-
-    private static removeSyncSettingsTooltip(): void {
-        const existing = document.getElementById(this.#syncSettingsTooltipId);
-        if (existing && existing.parentElement) {
-            existing.parentElement.removeChild(existing);
-        }
     }
 }

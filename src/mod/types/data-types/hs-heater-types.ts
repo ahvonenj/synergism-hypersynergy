@@ -135,6 +135,11 @@ export type HeaterResultAffordableRow = [
     limits?: HeaterResultLimits,
     /** The Effect cell's title (Max SR rows: the penalty they lift). */
     effectTitle?: string,
+    /**
+     * ✘ rows only: the tree "Maxed" compared with, cut to the upgrades that
+     * move the row's stat (loadout JSON). Results saved before it have none.
+     */
+    maxedReference?: string,
 ];
 
 /**
