@@ -386,7 +386,6 @@ export class HSHeaterInputModalController {
 
                 const clipboardText = loadoutJsons.join('\n');
                 await navigator.clipboard.writeText(clipboardText);
-                HSUI.Notify('Loadouts copied to clipboard.', { position: 'top', notificationType: 'success' });
 
                 const quickImportBtn = document.getElementById('hs-ambrosia-extra-btn') as HTMLElement | null;
                 if (quickImportBtn) {
