@@ -26,6 +26,206 @@
   ],
   "entries": [
     {
+      "id": "dev-2.14.7d-dev3",
+      "version": "2.14.7d-dev3",
+      "channel": "dev",
+      "repository": "maenhiir/synergism-hypersynergy",
+      "commit": "f278aec92a1df1beff95be74bbc7e127a811d509",
+      "previous_commit": "d92a62319ea93487e8dfe50785560bf272327aea",
+      "date": "2026-11-09",
+      "date_kind": "published",
+      "status": "published",
+      "release_url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.7d-dev3",
+      "sources": [
+        {
+          "label": "Published release",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.7d-dev3"
+        },
+        {
+          "label": "Git tag",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/tree/v2.14.7d-dev3"
+        },
+        {
+          "label": "Release/build commit",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/f278aec92a1df1beff95be74bbc7e127a811d509"
+        },
+        {
+          "label": "Source: 2d24c55c",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/2d24c55c93eb895685322ef23051055fae339b87"
+        },
+        {
+          "label": "Source: a5a51de6",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/a5a51de6de3770478d9b19403c42223f30709db7"
+        },
+        {
+          "label": "Source: 2c1516ec",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/2c1516ecf810f26d24c26695d5b0467d9e5d8f44"
+        },
+        {
+          "label": "Source: a2fa5105",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/a2fa510537c3a0c9ae6ca38021abca668a22616c"
+        },
+        {
+          "label": "Source: d67a5ab0",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/d67a5ab05f449268ab71915d5745346c7d15ac84"
+        },
+        {
+          "label": "Source: 9e54823d",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/9e54823da99a1afbbd054f45aa6dd2e64342ff1f"
+        },
+        {
+          "label": "Source: c7d07dec",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/c7d07decf2f791f73b6231546592c5f28b7be837"
+        },
+        {
+          "label": "Source: 5acaf0f3",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/5acaf0f32b215de7cf3eb48f911337aa033c7cc8"
+        },
+        {
+          "label": "Source: b0c34835",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/b0c348351bc6ce6f1280eb98c80a6c16acb08917"
+        },
+        {
+          "label": "Source: 6e92df18",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/6e92df182c95bf8f330c8c354b90096563a6f6ad"
+        },
+        {
+          "label": "Source: 94accb1c",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/94accb1cb6a5e05fc7437d4fd580820e727476d2"
+        },
+        {
+          "label": "Source: 9a94ae34",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/9a94ae34b4c5b7913358201ef4ec96142067cdd2"
+        },
+        {
+          "label": "Source: d2217a50",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/d2217a50dec6dd9599cc2e494e8693b6189fe6ce"
+        },
+        {
+          "label": "Source: 8d532c22",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/8d532c22b88fe05748a3e2370b66e46f0abb64e1"
+        }
+      ],
+      "notes": [
+        "Steam: re-patch once."
+      ],
+      "changes": [
+        {
+          "type": "fixed",
+          "text": "Game data follows game 4.4.1: campaign tokens and their rewards, token upgrades, corruption cube rates, coin buildings and construction, Exalt 10 bar fills, the Red-Blue Ultrafusion cap and the Infinite Ascent token reward; the Heater and the Tools tab use them.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/2d24c55c93eb895685322ef23051055fae339b87",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/a5a51de6de3770478d9b19403c42223f30709db7",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/2c1516ecf810f26d24c26695d5b0467d9e5d8f44",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/a2fa510537c3a0c9ae6ca38021abca668a22616c"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Tools tab: Construction, Construction: Before Multiplier and Construction: Coin Buildings.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/2c1516ecf810f26d24c26695d5b0467d9e5d8f44"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "PseudoCoin upgrades are seen again after game 4.4.1, without the patch missing warning at each load.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/d67a5ab05f449268ab71915d5745346c7d15ac84"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "The header’s ✎ button and the panel’s Edit game header button open edit mode again.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/9e54823da99a1afbbd054f45aa6dd2e64342ff1f"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Heater: hovering a ✘ in Maxed previews what the ✔ needs, with each missing level in red.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/c7d07decf2f791f73b6231546592c5f28b7be837",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/5acaf0f32b215de7cf3eb48f911337aa033c7cc8",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/b0c348351bc6ce6f1280eb98c80a6c16acb08917"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Heater: Maxed is compared with Brick of Lead at its best level for each row, so cube and H rows no longer show ✔ with levels missing.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/6e92df182c95bf8f330c8c354b90096563a6f6ad"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Heater Inputs window: narrower left column.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/94accb1cb6a5e05fc7437d4fd580820e727476d2"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Lighter page: less style work while the game updates its display; the loaded-slot borders no longer animate.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/9a94ae34b4c5b7913358201ef4ec96142067cdd2"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Hepteract Distributor sub-options are indented under their parent; AutoSing strategy buttons have more room between rows.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/d2217a50dec6dd9599cc2e494e8693b6189fe6ce",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/8d532c22b88fe05748a3e2370b66e46f0abb64e1"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "maenhiir",
+          "roles": [
+            "changes"
+          ],
+          "commits": [
+            "8d532c22b88fe05748a3e2370b66e46f0abb64e1"
+          ]
+        },
+        {
+          "id": "Ferlieloi",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "ee452af0329d9a033c86b0933e229fadae16a9fd",
+            "006d1a98df27e8a9f9dbfea7974c75d825c84ce0"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "d92a62319ea93487e8dfe50785560bf272327aea",
+        "head": "f278aec92a1df1beff95be74bbc7e127a811d509",
+        "scope": "repository"
+      },
+      "merges": [
+        {
+          "direction": "live-to-dev",
+          "commit": "14a221866391a947f0f6a26b74ef3622490a89cd",
+          "commits": [
+            "1a5701c01e50c9deb83cde6ebb7a9d04d0f8feb8",
+            "14a221866391a947f0f6a26b74ef3622490a89cd"
+          ],
+          "summary": "Includes Live changes through v2.14.7d.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/1a5701c01e50c9deb83cde6ebb7a9d04d0f8feb8",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/14a221866391a947f0f6a26b74ef3622490a89cd"
+          ],
+          "from_entry_id": "live-2.14.7d",
+          "through_version": "2.14.7d"
+        }
+      ]
+    },
+    {
       "id": "live-2.14.7d",
       "version": "2.14.7d",
       "channel": "live",
