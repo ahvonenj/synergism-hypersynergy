@@ -910,8 +910,9 @@ const SHOP_UPGRADE_EFFECTS: Record<string, Record<string, (level: number, env: S
     },
     shopOcteractAmbrosiaLuck: {
         ambrosiaLuck: (level, env) => {
-            const wowOcteracts = env.api.getGameData()?.wowOcteracts ?? 0;
-            const log10Octeracts = wowOcteracts > 0 ? Math.log10(wowOcteracts) : 0;
+            // Lifetime Octeracts since game 4.4.1, the current amount before
+            const totalWowOcteracts = env.api.getGameData()?.totalWowOcteracts ?? 0;
+            const log10Octeracts = totalWowOcteracts > 0 ? Math.log10(totalWowOcteracts) : 0;
             return level * (1 + Math.floor(Math.max(0, log10Octeracts)));
         },
     },

@@ -1036,7 +1036,10 @@ export class AmbrosiaHelper {
             if (tokens < 2000 || exalt1Completions <= 0) {
                 campaignBlueberrySpeedBonus = 1;
             } else {
-                campaignBlueberrySpeedBonus = 1 + 0.02 * 1 / 2000 * Math.min(tokens - 2000, 2000) + 0.03 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2000));
+                // usableCampaignTokens: this reward counts at most 40,000 tokens
+                const usable = Math.min(tokens, 40_000);
+                campaignBlueberrySpeedBonus = 1.01 + 0.02 * 1 / 2000 * Math.min(usable - 2000, 2000)
+                    + 0.03 * Math.log10(Math.max(usable, 4000) / 4000);
             }
 
             return campaignBlueberrySpeedBonus;

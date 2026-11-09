@@ -1114,10 +1114,10 @@ export const goldenQuarkUpgradeMaxLevels: Record<GoldenQuarkUpgradeKey, GoldenQu
   singAmbrosiaGeneration3: { maxLevel: 35, qualityOfLife: true, costPerLevel: 3e8, specialCostForm: 'Default', effect: (n) => 1 + n / 100 },
   singAmbrosiaGeneration4: { maxLevel: 50, qualityOfLife: true, costPerLevel: 1e19, specialCostForm: 'Default', effect: (n) => 1 + 2 * n / 100 },
   // Effects copied from SynergismOfficial/src/singularity.ts.
-  singBonusTokens1: { maxLevel: 5, costPerLevel: 25, specialCostForm: 'Exponential2', effect: (n) => n },
+  singBonusTokens1: { maxLevel: 2, costPerLevel: 25, specialCostForm: 'Exponential2', effect: (n) => n },
   singBonusTokens2: { maxLevel: 5, costPerLevel: 10_000, specialCostForm: 'Exponential2', effect: (n) => 1 + n / 100 },
-  singBonusTokens3: { maxLevel: 5, costPerLevel: 1e8, specialCostForm: 'Exponential2', effect: (n) => 2 * n },
-  singBonusTokens4: { maxLevel: 30, costPerLevel: 1e13, specialCostForm: 'Exponential2', effect: (n) => 5 * n },
+  singBonusTokens3: { maxLevel: 2, costPerLevel: 1e8, specialCostForm: 'Exponential2', effect: (n) => n },
+  singBonusTokens4: { maxLevel: 25, costPerLevel: 1e13, specialCostForm: 'Exponential2', effect: (n) => 2 * n },
   singInfiniteShopUpgrades: { maxLevel: 80, costPerLevel: 1e18, specialCostForm: 'Default', effect: (n) => n },
   singTalismanBonusRunes1: {
     maxLevel: 5, costPerLevel: 25, specialCostForm: 'Default',
@@ -1221,10 +1221,10 @@ export const octeractUpgradeMaxLevels: Record<OcteractUpgradeKey, OcteractUpgrad
   octeractAmbrosiaGeneration3: { maxLevel: 35, qualityOfLife: true, costFormula: (n) => 1e30 * Math.pow(n, 8), effect: (n) => 1 + n / 100 },
   octeractAmbrosiaGeneration4: { maxLevel: 50, qualityOfLife: true, costFormula: (n) => 1e70 * (Math.pow(3, n) - 1), effect: (n) => 1 + 2 * n / 100 },
   // Effects copied from SynergismOfficial/src/Octeracts.ts.
-  octeractBonusTokens1: { maxLevel: 10, costFormula: (n) => 1e-5 * (Math.pow(1e2, n) - 1) / 99, effect: (n) => n },
+  octeractBonusTokens1: { maxLevel: 2, costFormula: (n) => 1e-5 * (Math.pow(1e2, n) - 1) / 99, effect: (n) => n },
   octeractBonusTokens2: { maxLevel: 5, costFormula: (n) => Math.pow(1e8, n) - 1, effect: (n) => 1 + n / 100 },
-  octeractBonusTokens3: { maxLevel: 5, costFormula: (n) => 1e40 * (Math.pow(1e10, n) - 1), effect: (n) => n },
-  octeractBonusTokens4: { maxLevel: 50, costFormula: (n) => 1e75 * (Math.pow(4, n) - 1), effect: (n) => 2 * n },
+  octeractBonusTokens3: { maxLevel: 2, costFormula: (n) => 1e40 * (Math.pow(1e10, n) - 1), effect: (n) => n },
+  octeractBonusTokens4: { maxLevel: 50, costFormula: (n) => 1e75 * (Math.pow(4, n) - 1), effect: (n) => n },
   octeractBlueberries: { maxLevel: 6, qualityOfLife: true, costFormula: (n) => OCTERACT_BLUEBERRY_COSTS[n] ?? Number.POSITIVE_INFINITY, effect: (n) => n },
   octeractInfiniteShopUpgrades: { maxLevel: 80, costFormula: (n) => 1e30 * (Math.pow(16, n) - 1), effect: (n) => n },
   octeractTalismanLevelCap1: { maxLevel: 25, costFormula: (n) => 1e-5 * Math.pow(n, 6), effect: (n: number) => n },

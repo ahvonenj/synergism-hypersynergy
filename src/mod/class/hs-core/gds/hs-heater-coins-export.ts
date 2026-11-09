@@ -33,10 +33,10 @@ export function buildHeaterCoinsC15Input(api: HSGameDataAPI, data: GameData, tok
     }
     const taxBlessingFactor = Math.log10(1 + (data.platonicBlessings.taxes ?? 0)) ** 1.5;
     const taxBlessing = taxBlessingFactor / (125 + taxBlessingFactor);
+    // campaignTokenBonuses.tax (Campaign.ts): counts at most 8,000 tokens
+    const taxTokens = Math.min(tokens, 8000);
     const campaignTax = tokens >= 250 && challenge(13) > 0
-        ? 1 - 0.05 / 250 * Math.min(tokens - 250, 250)
-            - 0.15 * (1 - Math.exp(-Math.max(tokens - 500, 0) / 1250))
-            - 0.05 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 5000)) : 1;
+        ? 1 - 0.05 / 250 * Math.min(taxTokens - 250, 250) - 0.05 * Math.log2(Math.max(taxTokens, 500) / 500) : 1;
     const taxes = [
         1 + api.talisman.getTalismanEffects('exemption').taxReduction,
         data.currentChallenge.reincarnation === 6 ? 3 * (1 + challenge(6) / 25) ** 2 : 1,

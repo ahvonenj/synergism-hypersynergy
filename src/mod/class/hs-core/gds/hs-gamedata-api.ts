@@ -85,10 +85,8 @@ const highScoringStatueBase = (blessings: number) => {
  * Tokens per Challenge 10 completion at a corruption level, copied from SynergismOfficial/src/Campaign.ts
  * (`corruptionLevelTokenRates`): [last level, tokens per completion].
  */
-const CORRUPTION_LEVEL_TOKEN_RATES: ReadonlyArray<[number, number]> = [[20, 1], [45, 2], [Number.POSITIVE_INFINITY, 3]];
 
 const CAMPAIGN_INHERITANCE_LEVELS = [2, 5, 10, 17, 26, 37, 50, 65, 82, 101, 220, 240, 260, 270, 277];
-const CAMPAIGN_INHERITANCE_TOKEN_VALUES = [1, 10, 25, 40, 75, 100, 150, 200, 250, 300, 350, 400, 500, 600, 750];
 const CAMPAIGN_BONUS_TOKEN_LEVELS = [41, 58, 113, 163, 229];
 
 /**
@@ -201,8 +199,9 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.clearCache();
     }
 
-    /** Mirrors updateTokens and levelTokenTerms in SynergismOfficial/src/Campaign.ts: tokens come from the best
-     * Challenge 10 completions at each corruption level (player.corruptions.tokenCompletions). */
+    /** Mirrors updateTokens in SynergismOfficial/src/Campaign.ts: one token per best Challenge 10 completion at each
+     * corruption level (player.corruptions.tokenCompletions), a first-completion bonus per completed level and the
+     * starting tokens, all times the token multiplier. */
     private calculateCampaignDataFromSave(): CampaignData | undefined {
         const completions = this.gameData?.corruptions?.tokenCompletions;
         // The completions are not optional in a current save. If the
@@ -211,13 +210,16 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         if (!Array.isArray(completions)) return undefined;
         const highestSingularity = this.gameData?.highestSingularityCount ?? 0;
 
-        // firstCompletionBonusPoints: the last-completion upgrades now count at the first completion too
-        const firstCompletionBonus = (highestSingularity >= 16 ? 5 : 0)
-            + (highestSingularity >= 69 ? 10 : 0)
+        // firstCompletionBonusPoints: the last-completion upgrades count at the first completion too
+        const firstCompletionBonus = Math.floor(5
+            + (highestSingularity >= 16 ? 1 : 0)
+            + (highestSingularity >= 69 ? 1 : 0)
             + this.goldenQuark.getGQUpgradeEffect('singBonusTokens1', 'firstCompletionBonusTokens')
             + this.goldenQuark.getGQUpgradeEffect('singBonusTokens3', 'lastCompletionBonusTokens')
             + this.octeract.getOcteractUpgradeEffect('octeractBonusTokens3', 'firstCompletionBonusTokens')
-            + this.octeract.getOcteractUpgradeEffect('octeractBonusTokens1', 'lastCompletionBonusTokens');
+            + this.octeract.getOcteractUpgradeEffect('octeractBonusTokens1', 'lastCompletionBonusTokens'));
+
+        // singularityBonusTokenMult (Calculate.ts)
         let singularityTokenMultiplier = 1;
         for (let i = CAMPAIGN_BONUS_TOKEN_LEVELS.length; i > 0; i--) {
             if (highestSingularity >= CAMPAIGN_BONUS_TOKEN_LEVELS[i - 1]) {
@@ -225,16 +227,17 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
                 break;
             }
         }
-        const tokenMultiplier = singularityTokenMultiplier
-            * this.goldenQuark.getGQUpgradeEffect('singBonusTokens2', 'tokenMultiplier')
-            * this.octeract.getOcteractUpgradeEffect('octeractBonusTokens2', 'tokenMultiplier');
+        // tokenMultiplier: the three bonuses add up
+        const tokenMultiplier = 1
+            + (singularityTokenMultiplier - 1)
+            + (this.goldenQuark.getGQUpgradeEffect('singBonusTokens2', 'tokenMultiplier') - 1)
+            + (this.octeract.getOcteractUpgradeEffect('octeractBonusTokens2', 'tokenMultiplier') - 1);
 
-        // inheritanceTokens (Calculate.ts) checks the levels from the last one down to the second one: the first
-        // level (singularity 2, 1 token) never counts
+        // inheritanceTokens (Calculate.ts): 10 tokens per inheritance level reached
         let inheritedTokens = 0;
-        for (let i = CAMPAIGN_INHERITANCE_LEVELS.length - 1; i > 0; i--) {
+        for (let i = CAMPAIGN_INHERITANCE_LEVELS.length - 1; i >= 0; i--) {
             if (highestSingularity >= CAMPAIGN_INHERITANCE_LEVELS[i]) {
-                inheritedTokens = CAMPAIGN_INHERITANCE_TOKEN_VALUES[i];
+                inheritedTokens = 10 * (i + 1);
                 break;
             }
         }
@@ -243,16 +246,13 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         for (let level = 1; level < completions.length; level++) {
             const levelCompletions = Number(completions[level] ?? 0);
             if (!Number.isFinite(levelCompletions) || levelCompletions <= 0) continue;
-            const rate = CORRUPTION_LEVEL_TOKEN_RATES.find(([lastLevel]) => level <= lastLevel)?.[1] ?? 0;
-            tokens += Math.floor(rate * levelCompletions * tokenMultiplier) + Math.floor(rate * firstCompletionBonus);
+            tokens += levelCompletions + firstCompletionBonus;
         }
+        tokens += inheritedTokens
+            + this.goldenQuark.getGQUpgradeEffect('singBonusTokens4', 'initialTokenBonus')
+            + this.octeract.getOcteractUpgradeEffect('octeractBonusTokens4', 'initialTokenBonus');
 
-        return {
-            tokens: tokens
-                + inheritedTokens
-                + this.goldenQuark.getGQUpgradeEffect('singBonusTokens4', 'initialTokenBonus')
-                + this.octeract.getOcteractUpgradeEffect('octeractBonusTokens4', 'initialTokenBonus')
-        };
+        return { tokens: Math.floor(tokens * tokenMultiplier) };
     }
 
     memoizeCalculation<T>(cacheName: keyof CalculationCache, calculationVars: number[], calculateFn: () => T): T {

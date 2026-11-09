@@ -258,7 +258,7 @@ async function main() {
   data.researches[51] = 5; data.researches[159] = 2; data.rareFragments = '1e30';
   data.highestSingularityCount = 281; data.challengecompletions[6] = 12; data.challengecompletions[13] = 3;
   const changed = buildHeaterCoinsC15Input(api, data, 1000);
-  const campaignTax = 1 - 0.05 - 0.15 * (1 - Math.exp(-500 / 1250));
+  const campaignTax = 1 - 0.05 - 0.05 * Math.log2(1000 / 500);
   close(changed.taxExponentWithoutRunes, 0.000005 / 1.075 * 0.965 ** 12 * 0.966 ** 3
     * 0.7 * 0.98 ** (0.6 * 30 * 2) * campaignTax * 0.5, 'fixed research, campaign, fragment and Singularity tax factors');
 

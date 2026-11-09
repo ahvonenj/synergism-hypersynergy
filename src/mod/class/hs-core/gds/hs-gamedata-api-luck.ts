@@ -131,6 +131,8 @@ export class LuckHelper {
             ...this.getAmbrosiaLuckSingularityUpgradeCalculationDeps(),
             ...this.getAmbrosiaLuckOcteractUpgradeCalculationDeps(),
             ...this.#api.quarkShop.getShopLevelDependencies('shopOcteractAmbrosiaLuck'),
+            // That upgrade grows with each power of ten of lifetime Octeracts
+            Math.floor(Math.log10(Math.max(1, data.totalWowOcteracts ?? 0))),
             data.shopUpgrades.shopPanthema,
             data.ambrosiaUpgrades.ambrosiaFreeLuckUpgrades.ambrosiaInvested,
             data.ambrosiaUpgrades.ambrosiaFreeLuckUpgrades.purpleAmbrosiaInvested ?? 0,
@@ -305,9 +307,11 @@ export class LuckHelper {
             if (tokens < 2000 || exalt1Completions <= 0) {
                 campaignBonus = 0;
             } else {
+                // usableCampaignTokens: this reward counts at most 36,000 tokens
+                const usable = Math.min(tokens, 36_000);
                 campaignBonus = 10
-                    + 40 * 1 / 2000 * Math.min(tokens - 2000, 2000)
-                    + 50 * (1 - Math.exp(-Math.max(tokens - 4000, 0) / 2500));
+                    + 40 * 1 / 2000 * Math.min(usable - 2000, 2000)
+                    + 50 * Math.log(Math.max(usable, 4000) / 4000) / Math.log(3);
             }
 
             return campaignBonus;

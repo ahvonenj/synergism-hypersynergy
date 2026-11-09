@@ -30,7 +30,7 @@ const LINES = ['sMiscRuneSum', 'statSalvPosRuneBonus', 'statSalvPosInfiniteAscen
 const KEPT = ['worlds', 'coinsThisPrestige', 'firstOwnedCoin', 'secondOwnedCoin', 'thirdOwnedCoin', 'fourthOwnedCoin', 'fifthOwnedCoin',
     'ants', 'upgrades', 'transcendCount', 'challengecompletions', 'challenge15Exponent', 'currentChallenge', 'researches', 'unlocks',
     'achievements', 'progressiveAchievements', 'runes', 'shopUpgrades', 'talismans', 'ascensionCount', 'cubeUpgrades', 'platonicUpgrades',
-    'wowCubes', 'wowTesseracts', 'wowHypercubes', 'wowPlatonicCubes', 'wowAbyssals', 'wowOcteracts', 'cubeBlessings', 'tesseractBlessings',
+    'wowCubes', 'wowTesseracts', 'wowHypercubes', 'wowPlatonicCubes', 'wowAbyssals', 'wowOcteracts', 'totalWowOcteracts', 'cubeBlessings', 'tesseractBlessings',
     'hypercubeBlessings', 'platonicBlessings', 'hepteracts', 'ascendShards', 'corruptions', 'constantUpgrades', 'singularityCount',
     'highestSingularityCount', 'goldenQuarkUpgrades', 'octUpgrades', 'ambrosiaUpgrades', 'insideSingularityChallenge', 'singularityChallenges',
     'lifetimeAmbrosia', 'lifetimePurpleAmbrosia', 'spentBlueberries', 'lifetimeRedAmbrosia', 'redAmbrosiaUpgrades', 'purpleAmbrosiaUpgrades',
