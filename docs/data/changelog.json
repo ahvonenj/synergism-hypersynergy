@@ -26,6 +26,72 @@
   ],
   "entries": [
     {
+      "id": "live-2.14.7d",
+      "version": "2.14.7d",
+      "channel": "live",
+      "repository": "Ferlieloi/synergism-hypersynergy",
+      "commit": "006d1a98df27e8a9f9dbfea7974c75d825c84ce0",
+      "previous_commit": "a18d77d9c62c60d6bb61ebaea1f528e1e8cc3ae9",
+      "date": "2026-11-07",
+      "date_kind": "published",
+      "status": "published",
+      "release_url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.7d",
+      "sources": [
+        {
+          "label": "Published release",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.7d"
+        },
+        {
+          "label": "Git tag",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/tree/v2.14.7d"
+        },
+        {
+          "label": "Release/build commit",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/006d1a98df27e8a9f9dbfea7974c75d825c84ce0"
+        },
+        {
+          "label": "GQ purchase fix",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b3aea6914abd8c1c1d4d6b898654c1a7ff694631"
+        }
+      ],
+      "notes": [],
+      "changes": [
+        {
+          "type": "fixed",
+          "text": "Fixed the GQ Distributor spending nearly the entire balance on one upgrade in browser locales that use dots as thousands separators, such as German and Belgian Dutch. Large purchase budgets now retain their exact value in every locale.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b3aea6914abd8c1c1d4d6b898654c1a7ff694631"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "The GQ Distributor now cancels and logs a purchase if the game's quote is invalid or exceeds the upgrade's allocation.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b3aea6914abd8c1c1d4d6b898654c1a7ff694631"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "Ferlieloi",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "b3aea6914abd8c1c1d4d6b898654c1a7ff694631",
+            "006d1a98df27e8a9f9dbfea7974c75d825c84ce0"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "a18d77d9c62c60d6bb61ebaea1f528e1e8cc3ae9",
+        "head": "006d1a98df27e8a9f9dbfea7974c75d825c84ce0",
+        "scope": "repository"
+      },
+      "merges": []
+    },
+    {
       "id": "dev-2.14.7c-dev2",
       "version": "2.14.7c-dev2",
       "channel": "dev",
