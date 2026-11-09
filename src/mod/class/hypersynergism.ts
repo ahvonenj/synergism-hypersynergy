@@ -604,10 +604,7 @@ export class Hypersynergism {
             HSUIC.Grid({
                 id: 'hs-panel-debug-grid',
                 class: 'hs-panel-grid-2col',
-                html: [
-                    this.#buildGridSectionHeader('Mouse'),
-                    HSUIC.Div({ id: 'hs-panel-debug-mousepos' }),
-                ]
+                html: []
             })
         );
 
