@@ -1221,7 +1221,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return this.firstFiveRuneEffectivenessStats.reduce((x, y) => x * y.stat(), 1)
     }
 
-    /** Mirrors campaignTokenBonuses.rune6 in SynergismOfficial/src/Campaign.ts: 500 tokens and Infinite Ascent unlocked. */
+    /** Mirrors campaignTokenBonuses.rune6 in SynergismOfficial/src/Campaign.ts: 750 tokens and Infinite Ascent unlocked. */
     calculateCampaignRune6Bonus() {
         const cacheName = 'CampaignRune6Bonus' as keyof CalculationCache;
 
@@ -1234,19 +1234,12 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         ]
 
         return this.memoizeCalculation(cacheName, calculationVars, () => {
-            if (!runeUnlocked) {
+            if (tokens < 750 || !runeUnlocked) {
                 return 0;
             }
 
-            const thresholdReqs = [500, 750, 1000, 1250, 1500, 1750, 2000, 3000, 4000, 6000, 8000, 10000]
-            for (let i = 0; i < thresholdReqs.length; i++) {
-                if (tokens < thresholdReqs[i]) {
-                    const reduced = i;
-                    return reduced;
-                }
-            }
-            const reduced = 12;
-            return reduced;
+            // usableCampaignTokens: this reward counts at most 24,000 tokens
+            return 2 + 2 * Math.floor(Math.log2(Math.min(tokens, 24_000) / 750));
         });
     }
 
