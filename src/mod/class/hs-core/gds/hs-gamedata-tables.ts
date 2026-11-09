@@ -1,5 +1,5 @@
 import Decimal from "break_infinity.js";
-import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection, SingularityChallengeDataKeys, ISingularityChallengeData, GoldenQuarkUpgradeKey, OcteractUpgradeKey, TalismanKeys, RuneKeys, SynergismLevelMilestones, SynergismLevelMilestoneDefinition, ShopUpgradeGroups, AchievementRewards } from "../../../types/data-types/hs-gamedata-api-types"
+import { HepteractEffectiveValues, RedAmbrosiaUpgradeCalculationCollection, SingularityChallengeDataKeys, ISingularityChallengeData, GoldenQuarkUpgradeKey, OcteractUpgradeKey, TalismanKeys, RuneKeys, SynergismLevelMilestones, SynergismLevelMilestoneDefinition, ShopUpgradeGroups } from "../../../types/data-types/hs-gamedata-api-types"
 import type { GameData, SingularityChallengeRewards } from "../../../types/data-types/hs-player-savedata"
 
 export const SHOP_UPGRADE_TYPE_KEYS: Record<ShopUpgradeGroups, string[]> = {
@@ -1700,76 +1700,6 @@ export const TALISMAN_WOWSQUARE_INSCRIPT_VALUES = [1, 1.025, 1.05, 1.075, 1.1, 1
 export const TALISMAN_ACHIEVEMENT_EFFECT_INSCRIPT_VALUES = [0, 0.001, 0.002, 0.003, 0.004, 0.006, 0.008, 0.01, 0.015, 0.02, 0.03]
 export const TALISMAN_COOKIEGRANDMA_INSCRIPT_VALUES = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 export const TALISMAN_HORSESHOE_INSCRIPT_VALUES = [0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.007, 0.01, 0.012, 0.015, 0.02]
-
-export const ACHIEVEMENT_REWARD_TYPES: AchievementRewards[] = [
-    'acceleratorPower',
-    'accelerators',
-    'multipliers',
-    'accelBoosts',
-    'crystalMultiplier',
-    'taxReduction',
-    'particleGain',
-    'conversionExponent',
-    'chronosTalisman',
-    'midasTalisman',
-    'metaphysicsTalisman',
-    'polymathTalisman',
-    'talismanPower',
-    'sacrificeMult',
-    'antSpeed',
-    'antSacrificeUnlock',
-    'preserveAnthillCount',
-    'preserveAnthillCountSingularity',
-    'antAutobuyers',
-    'inceptusAutobuy',
-    'fortunaeAutobuy',
-    'tributumAutobuy',
-    'celeritasAutobuy',
-    'exploratoremAutobuy',
-    'sacrificiumAutobuy',
-    'experientiaAutobuy',
-    'hicAutobuy',
-    'scientiaAutobuy',
-    'praemoenioAutobuy',
-    'phylacteriumAutobuy',
-    'antELOAdditive',
-    'antELOAdditiveMultiplier',
-    'wowSquareTalisman',
-    'ascensionCountMultiplier',
-    'ascensionCountAdditive',
-    'wowCubeGain',
-    'wowTesseractGain',
-    'wowHypercubeGain',
-    'wowPlatonicGain',
-    'quarkGain',
-    'wowHepteractGain',
-    'cubesBanked',
-    'constUpgrade1Buff',
-    'constUpgrade2Buff',
-    'platonicToHypercubes',
-    'statTracker',
-    'ascensionRewardScaling',
-    'overfluxConversionRate',
-    'diamondUpgrade18',
-    'diamondUpgrade19',
-    'diamondUpgrade20',
-    'prestigeCountMultiplier',
-    'transcensionCountMultiplier',
-    'reincarnationCountMultiplier',
-    'duplicationRuneUnlock',
-    'prismRuneUnlock',
-    'thriftRuneUnlock',
-    'salvage',
-    'offeringBonus',
-    'obtainiumBonus',
-    'transcendToPrestige',
-    'reincarnationToTranscend',
-    'antSacrificeCountMultiplier',
-    'freeAntUpgrades',
-    'autoAntSacrifice',
-    'antSpeed2UpgradeImprover',
-    'antSacrificeToReincarnation'
-] as const;
 
 export const FAVORITE_UPGRADE_GQ_DEPENDENCIES = ['goldenQuarks1', 'platonicDelta', 'oneMind'] as const;
 export const FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES = ['octeractImprovedFree', 'octeractCorruption', 'octeractBlueberries'] as const;

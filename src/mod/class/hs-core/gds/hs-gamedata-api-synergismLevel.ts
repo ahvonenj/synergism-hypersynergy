@@ -318,11 +318,9 @@ export class SynergismLevelHelper {
     }
 
     calculateAchievementPoints(): number {
-        const data = this.#gameData;
-        if (!data) return 0;
-        return this.#api.achievement.achievements.reduce((sum, ach, index) => {
-            return sum + (data.achievements[index] ? ach.pointValue : 0)
-        }, 0) + Object.values(this.calculateProgressiveAchievementPoints()).reduce((a, b) => a + b, 0);
+        if (!this.#gameData) return 0;
+        return this.#api.achievement.sumEarnedAchievementPoints()
+            + Object.values(this.calculateProgressiveAchievementPoints()).reduce((a, b) => a + b, 0);
     }
 
     /**

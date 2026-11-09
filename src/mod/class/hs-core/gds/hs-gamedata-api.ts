@@ -24,7 +24,6 @@ import { PurpleHelper } from "./hs-gamedata-api-purple";
 import { SynergismLevelHelper } from "./hs-gamedata-api-synergismLevel";
 import type { HSCalculationComponents } from "../../../types/data-types/hs-gamedata-api-types";
 import { checkCalculationCache, updateCalculationCache, clearCalculationCache, dumpCalculationCache, createCalculationCache } from "./hs-gamedata-api-cache";
-import { AcceleratorHelper } from "./hs-gamedata-api-accelerator";
 import { CorruptionHelper, type CorruptionCubeType } from "./hs-gamedata-api-corruption";
 import { octeractUpgradeMaxLevels, goldenQuarkUpgradeMaxLevels, c15Functions, challenge15Rewards, hepteractEffectiveValues, synergismLevelMilestones, SINGULARITY_CHALLENGE_DATA, FAVORITE_UPGRADE_GQ_DEPENDENCIES, FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES, FAVORITE_UPGRADE_RED_AMBROSIA_DEPENDENCIES, offeringPotionThresholds, obtainiumPotionThresholds } from "./hs-gamedata-tables";
 import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus } from "./hs-gamedata-utils";
@@ -137,7 +136,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     readonly octeract: OcteractHelper;
     readonly luck: LuckHelper;
     readonly purple: PurpleHelper;
-    readonly accelerator: AcceleratorHelper;
     readonly corruption: CorruptionHelper;
     readonly synergismLevel: SynergismLevelHelper;
 
@@ -498,7 +496,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.achievement = this.registerCalculationHelper(new AchievementHelper(this));
         this.luck = this.registerCalculationHelper(new LuckHelper(this));
         this.corruption = this.registerCalculationHelper(new CorruptionHelper(this));
-        this.accelerator = new AcceleratorHelper(this);
 
         this.#calculationCacheTemplate = { ...this.#calculationCache };
         this.synergismLevel = this.registerCalculationHelper(new SynergismLevelHelper(this));
@@ -903,97 +900,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         });
     }
 
-
-    // =============================
-    // ======== Progression ========
-    // =============================
-
-    getPrestigePointGain = (): Decimal => {
-        if (!this.gameData) return new Decimal(0)
-
-        let prestigePow = 0.5 + (this.gameData.challengecompletions?.[5] ?? 0) / 100
-        if (this.gameData.currentChallenge.transcension === 5) {
-            prestigePow = 0.01
-        }
-        if (this.gameData.currentChallenge.reincarnation === 10) {
-            prestigePow = 1e-4
-        }
-        prestigePow *= this.corruption.getChallenge15CorruptionEffect('deflation')
-
-        let gain = Decimal.floor(
-            Decimal.pow(
-                parseGameDataDecimal(this.gameData?.coinsThisPrestige).dividedBy(1e12),
-                prestigePow
-            )
-        )
-
-        if (
-            (this.gameData.upgrades?.[16] ?? 0) > 0.5
-            && this.gameData.currentChallenge.transcension !== 5
-            && this.gameData.currentChallenge.reincarnation !== 10
-        ) {
-            gain = gain.times(
-                Decimal.min(
-                    Decimal.pow(10, new Decimal('1e33')),
-                    Decimal.pow(this.accelerator.getAcceleratorEffect(), (1 / 3) * this.corruption.getChallenge15CorruptionEffect('deflation'))
-                )
-            )
-        }
-
-        return gain
-    }
-
-    getTranscendPointGain = (): Decimal => {
-        if (!this.gameData) return new Decimal(0)
-
-        let transcendPow = 0.03
-        if (this.gameData.currentChallenge.reincarnation === 10) {
-            transcendPow = 0.001
-        }
-
-        let gain = Decimal.floor(
-            Decimal.pow(
-                parseGameDataDecimal(this.gameData?.coinsThisTranscension).dividedBy(1e100),
-                transcendPow
-            )
-        )
-
-        if (
-            (this.gameData.upgrades?.[44] ?? 0) > 0.5
-            && this.gameData.currentChallenge.transcension !== 5
-            && this.gameData.currentChallenge.reincarnation !== 10
-        ) {
-            gain = gain.times(Decimal.min(1e6, Decimal.pow(1.01, this.gameData.transcendCount ?? 0)))
-        }
-
-        return gain
-    }
-
-    getReincarnationPointGain = (): Decimal => {
-        if (!this.gameData) return new Decimal(0)
-
-        let gain = Decimal.floor(
-            Decimal.pow(
-                parseGameDataDecimal(this.gameData?.transcendShards).dividedBy(1e300),
-                0.01
-            )
-        )
-
-        if (this.gameData.currentChallenge.reincarnation !== 0) {
-            gain = Decimal.pow(gain, 0.01)
-        }
-
-        gain = gain.times(Number(this.achievement.AchRewards.particleGain()))
-        if ((this.gameData.upgrades?.[65] ?? 0) > 0.5) {
-            gain = gain.times(5)
-        }
-        if (this.gameData.currentChallenge.ascension === 12) {
-            gain = new Decimal(0)
-        }
-
-        return gain
-    }
-
     /**
      * Mirrors getSynthesisRedAmbrosiaCost / getSynthesisPurpleHoneyCost in
      * SynergismOfficial/src/Synthesis.ts: the Red Ambrosia and Purple Honey
@@ -1248,8 +1154,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             data.shopUpgrades.chronometer,
             data.shopUpgrades.chronometer2,
             data.shopUpgrades.chronometer3,
-            data.achievements[262],
-            data.achievements[263],
             data.platonicUpgrades[15],
             data.singularityCount,
             data.shopUpgrades.chronometerZ,

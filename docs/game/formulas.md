@@ -18,8 +18,8 @@ formula here. This file holds what made a re-implemented formula disagree with t
 ## Number traps
 
 - **Numbers vs `Decimal`.** A formula that overflows a JS number gives `Infinity` where the game uses a cap or a
-  `Decimal`: the game caps accelerator power and free accelerators at 1e300 (raw C7 completions overflowed the mod's
-  version before it had the cap). Keep the game's caps and its number type at each step.
+  `Decimal`: the game caps accelerator power and free accelerators at 1e300, which raw C7 completions overflow without
+  it. Keep the game's caps and its number type at each step.
 - **The game shows anything below 1e-100 as `0`** (`format`): a `^0` effect on screen at a high corruption level can be
   a tiny number in the formula.
 - **Displayed numbers are truncated to 3 digits** (`docs/game/behaviours.md`): compare GDS with the game's figures to
