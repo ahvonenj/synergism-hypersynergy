@@ -22,7 +22,11 @@ check, in order, and how the 4.4.0 update went as a worked example.
    touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
    one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).
 5. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
-   then check the numbers on real saves (below).
+   then check the numbers on real saves (below). Achievement ids and point values are copied from the game's
+   `Achievements.ts` (`hs-gamedata-api-achievement.ts`): `node scripts/tools/achievements-vs-vanilla.cjs` compares
+   them (`--print` writes the game's tables to paste). When `Buy.ts` changes,
+   `node scripts/tools/coin-curve-vs-vanilla.cjs` checks the coin buildings' cost curve, which the saves below can't
+   (their paid amounts are Infinity).
 6. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
 7. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
 
@@ -74,3 +78,14 @@ How the mod followed, one step and one commit each, every step checked against t
 
 The game kept changing the new system for days (viscosity, cube rates, level caps): run the checklist again after each
 game commit, not only after the announced update.
+
+## 4.4.1 (2026-11-06)
+
+What changed for the mod, one GDS commit each, checked by the replay (`test-gds-formulas.cjs`, 2754 checks):
+- Campaign tokens: token upgrades, starting tokens, a multiplier on the total, capped token rewards, the Infinite
+  Ascent free levels from a log2 formula. Cube rates per corruption level.
+- Achievements: an `AchievementId` enum; ids and point values unchanged, the reward changes hit rewards GDS doesn't
+  read.
+- Buildings: counts no longer saved, only what was paid (`docs/game/formulas.md`).
+- Exalt 10 reactor: fill chance and Ultrafusion cap (`docs/features/heater-optimizer.md`).
+- Patcher: the `pcoinLevels` anchor.
