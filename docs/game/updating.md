@@ -21,14 +21,19 @@ check, in order, and how the 4.4.0 update went as a worked example.
    has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it. If the diff
    touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
    one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).
-5. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
+5. **Event checks.** The mod drives game handlers with synthetic events (`.click()`, `dispatchEvent`, the header's
+   long press in `HSHeaderEditSettings.openEditor`), which differ from a player's: `isTrusted` false, and
+   `isPrimary` false unless set. `git diff <old-commit> HEAD -- src/ | grep -E '^\+.*(isTrusted|isPrimary|pointerType|event\.detail|\.button !==)'`
+   lists the new checks; for each, grep the mod for events sent to that element. Missed in 4.4.1: an `isPrimary`
+   test on the header's `pointerdown` stopped the ✎ button opening edit mode, with no error.
+6. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
    then check the numbers on real saves (below). Achievement ids and point values are copied from the game's
    `Achievements.ts` (`hs-gamedata-api-achievement.ts`): `node scripts/tools/achievements-vs-vanilla.cjs` compares
    them (`--print` writes the game's tables to paste). When `Buy.ts` changes,
    `node scripts/tools/coin-curve-vs-vanilla.cjs` checks the coin buildings' cost curve, which the saves below can't
    (their paid amounts are Infinity).
-6. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
-7. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
+7. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
+8. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
 
 ## Checking GDS against the game
 
