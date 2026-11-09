@@ -302,6 +302,11 @@ export const challenge15Rewards = {
     requirement: 1e11,
     HTMLColor: 'lightgoldenrodyellow'
   },
+  construction: {
+    value: 0,
+    baseValue: 0,
+    requirement: 1e13
+  },
   hepteractsUnlocked: {
     value: 0,
     baseValue: 0,
@@ -1571,6 +1576,7 @@ export const c15Functions: { [key in keyof typeof challenge15Rewards]: (e: numbe
   wowHepteracts: (e: number) => challenge15CubeReward(e, 0.85, 1e15),
   wowOcteracts: (e: number) => Math.sqrt(challenge15ScoreReward(e, 1e30)),
   quarks: (e: number) => 1 + (3 / 400) * Math.log2(e * 32 / 1e11),
+  construction: (e: number) => 5 + 2 * Math.log10(e / 1e13),
   hepteractsUnlocked: (e: number) => e >= 1e15 ? 1 : 0,
   challengeHepteractUnlocked: (e: number) => e >= 2e15 ? 1 : 0,
   cube5: (e: number) => 1 + (1 / 300) * Math.log2(e / (4e15 / 1024)),

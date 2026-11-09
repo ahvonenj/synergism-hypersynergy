@@ -45,6 +45,8 @@ const TOTALS = {
     statSalvFirstFive: api => api.rune.calculateFirstFiveRuneSalvage(),
     statREMFF: api => api.firstFiveEffectiveRuneLevelMult(),
     statREMSI: api => api.firstFiveEffectiveRuneLevelMult() * api.rune.SIEffectiveRuneLevelMult(),
+    statConBase: api => api.building.calculateRawConstruction(),
+    statConBase2: api => api.building.calculateConstruction(),
 }
 const LINES = {
     sMiscRuneSum: api => api.rune.calculateTotalRuneLevels(),
@@ -60,6 +62,7 @@ const LINES = {
     statALHorseShoeRune: rune('horseShoe', 'ambrosiaLuck'),
     statRALHorseShoeRune: rune('horseShoe', 'redLuck'),
     statPHoLHorseShoeRune: rune('horseShoe', 'purpleHoneyLuck'),
+    statConBuildCoinBuildings: api => api.building.calculateCoinConstruction(),
 }
 
 const same = (a, b) => a === b || Math.abs(a - b) <= 1e-9 * Math.max(1e-12, Math.abs(a), Math.abs(b))

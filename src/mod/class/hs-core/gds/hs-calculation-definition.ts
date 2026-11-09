@@ -663,6 +663,27 @@ export const HSCalculationDefinitions: HSCalculationDefinition[] = [
         toolingSupport: true
     },
     {
+        calculationName: "Construction: Before Multiplier",
+        fnName: "calculateRawConstruction",
+        fnParams: [],
+        supportsReduce: false,
+        toolingSupport: true
+    },
+    {
+        calculationName: "Construction",
+        fnName: "calculateConstruction",
+        fnParams: [],
+        supportsReduce: false,
+        toolingSupport: true
+    },
+    {
+        calculationName: "Construction: Coin Buildings",
+        fnName: "calculateCoinConstruction",
+        fnParams: [],
+        supportsReduce: false,
+        toolingSupport: true
+    },
+    {
         calculationName: "Talisman Rarity (Total)",
         fnName: "calculateTalismanRarityTotal",
         fnParams: [],

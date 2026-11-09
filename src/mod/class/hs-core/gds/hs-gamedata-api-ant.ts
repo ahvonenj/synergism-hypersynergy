@@ -207,10 +207,11 @@ const buildAntUpgradeData = (api: HSGameDataAPI) => ({
     [AntUpgrades.BuildingCostScale]: {
         exemptFromCorruption: false,
         effect: (n: number) => {
-            const scalePercent = 3 * n;
+            // antConstructionEffect in SynergismOfficial/src/Features/Ants/AntUpgrades/data/data.ts
+            const construction = n > 0 ? 0.2 * Math.pow(1 + Math.log(1 + n), 2) : 0;
             const buildingPowerMult = 1 + n / 100;
             return {
-                buildingCostScale: scalePercent / 100,
+                construction,
                 buildingPowerMult,
             };
         },

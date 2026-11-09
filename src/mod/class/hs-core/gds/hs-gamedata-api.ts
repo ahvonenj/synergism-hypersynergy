@@ -25,6 +25,7 @@ import { SynergismLevelHelper } from "./hs-gamedata-api-synergismLevel";
 import type { HSCalculationComponents } from "../../../types/data-types/hs-gamedata-api-types";
 import { checkCalculationCache, updateCalculationCache, clearCalculationCache, dumpCalculationCache, createCalculationCache } from "./hs-gamedata-api-cache";
 import { CorruptionHelper, type CorruptionCubeType } from "./hs-gamedata-api-corruption";
+import { BuildingHelper } from "./hs-gamedata-api-building";
 import { octeractUpgradeMaxLevels, goldenQuarkUpgradeMaxLevels, c15Functions, challenge15Rewards, hepteractEffectiveValues, synergismLevelMilestones, SINGULARITY_CHALLENGE_DATA, FAVORITE_UPGRADE_GQ_DEPENDENCIES, FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES, FAVORITE_UPGRADE_RED_AMBROSIA_DEPENDENCIES, offeringPotionThresholds, obtainiumPotionThresholds } from "./hs-gamedata-tables";
 import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus } from "./hs-gamedata-utils";
 import { buildHeaterExport } from "./hs-heater-export";
@@ -137,6 +138,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     readonly luck: LuckHelper;
     readonly purple: PurpleHelper;
     readonly corruption: CorruptionHelper;
+    readonly building: BuildingHelper;
     readonly synergismLevel: SynergismLevelHelper;
 
     getSingularityChallengeEffect = <
@@ -427,25 +429,13 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
                     talismanRuneBonuses.speed
                     + ((this.gameData.upgrades[27] ?? 0) * (Math.min(50, Math.floor(parseGameDataDecimal(this.gameData.coinsThisPrestige).add(1).log10() / 10))
                         + Math.max(0, Math.min(50, Math.floor(parseGameDataDecimal(this.gameData.coinsThisPrestige).add(1).log10() / 50) - 10))))
-                    + ((this.gameData.upgrades[29] ?? 0) * Math.floor(
-                        Math.min(
-                            100,
-                            ((this.gameData.firstOwnedCoin ?? 0) + (this.gameData.secondOwnedCoin ?? 0) + (this.gameData.thirdOwnedCoin ?? 0) + (this.gameData.fourthOwnedCoin ?? 0)
-                                + (this.gameData.fifthOwnedCoin ?? 0)) / 400
-                        )
-                    ))
+                    + ((this.gameData.upgrades[29] ?? 0) > 0 ? Math.floor(Math.min(100, this.building.getTotalCoinBuildingsOwned() / 400)) : 0)
                 )
             }
             case 'duplication': {
                 return (
                     talismanRuneBonuses.duplication
-                    + ((this.gameData.upgrades[28] ?? 0) * Math.min(
-                        100,
-                        Math.floor(
-                            ((this.gameData.firstOwnedCoin ?? 0) + (this.gameData.secondOwnedCoin ?? 0) + (this.gameData.thirdOwnedCoin ?? 0) + (this.gameData.fourthOwnedCoin ?? 0)
-                                + (this.gameData.fifthOwnedCoin ?? 0)) / 400
-                        )
-                    ))
+                    + ((this.gameData.upgrades[28] ?? 0) > 0 ? Math.min(100, Math.floor(this.building.getTotalCoinBuildingsOwned() / 400)) : 0)
                     + ((this.gameData.upgrades[30] ?? 0) * (Math.min(50, Math.floor(parseGameDataDecimal(this.gameData.coinsThisPrestige).add(1).log10() / 30))
                         + Math.min(50, Math.floor(parseGameDataDecimal(this.gameData.coinsThisPrestige).add(1).log10() / 300))))
                 )
@@ -496,6 +486,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.achievement = this.registerCalculationHelper(new AchievementHelper(this));
         this.luck = this.registerCalculationHelper(new LuckHelper(this));
         this.corruption = this.registerCalculationHelper(new CorruptionHelper(this));
+        this.building = this.registerCalculationHelper(new BuildingHelper(this));
 
         this.#calculationCacheTemplate = { ...this.#calculationCache };
         this.synergismLevel = this.registerCalculationHelper(new SynergismLevelHelper(this));

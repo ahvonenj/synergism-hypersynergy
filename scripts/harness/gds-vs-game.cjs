@@ -20,14 +20,16 @@ if (!saveFile) { console.error('usage: node scripts/harness/gds-vs-game.cjs <sav
 
 // What the reference keeps: the test maps each of these to a GDS function, and refuses an id it doesn't know
 const TOTALS = ['statAL', 'statALM', 'statAL2', 'statAB', 'statAG', 'statLC', 'statRAL', 'statRAGM2', 'statFCL', 'statSV2',
-    'statASM', 'statASM2', 'statCB2', 'statPHoL', 'statSalvPos2', 'statSalvNeg2', 'statSalvFirstFive', 'statREMFF', 'statREMSI']
+    'statASM', 'statASM2', 'statCB2', 'statPHoL', 'statSalvPos2', 'statSalvNeg2', 'statSalvFirstFive', 'statREMFF', 'statREMSI',
+    'statConBase', 'statConBase2']
 const LINES = ['sMiscRuneSum', 'statSalvPosRuneBonus', 'statSalvPosInfiniteAscentRune', 'statConBaseThriftRune',
     'statFreeAccelMultSpeedRune', 'statFreeMultMultDuplicationRune', 'statObtRune5', 'statGSMSpeedRune',
-    'statTaxDuplicationRune', 'statTaxThriftRune', 'statALHorseShoeRune', 'statRALHorseShoeRune', 'statPHoLHorseShoeRune']
+    'statTaxDuplicationRune', 'statTaxThriftRune', 'statALHorseShoeRune', 'statRALHorseShoeRune', 'statPHoLHorseShoeRune',
+    'statConBuildCoinBuildings']
 
 // The player fields the checked calculations read, the only ones the reference keeps: the file stays small and holds
 // nothing else of the save. A check that needs another one fails on a missing value: add it here and run this again.
-const KEPT = ['worlds', 'coinsThisPrestige', 'firstOwnedCoin', 'secondOwnedCoin', 'thirdOwnedCoin', 'fourthOwnedCoin', 'fifthOwnedCoin',
+const KEPT = ['worlds', 'coinsThisPrestige', 'firstPaidCoin', 'secondPaidCoin', 'thirdPaidCoin', 'fourthPaidCoin', 'fifthPaidCoin',
     'ants', 'upgrades', 'transcendCount', 'challengecompletions', 'challenge15Exponent', 'currentChallenge', 'researches', 'unlocks',
     'achievements', 'progressiveAchievements', 'runes', 'shopUpgrades', 'talismans', 'ascensionCount', 'cubeUpgrades', 'platonicUpgrades',
     'wowCubes', 'wowTesseracts', 'wowHypercubes', 'wowPlatonicCubes', 'wowAbyssals', 'wowOcteracts', 'totalWowOcteracts', 'cubeBlessings', 'tesseractBlessings',
