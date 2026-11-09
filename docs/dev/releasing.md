@@ -20,7 +20,9 @@ one clone to another: check `git remote -v`.
 
 ## Mod release: `npm run release-and-tag-helper`
 
-- **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`, then regenerate `docs/changelog.html`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`, run `python scripts/tools/build-docs.py --changelog-only --check` and `python scripts/tests/test-changelog-validation.py`, and include both data and generated page in the published changes. A release is not finished until its changelog is visible on the website; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
+- **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
+  - **On Live:** regenerate `docs/changelog.html`, run `python scripts/tools/build-docs.py --changelog-only --check` and `python scripts/tests/test-changelog-validation.py`, and include both data and generated page in the published changes. A Live release is not finished until its changelog is visible on the website.
+  - **On Dev:** check the entry with `python scripts/tools/build-docs.py --validate`, but never commit `docs/changelog.html`: like the site's other pages ("Porting a change to Live"), it is built from its checkout and the site is served from Live only. Dev entries appear on the website at Live's next regeneration.
 - `package.json` holds the name of the **next** release; the helper only bumps when that tag already exists. Set a name
   by hand in `package.json` and `package-lock.json` (two version lines).
 - `-- --notes-file <path>` puts a Markdown changelog into the tag message (`AGENTS.md`, "Commands").
@@ -68,6 +70,7 @@ commits past its tag are listed, and arrive with the next release or a hand merg
   release. When Dev didn't touch the package files or the bundle since the last merge, git takes Live's silently: set
   the version by hand anyway and `git checkout master -- release/mod/hypersynergism_release.js`. A file split or moved
   on Dev comes back as a modify/delete conflict: port Live's change into the new files, then `git rm` the old one.
+  `docs/data/changelog.json` often conflicts at the top of `entries`, where both add theirs: keep both, newest first.
 - **Except when Live has all the Dev code** (since the merge base, Dev changed nothing the bundle is built from: docs,
   `scripts/` apart from the two the build runs, a version bump, or the bundle itself, which is output and proves nothing;
   an unknown path counts as code, the harmless side to be wrong on): keep Live's bundle, so Dev

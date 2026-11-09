@@ -26,7 +26,7 @@ Edit `docs/data/changelog.json`, which records release and version history separ
 python scripts/tools/build-docs.py --validate
 ```
 
-Regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site:
+On Live, regenerate only `docs/changelog.html` after changing the changelog, without updating the rest of the generated site (Dev never commits it: `docs/dev/releasing.md`):
 
 ```sh
 python scripts/tools/build-docs.py --changelog-only
