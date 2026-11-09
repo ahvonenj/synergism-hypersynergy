@@ -32,6 +32,12 @@ is injected only after every module's `init`. A module that draws game-styled el
 own CSS and calls `HSUI.flushInjectedStyles()` before drawing (`HSHeaderLoadoutIcons`: an unstyled `img` stretched to
 the page's height for a moment at each load).
 
+## No `:has()` on a wide ancestor
+A `:has()` with a descendant argument on `html`, `body` or another ancestor of the game's tabs is re-checked at every
+DOM change below it, and the game rewrites its texts many times a second: `html:has(#mainHeader.headerEditMode) …`
+doubled the time of the game's display updates. Use a class the mod sets, or a sibling combinator. A `:has()` scoped to
+the mod's own small elements (a settings block, a table cell) is fine.
+
 ## Settings
 
 - Declared in data: each setting is defined in `src/mod/resource/json/hs-settings.json` (type, default, UI control).

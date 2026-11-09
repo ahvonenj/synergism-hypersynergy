@@ -267,9 +267,10 @@ html.hs-header-stats-bottom #mainHeader > :not(#mobileHeaderContent) {
 html.hs-header-edit-button #hs-header-edit-button {
    display: block;
 }
-/* Fully lit while edit mode is open: a click closes it */
+/* Fully lit while edit mode is open: a click closes it. The button is appended to <body> after #mainHeader (a body
+   child): a sibling selector, not html:has(), which made every DOM write of the game re-check <html> (style time x8) */
 #hs-header-edit-button:hover,
 #hs-header-edit-button:focus-visible,
-html:has(#mainHeader.headerEditMode) #hs-header-edit-button {
+#mainHeader.headerEditMode ~ #hs-header-edit-button {
    opacity: 1;
 }
