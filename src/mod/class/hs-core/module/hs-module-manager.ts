@@ -17,8 +17,8 @@ import { HSGameDataAPI } from "../gds/hs-gamedata-api";
 import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
-import { HSPerksFind } from "../../hs-modules/hs-perks-find";
-import { HSAutoExport } from "../../hs-modules/hs-auto-export";
+import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
 
 /**

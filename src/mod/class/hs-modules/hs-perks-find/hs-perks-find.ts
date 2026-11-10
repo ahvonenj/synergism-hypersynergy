@@ -1,14 +1,14 @@
-import { HSModuleOptions } from "../../types/hs-types";
-import { MAIN_VIEW, SINGULARITY_VIEW } from "../../types/module-types/hs-gamestate-types";
-import { HSElementHooker } from "../hs-core/hs-elementhooker";
-import type { HSGameState } from "../hs-core/hs-gamestate";
-import { HSLogger } from "../hs-core/hs-logger";
-import { HSUI } from "../hs-core/hs-ui";
-import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleManager } from "../hs-core/module/hs-module-manager";
-import { escapeLogText } from "./hs-heater/hs-heater-utils";
+import { HSModuleOptions } from "../../../types/hs-types";
+import { MAIN_VIEW, SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
+import { HSElementHooker } from "../../hs-core/hs-elementhooker";
+import type { HSGameState } from "../../hs-core/hs-gamestate";
+import { HSLogger } from "../../hs-core/hs-logger";
+import { HSUI } from "../../hs-core/hs-ui";
+import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { escapeLogText } from "../hs-heater/hs-heater-utils";
 import { matchesSearch, normalizeSearchText, searchTerms } from "./hs-perks-find-match";
-import perksFindCSS from "inline:../../resource/css/module/hs-perks-find.css";
+import perksFindCSS from "inline:../../../resource/css/module/hs-perks-find.css";
 
 const STYLE_ID = 'hs-perks-find-css';
 const PERK_SELECTOR = '#singularityPerksGrid .singularityPerkNode';

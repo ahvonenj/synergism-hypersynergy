@@ -1,4 +1,4 @@
-# Timed save export (`HSAutoExport`, `hs-modules/hs-auto-export.ts`)
+# Timed save export (`HSAutoExport`, `hs-modules/hs-auto-export/hs-auto-export.ts`)
 
 The code is in three files: `hs-auto-export.ts` (the clock and the click), `hs-auto-export-folder.ts` (`HSAutoExportFolder`: folder choice, permissions, file retention and their buttons), `hs-auto-export-store.ts` (`HSAutoExportStore`: the IndexedDB `hs-auto-export`). Types in `types/module-types/hs-auto-export-types.ts`; a node test in `scripts/tests/test-auto-export.cjs` (`npm run test:auto-export`).
 
