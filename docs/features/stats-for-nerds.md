@@ -1,8 +1,8 @@
 # Stats for Nerds groups (`HSStatsForNerds`, `hs-modules/hs-stats-for-nerds.ts`)
 
 Settings > Stats for Nerds: the game's 3-column grid of big bordered category buttons, in the order they were added to
-the game, replaced by a compact list in groups. Setting `statsForNerdsGroups` (Settings → UI, "Header & tabs"), on by
-default; off gives the game's exact look (list and CSS removed). No patcher feature is used.
+the game, replaced by a compact list in groups. Setting `statsForNerdsGroups` (Settings → UI, "Header & tabs"), off by
+default, unlike other changes to the game's look; off gives the game's exact look (list and CSS removed). No patcher feature is used.
 
 ## Rules
 

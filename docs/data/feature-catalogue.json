@@ -153,7 +153,7 @@
           "details": [
             "Groups follow the game's progression: general, offerings and runes, obtainium, ants, ascension and cubes, singularity, ambrosia, red ambrosia, purple honey.",
             "Labels are the game's, in your game language. Categories you haven't unlocked stay hidden, as in the game.",
-            "Turn off Settings → UI → Grouped Stats for Nerds list to get the game's buttons back."
+            "Off by default: turn on Settings → UI → Grouped Stats for Nerds list to use it."
           ],
           "limits": [
             "Desktop layout only: on a phone the game's icons are kept."

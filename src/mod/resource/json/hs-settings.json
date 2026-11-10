@@ -279,7 +279,7 @@
     "settingDescription": "Grouped Stats for Nerds list",
     "settingHelpText": "Replaces the grid of category buttons in Settings > Stats for Nerds with a compact list sorted into groups. Turn it off for the game's buttons.",
     "settingType": "boolean",
-    "enabled": true,
+    "enabled": false,
     "settingAction": "statsForNerdsGroupsAction",
     "settingControl": {
       "controlType": "switch",
