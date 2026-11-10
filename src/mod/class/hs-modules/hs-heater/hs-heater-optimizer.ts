@@ -2626,6 +2626,127 @@ function prunedReference(reference: Loadout, stat: string): Loadout {
   return pruned
 }
 
+// The best tree when Ambrosia is no limit, within the owned Blueberries: every
+// set of the Blueberry-costing modules that fits, each at max level, Brick of
+// Lead at each level; the modules without a Blueberry cost at max. Exact as
+// long as raising any level but Brick's never lowers the stat (Brick slows
+// ascension speed, so it's tried level by level). `modules` are the ones the
+// row's search can buy; `fixed` levels are kept as they are (SR's level),
+// `required` modules are in every set (Hyperflux under SR1). The winner's
+// levels are then lowered as far as the stat holds, as the searches keep the
+// cheapest tree on ties. When the budget covers its cost, no affordable tree
+// beats it: the row's search can be skipped.
+function findUnlimitedAmbrosiaOpt(
+  modules: Iterable<string>,
+  stat: string,
+  fixed: Record<string, number> = {},
+  required: readonly string[] = [],
+): Loadout {
+  const brick = 'ambrosiaBrickOfLead'
+  const blueberriesOf = (name: string): number =>
+    Math.max(0, upgrades[name].blueberryCost - (stats.ambrosiaUpgradeBlueberryCostReductions[name] ?? 0))
+  const free: string[] = []
+  const paid: string[] = []
+  for (const name of new Set(modules)) {
+    if (name === brick || name === 'ambrosiaPatreon' || name in fixed || !upgrades[name])
+      continue
+    ;(blueberriesOf(name) > 0 ? paid : free).push(name)
+  }
+  const base = new Loadout()
+  for (const name of free)
+    base.upgradeLevels[name] = upgrades[name].maxLevel
+  Object.assign(base.upgradeLevels, fixed)
+
+  // A set is valid when each paid module's paid prerequisites are in it
+  // (the free ones are already at max), so each chain is enumerated once.
+  const paidPrerequisites = paid.map(name =>
+    Object.keys(upgrades[name].prerequisites)
+      .map(prerequisite => paid.indexOf(prerequisite))
+      .filter(index => index >= 0))
+  const requiredMask = required.reduce((mask, name) => {
+    const index = paid.indexOf(name)
+    return index >= 0 ? mask | (1 << index) : mask
+  }, 0)
+  const brickBlueberries = blueberriesOf(brick)
+  const canPrune = stats.purpleLeoLevel <= 0
+
+  let best: Loadout | undefined
+  let bestValue = -Infinity
+  for (let mask = 0; mask < 1 << paid.length; mask++) {
+    if ((mask & requiredMask) !== requiredMask)
+      continue
+    let valid = true
+    for (let index = 0; index < paid.length && valid; index++)
+      if (mask & (1 << index))
+        valid = paidPrerequisites[index].every(prerequisite => (mask & (1 << prerequisite)) !== 0)
+    if (!valid)
+      continue
+    const set = new Loadout(base)
+    for (let index = 0; index < paid.length; index++)
+      if (mask & (1 << index))
+        set.upgradeLevels[paid[index]] = upgrades[paid[index]].maxLevel
+    set.satisfyPrerequisites()
+    const setBlueberries = set.blueberryCost
+    if (setBlueberries > stats.blueberries)
+      continue
+    // Without Purple Leo, free Blueberries are worth nothing: a set that
+    // could still take one more module is beaten by the set with it
+    let roomForMore = Infinity
+    if (canPrune)
+      for (let index = 0; index < paid.length; index++)
+        if (!(mask & (1 << index))
+          && paidPrerequisites[index].every(prerequisite => (mask & (1 << prerequisite)) !== 0))
+          roomForMore = Math.min(roomForMore, blueberriesOf(paid[index]))
+    for (let level = 0; level <= upgrades[brick].maxLevel; level++) {
+      const blueberries = setBlueberries + (level > 0 ? brickBlueberries : 0)
+      if (blueberries > stats.blueberries)
+        break
+      if (blueberries + roomForMore <= stats.blueberries)
+        continue
+      const candidate = new Loadout(set)
+      candidate.upgradeLevels[brick] = level
+      const value = candidate.getStat(stat)
+      if (value > bestValue || (value === bestValue && candidate.cost < best!.cost)) {
+        best = candidate
+        bestValue = value
+      }
+    }
+  }
+  if (best === undefined)
+    return base
+  let result: Loadout = best
+
+  // Cheapest levels with the same stat (every module but Brick is monotone).
+  // Dependents first: a prerequisite can then go down to what they still need.
+  for (const name of [...upgradeKeyOrder].reverse()) {
+    const level = result.upgradeLevels[name] ?? 0
+    if (level <= 0 || name === brick || name === 'ambrosiaPatreon' || name in fixed)
+      continue
+    let lowest = 0
+    for (const dependent of dependentUpgrades[name] ?? [])
+      if ((result.upgradeLevels[dependent] ?? 0) > 0)
+        lowest = Math.max(lowest, upgrades[dependent].prerequisites[name] ?? 0)
+    // Smallest level in [lowest, level] that keeps the stat: binary search
+    let low = lowest
+    let high = level
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2)
+      const candidate = new Loadout(result)
+      candidate.upgradeLevels[name] = middle
+      if (candidate.getStat(stat) >= bestValue)
+        high = middle
+      else
+        low = middle + 1
+    }
+    if (high < level) {
+      const lowered = new Loadout(result)
+      lowered.upgradeLevels[name] = high
+      result = lowered
+    }
+  }
+  return result
+}
+
 // The Max Amb + Oct base is the literal fully purchased All Ambrosia build.
 // Voucher prerequisites add Cube/Offering/Obtainium purchases to its cost.
 function fullAllAmbLoadout(): Loadout {
@@ -6033,16 +6154,39 @@ export class HSHeaterOptimizer {
             let postAoAG = stats.postAoAG
             stats.postAoAG = false
 
+            // The modules the SR searches can buy: those of their two tables.
+            // With Ambrosia left over, their search finds no early exit and
+            // repairs millions of over-Blueberry pairs (S290 at 200M+: ~125 s
+            // a row), while the tree stopped changing below that budget.
+            const srModules = new Set<string>()
+            for (const table of [tableCache.tableCubeVoucher, tableCache.tableLuckCube])
+              for (const loadout of table)
+                for (const name in loadout.upgradeLevels)
+                  if ((loadout.upgradeLevels[name] ?? 0) > 0)
+                    srModules.add(name)
+            const unlimitedSR = (srLevels: Record<string, number>, required: readonly string[]): Loadout | undefined => {
+              const startedAt = experimentNow()
+              const loadout = findUnlimitedAmbrosiaOpt(srModules, "cube", srLevels, required)
+              const affordable = loadout.cost <= stats.amb
+              recordCubeExperimentStage("sr-unlimited", startedAt, { cost: Math.round(loadout.cost), affordable: affordable ? 1 : 0 })
+              return affordable ? loadout : undefined
+            }
+
             stats.exalt = 0
             let loadoutSR1 = generateTable(["ambrosiaSingReduction1"], "singReduction").at(-1)!
             let levelSR1 = loadoutSR1.upgradeLevels.ambrosiaSingReduction1
-            let tableSR1Cube = tableCache.tableCubeVoucher
+            const unlimitedSR1 = levelSR1
+              ? unlimitedSR({ ambrosiaSingReduction1: levelSR1 }, ["ambrosiaHyperflux"]) : undefined
+            let tableSR1Cube = unlimitedSR1 ? [] : tableCache.tableCubeVoucher
               .filter(loadout => loadout.upgradeLevels.ambrosiaHyperflux >= 4)
               .map(loadout => new Loadout(loadout))
             tableSR1Cube.forEach(loadout => loadout.upgradeLevels.ambrosiaSingReduction1 = levelSR1)
+            if (unlimitedSR1) {
+                output.sr1 = [withPenaltyReliefTitle(unlimitedSR1.generateOutput("singReduction", maxLoadout, null, "cube"),
+                  unlimitedSR1.upgradeLevels.ambrosiaSingReduction1 ?? 0)];
             // No cube-optimal loadout reaches ambrosiaHyperflux >= 4 within budget, or no SR1
             // level fits: a cube tree without SR1 would read as a Max SR1 row
-            if (tableSR1Cube.length === 0 || !levelSR1) {
+            } else if (tableSR1Cube.length === 0 || !levelSR1) {
                 HSLogger.warn('[HeaterDiag] calculateSR: sr1 - no SR1 level or no loadout with ambrosiaHyperflux >= 4 within budget, reporting Unaffordable', 'HSHeaterOptimizer');
                 // The smallest tree with SR1: a minimum
                 const minimalSR1 = new Loadout()
@@ -6062,9 +6206,13 @@ export class HSHeaterOptimizer {
             stats.exalt = 7
             let loadoutSR2 = generateTable(["ambrosiaSingReduction2"], "singReduction").at(-1)!
             let levelSR2 = loadoutSR2.upgradeLevels.ambrosiaSingReduction2
-            let tableSR2Cube = tableCache.tableCubeVoucher.map(loadout => new Loadout(loadout))
+            const unlimitedSR2 = levelSR2 ? unlimitedSR({ ambrosiaSingReduction2: levelSR2 }, []) : undefined
+            let tableSR2Cube = unlimitedSR2 ? [] : tableCache.tableCubeVoucher.map(loadout => new Loadout(loadout))
             tableSR2Cube.forEach(loadout => loadout.upgradeLevels.ambrosiaSingReduction2 = levelSR2)
-            if (!levelSR2) {
+            if (unlimitedSR2) {
+                output.sr2 = [withPenaltyReliefTitle(unlimitedSR2.generateOutput("singReduction", maxLoadout, null, "cube"),
+                  unlimitedSR2.upgradeLevels.ambrosiaSingReduction2 ?? 0)];
+            } else if (!levelSR2) {
                 // No SR2 level within budget, as for SR1 above
                 const minimalSR2 = new Loadout()
                 minimalSR2.upgradeLevels.ambrosiaSingReduction2 = 1
