@@ -16,6 +16,14 @@ How the mod's code is put together, beyond the summary in `AGENTS.md`.
 - Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML, JSON and base64
   `.txt` files from `src/mod/resource/`).
 
+## Build
+
+- Every build regenerates the strategy manifest (`scripts/generate-strategy-manifest.js`) and bundles the heater web
+  worker separately (`scripts/heater-worker-plugin.cjs`).
+- `HS_BUILD_VERSION` is an esbuild `define` read from `package.json`: restart `npm run dev` after changing the version.
+- The release build (`release/mod/hypersynergism_release.js`) is the only one without the dev tools
+  (`docs/features/dev-tools.md`).
+
 ## Logging
 
 - `HSLogger` writes to the mod panel's Log tab, and takes a context string. A line is rendered as HTML and also printed

@@ -25,7 +25,7 @@ one clone to another: check `git remote -v`.
   - **On Dev:** check the entry with `python scripts/tools/build-docs.py --validate`, but never commit `docs/changelog.html`: like the site's other pages ("Porting a change to Live"), it is built from its checkout and the site is served from Live only. Dev entries appear on the website at Live's next regeneration.
 - `package.json` holds the name of the **next** release; the helper only bumps when that tag already exists. Set a name
   by hand in `package.json` and `package-lock.json` (two version lines).
-- `-- --notes-file <path>` puts a Markdown changelog into the tag message (`AGENTS.md`, "Commands").
+- `-- --notes-file <path>` puts a Markdown changelog into the tag message (the same changes as the website entry above).
 - **Purges:** the bundle, and `synergism_modloader/lib/patcher.js`, `src/loader/hypersynergism.user.js` and
   `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). An
   accepted purge can still leave the old file served (once, v2.14.6a-dev1: the new bundle with the old `patcher.js`,
