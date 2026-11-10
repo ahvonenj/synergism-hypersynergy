@@ -163,10 +163,11 @@ function formatSeconds(ms: number): string {
 }
 
 // One debug line per group with the optimizer's stage times. A stage that
-// holds sub-stages is listed after them, with their total.
-function logStages(branches: string, stages: readonly HeaterOptimizerStage[]): void {
+// holds sub-stages is listed after them, with their total. label: the group,
+// and in a worker its lane and timing.
+function logStages(label: string, stages: readonly HeaterOptimizerStage[]): void {
   if (!stages.length) return
-  HSLogger.debug(() => `Heat stages, ${branches}: ${stages
+  HSLogger.debug(() => `Heat stages, ${label}: ${stages
     .filter(stage => stage.elapsedMs >= 50)
     .map(stage => `${stage.name} ${formatSeconds(stage.elapsedMs)}`)
     .join(', ') || 'none over 0.05 s'}`, LOG_CONTEXT)
@@ -313,6 +314,12 @@ export class HSHeaterOptimizerRunner {
       // deterministically.
       const blocker = workers > 1 ? severalWorkersBlocker() : null
       const lanes = buildLanes(activeGroups, blocker === null ? workers : 1)
+      // Which group runs where, when several lanes run or the check above dropped to one
+      if (lanes.length > 1 || blocker !== null) {
+        const plan = lanes.map((lane, number) => `${number + 1}: ${lane.map(index => groupName(activeGroups[index])).join(' → ')}`).join('; ')
+        const count = lanes.length > 1 ? `${lanes.length} workers` : `1 worker (${blocker})`
+        HSLogger.debug(() => `Heat plan, ${count}: ${plan}`, LOG_CONTEXT)
+      }
       const sourceUrl = URL.createObjectURL(new Blob([HS_HEATER_WORKER_SOURCE], { type: 'text/javascript' }))
       try {
         // By group index, so the merge order doesn't depend on which lane ends first
@@ -320,7 +327,8 @@ export class HSHeaterOptimizerRunner {
         const groupTimes: string[] = []
         let started = 0
         let failure: unknown = null
-        const runLane = async (lane: number[]): Promise<void> => {
+        const runLane = async (lane: number[], laneIndex: number): Promise<void> => {
+          const laneLabel = lanes.length > 1 ? `worker ${laneIndex + 1}, ` : ''
           for (const [position, index] of lane.entries()) {
             // Cancelled, or the other lane failed, while no worker of this lane was running
             if (heatCancelled || failure !== null)
@@ -331,8 +339,9 @@ export class HSHeaterOptimizerRunner {
             try {
               const { result: groupResult, stages } = await runWorker(sourceUrl, index, inputForBranches(input, activeGroups[index].branches))
               results[index] = groupResult
-              logStages(name, stages)
-              groupTimes[index] = `${name} ${formatSeconds(performance.now() - groupStartedAt)}`
+              const took = formatSeconds(performance.now() - groupStartedAt)
+              logStages(`${laneLabel}${name} (started +${formatSeconds(groupStartedAt - startedAt)}, took ${took})`, stages)
+              groupTimes[index] = `${name} ${took}`
             } catch (error) {
               // A worker stopped by a cancel, or by the other lane's failure
               if (error instanceof HSHeatCancelledError) {
