@@ -1,4 +1,4 @@
-/* ===== ANIMATIONS ===== */
+/* ===== LOADED-SLOT BORDERS, ANIMATED TEXT ===== */
 
 /* Still borders: a rotating gradient (an animated custom property) redrew the slot every frame, about 6% of the
    main thread for as long as a slot was marked */
@@ -22,12 +22,6 @@
    box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.8);
 }
 
-.hs-rainbow-text {
-    color: #ff5e00;
-    font-weight: bold;
-    animation: hs-color_rotate 6s linear infinite;
-}
-
 #hs-panel-new-ver {
     background: linear-gradient(to right, #e74949 20%, #f9bb44 30%, #ff982e 70%, #b73636 80%);
     -webkit-background-clip: text;
@@ -41,16 +35,4 @@
 @keyframes hs-animtext-1 {
     0% { background-position: 0% 50%; }
     100% { background-position: 100% 50%; }
-}
-@-webkit-keyframes hs-animtext-1 {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-}
-
-@keyframes hs-color_rotate {
-    0% { color: #ff5e00; }
-    25% { color: #e5ff00; }
-    50% { color: #00ffc8; }
-    75% { color: #9500ff; }
-    100% { color: #ff5e00; }
 }
