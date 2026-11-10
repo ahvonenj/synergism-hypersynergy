@@ -125,8 +125,7 @@ export class HSPerksFind extends HSModule {
         const clearButton = document.createElement('button');
         clearButton.id = 'hs-perks-find-clear';
         clearButton.type = 'button';
-        clearButton.textContent = '×';
-        clearButton.title = 'Clear';
+        clearButton.textContent = 'Clear';
         clearButton.addEventListener('click', () => {
             input.value = '';
             this.#search();

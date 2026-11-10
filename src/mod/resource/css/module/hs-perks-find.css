@@ -29,7 +29,7 @@
     box-sizing: border-box;
     width: 100%;
     height: 26px;
-    padding: 2px 24px 2px 8px;
+    padding: 2px 8px;
     border: 1px solid #666;
     border-radius: 4px;
     outline: none;
@@ -38,36 +38,35 @@
     font-size: 0.9em;
 }
 
+/* Typed text stops before the count. Not with the placeholder, which needs the whole width. */
+#hs-perks-find-input:not(:placeholder-shown) {
+    padding-right: 72px;
+}
+
 #hs-perks-find-input:focus {
     border-color: var(--gold-color);
 }
 
+/* Beside the field, out of the flow: the field stays centred. The game's button, at the field's height. */
 #hs-perks-find-clear {
     position: absolute;
     top: 0;
-    right: 0;
-    width: 24px;
+    left: 100%;
     height: 26px;
     min-height: 0;
-    padding: 0;
-    border: none;
-    color: #888;
-    background: none;
-    font-size: 1.1em;
-    line-height: 26px;
-    cursor: pointer;
+    margin-left: 8px;
+    padding: 0 10px;
+    border: 1px solid #666;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: nowrap;
 }
 
-#hs-perks-find-clear:hover {
-    color: var(--white-color);
-}
-
-/* Beside the field, out of the flow: the field stays centred and its size doesn't follow the number */
+/* Inside the field, at its right end */
 #hs-perks-find-count {
     position: absolute;
     top: 50%;
-    left: 100%;
-    margin-left: 8px;
+    right: 8px;
     transform: translateY(-50%);
     color: #888;
     font-size: 0.85em;
