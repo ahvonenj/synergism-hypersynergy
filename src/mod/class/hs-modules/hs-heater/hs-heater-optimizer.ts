@@ -21,7 +21,6 @@ function keepLog(level: HeaterOptimizerLog['level'], message: string, context: s
 }
 
 const HSLogger = {
-    debug: (_message: () => string, _context?: string): void => {},
     warn: (message: string, context = "HSHeaterOptimizer"): void => {
         console.warn(`[${context}]: ${message}`);
         keepLog('warn', message, context);
@@ -5314,8 +5313,6 @@ export class HSHeaterOptimizer {
             }
         }
 
-        HSLogger.debug(() => `[HeaterDiag] options=${JSON.stringify(options)}`, 'HSHeaterOptimizer');
-
         // Build maxLoadout (used by generateOutput to detect if a loadout is
         // maxed, most rows through withBestBrickOfLead)
         let maxLoadout = new Loadout();
@@ -5352,7 +5349,6 @@ export class HSHeaterOptimizer {
                   return output;
           }
 
-          HSLogger.debug(() => '[HeaterDiag] Building shared luck tables', 'HSHeaterOptimizer');
           // --- Shared luck tables ---
           const ambLuckTablesStartedAt = experimentNow()
           tableCache.tableLuck1      = generateTable(["ambrosiaFreeLuckUpgrades", "ambrosiaLuck3"], "luck");
@@ -5413,7 +5409,6 @@ export class HSHeaterOptimizer {
           let luckLuck = 0;
           if (options.calculateAmb) { // Luck calculation
               const ambLuckStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculateAmb: luck', 'HSHeaterOptimizer');
               let loadoutLuck = barIncomeHighBudget?.incomeBlue
                 ?? (stats.reactor
                   ? optimizeBarIncomeWithVouchers(
@@ -5435,7 +5430,6 @@ export class HSHeaterOptimizer {
           let rLuckRLuck = 0;
           const redLuckStartedAt = experimentNow()
           if (options.calculateAmb) { // Red Luck calculation
-              HSLogger.debug(() => '[HeaterDiag] calculateAmb: rLuck', 'HSHeaterOptimizer');
               let tableLuckMult         = generateTable(["ambrosiaBrickOfLead", "ambrosiaLuck4"], "mLuck");
               tableCache.tableFreeRLuck = generateTable(["ambrosiaFreeRedLuckUpgrades"], "rLuck");
               tableCache.tableLuckR     = mergeTables(tableLuckMult, tableCache.tableLuckAdd, "rLuck");
@@ -5551,7 +5545,6 @@ export class HSHeaterOptimizer {
           }
           if (options.calculateAmb && !barIncomeHighBudget) { // All Amb calculation
               const allAmbStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculateAmb: allAmb', 'HSHeaterOptimizer');
               let allAmbSubstageStartedAt = experimentNow()
               let tableSpeed  = generateTable(["ambrosiaFreeGenerationUpgrades"], "amb");
               let tableAmb    = mergeTables(tableCache.tableLuck4, tableSpeed, "amb");
@@ -5681,7 +5674,6 @@ export class HSHeaterOptimizer {
 
           if (calculatePurple) { // Purple Honey and Purple Ambrosia calculation
               const purpleStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculatePurple', 'HSHeaterOptimizer');
               // Purple income depends only on bar speeds, fills and Red
               // income, all of which the bar-income search modules cover.
               // Start from the luck optimum (and the All Ambrosia result
@@ -5797,7 +5789,6 @@ export class HSHeaterOptimizer {
           // --- calculateQuarks ---
           if (options.calculateQuarks) { // Calculate Quarks
               const quarksStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculateQuarks', 'HSHeaterOptimizer');
               // Keep the new Exalt-9 tier separate while generating tables.
               // Enumerating it together with Quarks 1–3 multiplies the
               // recursive search by 100 levels before the Pareto trim can
@@ -5947,7 +5938,6 @@ export class HSHeaterOptimizer {
           }
 
           if (options.calculateCubes) {
-              HSLogger.debug(() => '[HeaterDiag] calculateCubes', 'HSHeaterOptimizer');
             const cubeSearchStartedAt = experimentNow()
             const loadoutCube = findCubeLuckOpt(tableCache.tableCubeVoucher, tableCache.tableLuckCube, "cube")
             recordCubeExperimentStage("cube-final-search", cubeSearchStartedAt, {
@@ -5977,7 +5967,6 @@ export class HSHeaterOptimizer {
           // --- calculateOct ---
           if (options.calculateOct) {
               const octStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculateOct', 'HSHeaterOptimizer');
               const loadoutOct = findCubeLuckOpt(tableCache.tableOctV, tableCache.tableLuckOct, "oct");
               if (!loadoutOct) HSLogger.error('[HeaterDiag] calculateOct - findOpt returned undefined', 'HSHeaterOptimizer');
               output.oct = [loadoutOct.generateOutput("oct", withBestBrickOfLead(maxLoadout, "oct"))];
@@ -6088,7 +6077,6 @@ export class HSHeaterOptimizer {
 
               let offSubstageStartedAt = experimentNow()
               if (options.calculateOff) {
-                  HSLogger.debug(() => '[HeaterDiag] calculateOff: obt', 'HSHeaterOptimizer');
                   let tableObtOff  = mergeTables(tableObt3, tableOff3, "obt")
                   recordCubeExperimentStage("obtainium-combine", offSubstageStartedAt, { frontier: tableObtOff.length })
                   let tableObt4    = tableObtOff
@@ -6105,7 +6093,6 @@ export class HSHeaterOptimizer {
                   if (!loadoutObt) HSLogger.error('[HeaterDiag] calculateOff: obt - findOpt returned undefined', 'HSHeaterOptimizer');
                   output.obt = [loadoutObt.generateOutput("obt", withBestBrickOfLead(maxLoadout, "obt"))];
 
-                  HSLogger.debug(() => '[HeaterDiag] calculateOff: off', 'HSHeaterOptimizer');
                   // Obtainium and Offering have different Pareto frontiers. An
                   // Obtainium-trimmed frontier can omit Offering modules entirely.
                   let tableOff4    = mergeTables(tableObt3, tableOff3, "off")
@@ -6124,7 +6111,6 @@ export class HSHeaterOptimizer {
               }
 
               if (options.calculateObtAndOff) {
-                  HSLogger.debug(() => '[HeaterDiag] calculateObtAndOff', 'HSHeaterOptimizer');
                   // Both together have their own frontier too: a module that
                   // trails on one side can win on the product
                   offSubstageStartedAt = experimentNow()
@@ -6149,7 +6135,6 @@ export class HSHeaterOptimizer {
           if (options.calculateSR) {
             const singularityReductionStartedAt = experimentNow()
 
-            HSLogger.debug(() => '[HeaterDiag] calculateSR: sr1', 'HSHeaterOptimizer');
             let exalt = stats.exalt
             let postAoAG = stats.postAoAG
             stats.postAoAG = false
@@ -6202,7 +6187,6 @@ export class HSHeaterOptimizer {
             }
             tableSR1Cube.length = 0
 
-            HSLogger.debug(() => '[HeaterDiag] calculateSR: sr2', 'HSHeaterOptimizer');
             stats.exalt = 7
             let loadoutSR2 = generateTable(["ambrosiaSingReduction2"], "singReduction").at(-1)!
             let levelSR2 = loadoutSR2.upgradeLevels.ambrosiaSingReduction2
@@ -6236,7 +6220,6 @@ export class HSHeaterOptimizer {
           // --- calculateAmbOct ---
           if (options.calculateAmbOct) {
               const ambOctStartedAt = experimentNow()
-              HSLogger.debug(() => '[HeaterDiag] calculateAmbOct', 'HSHeaterOptimizer');
               const affordable = (loadout: Loadout): boolean =>
                   loadout.cost <= stats.amb && loadout.blueberryCost <= stats.blueberries;
               // The oct table leaves the Luck-Cube hybrid to the luck side
@@ -6286,7 +6269,6 @@ export class HSHeaterOptimizer {
           if (options.calculateHyperflux) {
               const hyperfluxStartedAt = experimentNow()
 
-              HSLogger.debug(() => '[HeaterDiag] calculateHyperflux', 'HSHeaterOptimizer');
               let postAoAG = stats.postAoAG
               stats.postAoAG = false
 
