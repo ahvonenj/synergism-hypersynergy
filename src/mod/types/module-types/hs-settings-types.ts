@@ -51,6 +51,7 @@ export interface HSSettingsDefinition {
     autoDismissOfflinePopup: AutoDismissOfflinePopupSetting;
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;
+    statsForNerdsGroups: HSSettingBase<boolean>;
     perksFind: PerksFindSetting;
 
     // Log Settings

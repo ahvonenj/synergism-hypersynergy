@@ -274,6 +274,20 @@
       "controlEnabledId": "hs-setting-remember-subtabs-btn"
     }
   },
+  "statsForNerdsGroups": {
+    "settingName": "statsForNerdsGroups",
+    "settingDescription": "Grouped Stats for Nerds list",
+    "settingHelpText": "Replaces the grid of category buttons in Settings > Stats for Nerds with a compact list sorted into groups. Turn it off for the game's buttons.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "statsForNerdsGroupsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-stats-for-nerds-groups-btn"
+    }
+  },
   "hiddenVanillaTabs": {
     "settingName": "hiddenVanillaTabs",
     "settingDescription": "Hide vanilla tabs",

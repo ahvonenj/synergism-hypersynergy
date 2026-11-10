@@ -92,6 +92,11 @@ window.__HS_INIT_PROMISE = (async () => {
             moduleColor: 'goldenrod',
         },
         {
+            className: 'HSStatsForNerds',
+            context: 'HSStatsForNerds',
+            moduleColor: 'mediumaquamarine',
+        },
+        {
             className: 'HSAmbrosia',
             context: 'HSAmbrosia',
             moduleColor: 'blueviolet',

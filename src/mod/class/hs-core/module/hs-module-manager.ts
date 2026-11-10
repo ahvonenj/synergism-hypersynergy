@@ -18,6 +18,7 @@ import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
 import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
 
@@ -53,6 +54,7 @@ export class HSModuleManager {
         "HSQOLButtons": HSQOLButtons,
         "HSSubtabMemory": HSSubtabMemory,
         "HSPerksFind": HSPerksFind,
+        "HSStatsForNerds": HSStatsForNerds,
         "HSAutoExport": HSAutoExport,
         "HSHeaderLoadoutIcons": HSHeaderLoadoutIcons
     };

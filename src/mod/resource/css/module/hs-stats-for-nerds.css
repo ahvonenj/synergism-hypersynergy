@@ -1,0 +1,72 @@
+/* Settings > Stats for Nerds: the grouped category list (HSStatsForNerds). Injected only while its setting is on. */
+
+/* The game's buttons stay in the page for their clicks, out of sight */
+#statisticsSubTab > #statsForNerds {
+    display: none !important;
+}
+
+#hs-sfn {
+    flex: none;
+    align-self: flex-start;
+    width: 600px;
+}
+
+/* Groups flow down the columns, never split */
+#hs-sfn-groups {
+    columns: 3;
+    column-gap: 18px;
+}
+
+#hs-sfn .hs-sfn-group {
+    break-inside: avoid;
+    margin-bottom: 12px;
+}
+
+#hs-sfn .hs-sfn-title {
+    margin-bottom: 3px;
+    padding: 0 0 2px 2px;
+    border-bottom: 1px solid #333;
+    color: #8c8c8c;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* The game's colour for the category as a thin bar, the text in grey until hovered or shown */
+#hs-sfn .hs-sfn-row {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    margin: 1px 0 0;
+    padding: 2px 6px 2px 8px;
+    border: none;
+    border-left: 3px solid var(--hs-sfn-colour, #666);
+    border-radius: 0;
+    background-color: transparent;
+    color: #d0d0d0;
+    font-size: 13px;
+    line-height: 17px;
+    text-align: left;
+    transition: none;
+}
+
+body #hs-sfn .hs-sfn-row:hover:not(:disabled) {
+    background-color: #2a2a2a;
+    color: var(--white-color);
+}
+
+body #hs-sfn .hs-sfn-row.hs-sfn-active,
+body #hs-sfn .hs-sfn-row.hs-sfn-active:hover:not(:disabled) {
+    background-color: var(--crimson-background-color);
+    color: var(--white-color);
+}
+
+#hs-sfn-summary {
+    display: block;
+    min-height: 26px;
+    margin: 4px auto 0;
+    padding: 0 12px;
+    border: 1px solid #666;
+    border-radius: 4px;
+    font-size: 13px;
+}

@@ -146,6 +146,27 @@
           ]
         },
         {
+          "id": "stats-for-nerds-groups",
+          "title": "Grouped Stats for Nerds list",
+          "where": "Settings → Stats for Nerds, left side",
+          "summary": "Replaces the game's grid of category buttons with a compact list sorted into groups.",
+          "details": [
+            "Groups follow the game's progression: general, offerings and runes, obtainium, ants, ascension and cubes, singularity, ambrosia, red ambrosia, purple honey.",
+            "Labels are the game's, in your game language. Categories you haven't unlocked stay hidden, as in the game.",
+            "Turn off Settings → UI → Grouped Stats for Nerds list to get the game's buttons back."
+          ],
+          "limits": [
+            "Desktop layout only: on a phone the game's icons are kept."
+          ],
+          "sources": [
+            "src/mod/class/hs-modules/hs-stats-for-nerds.ts",
+            "docs/features/stats-for-nerds.md"
+          ],
+          "settings": [
+            "statsForNerdsGroups"
+          ]
+        },
+        {
           "id": "perks-find",
           "title": "Search the singularity perks",
           "where": "Singularity → Perks / Penalties, above the penalties",

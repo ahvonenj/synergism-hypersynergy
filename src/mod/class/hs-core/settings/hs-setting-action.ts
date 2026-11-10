@@ -13,6 +13,7 @@ import { HSSettingsUI } from "./hs-settings-ui";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
 import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSGlobal } from "../hs-global";
 import { HSHiddenDialogs } from "../dialogs/hs-hidden-dialogs";
@@ -288,6 +289,11 @@ export class HSSettingActions {
         ),
 
         perksFindAction: moduleToggle<HSPerksFind>('HSPerksFind',
+            (mod) => mod.show(),
+            (mod) => mod.hide()
+        ),
+
+        statsForNerdsGroupsAction: moduleToggle<HSStatsForNerds>('HSStatsForNerds',
             (mod) => mod.show(),
             (mod) => mod.hide()
         ),
