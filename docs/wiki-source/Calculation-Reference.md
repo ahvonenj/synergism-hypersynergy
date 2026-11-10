@@ -30,6 +30,9 @@ Entries registered for the Tools calculation picker in the audited source. Param
 | Ascension Speed Multiplier | `calculateAscensionSpeedMult` | No |
 | Ascension Speed Multiplier: Raw | `calculateRawAscensionSpeedMult` | Yes |
 | Challenge 15 Reward | `calculateChallenge15Reward` | No |
+| Construction | `calculateConstruction` | No |
+| Construction: Before Multiplier | `calculateRawConstruction` | No |
+| Construction: Coin Buildings | `calculateCoinConstruction` | No |
 | Corruption Effect | `getCorruptionEffect` | No |
 | Corruption Effect: Challenge 15 | `getChallenge15CorruptionEffect` | No |
 | Corruption Level | `getActiveCorruptionLevel` | No |
@@ -67,4 +70,4 @@ Entries registered for the Tools calculation picker in the audited source. Param
 | Talisman Rarity (Total) | `calculateTalismanRarityTotal` | No |
 | Vouchers | `calculateAllShopTablets` | Yes |
 
-Source: [calculation registry](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-core/gds/hs-calculation-definition.ts).
+Source: [calculation registry](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/gds/hs-calculation-definition.ts).

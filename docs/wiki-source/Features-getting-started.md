@@ -23,7 +23,7 @@ Loads Hypersynergism automatically with the game.
 
 - The two game addresses have separate saves. The game's GitHub Pages address has no login, cloud saves or purchases.
 
-**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/synergism_modloader/README.md)
+**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/synergism_modloader/README.md)
 
 ### Windows Steam loader
 
@@ -39,7 +39,7 @@ Patches a copy of the Steam game and launches it with the mod.
 
 - Windows only. Re-patch when requested; reloading the mod alone does not update an already patched Steam copy.
 
-**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/synergism_modloader/README.md)
+**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/synergism_modloader/README.md)
 
 ### Live and Dev channels
 
@@ -51,7 +51,7 @@ Choose between the Live and Dev repositories.
 - In the browser bridge, change the repo owner only when intentionally switching channels. Steam also supports selecting builds; development has a local loader.
 - Live is generally more stable.
 
-**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/synergism_modloader/README.md)
+**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/synergism_modloader/README.md)
 
 ### Legacy bookmarklet and migration help
 
@@ -66,7 +66,7 @@ Keeps a legacy loading path and shows how to switch to Tampermonkey.
 
 - Bookmarklet loading is not recommended: it lacks direct game access, has slower fallbacks, and cannot support every feature reliably.
 
-**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/synergism_modloader/README.md)
+**Source:** [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/synergism_modloader/README.md)
 
 ### Channel-aware update notifications
 
@@ -78,4 +78,4 @@ Marks a newer version with a rainbow icon border and a panel-title notice.
 - Live follows stable version tags. Dev follows its own development builds and separately notifies about newer Live releases.
 - Reload the game to pick up the latest build from the selected channel.
 
-**Source:** [version-check.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/version-check.md) · [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/synergism_modloader/README.md)
+**Source:** [version-check.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/version-check.md) · [tampermonkey-bridge.user.js](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/loader/tampermonkey-bridge.user.js) · [loaders.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/loaders.md) · [README.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/synergism_modloader/README.md)

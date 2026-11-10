@@ -6,6 +6,7 @@ Current versions use a single corruption level. The old corruption-loadout modul
 
 - [Current and next corruption level](#current-and-next-corruption-level)
 - [Corruption controls from the header](#corruption-controls-from-the-header)
+- [Corruption level controls in the module](#corruption-level-controls-in-the-module)
 - [Keep corruption visible before C11](#keep-corruption-visible-before-c11)
 - [One module for all active challenges](#one-module-for-all-active-challenges)
 - [Compact the game's own challenge modules](#compact-the-games-own-challenge-modules)
@@ -21,7 +22,7 @@ Adds an arrow to the next ascension's level when it differs from the displayed l
 
 **Related settings:** [`corruptionHeaderControls`](Settings-Reference#corruptionheadercontrols)
 
-**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-challenge-progress.md)
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)
 
 ### Corruption controls from the header
 
@@ -37,7 +38,21 @@ Changes the next level without opening the Corruption tab.
 
 - The game clamps levels to those currently available. Cleanse changes the current ascension immediately; changing the next level normally applies on the next ascension.
 
-**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-challenge-progress.md)
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)
+
+### Corruption level controls in the module
+
+Changes the next level in the module itself, without opening the popover.
+
+**Where:** Header → game's Corruption level module, at size M or L
+
+- At M: ‹ and › step by 1, by 10 with Shift, and repeat while held. Click the number to type a level. Click /max to set the maximum.
+- At L: also 0, Max, the cleanse (two clicks) and Auto-climb.
+- At S or stacked, the module keeps its usual text. The icon and the current level still open the popover, which has every control.
+
+**Related settings:** [`corruptionHeaderInline`](Settings-Reference#corruptionheaderinline)
+
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)
 
 ### Keep corruption visible before C11
 
@@ -53,7 +68,7 @@ Keeps the module available at the start of later singularities.
 
 **Related settings:** [`corruptionHeaderAlwaysShown`](Settings-Reference#corruptionheaderalwaysshown)
 
-**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-challenge-progress.md)
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)
 
 ### One module for all active challenges
 
@@ -71,7 +86,7 @@ Combines the active challenge tiers in one place.
 
 **Related settings:** [`challengeProgressHeader`](Settings-Reference#challengeprogressheader), [`challengeProgressLayout`](Settings-Reference#challengeprogresslayout), [`challengeProgressDetails`](Settings-Reference#challengeprogressdetails), [`challengeProgressShowNone`](Settings-Reference#challengeprogressshownone)
 
-**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-challenge-progress.md)
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)
 
 ### Compact the game's own challenge modules
 
@@ -84,4 +99,4 @@ Removes repeated challenge names from native progress text.
 
 **Related settings:** [`compactChallengeText`](Settings-Reference#compactchallengetext)
 
-**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/header-challenge-progress.md)
+**Source:** [header-corruption.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-corruption.md) · [header-challenge-progress.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-challenge-progress.md)

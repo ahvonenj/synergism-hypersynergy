@@ -13,5 +13,6 @@
 - [Save exports, backups & restore](Features-saves)
 - [AutoSing & strategy editor](Features-autosing)
 - [Calculations, logs & framework](Features-tools)
+- [Auto-Sing guide](Guide-autosing)
 - [Settings](Settings-Reference)
 - [Calculations](Calculation-Reference)

@@ -1,6 +1,6 @@
 # Mod features
 
-109 documented features, grouped below. Open a guide for usage, settings and limitations.
+113 documented features, grouped below. Open a guide for usage, settings and limitations.
 
 ## Installation & updates
 
@@ -20,6 +20,7 @@ Small interface choices are remembered locally, including changes made through t
 - [Quick access menu](Features-interface#quick-access-menu): Opens common tools without navigating the full panel.
 - [Hide tabs and remember hidden tabs](Features-interface#hide-tabs-and-remember-hidden-tabs): Keeps unwanted main tabs hidden across reloads.
 - [Remember each tab's last subtab](Features-interface#remember-each-tabs-last-subtab): Returns a tab to the subtab you last used after resets and reloads.
+- [Search the singularity perks](Features-interface#search-the-singularity-perks): Lists the tooltips of the perks matching what you type.
 - [Optional offline-popup dismissal](Features-interface#optional-offline-popup-dismissal): Closes the offline progress summary automatically when the game loads.
 - [Recover when the browser loader starts late](Features-interface#recover-when-the-browser-loader-starts-late): Retries loading when Tampermonkey starts after the game.
 - [Remember dismissed game dialogs](Features-interface#remember-dismissed-game-dialogs): Adds Don't show again / Always confirm choices to supported game dialogs.
@@ -33,8 +34,7 @@ Convenience controls use the game's own actions; optional repeated input is acti
 - [Clickable reusable promotion codes](Features-input#clickable-reusable-promotion-codes): Lists reusable codes and fills the input when a code is clicked.
 - [ADD ×10 shortcut](Features-input#add-10-shortcut): Requests ten ADD-code uses from one added button.
 - [Buy and consume potions ×10](Features-input#buy-and-consume-potions-10): Adds BUY 10× and CONSUME 10× next to the native potion buttons.
-- [Talisman fragment Cycle BUY](Features-input#talisman-fragment-cycle-buy): Cycles through fragment buy buttons and shows which color comes next.
-- [Reactive hover while holding left Shift](Features-input#reactive-hover-while-holding-left-shift): Repeatedly refreshes the hover event under the pointer.
+- [Repeat hover while holding left Shift](Features-input#repeat-hover-while-holding-left-shift): Repeatedly refreshes the hover event under the pointer.
 - [Auto-click while holding left Ctrl](Features-input#auto-click-while-holding-left-ctrl): Repeats clicks at the pointer with a configurable interval.
 
 ## Ambrosia loadouts & income
@@ -70,6 +70,7 @@ Open the game's header editor with the pencil beside the mod icon, or Settings �
 - [Pick any game image for a loadout slot](Features-header#pick-any-game-image-for-a-loadout-slot): Extends the native icon chooser beyond Ambrosia upgrade icons.
 - [Match Octeract icon size](Features-header#match-octeract-icon-size): Sizes the Octeract icon like the other cube resource icons.
 - [Match Octeract unit text](Features-header#match-octeract-unit-text): Adds a white Oct or Oct/s unit beside the value.
+- [Singularity Elevator from the header](Features-header#singularity-elevator-from-the-header): Uses the Elevator without opening the Singularity tab.
 - [Keep your header when loading another save](Features-header#keep-your-header-when-loading-another-save): Keeps your desktop and mobile layouts instead of importing the other save's layouts.
 - [Automation quickbar with mixed-state indicators](Features-header#automation-quickbar-with-mixed-state-indicators): Groups frequently used game automation toggles in a compact header module.
 
@@ -79,6 +80,7 @@ Current versions use a single corruption level. The old corruption-loadout modul
 
 - [Current and next corruption level](Features-challenges#current-and-next-corruption-level): Adds an arrow to the next ascension's level when it differs from the displayed level.
 - [Corruption controls from the header](Features-challenges#corruption-controls-from-the-header): Changes the next level without opening the Corruption tab.
+- [Corruption level controls in the module](Features-challenges#corruption-level-controls-in-the-module): Changes the next level in the module itself, without opening the popover.
 - [Keep corruption visible before C11](Features-challenges#keep-corruption-visible-before-c11): Keeps the module available at the start of later singularities.
 - [One module for all active challenges](Features-challenges#one-module-for-all-active-challenges): Combines the active challenge tiers in one place.
 - [Compact the game's own challenge modules](Features-challenges#compact-the-games-own-challenge-modules): Removes repeated challenge names from native progress text.
@@ -148,14 +150,16 @@ An explicitly opt-in automation system for end-game singularity farming. This go
 - [Strategy-driven singularity farming](Features-autosing#strategy-driven-singularity-farming): Repeats singularities according to an editable strategy and farming target.
 - [Pause, resume, restart, stop and Finish & Stop](Features-autosing#pause-resume-restart-stop-and-finish--stop): Controls the current run without editing its strategy.
 - [Live run statistics, charts and review](Features-autosing#live-run-statistics-charts-and-review): Tracks run pace, phase timings, Quarks, GQ and C15 statistics.
+- [Step timings](Features-autosing#step-timings): Shows where a singularity's time goes, step by step, to help tune a strategy.
 - [Create, copy, edit, import, export and delete strategies](Features-autosing#create-copy-edit-import-export-and-delete-strategies): Keeps custom JSON strategies locally and shares them through import/export.
 - [Phase editor with chained stage ranges](Features-autosing#phase-editor-with-chained-stage-ranges): Builds a continuous progression plan from start through end, plus AOAG.
 - [Action editor with ordering, duplicates and comments](Features-autosing#action-editor-with-ordering-duplicates-and-comments): Edits challenges, resets, waits, game actions, loadouts, forge toggles and run controls.
 - [Conditional IF steps and jumps](Features-autosing#conditional-if-steps-and-jumps): Branches or loops the phase based on configured game conditions.
 - [Undo, redo and unsaved-change protection](Features-autosing#undo-redo-and-unsaved-change-protection): Protects strategy edits while allowing experimentation.
 - [Explicit corruption-level strategy actions](Features-autosing#explicit-corruption-level-strategy-actions): Sets actual corruption level, optionally ascending immediately.
-- [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles): Assigns pre-AOAG cubes, post-AOAG cubes, Quarks, Obtainium, Offerings and Luck slots.
+- [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles): Assigns the Hyperflux (H), 3-7D Cubes, Quark, Obtainium, Offerings and Ambrosia slots; an Antiquities icon shows which are for pre-AOAG (dimmed) and post-AOAG (full colours).
 - [Don't switch Ambrosia loadouts](Features-autosing#dont-switch-ambrosia-loadouts): Leaves the tree in place throughout the run to preserve bar progress.
+- [Keep the PC awake](Features-autosing#keep-the-pc-awake): Keeps the screen on and stops the PC sleeping while AutoSing runs with the game in view.
 - [Advanced run settings and reset to defaults](Features-autosing#advanced-run-settings-and-reset-to-defaults): Tunes cube opening, tesseract buying and auto-challenge timing.
 
 ## Calculations, logs & framework
