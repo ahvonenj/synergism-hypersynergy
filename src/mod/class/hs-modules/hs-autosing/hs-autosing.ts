@@ -2000,6 +2000,23 @@ export class HSAutosing extends HSModule {
             || this.#settingsFixer.hasOriginalSettings;
     }
 
+    /**
+     * At load, once the offline popup is closed: the game was closed or reloaded during a run, so put the
+     * player's settings back as a stop would have. An Exalt the run was in is left as it is.
+     */
+    restoreAfterInterruptedRun(): void {
+        if (this.isAutosingActive()) return; // The new run took the snapshot over: its stop restores it
+        try {
+            const result = this.#settingsFixer.restoreInterruptedRun();
+            if (!result?.gameRestored) return;
+            const exalt = result.insideExalt ? ' You are still in an Exalt.' : '';
+            HSUI.Notify(`Auto-Sing was interrupted: your settings were restored.${exalt}`, { position: 'top', notificationType: 'success', displayDuration: 6000 });
+        } catch (error) {
+            HSLogger.warn(`Could not fully restore the settings of an interrupted Auto-Sing run: ${escapeLogText(error instanceof Error ? error.message : String(error))}`, this.context);
+            HSUI.Notify('Auto-Sing was interrupted and could not restore all game settings. See the mod log for details.', { notificationType: 'warning' });
+        }
+    }
+
     setStopAtSingularitysEnd(value: boolean): void {
         this.#stopAtSingularitysEnd = value;
     }

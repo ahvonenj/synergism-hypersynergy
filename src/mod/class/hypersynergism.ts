@@ -18,6 +18,7 @@ import strategyEditionCSS from "inline:../resource/css/hs-strategy-edition.css";
 import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
 import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
 import { HSAmbrosia } from "./hs-modules/hs-ambrosia/hs-ambrosia";
+import type { HSAutosing } from "./hs-modules/hs-autosing/hs-autosing";
 import { HSHeaterInputModalController } from "./hs-modules/hs-heater/ui/hs-heater-input-modal-controller";
 import { HSUtils } from "./hs-utils/hs-utils";
 import { HSGithub } from "./hs-core/github/hs-github";
@@ -121,6 +122,23 @@ export class Hypersynergism {
         await this.#ensurePatcherExposure(autoDismissPopup);
 
         if (autoDismissPopup) this.#dismissOfflinePopup();
+
+        // The game can't save while the offline popup is open, and the restore reads a fresh save
+        await this.#waitForPopupClosed();
+        HSModuleManager.getModule<HSAutosing>('HSAutosing')?.restoreAfterInterruptedRun();
+    }
+
+    /** Resolves once the offline popup is closed (exitOffline removes body.loading). */
+    #waitForPopupClosed(): Promise<void> {
+        return new Promise<void>(resolve => {
+            if (!document.body.classList.contains('loading')) { resolve(); return; }
+            const observer = new MutationObserver(() => {
+                if (document.body.classList.contains('loading')) return;
+                observer.disconnect();
+                resolve();
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        });
     }
 
     /**
@@ -223,16 +241,6 @@ export class Hypersynergism {
             document.getElementById(id)?.click();
             await HSUtils.sleep(100);
         };
-        const waitForPopupClosed = () => new Promise<void>(resolve => {
-            if (!document.body.classList.contains('loading')) { resolve(); return; }
-            const observer = new MutationObserver(() => {
-                if (document.body.classList.contains('loading')) return;
-                observer.disconnect();
-                resolve();
-            });
-            observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-        });
-
         // Only the active main tab button has aria-current (its panel also gets .active-tab)
         const previousTab = document.querySelector<HTMLElement>('[aria-current="page"]');
         const settingsTab = document.getElementById('settingstab');
@@ -269,7 +277,7 @@ export class Hypersynergism {
         if (isStagePatched) {
             if (document.body.classList.contains('loading')) {
                 if (autoDismissPopup) this.#dismissOfflinePopup();
-                await waitForPopupClosed();
+                await this.#waitForPopupClosed();
             }
 
             const stageDeadline = Date.now() + 5000;
