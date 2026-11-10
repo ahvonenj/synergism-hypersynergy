@@ -94,3 +94,5 @@ What changed for the mod, one GDS commit each, checked by the replay (`test-gds-
 - Buildings: counts no longer saved, only what was paid (`docs/game/formulas.md`).
 - Exalt 10 reactor: fill chance and Ultrafusion cap (`docs/features/heater-optimizer.md`).
 - Patcher: the `pcoinLevels` anchor.
+- 2026-11-09 (game commit `a1fa5707`): new cube rates per corruption level, copied into GDS. The new Campaign token
+  cube multiplier (`campaignTokenBonuses.cube`) isn't modelled: GDS stops at the corruption lines.
