@@ -36,6 +36,15 @@ const HSLogger = {
 export function takeHeaterOptimizerLogs(): HeaterOptimizerLog[] {
     return pendingLogs.splice(0);
 }
+
+// A table that keeps more rows than this after a trim stops the heat. The
+// error crosses the worker as text: the runner finds it by HEATER_ROW_LIMIT_TEXT.
+export const HEATER_ROW_LIMIT = 500_000;
+export const HEATER_ROW_LIMIT_TEXT = `${HEATER_ROW_LIMIT}-row limit`;
+
+function rowLimitError(table: string): Error {
+    return new Error(`Heater ${table} table passed its ${HEATER_ROW_LIMIT_TEXT}`);
+}
 /*
     This file closely match the script on Rus9384's sheet (credits to him),
     in order to be easily updatable when the sheet updates (and vice-versa...)
@@ -2153,7 +2162,6 @@ function trimTable(table: Loadout[], stat: string): Loadout[] {
 // retaining millions of complete Loadout objects until the final sort.
 function createBatchedTable(stat: string) {
   const BATCH_SIZE = 20_000
-  const MAX_FRONTIER = 500_000
   let frontier: Loadout[] = []
   let pending: Loadout[] = []
   const flush = (): void => {
@@ -2162,8 +2170,8 @@ function createBatchedTable(stat: string) {
     frontier.push(...pending)
     pending = []
     frontier = trimTable(frontier, stat)
-    if (frontier.length > MAX_FRONTIER)
-      throw new Error(`Heater ${stat} search exceeded its ${MAX_FRONTIER}-build memory safety limit. Try fewer builds at once.`)
+    if (frontier.length > HEATER_ROW_LIMIT)
+      throw rowLimitError(stat)
   }
   return {
     add(loadout: Loadout): void {
@@ -2969,8 +2977,8 @@ function mergeVoucherTable(table: Loadout[], voucherTable: Loadout[], stat: "cub
       }
       frontier = kept
       pending = []
-      if (frontier.length > 500_000)
-        throw new Error('Heater voucher frontier exceeded its 500000-build memory safety limit. Try fewer builds at once.')
+      if (frontier.length > HEATER_ROW_LIMIT)
+        throw rowLimitError(`${stat} voucher`)
     }
     const octeracts = stat === "oct"
     type VoucherMergeRow = {
@@ -3508,8 +3516,8 @@ function mergeIndependentTables(table1: Loadout[], table2: Loadout[], stat: stri
       }
       frontier = retained
       pendingCount = 0
-      if (frontier.length > 500_000)
-        throw new Error(`Heater ${stat} search exceeded its 500000-build memory safety limit. Try fewer builds at once.`)
+      if (frontier.length > HEATER_ROW_LIMIT)
+        throw rowLimitError(`${stat} cube`)
     }
 
     for (let leftIndex = 0; leftIndex < table1.length; leftIndex++) {

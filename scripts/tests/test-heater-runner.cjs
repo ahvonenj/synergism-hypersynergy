@@ -14,7 +14,7 @@ async function main() {
                 'hs-logger':`export const HSLogger={info(){},warn(){},error(){},debug(message){
                     if(globalThis.runnerTest.debug)globalThis.runnerTest.logs.push(typeof message==='function'?message():message)
                 }};`,
-                'hs-heater-optimizer':'export const HSHeaterOptimizer={};export const takeHeaterOptimizerLogs=()=>[];',
+                'hs-heater-optimizer':'export const HSHeaterOptimizer={};export const takeHeaterOptimizerLogs=()=>[];export const HEATER_ROW_LIMIT=500000;export const HEATER_ROW_LIMIT_TEXT="500000-row limit";',
             };
             build.onResolve({filter:/hs-[\w-]+$/},args=>{
                 const name=args.path.split('/').pop();if(stubs[name])return{path:name,namespace:'test'};
@@ -32,7 +32,7 @@ async function main() {
                 global.runnerTest.started?.push(Object.keys(input.heaterOptions).filter(key=>input.heaterOptions[key]).join('+'));
                 const result=Object.fromEntries(Object.keys(input.heaterOptions).filter(key=>input.heaterOptions[key]).map(key=>[key,[[key]]]));
                 queueMicrotask(()=>this.onmessage({data:global.runnerTest.error
-                    ?{id,ok:false,error:'real calculation failure',logs:[]}
+                    ?{id,ok:false,error:global.runnerTest.error,logs:[]}
                     :{id,ok:true,result,logs:[],...global.runnerTest.diagnostics}}));
             }
             terminate() {}
@@ -46,11 +46,18 @@ async function main() {
             for(const key of ['oct','ambOct','hyperflux'])assert.deepEqual(result[key],[[key]],'valid results survive missing stage times');
             assert.equal(global.runnerTest.logs.some(line=>line.includes('oct-search')),debug&&Boolean(diagnostics.stages));
         }
-        global.runnerTest={debug:true,error:true,logs:[]};
+        global.runnerTest={debug:true,error:'real calculation failure',logs:[]};
         const runtime=new Module(path.join(root,'heater-error-runtime.cjs'),module);
         runtime.filename=path.join(root,'heater-error-runtime.cjs');runtime.paths=module.paths;
         runtime._compile(bundled.outputFiles[0].text,runtime.filename);
-        await assert.rejects(runtime.exports.HSHeaterOptimizerRunner.createResult(input),/real calculation failure/);
+        await assert.rejects(runtime.exports.HSHeaterOptimizerRunner.createResult(input),error=>
+            /real calculation failure/.test(error.message)&&!(error instanceof runtime.exports.HSHeaterRowLimitError));
+        // The row limit names the failing group's branches by their input labels; the optimizer's text stays for the log
+        global.runnerTest={debug:false,error:'Error: Heater cube table passed its 500000-row limit',logs:[]};
+        await assert.rejects(runtime.exports.HSHeaterOptimizerRunner.createResult({...input,heaterOptions:{cubes:true,sr:true}}),error=>
+            error instanceof runtime.exports.HSHeaterRowLimitError
+            &&error.playerMessage==='Heater stopped: the 3-7D Cubes / Max SR search passed its 500,000-row limit.'
+            &&error.message.includes('cube table'));
 
         // The lanes: which groups start together, and the fallback to one worker
         const allBranches={hyperflux:true,cubes:true,sr:true,oct:true,ambOct:true,coinsC15:true,luck:true,purple:true,quarks:true,obtOff:true,obtAndOff:false};
@@ -83,7 +90,7 @@ async function main() {
         // A saved value that isn't a known count counts as the default
         const {heaterWorkerCount}=every.exports;
         assert.deepEqual([1,2,3,0,4,'2',null,undefined,true].map(heaterWorkerCount),[1,2,3,3,3,3,3,3,3]);
-        console.log('Passed Heater runner checks: missing/current diagnostics, debug on/off, parallel results, real failures, lanes and fallback.');
+        console.log('Passed Heater runner checks: missing/current diagnostics, debug on/off, parallel results, real failures, row limit, lanes and fallback.');
     } finally {
         if(originalNavigator)Object.defineProperty(global,'navigator',originalNavigator);else delete global.navigator;
         for(const [key,value]of Object.entries(original)){if(value===undefined)delete global[key];else global[key]=value}
