@@ -7,11 +7,19 @@
 .hs-rainbow-border {
    border: 2px solid transparent !important;
    border-image: conic-gradient(#ff5e00, #ff9a00, #ffcd00, #e5ff00, #a5ff00, #00ffc8, #00c8ff, #00a5ff, #9500ff, #00e1ff, #0095ff, #ff5e00) 1 !important;
+   /* A glow like the silver border's, each side in the gradient's colour there (top orange, right yellow-green,
+      bottom cyan, left violet) */
+   box-shadow: 0 -2px 5px rgba(255, 94, 0, 0.8), 2px 0 5px rgba(229, 255, 0, 0.7), 0 2px 5px rgba(0, 200, 255, 0.8),
+      -2px 0 5px rgba(149, 0, 255, 0.8);
 }
 
 .hs-silver-border {
    border: 2px solid transparent !important;
-   border-image: conic-gradient(#8c8c8c, #b0b0b0, #d0d0d0, #e8e8e8, #ffffff, #e8e8e8, #d0d0d0, #b0b0b0, #909090, #6f6f6f, #4a4a4a, #8c8c8c) 1 !important;
+   /* Light stops only: still, a dark stop leaves that side of the slot dim on the dark background */
+   border-image: conic-gradient(#c8c8c8, #d8d8d8, #e8e8e8, #f4f4f4, #ffffff, #f4f4f4, #e8e8e8, #d8d8d8, #c8c8c8, #bcbcbc, #b4b4b4, #c8c8c8) 1 !important;
+   /* The game's light blue slot borders (#7878ff) are too close in colour alone: a glow sets the slot apart. Still,
+      so drawn once */
+   box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.8);
 }
 
 .hs-rainbow-text {
