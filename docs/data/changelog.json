@@ -62,14 +62,6 @@
           "evidence": [
             "https://github.com/Ferlieloi/synergism-hypersynergy/commit/eb9a4d98d486e7a3d239358fd71096423da94a9c"
           ]
-        },
-        {
-          "type": "added",
-          "text": "Published the step-by-step Auto-Sing guide on the Live website and updated the feature catalogue.",
-          "evidence": [
-            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/0f22daeef33349fbcb8f2ba4237f77987291d5c2",
-            "https://github.com/Ferlieloi/synergism-hypersynergy/actions/runs/42828026116"
-          ]
         }
       ],
       "contributors": [
@@ -81,8 +73,7 @@
           ],
           "commits": [
             "eb9a4d98d486e7a3d239358fd71096423da94a9c",
-            "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
-            "0f22daeef33349fbcb8f2ba4237f77987291d5c2"
+            "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000"
           ]
         }
       ],
@@ -1127,14 +1118,6 @@
           "text": "Fixed a Heater calculation failure with Libra and Red-Blue Ultrafusion, where ordinary fusion-driven tank movement was mistaken for continuing warm-up drift.",
           "evidence": [
             "https://github.com/Ferlieloi/synergism-hypersynergy/commit/71fdf2eac4e53b2425eaab8ef5124ec32c60774d"
-          ]
-        },
-        {
-          "type": "added",
-          "text": "Launched the Live website with installation guides, a searchable feature catalogue and a browsable player wiki.",
-          "evidence": [
-            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/05cd191397b69fd9896fc2bcb831b0f65483d8bd",
-            "https://github.com/Ferlieloi/synergism-hypersynergy/actions/runs/41198984455"
           ]
         }
       ],
