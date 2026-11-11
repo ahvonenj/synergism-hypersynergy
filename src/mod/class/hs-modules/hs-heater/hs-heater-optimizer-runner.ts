@@ -13,7 +13,7 @@ import type { HeaterBranchId } from './hs-heater-result-config'
 import { HSHeaterOptimizer, takeHeaterOptimizerLogs } from './hs-heater-optimizer'
 import type { HeaterOptimizerLog } from './hs-heater-optimizer'
 import { HSLogger } from '../../hs-core/hs-logger'
-import { escapeLogText } from './hs-heater-utils'
+import { escapeLogText } from '../../hs-utils/hs-escape';
 import HS_HEATER_WORKER_SOURCE from 'hs-heater-worker-source'
 
 const LOG_CONTEXT = 'HSHeater'

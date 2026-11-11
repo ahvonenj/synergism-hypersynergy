@@ -3,8 +3,7 @@ import { HSGameDialogs } from "../hs-core/dialogs/hs-game-dialogs";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleManager } from "../hs-core/module/hs-module-manager";
-import type { HSAutosing } from "./hs-autosing/hs-autosing";
+import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 
 /**
  * Class: HSCodes
@@ -36,7 +35,8 @@ export class HSCodes extends HSModule {
 
         const self = this;
 
-        this.#codeBoxOpenButton = await HSElementHooker.HookElement('#promocodes') as HTMLButtonElement;
+        this.#codeBoxOpenButton = await HSElementHooker.HookElement<HTMLButtonElement>('#promocodes') ?? undefined;
+        if (!this.#codeBoxOpenButton) { this.isInitialized = true; return; }
 
         this.#codeBoxOpenButton.addEventListener('click', function(ev) {
             self.#codeBoxLabel = document.querySelector('#promptWrapper > #prompt > label') as HTMLLabelElement;
@@ -48,7 +48,7 @@ export class HSCodes extends HSModule {
             }
         }, { capture: true });
 
-        this.#codeBoxLabel = await HSElementHooker.HookElement('#promptWrapper > #prompt > label') as HTMLLabelElement;
+        this.#codeBoxLabel = await HSElementHooker.HookElement<HTMLLabelElement>('#promptWrapper > #prompt > label') ?? undefined;
 
         this.#observe();
         await this.#hookCodeInfoRefresh();
@@ -65,6 +65,7 @@ export class HSCodes extends HSModule {
             HSElementHooker.HookElement('#timeCode'),
             HSElementHooker.HookElement('#promocodeinfo'),
         ]);
+        if (!addCodeBox || !timeCodeButton || !codeInfo) return;
         this.#codeInfo = codeInfo;
 
         addCodeBox.addEventListener('click', () => this.#refreshCodeInfoWhenDone('add', addCodeBox));
@@ -73,7 +74,7 @@ export class HSCodes extends HSModule {
 
     // Not while autosing runs: it uses both codes at every singularity, with the Settings tab hidden.
     #refreshCodeInfoWhenDone(code: 'add' | 'time', hoverTarget: HTMLElement) {
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return;
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
         if (this.#pendingCodeInfoRefresh.has(code)) return;
         this.#pendingCodeInfoRefresh.add(code);
 
@@ -87,7 +88,7 @@ export class HSCodes extends HSModule {
 
     #observe() {
         this.#codeBoxLabelObserver?.disconnect();
-        this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel as HTMLLabelElement, this.#config);
+        if (this.#codeBoxLabel) this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel, this.#config);
     }
 
     #disconnect() {

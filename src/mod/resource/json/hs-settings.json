@@ -148,7 +148,7 @@
   "compactChallengeText": {
     "settingName": "compactChallengeText",
     "settingDescription": "Compact progress text in the game's challenge modules",
-    "settingHelpText": "Show current/required amounts or Challenge 15 scores without the challenge name, at any cell height. Hover for the full description. Inactive modules keep the game's challenge-name preview in the editor.",
+    "settingHelpText": "Show current/required amounts or Challenge 15 scores without the challenge name, using one grid row. Hover for the full description. Inactive modules keep the game's challenge-name preview in the editor.",
     "settingType": "boolean",
     "enabled": false,
     "hidden": true,

@@ -399,9 +399,12 @@ async function askTagMessageSuffix() {
 
 const bridgeFile = 'src/loader/tampermonkey-bridge.user.js';
 const patcherFile = 'synergism_modloader/lib/patcher.js';
-// Both: (before)(version)(after), as writeFileVersion() puts them back
+const bridgeVersionsFile = 'src/loader/shared/userscript-versions.json';
+const browserLoaderFile = 'src/loader/shared/browser-loader.mjs';
+// (before)(version)(after), as writeFileVersion() puts them back.
 const userscriptVersionRe = /^(\/\/\s*@version\s+)(\S+)()/m;
-const patcherVersionRe = /(const loaderVersion\s*=\s*')([^']+)(')/;
+const bridgeSourceVersionRe = /("liveBridge"\s*:\s*")([^"]+)(")/;
+const patcherVersionRe = /\b(loaderVersion\s*=\s*['"])([^'"]+)(['"])/;
 
 /** Read a version from file content (current working tree, or `ref` when given). */
 function readFileVersion(file, re, ref) {
@@ -416,11 +419,12 @@ function bumpLastNumber(version) {
     return version.replace(/(\d+)(?!.*\d)/, (n) => String(Number(n) + 1));
 }
 
-/** Write `version` into `file` through `re` and stage the file for the release commit. */
+/** Write `version` into the canonical loader source. */
 function writeFileVersion(file, re, version) {
     const path = join(root, file);
-    writeFileSync(path, readFileSync(path, 'utf8').replace(re, `$1${version}$3`), 'utf8');
-    runAndCheck('git', ['add', file]);
+    const content = readFileSync(path, 'utf8');
+    if (!re.test(content)) fatal(`Could not find the loader version in ${file}.`);
+    writeFileSync(path, content.replace(re, (_, before, _old, after) => before + version + after), 'utf8');
 }
 
 /**
@@ -445,6 +449,7 @@ async function checkLoaderVersions(status) {
         return;
     }
     const changed = new Set(String(diff.stdout).split(/\r?\n/).map(line => line.trim()).filter(Boolean));
+    const regenerate = [];
 
     // 1) Bridge: a changed bridge needs a higher @version, or Tampermonkey never updates it
     if (changed.has(bridgeFile)) {
@@ -454,8 +459,9 @@ async function checkLoaderVersions(status) {
             const bumped = bumpLastNumber(now);
             warn(`${bridgeFile} changed since ${previousTag} but its @version is still ${now}: Tampermonkey won't update it for players.`);
             if (await askYesNo(`Bump the bridge @version from ${now} to ${bumped}?`)) {
-                writeFileVersion(bridgeFile, userscriptVersionRe, bumped);
-                success(`Bridge @version bumped to ${bumped} (staged for the release commit).`);
+                writeFileVersion(bridgeVersionsFile, bridgeSourceVersionRe, bumped);
+                regenerate.push(bridgeVersionsFile, bridgeFile);
+                success(`Bridge @version bumped to ${bumped}.`);
             } else {
                 warn('Bridge @version not bumped: players with the bridge installed will keep the old one.');
             }
@@ -471,12 +477,17 @@ async function checkLoaderVersions(status) {
             const bumped = bumpLastNumber(now);
             warn(`${patcherFile} changed since ${previousTag} but its loaderVersion is still ${now}.`);
             if (await askYesNo(`Bump the patcher loaderVersion from ${now} to ${bumped}?`)) {
-                writeFileVersion(patcherFile, patcherVersionRe, bumped);
-                success(`Patcher loaderVersion bumped to ${bumped} (staged for the release commit).`);
+                writeFileVersion(browserLoaderFile, patcherVersionRe, bumped);
+                regenerate.push(browserLoaderFile, patcherFile);
+                success(`Patcher loaderVersion bumped to ${bumped}.`);
             } else {
                 warn('Patcher loaderVersion not bumped: its console logs will show the same version as the previous release.');
             }
         }
+    }
+    if (regenerate.length) {
+        runAndCheck('node', ['scripts/build-loaders.cjs'], { cwd: root });
+        runAndCheck('git', ['add', '--', ...regenerate]);
     }
 }
 

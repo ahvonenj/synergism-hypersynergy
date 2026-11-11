@@ -1,8 +1,8 @@
 import type { AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import type { AmbrosiaUpgradeData } from "../../../types/data-types/hs-player-savedata";
-import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+
 import { HSGlobal } from "../../hs-core/hs-global";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
@@ -172,7 +172,7 @@ export class HSAmbrosiaTemporaryTree {
     }
 
     #ambrosiaUpgradeConfigs(): Record<string, AmbrosiaUpgradeCalculationConfig<any> | undefined> | undefined {
-        return HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.ambrosia.ambrosiaUpgradeCalculationCollection as
+        return HSModuleRegistry.getModule('HSGameDataAPI')?.ambrosia.ambrosiaUpgradeCalculationCollection as
             Record<string, AmbrosiaUpgradeCalculationConfig<any> | undefined> | undefined;
     }
 

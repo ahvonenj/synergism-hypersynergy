@@ -1,6 +1,6 @@
 {
   "name": "synergism-hypersynergy",
-  "version": "2.14.7e",
+  "version": "2.14.8",
   "private": true,
   "description": "Hypersynergism mod for the Synergism browser game.",
   "repository": {
@@ -23,6 +23,7 @@
     "test:heater": "node scripts/tests/test-heater-vouchers.cjs",
     "test:heater-coins": "node scripts/tests/test-heater-coins.cjs",
     "build": "node esbuild.config.js build",
+    "build:loaders": "node scripts/build-loaders.cjs",
     "release": "node esbuild.config.js release",
     "dev": "node esbuild.config.js dev",
     "release-and-tag-helper": "node scripts/release-and-tag-helper.mjs",

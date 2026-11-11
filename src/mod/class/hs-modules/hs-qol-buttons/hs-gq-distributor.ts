@@ -1,8 +1,8 @@
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+
 import { goldenQuarkUpgradeMinimumSingularity } from "../../hs-core/gds/hs-gamedata-tables";
 import { GoldenQuarkUpgradeKey } from "../../../types/data-types/hs-gamedata-api-types";
 import type { GameData } from "../../../types/data-types/hs-player-savedata";
@@ -190,7 +190,7 @@ export class HSGQDistributor {
 
         let gameData: GameData | undefined;
         try {
-            gameData = await HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getForcedGameData();
+            gameData = await HSModuleRegistry.getModule('HSGameDataAPI')?.getForcedGameData();
         } catch (error) {
             HSLogger.warn(`Could not load GQ distributor save data: ${error}`, this.#context);
         }
@@ -356,7 +356,7 @@ export class HSGQDistributor {
         matchRatios.addEventListener('click', async () => {
             setControlsDisabled(true);
             try {
-                const data = await HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getForcedGameData();
+                const data = await HSModuleRegistry.getModule('HSGameDataAPI')?.getForcedGameData();
                 if (!data) throw new Error('Player save unavailable.');
                 setStatus(syncInvestedRatios(data) ? 'Ratios matched to existing investments.' : 'No GQ invested yet; ratios unchanged.');
             } catch (error) {
@@ -440,7 +440,7 @@ export class HSGQDistributor {
         // Holds the dialog lock from the save snapshot to the last purchase
         await HSGameDialogs.run('gqDistributor', {}, async (s) => {
             // One fresh save snapshot per distribution; continuous GDS stays unchanged.
-            const gameData = await HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getForcedGameData();
+            const gameData = await HSModuleRegistry.getModule('HSGameDataAPI')?.getForcedGameData();
             if (!gameData) throw new Error('Player save unavailable.');
             const totalGQ = gameData.goldenQuarks;
             const ratios: Record<string, number> = {};
@@ -527,7 +527,7 @@ export class HSGQDistributor {
      * Their share goes to the other upgrades, or stays unspent with "Keep the share of skipped upgrades".
      */
     #findBuyableUpgrades(ids: string[], totalGQ: number, skipped: SkippedUpgrades): { buyableIds: string[], nextLevelCostById: Map<string, number> } {
-        const gqHelper = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.goldenQuark;
+        const gqHelper = HSModuleRegistry.getModule('HSGameDataAPI')?.goldenQuark;
         const nextLevelCostById = new Map<string, number>();
         const buyableIds = ids.filter((id) => {
             if (!gqHelper) return true;

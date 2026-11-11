@@ -13,7 +13,7 @@ import { HSSettings } from "./settings/hs-settings";
  */
 export class HSMouse extends HSModule {
 
-    static #mousePosition: HSMousePosition = { x: 0, y: 0 };
+    static readonly #mousePosition: HSMousePosition = { x: 0, y: 0 };
 
     static #hoverUpdateInterval: number | null;
     static #autoClickUpdateInterval: number | null;
@@ -64,10 +64,8 @@ export class HSMouse extends HSModule {
     }
 
     static #updateMousePosition(e: MouseEvent) {
-        this.#mousePosition = {
-            x: e.clientX,
-            y: e.clientY
-        }
+        this.#mousePosition.x = e.clientX;
+        this.#mousePosition.y = e.clientY;
     }
 
     // Emits a mouse event at the current mouse position

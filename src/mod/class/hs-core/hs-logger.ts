@@ -1,7 +1,7 @@
 import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
-import { HSModuleManager } from "./module/hs-module-manager";
+import { HSModuleRegistry } from "./module/hs-module-registry";
 import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
@@ -388,8 +388,9 @@ export class HSLogger {
     // A module's context takes its moduleColor, another context the color listed for it in HSGlobal
     static #colorContext(context: string): string {
         const listed = HSGlobal.HSLogger.contextColors[context];
-        const module = HSModuleManager.getModule(context) ?? (listed ? HSModuleManager.getModule(listed) : undefined);
-        const color = module?.moduleColor ?? listed;
+        const color = HSModuleRegistry.getModuleColor(context)
+            ?? (listed ? HSModuleRegistry.getModuleColor(listed) : undefined)
+            ?? listed;
         return color ? HSUtils.parseColorTags(context.colorTag(color)) : context;
     }
 

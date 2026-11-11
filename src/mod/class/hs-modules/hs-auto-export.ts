@@ -4,10 +4,9 @@ import { HSPlatform } from "../hs-core/hs-platform";
 import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleManager } from "../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 import { HSSettings } from "../hs-core/settings/hs-settings";
-import type { HSAmbrosia } from "./hs-ambrosia/hs-ambrosia";
-import type { HSAutosing } from "./hs-autosing/hs-autosing";
+
 import { HSAutoExportFolder } from "./hs-auto-export-folder";
 
 const TICK_MS = 10_000;
@@ -95,7 +94,7 @@ export class HSAutoExport extends HSModule {
         if (!Number.isFinite(minutes) || minutes <= 0) return;
         if (Date.now() - this.#lastExport() < minutes * MINUTE_MS) return;
 
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return;
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
         if (document.getElementById('offlineContainer')?.style.display === 'flex') return;
 
         if (!this.#exportFolder.canExport()) return;
@@ -140,7 +139,7 @@ export class HSAutoExport extends HSModule {
         }
 
         const loadout = String(HSSettings.getSetting('autoExportSaveLoadout')?.getValue() ?? '');
-        const ambrosia = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+        const ambrosia = HSModuleRegistry.getModule('HSAmbrosia');
         let note: string | undefined;
         if (loadout && ambrosia) {
             note = ambrosia.runWithLoadout(loadout, 'autoExport', () => exportButton.click());

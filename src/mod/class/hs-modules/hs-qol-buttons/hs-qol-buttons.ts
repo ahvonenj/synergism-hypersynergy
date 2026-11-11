@@ -1,9 +1,9 @@
 import { HSModuleOptions } from "../../../types/hs-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
-import { HSGameState, SingularityView } from "../../hs-core/hs-gamestate";
+import { SingularityView } from "../../hs-core/hs-gamestate";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSModule } from "../../hs-core/module/hs-module";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
@@ -288,7 +288,7 @@ export class HSQOLButtons extends HSModule {
      * Returns an unsubscribe function
      */
     #subscribeToTabVisit( tabId: SINGULARITY_VIEW, onTabVisit: () => void ): (() => void) | null {
-        const gameState = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameState = HSModuleRegistry.getModule('HSGameState');
         if (!gameState) return null;
 
         // If a subscription for this tab already exists, unsubscribe it first

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../hs-modules/hs-heater/hs-heater-utils';
+import { escapeHtml } from '../hs-utils/hs-escape';
 
 export type HSTooltipPlacement = 'below' | 'above' | 'right' | 'left';
 

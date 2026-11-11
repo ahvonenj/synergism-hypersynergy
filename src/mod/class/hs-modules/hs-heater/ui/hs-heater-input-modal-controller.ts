@@ -1,8 +1,8 @@
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUIC } from "../../../hs-core/hs-ui-components";
-import { HSGameDataAPI } from "../../../hs-core/gds/hs-gamedata-api";
+
 import { HEATER_WORKER_COUNTS, heaterWorkerCount, HSHeatCancelledError, HSHeaterOptimizerRunner } from "../hs-heater-optimizer-runner";
 import { HSUtils } from "../../../hs-utils/hs-utils";
 import { HSHeaterUIStyles } from "./hs-heater-ui-styles";
@@ -11,13 +11,12 @@ import { HSHeaterResultStore } from "../hs-heater-result-store";
 import { HSHeaterResultModalController } from "./hs-heater-result-modal-controller";
 import { HSHeaterRedAmbrosiaModalController } from "./hs-heater-red-ambrosia-modal-controller";
 import { HEATER_BEST_H_SEMANTIC_ID, resolveHeaterTypeLabel } from "../hs-heater-result-config";
-import { escapeHtml, escapeLogText } from "../hs-heater-utils";
+import { escapeHtml, escapeLogText } from "../../../hs-utils/hs-escape";
 import { getHeaterTypeDropdownOptionsWithIcons } from "../hs-heater-icon-store";
 import { HSSettings } from "../../../hs-core/settings/hs-settings";
 import { HSSettingsUI } from "../../../hs-core/settings/hs-settings-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSSettingsDefinition } from "../../../../types/module-types/hs-settings-types";
-import type { HSAmbrosia } from "../../hs-ambrosia/hs-ambrosia";
 
 export class HSHeaterInputModalController {
     static context = 'HSHeaterInputModalController';
@@ -44,7 +43,6 @@ export class HSHeaterInputModalController {
         autoExportSaveLoadout:              { label: 'Timed Export',            preferences: ["quarks"] },
     };
 
-
     // ================================================================
     // Modal lifecycle / entry point
     // ================================================================
@@ -56,10 +54,10 @@ export class HSHeaterInputModalController {
             return;
         }
 
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
         if (!hsui) return;
 
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>("HSGameDataAPI");
+        const dataModule = HSModuleRegistry.getModule("HSGameDataAPI");
         if (!dataModule) return;
 
         const heaterData = await dataModule.dumpDataForHeater();
@@ -69,7 +67,7 @@ export class HSHeaterInputModalController {
 
         HSHeaterUIStyles.ensureHeaterStylesInjected();
 
-        const ambrosiaModule = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+        const ambrosiaModule = HSModuleRegistry.getModule('HSAmbrosia');
         const loadoutsAmountRaw = ambrosiaModule?.getAmbrosiaLoadoutsAmount();
         const loadoutsAmount = Number.isInteger(loadoutsAmountRaw) && (loadoutsAmountRaw as number) > 0
             ? (loadoutsAmountRaw as number)
@@ -115,6 +113,9 @@ export class HSHeaterInputModalController {
             headerClass: 'hs-heater-inputs-header',
             bodyClass: 'hs-heater-inputs-body',
             position: { x: 50, y: 10 },
+            onClose: (modal) => {
+                if (this.currentInputsModalId === modal.id) this.cleanupInputsModalState();
+            },
             styles: {
                 width: 'auto',
                 height: this.#MAX_MODAL_HEIGHT,
@@ -122,6 +123,7 @@ export class HSHeaterInputModalController {
             onBeforeShow: (modal) => this.#fitHeightToRightColumn(modal),
         });
 
+        if (!document.getElementById(modalId)) return;
         this.currentInputsModalId = modalId;
         this.attachModalHandlers(modalId);
         HSHeaterResultModalController.reconnectToInputsModal(modalId);
@@ -162,7 +164,6 @@ export class HSHeaterInputModalController {
         `;
     }
 
-
     // ================================================================
     // Cached DOM lookup helpers
     // ================================================================
@@ -182,7 +183,6 @@ export class HSHeaterInputModalController {
         this.cacheInputsModalElements(modal);
         return modal;
     }
-
 
     // ================================================================
     // Modal event wiring / action handlers
@@ -206,7 +206,6 @@ export class HSHeaterInputModalController {
         HSHeaterUIInput.attachBranchCheckboxHandlers(modal);
         this.updateSyncSettingsButtonWarningState(modal);
         HSHeaterResultModalController.syncLoadoutAvailabilityState(modal);
-        this.monitorInputsModalRemoval(modal);
 
         const updateInputsButton = modal.querySelector('#hs-heater-update-inputs-btn') as HTMLElement | null;
         updateInputsButton?.addEventListener('click', async () => {
@@ -216,7 +215,7 @@ export class HSHeaterInputModalController {
             await HSUtils.waitForNextTack();
 
             try {
-                const dataModule = HSModuleManager.getModule<HSGameDataAPI>("HSGameDataAPI");
+                const dataModule = HSModuleRegistry.getModule("HSGameDataAPI");
                 if (!dataModule) {
                     HSUI.Notify('Failed to update inputs because data module was unavailable.', { position: 'top', notificationType: 'error' });
                     return;
@@ -403,7 +402,7 @@ export class HSHeaterInputModalController {
 
         const syncIconsButton = modal.querySelector('#hs-heater-sync-icons-btn') as HTMLElement | null;
         syncIconsButton?.addEventListener('click', async () => {
-            const ambrosiaModule = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+            const ambrosiaModule = HSModuleRegistry.getModule('HSAmbrosia');
             if (!ambrosiaModule) return;
 
             const typeSelects = this.#cachedTypeSelects.length ? this.#cachedTypeSelects : Array.from(modal.querySelectorAll('.hs-heater-type-select')) as HTMLSelectElement[];
@@ -491,7 +490,6 @@ export class HSHeaterInputModalController {
         });
     }
 
-
     // ================================================================
     // Loadout selection / settings sync helpers
     // ================================================================
@@ -526,33 +524,11 @@ export class HSHeaterInputModalController {
         return '';
     }
 
-
     // ================================================================
     // Modal cleanup / lifecycle helpers
     // ================================================================
 
-    private static monitorInputsModalRemoval(modal: HTMLElement): void {
-        if (this.#currentInputsModalObserver) return;
-
-        this.#currentInputsModalObserver = new MutationObserver(() => {
-            const modalRootExists = this.#cachedInputsModal?.isConnected ?? !!(this.currentInputsModalId && document.getElementById(this.currentInputsModalId));
-            if (!this.currentInputsModalId || !modalRootExists) {
-                this.cleanupInputsModalState();
-            }
-        });
-
-        this.#currentInputsModalObserver.observe(document.body, {
-            childList: true,
-            subtree: true,
-        });
-    }
-
     private static cleanupInputsModalState(): void {
-        if (this.#currentInputsModalObserver) {
-            this.#currentInputsModalObserver.disconnect();
-            this.#currentInputsModalObserver = null;
-        }
-
         HSHeaterUIInput.cleanupHeaterTypeSelectState();
 
         const resultModalExists = HSHeaterResultModalController.currentResultModalId
@@ -566,7 +542,6 @@ export class HSHeaterInputModalController {
             HSHeaterResultStore.clearCurrentNormalizedResult();
         }
     }
-
 
     // ================================================================
     // Cached modal element helpers

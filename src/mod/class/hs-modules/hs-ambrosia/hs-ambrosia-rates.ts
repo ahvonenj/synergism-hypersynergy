@@ -1,11 +1,11 @@
-import type { HSGameData } from "../../hs-core/gds/hs-gamedata";
+
 import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSHeaderModules } from "../../hs-core/header/hs-header-modules";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import type { HSAutosing } from "../hs-autosing/hs-autosing";
+
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaGameDataLink } from "./hs-ambrosia-parts";
 
@@ -150,7 +150,7 @@ export class HSAmbrosiaRates {
     /** From GDS's last save data: never forces a save. */
     #refreshRateHeader(): void {
         try {
-            const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+            const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
             const rates = this.#calculateHourlyRates(gameDataAPI);
             // No save data yet (at load): the next one gives the first value, not 5s later
             if (rates) this.#lastRateHeaderRefresh = performance.now();
@@ -230,7 +230,7 @@ export class HSAmbrosiaRates {
 
     // Cached game data is only current while the GDS engine runs (it can be paused with the setting ON)
     #isGDSRunning(): boolean {
-        return HSModuleManager.getModule<HSGameData>('HSGameData')?.isGDSRunning() ?? false;
+        return HSModuleRegistry.getModule('HSGameData')?.isGDSRunning() ?? false;
     }
 
     /** Draws the tab's rates (and the header's), after the refreshes already queued. @param forceRefresh forces a save */
@@ -239,7 +239,7 @@ export class HSAmbrosiaRates {
             if (!this.#isTabActive()) return;
 
             this.#ensureBarIncomeElements();
-            const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+            const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
             if (!gameDataAPI) {
                 this.#setBarIncomeUnavailable();
                 return;
@@ -345,7 +345,7 @@ export class HSAmbrosiaRates {
 
         // Without GDS each refresh forces a save: every 2s, but 10s while autosing runs (it pauses GDS, and its speed comes first).
         // With GDS running the timer is only a safety net.
-        const autosingActive = HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive() ?? false;
+        const autosingActive = HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive() ?? false;
         const delay = this.#isGDSRunning() || autosingActive ? 10_000 : 2_000;
 
         this.#barIncomeRefreshTimer = setTimeout(() => {

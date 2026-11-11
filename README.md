@@ -55,7 +55,7 @@ While the game is running, a rainbow border around the mod's icon means a newer 
 
 #### Live or Dev
 
-The mod comes from one of two GitHub repos: `Ferlieloi` (Live, the default) or `maenhiir` (Dev). To switch to Dev, open the loader script in Tampermonkey's dashboard, change `const repo = 'Ferlieloi'` to `const repo = 'maenhiir'`, save, and reload the game. To go back to Live, change it back. Tampermonkey's auto-update of the loader script can switch you back to Live.
+The mod comes from one of two GitHub repos: `Ferlieloi` (Live, the default) or `maenhiir` (Dev). To switch to Dev, open the bridge script in Tampermonkey's dashboard, set its `repo` value to `'maenhiir'`, save, and reload the game. Set it to `'Ferlieloi'` to return to Live. Tampermonkey's auto-update of the bridge script can switch you back to Live.
 
 ### 🔖 With a bookmark (NOT RECOMMENDED)
 

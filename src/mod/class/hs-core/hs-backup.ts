@@ -2,12 +2,12 @@ import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
-import { HSModuleManager } from "./module/hs-module-manager";
-import { HSGameData } from "./gds/hs-gamedata";
+import { HSModuleRegistry } from "./module/hs-module-registry";
+
 import { HSPlatform } from "./hs-platform";
-import type { HSGameDataAPI } from "./gds/hs-gamedata-api";
+
 import { HSGameDialogs } from "./dialogs/hs-game-dialogs";
-import { HSAutosing } from "../hs-modules/hs-autosing/hs-autosing";
+
 import backupCSS from "inline:../../resource/css/module/hs-backup.css";
 
 // The game's own localStorage key for its save: the same base64 string as its export file
@@ -121,7 +121,6 @@ export class HSBackup {
         logs: 'hs-panel-backup-part-logs',
     };
 
-
     // ===============================
     // ------- Tools tab section -----
     // ===============================
@@ -166,7 +165,6 @@ export class HSBackup {
         HSBackup.#blockStorageWrites({ modData: {} });
         HSBackup.#reload('Stored settings cleared');
     }
-
 
     // ===============================
     // ------------ Export -----------
@@ -228,7 +226,7 @@ export class HSBackup {
 
     /** The heater export's data, or why it is missing: a failure never stops the backup. */
     static async #collectDiagnostics(): Promise<HSBackupDiagnostics> {
-        const api = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const api = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!api) return { heaterError: 'HSGameDataAPI not loaded' };
 
         try {
@@ -247,7 +245,7 @@ export class HSBackup {
     static #captureSave(): string | null {
         const before = localStorage.getItem(SAVE_KEY);
         // Synchronous: the game writes its save to localStorage before this returns
-        const captured = HSModuleManager.getModule<HSGameData>('HSGameData')?.forceCaptureRawSaveSync();
+        const captured = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         const stored = localStorage.getItem(SAVE_KEY);
 
         if (!stored) return null;
@@ -352,7 +350,6 @@ export class HSBackup {
         HSLogger.log(`Backup downloaded as "${name}"`, HSBackup.#context);
         return name;
     }
-
 
     // ===============================
     // ------------ Import -----------
@@ -482,7 +479,7 @@ export class HSBackup {
     }
 
     static async #openImportModal(fileName: string, content: HSBackupImport): Promise<void> {
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
         if (!hsui) return;
 
         const row = (part: string, label: string, checked: boolean) =>
@@ -656,13 +653,12 @@ export class HSBackup {
         return null;
     }
 
-
     // ===============================
     // ----------- Helpers -----------
     // ===============================
 
     static #isAutosingActive(): boolean {
-        return HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive() ?? false;
+        return HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive() ?? false;
     }
 
     static #refusedDuringAutosing(action: string): boolean {

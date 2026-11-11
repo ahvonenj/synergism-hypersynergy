@@ -33,6 +33,8 @@ declare global {
         __HS_runManualAscension?: (reset: () => void) => void;
         __HS_headerModuleUnlocks?: Record<string, () => boolean>;
         __HS_beforeHeaderRender?: () => void;
+        __HS_HEADER_CHALLENGE_SIZE_PATCHED?: boolean;
+        __HS_compactChallengeText?: boolean;
         __HS_HEADER_BUTTONS_PATCHED?: boolean;
         __HS_headerButtonCapacity?: (defaultCapacity: number) => number;
         __HS_canJoinHeaderButtons?: (slot: readonly string[], id: string) => boolean | undefined;

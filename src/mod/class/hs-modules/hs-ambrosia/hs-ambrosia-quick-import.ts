@@ -1,11 +1,11 @@
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
-import type { HSAutosing } from "../hs-autosing/hs-autosing";
+
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
 
@@ -106,7 +106,7 @@ export class HSAmbrosiaQuickImport {
 
     /** Adds the Quick Import button after the game's import button. */
     async init(): Promise<void> {
-        const importBtn = await HSElementHooker.HookElement('#importBlueberriesButton') as HTMLButtonElement;
+        const importBtn = await HSElementHooker.HookElement<HTMLButtonElement>('#importBlueberriesButton');
         if (!importBtn) return;
 
         if (document.getElementById('hs-ambrosia-extra-btn')) return;
@@ -258,7 +258,7 @@ export class HSAmbrosiaQuickImport {
 
     /** Without the patched game, imports go through the game's import and loadout clicks: not while autosing runs. */
     #refuseGameImportDuringAutosing(): boolean {
-        if (!HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return false;
+        if (!HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return false;
         HSUI.Notify('Loadout import is unavailable while Auto-Sing runs (the game is not patched)', { notificationType: 'warning' });
         return true;
     }

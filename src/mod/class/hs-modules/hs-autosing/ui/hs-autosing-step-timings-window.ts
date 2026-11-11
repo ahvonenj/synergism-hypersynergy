@@ -1,7 +1,7 @@
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
-import { escapeHtml } from "../../hs-heater/hs-heater-utils";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 import type { HSUIXY } from "../../../../types/module-types/hs-ui-types";
 import { buildStepTable, stepTableSummaryLines, stepTableText, type HSAutosingStepRow, type HSAutosingStepTableInfo } from "../hs-autosingStepTable";
 
@@ -41,7 +41,7 @@ export class HSAutosingStepTimingsWindow {
 
     /** Opens the window, or closes it if it is open. @param panel Where the run panel is: the window opens beside it, at its height */
     static async toggle(getInfo: () => HSAutosingStepTableInfo, panel: DOMRect | undefined): Promise<void> {
-        const uiMod = HSModuleManager.getModule<HSUI>('HSUI');
+        const uiMod = HSModuleRegistry.getModule('HSUI');
         if (!uiMod || !uiMod.uiReady || HSAutosingStepTimingsWindow.#opening) return;
         if (HSAutosingStepTimingsWindow.#isOpen()) {
             HSAutosingStepTimingsWindow.close();
@@ -93,7 +93,7 @@ export class HSAutosingStepTimingsWindow {
 
     static close(): void {
         if (!HSAutosingStepTimingsWindow.#isOpen()) return;
-        void HSModuleManager.getModule<HSUI>('HSUI')?.CloseModal(HSAutosingStepTimingsWindow.#modalId);
+        void HSModuleRegistry.getModule('HSUI')?.CloseModal(HSAutosingStepTimingsWindow.#modalId);
     }
 
     /** Right of the run panel if the window fits there, else left of it. The UI keeps it on screen. */

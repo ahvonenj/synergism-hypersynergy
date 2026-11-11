@@ -1,8 +1,7 @@
 import { HSLogger } from '../../hs-core/hs-logger';
 import { HSSettings } from '../../hs-core/settings/hs-settings';
 import { HSSettingsDefinition } from '../../../types/module-types/hs-settings-types';
-import { HSModuleManager } from '../../hs-core/module/hs-module-manager';
-import type { HSGameData } from '../../hs-core/gds/hs-gamedata';
+import { HSModuleRegistry } from '../../hs-core/module/hs-module-registry';
 import {
     captureAutosingSettings, getAutosingGameSettings, HS_AUTOSING_BUY_AMOUNTS, planAutosingSettings,
     type HSAutosingGameSetting, type HSAutosingSettingChange, type HSAutosingSettingsSnapshot,
@@ -59,7 +58,7 @@ export class HSAutosingSettingsFixer {
     }
 
     #readSettings(settings: HSAutosingGameSetting[]): HSAutosingSettingsSnapshot {
-        const raw = HSModuleManager.getModule<HSGameData>('HSGameData')?.forceCaptureRawSaveSync();
+        const raw = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         if (!raw) throw new Error('Could not read a fresh game save (saving may be blocked by offline progress).');
         return captureAutosingSettings(JSON.parse(raw), settings);
     }
@@ -100,7 +99,7 @@ export class HSAutosingSettingsFixer {
     async #disableUnwantedSettings(): Promise<void> {
         // GDS: only its engine is paused, the setting is kept, so a reload during autosing can't
         // leave GDS turned off. Released by stopAutosing().
-        await HSModuleManager.getModule<HSGameData>('HSGameData')?.pauseGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
+        await HSModuleRegistry.getModule('HSGameData')?.pauseGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
 
         const performanceSettingKeys = [
             'enableAutomationQuickBar',

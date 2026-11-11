@@ -3,7 +3,7 @@ const assert = require('node:assert/strict')
 const { patchBundle } = require('../lib/patcher.js')
 
 const BROWSER_PATCHES = ['export', 'exportOutput', 'stage', 'player', 'talismans', 'getMaxChallenges', 'tack', 'dialogHook',
-    'validateBlueberryTree', 'saveImportHook', 'manualAscension', 'consumables', 'pcoinLevels', 'quarkBonus', 'globalEvent', 'headerModules', 'saveSeedCap', 'headerButtons', 'headerLongPress']
+    'validateBlueberryTree', 'saveImportHook', 'manualAscension', 'consumables', 'pcoinLevels', 'quarkBonus', 'globalEvent', 'headerModules', 'saveSeedCap', 'headerChallengeSize', 'headerButtons', 'headerLongPress']
 
 const patch = (code, options = {}) => {
     const logs = []

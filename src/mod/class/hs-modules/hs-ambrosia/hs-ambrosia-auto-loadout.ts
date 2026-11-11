@@ -1,12 +1,12 @@
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSelectStringSetting } from "../../hs-core/settings/hs-setting";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
-import type { HSAutosing } from "../hs-autosing/hs-autosing";
+
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
 
@@ -40,21 +40,21 @@ export class HSAmbrosiaAutoLoadout {
 
     async init(): Promise<void> {
         const [addCodeButton, addCodeAllButton, addCodeOneButton, timeCodeButton] = await Promise.all([
-            HSElementHooker.HookElement('#addCode'),
-            HSElementHooker.HookElement('#addCodeAll'),
-            HSElementHooker.HookElement('#addCodeOne'),
-            HSElementHooker.HookElement('#timeCode'),
+            HSElementHooker.HookElement<HTMLButtonElement>('#addCode'),
+            HSElementHooker.HookElement<HTMLButtonElement>('#addCodeAll'),
+            HSElementHooker.HookElement<HTMLButtonElement>('#addCodeOne'),
+            HSElementHooker.HookElement<HTMLButtonElement>('#timeCode'),
         ]);
 
-        this.#addCodeButton = addCodeButton as HTMLButtonElement;
-        this.#addCodeAllButton = addCodeAllButton as HTMLButtonElement;
-        this.#addCodeOneButton = addCodeOneButton as HTMLButtonElement;
-        this.#timeCodeButton = timeCodeButton as HTMLButtonElement;
+        this.#addCodeButton = addCodeButton;
+        this.#addCodeAllButton = addCodeAllButton;
+        this.#addCodeOneButton = addCodeOneButton;
+        this.#timeCodeButton = timeCodeButton;
     }
 
     static getAscensionLoadout(): string {
         if (!HSSettings.getSetting('ascensionAutoLoadout')?.isEnabled()
-            || HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return '';
+            || HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return '';
         return String(HSSettings.getSetting('autoLoadoutAscension')?.getValue() ?? '');
     }
 
@@ -222,7 +222,7 @@ export class HSAmbrosiaAutoLoadout {
     // Not while autosing runs: autosing sets its own loadout before using the codes.
 
     async #addCodeButtonHandler(e: Event) {
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return;
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
         const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSelectStringSetting;
 
         if (addLoadoutSetting) {
@@ -235,7 +235,7 @@ export class HSAmbrosiaAutoLoadout {
     }
 
     async #timeCodeButtonHandler(e: Event) {
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return;
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
         const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSelectStringSetting;
 
         if (timeLoadoutSetting) {
@@ -281,7 +281,7 @@ export class HSAmbrosiaAutoLoadout {
             const restore = this.#pendingCodeRestore;
             this.#pendingCodeRestore = undefined;
             if (!restore) return;
-            if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return;
+            if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
             if (this.#slots.gameActive()?.id !== restore.codeSlotId) return;
             this.#slots.load(restore.slot, 'autoLoadoutRestore');
         });

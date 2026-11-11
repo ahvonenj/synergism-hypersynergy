@@ -11,7 +11,7 @@ async function main() {
     const autosing = path.join(root, 'src/mod/class/hs-modules/hs-autosing/hs-autosing.ts');
     const stubs = {
         'hs-module': 'export class HSModule { constructor() { this.context = "Test"; } }',
-        'hs-module-manager': 'export const HSModuleManager = { getModule() {} };',
+        'hs-module-registry': 'export const HSModuleRegistry = { getModule() {} };',
         'hs-global': 'export const HSGlobal = { get exposedPlayer() { return globalThis.__corruptionTest.live ? globalThis.__corruptionTest.player : null; } };',
         'hs-logger': 'export const HSLogger = { debug() {}, log(msg) { globalThis.__corruptionTest?.logs?.push(msg); }, warn() {}, error() {} };',
         'hs-ui': 'export const HSUI = { Notify() {} };',
@@ -46,19 +46,19 @@ async function main() {
                     configureForTest(ascend: any, exit: any, action: any, progress: any) {
                         this.#autosingEnabled = true;
                         this.#corruptionManager = new HSAutosingCorruption();
-                        this.#ascendBtn = ascend;
-                        this.#exitAscBtn = exit;
-                        this.#antSacrifice = action;
+                        this.#dom.ascendBtn = ascend;
+                        this.#dom.exitAscBtn = exit;
+                        this.#dom.antSacrifice = action;
                         this.#exposedPlayer = HSGlobal.exposedPlayer;
                         this.#hasLivePlayer = !!this.#exposedPlayer;
-                        this.#challengeProgressElements[2] = progress;
+                        this.#dom.challengeProgressElements[2] = progress;
                     }
                     runPhaseForTest(phase: AutosingStrategyPhase) { return this.#executePhase(phase); }
                     runFinalStageForTest(aoagPhase: AutosingStrategyPhase) {
                         this.#strategy = { strategyName: 'Test', strategy: [], aoagPhase };
                         this.#strategyPhaseRanges = [];
                         this.#finalPhaseConfig = { startPhase: 'singularity', endPhase: 'end', strat: [] };
-                        this.#ambrosiaSwitchesOff = true;
+                        this.#dom.ambrosiaSwitchesOff = true;
                         return this.#performFinalStage();
                     }
                     cancelForTest() { this.#autosingEnabled = false; }

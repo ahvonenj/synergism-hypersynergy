@@ -172,17 +172,6 @@ export const HSGlobal: IHSGlobal = class {
     static HSSettings = {
         storageKey: 'settings',
         strategiesKey: 'strategies',
-        serializationBlackList: [
-            'settingDescription',
-            'settingHelpText',
-            'settingValueMultiplier',
-            'defaultValue',
-            'settingControl',
-            'settingAction',
-            'usesGameData',
-            'hidden',
-            'platforms',
-        ],
         gameDataRequiredTooltip: 'This feature requires Game Data Sniffing to be enabled.',
 
         // Settings exempt from the "GDS must already be enabled" check. Features in

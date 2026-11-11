@@ -63,6 +63,33 @@ test('pcoinLevels: a mod hook that throws, or none, never breaks the game', asyn
     assert.equal(bare.__HS_pcoinLevels.CUBE_BUFF, 5)
 })
 
+test('pcoinLevels: the initializer can receive the purchased upgrades directly', async () => {
+    const calls = []
+    const window = { __HS_onPCoinChange: () => calls.push({ ...window.__HS_pcoinLevels }) }
+    const { game, warnings } = run(pcoin
+        .replace('gF=async()=>{let e=await Ad.fetchUpgrades();', 'gF=e=>{')
+        .replace('of e.playerUpgrades', 'of e'), window)
+    assert.deepEqual(warnings, [])
+    assert.equal(window.__HS_PATCH_REPORT.pcoinLevels, true)
+    assert.equal(window.__HS_pcoinLevelsLoaded, undefined)
+
+    game.gF([{ internalName: 'CUBE_BUFF', level: 5 }])
+    const levels = window.__HS_pcoinLevels
+    assert.equal(window.__HS_pcoinLevelsLoaded, true)
+    assert.equal(game.je.CUBE_BUFF, 1.3)
+    await game.hF('RED_LUCK_BUFF', 2)
+    assert.equal(levels.RED_LUCK_BUFF, 2)
+    assert.equal(game.je.RED_LUCK_BUFF, 40)
+
+    game.gF([])
+    assert.equal(window.__HS_pcoinLevels, levels)
+    assert.deepEqual(calls, [
+        { INSTANT_UNLOCK_1: 0, CUBE_BUFF: 5, RED_LUCK_BUFF: 0 },
+        { INSTANT_UNLOCK_1: 0, CUBE_BUFF: 5, RED_LUCK_BUFF: 2 },
+        { INSTANT_UNLOCK_1: 0, CUBE_BUFF: 0, RED_LUCK_BUFF: 0 },
+    ])
+})
+
 test('pcoinLevels: unminified spacing and a name starting with "$"', async () => {
     const window = {}
     const { game, warnings } = run(pcoin

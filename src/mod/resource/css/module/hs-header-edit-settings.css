@@ -1,9 +1,9 @@
 /* "[HS] Header", the block next to the game's header tray in edit mode (HSHeaderEditSettings) */
 
-html.hs-remove-header-gap #mainHeader:not(.headerEditMode) .hs-header-gap-last {
+html.hs-remove-header-gap #mainHeader:not(.headerEditMode):not([data-hs-header-gap-measuring]) .hs-header-gap-last {
    margin-bottom: var(--hs-header-gap-margin, 0px);
 }
-html.hs-remove-header-gap #mainHeader:not(.headerEditMode) .hs-header-gap-empty {
+html.hs-remove-header-gap #mainHeader:not(.headerEditMode):not([data-hs-header-gap-measuring]) .hs-header-gap-empty {
    display: none;
 }
 

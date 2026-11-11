@@ -1,4 +1,4 @@
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSHeaterUIStyles } from "./hs-heater-ui-styles";
 import { HSHeaterUIResult } from "./hs-heater-ui-result";
@@ -11,9 +11,6 @@ export class HSHeaterResultModalController {
     static currentResultModalId: string | null = null;
     static currentResultParentModalId: string | null = null;
 
-    static #currentResultModalObserver: MutationObserver | null = null;
-
-
     // ================================================================
     // Result modal lifecycle / refresh API
     // ================================================================
@@ -22,7 +19,7 @@ export class HSHeaterResultModalController {
         if (parentModalId) {
             this.currentResultParentModalId = parentModalId;
         }
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
         if (!hsui) {
             HSUI.Notify('Failed to open heater result modal because UI was unavailable.', { position: 'top', notificationType: 'error' });
             return;
@@ -78,6 +75,10 @@ export class HSHeaterResultModalController {
             parentModalId,
             headerClass: 'hs-heater-results-header',
             bodyClass: 'hs-heater-results-body',
+            onClose: (modal) => {
+                HSHeaterUIResult.detachResultModalHandlers(modal);
+                if (this.currentResultModalId === modal.id) this.cleanupResultModalState();
+            },
             styles: {
                 width: 'auto',
                 height: 'auto',
@@ -88,7 +89,6 @@ export class HSHeaterResultModalController {
         if (resultModal) {
             HSHeaterUIResult.setActiveResultModal(resultModal);
             HSHeaterUIResult.attachResultModalHandlers(this.currentResultModalId);
-            this.monitorResultModalRemoval(resultModal);
         } else {
             this.currentResultModalId = null;
         }
@@ -183,33 +183,7 @@ export class HSHeaterResultModalController {
         resultModal.style.top = `${y}px`;
     }
 
-    private static monitorResultModalRemoval(modal: HTMLElement): void {
-        if (this.#currentResultModalObserver) return;
-
-        this.#currentResultModalObserver = new MutationObserver(() => {
-            if (modal.isConnected) return;
-            this.cleanupResultModalState();
-        });
-
-        this.#currentResultModalObserver.observe(document.body, {
-            childList: true,
-            subtree: true,
-        });
-    }
-
     private static cleanupResultModalState(): void {
-        if (this.#currentResultModalObserver) {
-            this.#currentResultModalObserver.disconnect();
-            this.#currentResultModalObserver = null;
-        }
-
-        if (this.currentResultModalId) {
-            const resultModal = document.getElementById(this.currentResultModalId);
-            if (resultModal) {
-                HSHeaterUIResult.detachResultModalHandlers(resultModal);
-            }
-        }
-
         const wasParentModalAvailable = this.currentResultParentModalId ? document.getElementById(this.currentResultParentModalId) !== null : false;
         this.currentResultModalId = null;
         this.currentResultParentModalId = null;

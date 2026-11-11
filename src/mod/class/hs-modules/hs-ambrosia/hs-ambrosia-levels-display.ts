@@ -58,7 +58,7 @@ export class HSAmbrosiaLevelsDisplay {
     }
 
     async #hookPersistentAmbrosiaLevelsToggleButton() {
-        const button = this.#persistentAmbrosiaLevelsToggleButton ?? await HSElementHooker.HookElement('#showCurrAmbrosiaUpgrades') as HTMLButtonElement;
+        const button = this.#persistentAmbrosiaLevelsToggleButton ?? await HSElementHooker.HookElement<HTMLButtonElement>('#showCurrAmbrosiaUpgrades');
         if (!button) { HSLogger.warn('hookPersistentAmbrosiaLevelsToggleButton() could not find #showCurrAmbrosiaUpgrades', this.#context); return; }
         this.#persistentAmbrosiaLevelsToggleButton = button;
 

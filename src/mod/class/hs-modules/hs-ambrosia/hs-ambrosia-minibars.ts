@@ -2,7 +2,7 @@ import type { GameData } from "../../../types/data-types/hs-player-savedata";
 import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSHeaderModules } from "../../hs-core/header/hs-header-modules";
 import { HSQuickbarManager } from "../hs-qol-quickbar/hs-qolQuickbarManager";
@@ -92,7 +92,7 @@ export class HSAmbrosiaMinibars {
 
         // No live player (bookmarklet, or the patch failed): from GDS's save data
         this.#gameData.subscribe();
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         const gameData = gameDataAPI?.getGameData() ?? await gameDataAPI?.getForcedGameData();
         if (this.#berryMinibarsEnabled && gameData) {
             this.#updateBerryMinibars(gameData, gameDataAPI);
@@ -229,7 +229,7 @@ export class HSAmbrosiaMinibars {
     }
 
     async #refreshMinibarSizes(signature: string): Promise<void> {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI || !await gameDataAPI.getForcedGameData()) throw new Error('no save data');
 
         this.#minibarSizes = {
@@ -296,7 +296,7 @@ export class HSAmbrosiaMinibars {
     #updateBerryMinibars(gameData?: GameData, gameDataAPI?: HSGameDataAPI) {
         if (!this.#berryMinibarsEnabled) return;
 
-        gameDataAPI ??= HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        gameDataAPI ??= HSModuleRegistry.getModule('HSGameDataAPI');
         gameData ??= gameDataAPI?.getGameData();
 
         // Enabling the minibars can precede the first save-data refresh.

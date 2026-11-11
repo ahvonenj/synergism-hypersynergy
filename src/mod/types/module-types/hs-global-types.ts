@@ -58,7 +58,6 @@ export interface HSGlobalStorage {
 
 export interface HSGlobalSettings extends IStoreable {
     strategiesKey: string;
-    serializationBlackList: string[];
     gameDataRequiredTooltip: string;
     gameDataCheckBlacklist: string[];
 }

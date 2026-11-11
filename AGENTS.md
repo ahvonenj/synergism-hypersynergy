@@ -30,8 +30,8 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 - No linter. Type check with `npx tsc --noEmit` (esbuild doesn't type-check).
 - `npm test` runs every script in `scripts/tests/`; one alone: `npm run test:autosing` / `test:auto-export` / `test:heater` / `test:heater-coins`, or `node scripts/tests/<file>.cjs`. Add a test with a task that touches pure logic (data in, data out: migrations, allocations, formulas, sorting) that was hard to get right or would regress unnoticed; never for UI, DOM, dialogs or timing.
 - `scripts/harness/` (read its README first): the real game headless in Chrome and the mod's code in node. A one-off test script goes in `local/`, built on `scripts/harness/lib/`, never in a temporary folder. Reusable scripts that need nothing from `local/`: `scripts/tools/` (also dead-code analysis).
-- `npm run build`: dev build to `build/hypersynergism.js`. `npm run dev`: watch mode, also copies `src/loader/*.js` and `patcher.js` into `build/`; restart it after changing the `package.json` version (`HS_BUILD_VERSION` is a `define`). `start-dev-server.bat`: watch build + `http-server ./build/ --cors` on port 8080, loaded in the game by the `src/loader/hypersynergism.dev.js` userscript.
-- `npm run release`: minified build to `release/mod/hypersynergism_release.js`, committed, served to players by jsDelivr, the only build without the dev tools. It is rebuilt only by a release, never by a commit. `npm run release-and-tag-helper` does a whole release, `npm run merge-live` merges a Live release into Dev. Releases, merging Live into Dev, porting to Live, loader releases: `docs/dev/releasing.md`.
+- `npm run build`: dev build to `build/hypersynergism.js` and loader files in `build/`. `npm run dev` watches both; restart it after changing the `package.json` version (`HS_BUILD_VERSION` is a `define`). `npm run build:loaders` regenerates the checked-in loader files. `start-dev-server.bat`: watch build + `http-server ./build/ --cors` on port 8080.
+- `npm run release`: minified build to `release/mod/hypersynergism_release.js`, committed, served to players by jsDelivr, the only build without the dev tools. It is rebuilt only by a release, never by a commit. `npm run release-and-tag-helper` does a whole release. Releases, merging Live into Dev, porting to Live, loader releases: `docs/dev/releasing.md`.
 - Every build regenerates the strategy manifest (`scripts/generate-strategy-manifest.js`) and bundles the heater web worker separately (`scripts/heater-worker-plugin.cjs`).
 - **Every release requires a website changelog entry** in `docs/data/changelog.json`, matching its version, channel and player-facing changes. Live regenerates and validates the page before publishing; Dev only validates (`build-docs.py --validate`) and never commits `docs/changelog.html`. Required steps: `docs/dev/releasing.md`.
 - Desktop loader (`synergism_modloader/`, its own npm package and version): `npm start` (Electron app), `npm test` (`node --test test/*.test.js`), `npm run dist` (installer).
@@ -41,6 +41,7 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 ### Loading pipeline (`docs/features/loaders.md`)
 - **The mod depends on `synergism_modloader/lib/patcher.js`**: `patchBundle()` rewrites the game's minified bundle before it runs and exposes internals as `window.__HS_*` globals. Browser: the userscripts in `src/loader/` patch the fetched bundle. Steam: the Electron app patches the extracted asar.
 - **Both loaders download `patcher.js` from the repo** (browser at each page load from `master`, Steam at each re-patch): a patcher fix needs no loader release.
+- **Edit loader code in `src/loader/shared/`** and regenerate the standalone files with `npm run build:loaders`. See `docs/features/loaders.md` for the published entry points.
 - **Two repos.** `maenhiir/synergism-hypersynergy` (Shewchou) is the Dev channel; `Ferlieloi/synergism-hypersynergy` is the Live channel and the userscript's default. Remote names differ between clones: check `git remote -v`.
 - **A patcher global has two sides**: the injection in `patcher.js` and the mod code that reads it. Update both. `window.__HS_PATCH_REPORT` says which patches applied; a missing patch's steps are skipped and the player told once.
 - **Not every player is patched**: bookmarklet players have no `window.__HS_*` and no `HSGlobal.exposedPlayer`. Code that uses a patcher feature checks that it exists and falls back. Some globals are set late (`__HS_i18next`, `__HS_synergismStage`, `DOMCacheGetOrSet`).
@@ -60,10 +61,10 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - Ambrosia loadouts can be written without SAVE mode or dialogs (`player.blueberryLoadouts[n] = tree`).
 
 ### Mod code (`docs/dev/code.md`)
-- `src/mod/index.ts` lists `enabledModules`. Every feature is an `HSModule` subclass; **a new module also goes in `#moduleClasses`** (`hs-module-manager.ts`). Modules reach each other through `HSModuleManager.getModule<T>('ClassName')`.
+- Every feature is an `HSModule` subclass, registered once in `hs-core/module/hs-module-definitions.ts`. Modules use `HSModuleRegistry.getModule('ClassName')`, whose return type follows the name; `HSModuleManager` handles construction and initialization. Details: `docs/dev/code.md`.
 - **`HSLogger` lines are HTML**: escape with `escapeLogText`, not `escapeHtml`. A new log context needs a colour entry.
 - **Injected CSS lands late**: a module drawing game-styled elements during `init` injects its CSS and calls `HSUI.flushInjectedStyles()` first.
-- **Settings are data**: `hs-settings.json` + `HSSettingsDefinition`; a `settingAction` needs a handler and a `settingControl`, even when hidden; no double quote in a help text.
+- **Settings are data**: `hs-settings.json` + `HSSettingsDefinition`; a `settingAction` needs a handler; `settingControl` is for UI only. Persistence and startup actions: `docs/dev/code.md`. No double quote in a help text.
 - **Game icons**: reuse one through `HSIcons`, read from the game's element by its id (`docs/dev/sprite-icons.md`).
 - **Tooltips**: a browser `title` by default; `HSTooltip` for colours, a shorter delay or a chosen side (`docs/dev/code.md`).
 

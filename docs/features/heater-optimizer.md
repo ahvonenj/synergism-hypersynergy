@@ -4,6 +4,14 @@ The heater docs: `heater.md` (the panel: heating, results, branches, inputs, Bes
 
 The optimizer (`hs-heater-optimizer*.ts`) runs in a web worker: no DOM, no `HSLogger` (`heater.md`, "Heating").
 
+## Execution structure
+
+- `HSHeaterOptimizer` is the synchronous public facade. Its engine (`hs-heater-optimizer-engine.ts`) owns the model classes, upgrade definitions, stats, branch options and calculation caches. Separate engines share none of that mutable state.
+- Each worker has one engine. Sequential heats reuse it to preserve model class identities and optimized code; rebuilding the classes for every heat slows repeated calculations. Input preparation resets the stats, upgrade caps and caches. The run wrapper installs experiment options and diagnostics and clears them in `finally`, including on failure.
+- The coordinator prepares shared frontiers and calls the Ambrosia/Purple, Quarks, Octeracts, Obtainium/Offerings, SR, Ambrosia+Octeracts and Hyperflux branch functions in the existing order. Search functions keep direct lexical access to their engine's state; no context argument or allocation is added to the candidate loops.
+- Branches produce named result objects (`loadoutJson`, `effect`, `cost`, `limits` or `shortfall`). `hs-heater-optimizer-result.ts` converts the winners once to the existing positional worker, renderer and backup format, including the empty spreadsheet column and optional details. Candidate searches never use that table format.
+- Worker-safe log collection is in `hs-heater-optimizer-log.ts`, re-exported by the facade for the worker and runner.
+
 Income objectives use the same [sustained Ambrosia calculation](gds.md#sustained-ambrosia-income) as the page and
 header, with each candidate's loadout and routing. Starting tank contents do not affect a candidate's score.
 

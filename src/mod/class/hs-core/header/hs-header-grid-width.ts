@@ -1,7 +1,6 @@
 import { HSGlobal } from '../hs-global';
 import { HSLogger } from '../hs-logger';
-import { HSStorage } from '../hs-storage';
-import { HSModuleManager } from '../module/hs-module-manager';
+import { HSModuleRegistry } from '../module/hs-module-registry';
 import { HSHeaderButtons } from './hs-header-buttons';
 
 // A width in px, or 'full': no cap, the grid fills the header as the window grows
@@ -102,7 +101,7 @@ export class HSHeaderGridWidth {
         reset.title = "Back to the game's width";
         reset.addEventListener('click', () => {
             HSHeaderGridWidth.#width = undefined;
-            HSModuleManager.getModule<HSStorage>('HSStorage')?.clearData(STORAGE_KEY);
+            HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
             HSHeaderGridWidth.#changed();
         });
 
@@ -176,7 +175,7 @@ export class HSHeaderGridWidth {
 
     static #load(): void {
         if (localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) === null) return;
-        const stored = HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<StoredWidth>>(STORAGE_KEY);
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<StoredWidth>>(STORAGE_KEY);
         if (stored?.version !== 1) return;
         if (stored.width === 'full') HSHeaderGridWidth.#width = 'full';
         else if (typeof stored.width === 'number' && Number.isFinite(stored.width)) {
@@ -187,7 +186,7 @@ export class HSHeaderGridWidth {
     static #save(): void {
         const width = HSHeaderGridWidth.#width;
         if (width === undefined) return;
-        if (!HSModuleManager.getModule<HSStorage>('HSStorage')?.setData<StoredWidth>(STORAGE_KEY, { version: 1, width })) {
+        if (!HSModuleRegistry.getModule('HSStorage')?.setData<StoredWidth>(STORAGE_KEY, { version: 1, width })) {
             HSLogger.warn('Could not save the header grid width', HSHeaderGridWidth.#context);
         }
     }

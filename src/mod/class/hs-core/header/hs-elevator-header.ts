@@ -1,7 +1,7 @@
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import type { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
 import { HSHeaderPopover } from "./hs-header-popover";
 import elevatorHeaderCSS from "inline:../../../resource/css/module/hs-elevator-header.css";
@@ -240,7 +240,7 @@ export class HSElevatorHeader {
         if (!game) return;
         // Autosing answers every Confirm OK, the player's included: this click would teleport without a question.
         // Notify writes the log line too (none while autosing runs: it turns the log off)
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) {
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) {
             void HSUI.Notify('Teleport not available while autosing is running.', { position: 'bottomLeft', notificationType: 'warning' });
             return;
         }

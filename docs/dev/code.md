@@ -2,30 +2,36 @@
 
 How the mod's code is put together, beyond the summary in `AGENTS.md`.
 
+The **Mod checks** pull request workflow installs the locked dependencies on Windows with Node 22, then runs
+`npx tsc --noEmit`, `npm test` and `npm run build`. The tests include the generated loader file check and the
+header layout check in Chromium.
+
 ## Entry and modules
 
-- `src/mod/index.ts` lists `enabledModules`, with `loadOrder` and `initImmediate`, and creates `Hypersynergism`
+- `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour, `loadOrder` and `initImmediate`. `src/mod/index.ts` passes that list to `Hypersynergism`
   (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, builds the mod panel tabs
   and syncs the settings UI.
-- Every feature is an `HSModule` subclass (`hs-core/module/hs-module.ts`) with an `async init()`. A new module needs
-  entries in two places: `enabledModules` in `index.ts` and the `#moduleClasses` map in
-  `hs-core/module/hs-module-manager.ts`.
-- Modules reach each other through `HSModuleManager.getModule<T>('ClassName')`. Many core classes (`HSSettings`,
+- Every feature is an `HSModule` subclass (`hs-core/module/hs-module.ts`) with an `async init()`. Register a new module once in `HS_MODULE_DEFINITIONS`; the module-name and instance types derive from that list. `HSModuleManager` constructs modules and preserves startup order. `HSModuleRegistry` stores instances with no runtime imports of feature classes.
+- Modules reach each other through `HSModuleRegistry.getModule('ClassName')`; the name determines the return type. Unknown names and independently supplied instance types are rejected by TypeScript. Log contexts use `getModuleColor(string)` for a colour only. Many core classes (`HSSettings`,
   `HSUI.Notify`, `HSLogger`, `HSGlobal`) are used statically. `HSGlobal` (`hs-core/hs-global.ts`) holds global
   constants and config. `HSUIC` builds UI component HTML. `HSElementHooker` waits for game DOM elements to appear.
 - Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML, JSON and base64
   `.txt` files from `src/mod/resource/`).
 
+`HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element.
+
 ## Logging
 
 - `HSLogger` writes to the mod panel's Log tab, and takes a context string. A line is rendered as HTML and also printed
-  to the console: escape it with `escapeLogText` (`&` and `<` only), not `escapeHtml`.
+  to the console: escape it with `escapeLogText` (`&` and `<` only), not `escapeHtml`. Both helpers live in `hs-utils/hs-escape.ts`.
 - `HSLogger.debug` prints nothing, console included, until the settings load has read the debug setting.
 - A context's colour in the Log tab: a module's `moduleColor`, else its entry in `HSGlobal.HSLogger.contextColors` (a
   module's name, to share that module's colour, or a CSS colour), else white. A new class that logs under its own
   context needs an entry there.
 
 ## Injected CSS lands late
+
+`HSUIC` puts each component's `styles` directly on its element, so temporary windows and controls leave no generated rules behind. Shared feature CSS uses `HSUI.injectStyle`. Close modals through `HSUI.CloseModal`, which releases the manager registration and active drag/resize listeners. A modal can pass an `onClose` callback to clean up its own state using the removed element.
 
 `HSUI.injectStyle` writes the style block in the next task, and the mod's general CSS (`hs-quickbars.css`, overrides)
 is injected only after every module's `init`. A module that draws game-styled elements during its `init` injects its
@@ -45,11 +51,8 @@ the mod's own small elements (a settings block, a table cell) is fine.
   added to `HSSettingsDefinition` in `src/mod/types/module-types/hs-settings-types.ts`.
 - A setting with a `settingAction` needs a handler in `hs-core/settings/hs-setting-action.ts`. The handler can't tell
   the player's toggle from the page load or an `enable()`/`disable()` by autosing or GDS.
-- **It also needs a `settingControl`, even when hidden**: a hidden setting's control is never built, but without one
-  the action never runs at page load (`syncSettings` runs `initialAction` only for settings with a control).
-- Settings persist to localStorage through `HSStorage`. The saved copy overrides the JSON for every key both have, so
-  keys that only the JSON should decide (`platforms`, `hidden`, texts, controls) are in `serializationBlackList` and
-  never saved.
+- `settingControl` is only needed for a control. `initializeSettingActions` runs each setting's initial action after its optional control preparation, preserving definition order; `skipInit` still prevents actions such as opening an editor at load.
+- Settings persist through `HSStorage` in the existing JSON-string envelope, with only `enabled` and `settingValue` per key. Older full definitions and object-valued storage are read too, but only those player-owned fields are restored. Configuration and derived values come from the current definition and constructors; invalid values keep the current default. The pure helpers are in `hs-core/settings/hs-settings-state.ts`.
 - `"platforms": ["steam" | "userscript" | "bookmarklet"]` shows a setting in the panel only for players who loaded the
   mod that way (`HSPlatform.get()`, `hs-core/hs-platform.ts`). The setting still exists and works everywhere.
 - A help text is also the `title` of the setting's buttons (`#buildSettingBlock`), put in an HTML attribute unescaped

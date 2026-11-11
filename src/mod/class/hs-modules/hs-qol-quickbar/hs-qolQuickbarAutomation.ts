@@ -1,7 +1,7 @@
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
-import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+
 import { HSQOLQuickbarBase } from "./hs-qolQuickbarBase";
 import { HSIcons } from "../../hs-utils/hs-icons";
 import { GameData, PlayerData } from "../../../types/data-types/hs-player-savedata";
@@ -424,7 +424,7 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
 
     /** Helper to read the highestSingularityCount from `HSGameDataAPI`. */
     #getHighestSingularityCount(): number {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         const gameData = gameDataAPI?.getGameData();
         return gameData?.highestSingularityCount ?? 0;
     }
@@ -681,7 +681,7 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
                         const el = visibleCheckTargets[idx];
                         if (!el) return null;
                         if (gameDataFallback && !(el.textContent ?? '').trim()) {
-                            const gameData = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getGameData();
+                            const gameData = HSModuleRegistry.getModule('HSGameDataAPI')?.getGameData();
                             if (gameData) return gameDataFallback(gameData);
                         }
                         return matcher(el);
@@ -756,7 +756,7 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
         const configs = Object.values(HSQOLAutomationQuickbar.AUTOMATION_QUICKBAR_CONFIG) as readonly AutomationQuickbarToggleConfig[];
         if (!configs.some(c => c.kind === 'solo' && c.gameDataFallback)) return;
 
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI || gameDataAPI.getGameData()) return;
 
         gameDataAPI.getForcedGameData()

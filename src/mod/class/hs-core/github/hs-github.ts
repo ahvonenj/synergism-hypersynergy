@@ -2,7 +2,7 @@ import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSStorage } from "../hs-storage";
 import { HSUI } from "../hs-ui";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import { compareVersionTags, isCurrentVersionLatest, latestVersionTag } from "./hs-version-tags";
 
 const STORAGE_KEY = 'version-check';
@@ -89,7 +89,7 @@ export class HSGithub {
         if (HSGithub.#wasLiveTagAnnounced(liveTag)) return;
 
         HSGithub.#announcedLiveTag = liveTag;
-        HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, { announcedLiveTag: liveTag });
+        HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, { announcedLiveTag: liveTag });
         void HSUI.Notify(`Live channel: ${liveTag} was released`, { position: 'top', displayDuration: 8000 });
     }
 
@@ -98,7 +98,7 @@ export class HSGithub {
 
         // HSStorage warns when a key is missing: nothing stored is the normal case until a first announcement
         const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY) : null;
+        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY) : null;
         return stored?.announcedLiveTag === liveTag;
     }
 

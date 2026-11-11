@@ -5,16 +5,16 @@ import { AMBROSIA_LOADOUT_SLOT } from "../../../types/module-types/hs-ambrosia-t
 import { MAIN_VIEW, SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGameData } from "../../hs-core/gds/hs-gamedata";
-import { HSGameState } from "../../hs-core/hs-gamestate";
+
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLoadoutIconStore } from "../hs-loadout-icons/hs-loadout-icon-store";
 import { getEffectiveHeaterIconSrc } from "../hs-heater/hs-heater-icon-store";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSModule } from "../../hs-core/module/hs-module";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import { escapeLogText } from "../hs-heater/hs-heater-utils";
+import { escapeLogText } from "../../hs-utils/hs-escape";
 import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
@@ -84,7 +84,6 @@ export class HSAmbrosia extends HSModule
     #autoLoadout: HSAmbrosiaAutoLoadout;
     #quickImport: HSAmbrosiaQuickImport;
     #temporaryTree: HSAmbrosiaTemporaryTree;
-
 
     // ==============================================
     // -------------------- Init --------------------
@@ -162,7 +161,7 @@ export class HSAmbrosia extends HSModule
     }
 
     public async initializeActiveLoadoutFromGameData(): Promise<void> {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI) return;
         let gameData = gameDataAPI.getGameData();
         if (!gameData) gameData = await gameDataAPI.getForcedGameData();
@@ -170,7 +169,6 @@ export class HSAmbrosia extends HSModule
 
         await this.#performInitialActiveLoadoutMatchOnce(gameData);
     }
-
 
     // ==============================================
     // --------------- Loadout Events ---------------
@@ -207,7 +205,7 @@ export class HSAmbrosia extends HSModule
     }
 
     #subscribeGameStateViewChanges() {
-        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameStateMod = HSModuleRegistry.getModule('HSGameState');
         if (!gameStateMod) { HSLogger.warn('subscribeGameStateViewChanges() - gameStateMod==undefined', this.context); return; }
 
         if (!this.#ambrosiaViewSubscriptionId) {
@@ -245,7 +243,6 @@ export class HSAmbrosia extends HSModule
         // the mod's slot clicks (Auto-Loadout, imports, heater) refresh the persistent levels through it.
         this.#levels.onTabLeave();
     }
-
 
     // ==============================================
     // ----------- Loadout slots and icons ----------
@@ -317,7 +314,6 @@ export class HSAmbrosia extends HSModule
         HSLoadoutIconStore.ambrosia.applyBulk(iconBySlotId);
         return { setCount, clearedCount, missingCount };
     }
-
 
     // ==============================================
     // ------------ Active Loadout State ------------
@@ -430,7 +426,7 @@ export class HSAmbrosia extends HSModule
     }
 
     private calculateAmbUpgradeLevelFromSave(upgradeName: keyof AmbrosiaUpgrades, invested: number): number {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI) return 0;
 
         const investmentParameters = ((gameDataAPI.ambrosia.ambrosiaUpgradeCalculationCollection as AmbrosiaUpgradeCalculationCollection)[upgradeName]) as AmbrosiaUpgradeCalculationConfig<any>;
@@ -541,7 +537,6 @@ export class HSAmbrosia extends HSModule
         return this.#loadoutsSlots.filter((slot) => slot.style.display !== 'none').length;
     }
 
-
     // ==============================================
     // ------- The helpers' entry points ------------
     // ==============================================
@@ -624,8 +619,8 @@ export class HSAmbrosia extends HSModule
     // The Ambrosia AFK/idle swapper, retired in v2.13.8 after a game update, was removed: its last working version is in git at 522ecdab^.
 
     subscribeGameDataChanges() {
-        const gameDataMod = HSModuleManager.getModule<HSGameData>('HSGameData');
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataMod = HSModuleRegistry.getModule('HSGameData');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
 
         if (gameDataMod && gameDataAPI && !this.gameDataSubscriptionId) {
             this.#cachedGameDataMod = gameDataMod;
@@ -636,7 +631,7 @@ export class HSAmbrosia extends HSModule
     }
 
     unsubscribeGameDataChanges() {
-        const gameDataMod = this.#cachedGameDataMod ?? HSModuleManager.getModule<HSGameData>('HSGameData');
+        const gameDataMod = this.#cachedGameDataMod ?? HSModuleRegistry.getModule('HSGameData');
 
         if (gameDataMod && this.gameDataSubscriptionId) {
             // Only actually unsubscribe if neither the minibars (without the live player), the header's rates nor the
@@ -657,7 +652,7 @@ export class HSAmbrosia extends HSModule
     }
 
     async gameDataCallback() {
-        const gameDataAPI = this.#cachedGameDataAPI || (this.#cachedGameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI'));
+        const gameDataAPI = this.#cachedGameDataAPI || (this.#cachedGameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI'));
         if (!gameDataAPI) return;
 
         const gameData = gameDataAPI.getGameData();

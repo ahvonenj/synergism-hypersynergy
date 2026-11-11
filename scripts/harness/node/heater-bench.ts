@@ -4,7 +4,7 @@
 // Usage: node scripts/harness/node-run.mjs scripts/harness/node/heater-bench.ts <backup.json> <branch[+branch...]>
 //        (branches: the keys of heaterOptions, e.g. cubes, quarks, obtOff, luck, hyperflux)
 // Env: AMB / EXALT override the input, OUT=<file> dumps the result rows,
-//      SWAP=hs-heater-optimizer.ts=<copy.ts> runs a modified optimizer against the same input
+//      SWAP=hs-heater-optimizer-engine.ts=<copy.ts> runs a modified engine against the same input
 import Decimal from 'break_infinity.js'
 import { readFileSync, writeFileSync } from 'fs'
 import { HSHeaterUIInput } from '@repo/class/hs-modules/hs-heater/ui/hs-heater-ui-input'

@@ -11,7 +11,7 @@ async function main() {
         'hs-ui': 'export const HSUI = { Notify(text) { globalThis.__exportTest.notices.push(text); } };',
         'hs-settings': 'export const HSSettings = { getSetting(key) { return globalThis.__exportTest.settings[key]; } };',
         'hs-global': 'export const HSGlobal = { get exposedPlayer() { return globalThis.__exportTest.player; } };',
-        'hs-module-manager': 'export const HSModuleManager = { getModule(key) { return globalThis.__exportTest.modules[key]; } };',
+        'hs-module-registry': 'export const HSModuleRegistry = { getModule(key) { return globalThis.__exportTest.modules[key]; } };',
         'hs-module': 'export class HSModule { constructor(options) { this.context = options.context; } }',
         'hs-auto-export-store': `export class HSAutoExportStore {
             async read(key) { return globalThis.__exportTest.stored.get(key); }
@@ -27,7 +27,7 @@ async function main() {
             resolveDir: root, loader: 'ts' },
         bundle: true, write: false, platform: 'node', format: 'cjs',
         plugins: [{ name: 'export-browser-boundaries', setup(build) {
-            build.onResolve({ filter: /hs-(?:logger|ui|settings|global|module-manager|module|auto-export-store)$/ }, args => {
+            build.onResolve({ filter: /hs-(?:logger|ui|settings|global|module-registry|module|auto-export-store)$/ }, args => {
                 const name = args.path.split('/').pop();
                 if (stubs[name]) return { path: name, namespace: 'test' };
             });

@@ -7,9 +7,10 @@ const esbuild = require('esbuild');
 // Expose internal calculations only in this in-memory test bundle.
 async function main() {
   const root = path.resolve(__dirname, '../..');
-  const optimizer = path.join(root, 'src/mod/class/hs-modules/hs-heater/hs-heater-optimizer.ts');
+  const optimizer = path.join(root, 'src/mod/class/hs-modules/hs-heater/hs-heater-optimizer-engine.ts');
   const bundled = await esbuild.build({
-    stdin: { contents: `export * from ${JSON.stringify(optimizer)};
+    stdin: { contents: `export { createHeaterOptimizerEngine } from './src/mod/class/hs-modules/hs-heater/hs-heater-optimizer-engine';
+      export { HSHeaterOptimizer } from './src/mod/class/hs-modules/hs-heater/hs-heater-optimizer';
       export { inputDefinitions } from './src/mod/class/hs-modules/hs-heater/hs-heater-input-config';
       export { default as Decimal } from 'break_infinity.js';`, resolveDir: root, loader: 'ts' },
     bundle: true, write: false, platform: 'node', format: 'cjs',
@@ -18,10 +19,8 @@ async function main() {
       build.onLoad({ filter: /.*/, namespace: 'test' }, () => ({
         contents: 'export const HSLogger = {log(){},debug(){},warn(){},error(){}};', loader: 'ts',
       }));
-      build.onLoad({ filter: /hs-heater-optimizer\.ts$/ }, () => ({
-        contents: fs.readFileSync(optimizer, 'utf8') + `
-          export { Loadout, fillStatsAndOptionsFromInput, generateVoucherTable,
-            createLuckScaledResourceEvaluator, findResourceVoucherOpt, trimTable, addLastPriorityVouchers };`,
+      build.onLoad({ filter: /hs-heater-optimizer-engine\.ts$/ }, () => ({
+        contents: fs.readFileSync(optimizer, 'utf8').replace('return { createResult };', 'return { createResult, Loadout, fillStatsAndOptionsFromInput, generateVoucherTable, createLuckScaledResourceEvaluator, findResourceVoucherOpt, trimTable, addLastPriorityVouchers };'),
         loader: 'ts',
       }));
     } }],
@@ -30,8 +29,8 @@ async function main() {
   runtime.filename = path.join(root, 'heater-test-runtime.cjs');
   runtime.paths = module.paths;
   runtime._compile(bundled.outputFiles[0].text, runtime.filename);
-  const { Decimal, inputDefinitions, Loadout, fillStatsAndOptionsFromInput, generateVoucherTable,
-    createLuckScaledResourceEvaluator, findResourceVoucherOpt, trimTable, addLastPriorityVouchers } = runtime.exports;
+  const { Decimal, inputDefinitions, createHeaterOptimizerEngine } = runtime.exports;
+  const { Loadout, fillStatsAndOptionsFromInput, generateVoucherTable, createLuckScaledResourceEvaluator, findResourceVoucherOpt, trimTable, addLastPriorityVouchers } = createHeaterOptimizerEngine();
   const input = {
     ...Object.fromEntries(inputDefinitions.map(field => [field.key, field.type === 'boolean' ? false : 0])),
     amb: 20_000_000, ramb: 100, blueberries: 30, luckBaseNoAmb: 500,
@@ -58,6 +57,21 @@ async function main() {
     Number.isFinite(actual) && Math.abs(actual - expected) <= 1e-10 * Math.max(1, Math.abs(expected)),
     `${context}: ${actual} != ${expected}`,
   );
+  // A later heat must not change the model or cached calculations of an earlier one.
+  const first = createHeaterOptimizerEngine();
+  const second = createHeaterOptimizerEngine();
+  first.fillStatsAndOptionsFromInput(input);
+  const firstLoadout = new first.Loadout();
+  firstLoadout.upgradeLevels = { ambrosiaLuck1: 20, ambrosiaInfiniteShopUpgrades1: 10 };
+  const firstValues = [firstLoadout.luck, firstLoadout.getStat('obt'), firstLoadout.cost];
+  second.fillStatsAndOptionsFromInput({ ...input, exalt: 6, blueberries: 6,
+    luckBaseNoAmb: 10, baseObt: 5, bonusRow3: 3, panthemaLevel: 0 });
+  const secondLoadout = new second.Loadout();
+  secondLoadout.upgradeLevels = { ...firstLoadout.upgradeLevels };
+  assert.notEqual(secondLoadout.luck, firstValues[0], 'independent heat has its own stats');
+  close(firstLoadout.getStat('luck', true), firstValues[0], 'first heat luck after second heat');
+  close(firstLoadout.getStat('obt', true), firstValues[1], 'first heat shop cache after second heat');
+  assert.equal(firstLoadout.cost, firstValues[2], 'first heat upgrade costs remain independent');
   let checked = 0;
   // Directly compare the fast formula with complete unions, including Jack,
   // Red/Purple bonus levels, Leo's five-berry threshold and disabled effects.

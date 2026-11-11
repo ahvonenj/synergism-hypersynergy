@@ -1,8 +1,7 @@
 import { HSGlobal } from '../hs-global';
 import { HSLogger } from '../hs-logger';
-import { HSStorage } from '../hs-storage';
 import { HSUI } from '../hs-ui';
-import { HSModuleManager } from '../module/hs-module-manager';
+import { HSModuleRegistry } from '../module/hs-module-registry';
 import { HSHeaderChallengeProgress } from './hs-header-challenge-progress';
 import { HSHeaderButtons } from './hs-header-buttons';
 import cellSettingsCSS from 'inline:../../../resource/css/module/hs-header-cell-settings.css';
@@ -221,7 +220,7 @@ export class HSHeaderCellSettings {
 
     static #load(): void {
         if (localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) === null) return;
-        const stored = HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<StoredSettings>>(STORAGE_KEY);
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<StoredSettings>>(STORAGE_KEY);
         if (!stored || stored.version !== 1 || !stored.layouts || typeof stored.layouts !== 'object') return;
         for (const key of ['desktop', 'mobile'] as const) {
             const cells = stored.layouts[key];
@@ -241,7 +240,7 @@ export class HSHeaderCellSettings {
     }
 
     static #save(): void {
-        if (!HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, HSHeaderCellSettings.#settings)) {
+        if (!HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, HSHeaderCellSettings.#settings)) {
             HSLogger.warn('Could not save the header cell settings', HSHeaderCellSettings.#context);
         }
     }

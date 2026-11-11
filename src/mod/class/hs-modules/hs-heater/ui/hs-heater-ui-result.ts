@@ -1,16 +1,15 @@
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSQuickbarIconPickerController } from "../../hs-loadout-icons/hs-loadout-icon-picker";
 import { HSTooltip } from "../../../hs-core/hs-tooltip";
-import { escapeHtml } from "../hs-heater-utils";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 import { buildResultTableHtmlFromNormalized } from "./hs-heater-ui-result-renderer";
 import { clearHeaterIconOverride, getEffectiveHeaterIconSrc, getOverrideHeaterIconSrc, setHeaterIconOverride, } from "../hs-heater-icon-store";
 import { HSHeaterResultStore } from "../hs-heater-result-store";
 import type { NormalizedHeaterResultEntry } from "../hs-heater-result-store";
 import { getHeaterExaltRules } from "../hs-heater-result-config";
 import { getHeaterExaltName } from "../hs-heater-input-config";
-import type { HSAmbrosia } from "../../hs-ambrosia/hs-ambrosia";
 
 // === Loadout Preview Metadata Type and Map ===
 type LoadoutPreviewMeta = { iconFile: string };
@@ -253,7 +252,7 @@ export class HSHeaterUIResult {
         header.querySelector('[data-hs-heater-quickbar-clone]')?.remove();
 
         // The Ambrosia tab's loadout slots, without its mode and quick save buttons
-        const slotsSource = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia')?.getLoadoutContainer();
+        const slotsSource = HSModuleRegistry.getModule('HSAmbrosia')?.getLoadoutContainer();
         if (slotsSource) {
             const clone = slotsSource.cloneNode(true) as HTMLElement;
             clone.removeAttribute('id');
@@ -327,7 +326,7 @@ export class HSHeaterUIResult {
             const idx = cloneSlots.indexOf(target);
             const original = originalSlots[idx];
             if (!original) return;
-            HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia')?.loadLoadoutSlot(original.id, 'heaterSlotRow');
+            HSModuleRegistry.getModule('HSAmbrosia')?.loadLoadoutSlot(original.id, 'heaterSlotRow');
         };
         clone.addEventListener('click', onCloneClick);
 
@@ -942,7 +941,7 @@ export class HSHeaterUIResult {
                 return;
             }
             if (button.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-                const ambrosiaModule = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+                const ambrosiaModule = HSModuleRegistry.getModule('HSAmbrosia');
                 if (!ambrosiaModule) return;
                 await ambrosiaModule.importLoadoutToActiveSlot(loadout);
             }

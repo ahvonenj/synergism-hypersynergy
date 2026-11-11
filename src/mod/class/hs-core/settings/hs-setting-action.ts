@@ -1,19 +1,15 @@
 import { HSSettingActionParams } from "../../../types/module-types/hs-settings-types";
-import { HSAmbrosia } from "../../hs-modules/hs-ambrosia/hs-ambrosia";
-import { HSGameData } from "../gds/hs-gamedata";
+
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
-import { HSModuleManager } from "../module/hs-module-manager";
+import type { HSModuleInstances } from "../module/hs-module-definitions";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSMouse } from "../hs-mouse";
-import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
+
 import { HSAutosingStrategyModal } from "../../hs-modules/hs-autosing/ui/hs-autosing-strategy-modal";
 import { HSAutosingStrategyControls } from "../../hs-modules/hs-autosing/ui/hs-autosing-strategy-controls";
 import { HSSettings } from "./hs-settings";
 import { HSSettingsUI } from "./hs-settings-ui";
-import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
-import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSPerksFind } from "../../hs-modules/hs-perks-find";
-import { HSAutoExport } from "../../hs-modules/hs-auto-export";
+
 import { HSGlobal } from "../hs-global";
 import { HSHiddenDialogs } from "../dialogs/hs-hidden-dialogs";
 import { HSOcteractHeader } from "../header/hs-octeract-header";
@@ -26,13 +22,13 @@ import { HSElevatorHeader } from "../header/hs-elevator-header";
 
 // Action of an on/off setting that belongs to a module: `on` when the setting is on, `off` when it is off.
 // Does nothing if the module isn't loaded.
-function moduleToggle<T extends HSModule>(
-    moduleName: string,
-    on: (mod: T, params: HSSettingActionParams) => unknown,
-    off: (mod: T, params: HSSettingActionParams) => unknown
+function moduleToggle<K extends keyof HSModuleInstances>(
+    moduleName: K,
+    on: (mod: HSModuleInstances[K], params: HSSettingActionParams) => unknown,
+    off: (mod: HSModuleInstances[K], params: HSSettingActionParams) => unknown
 ): (params: HSSettingActionParams) => Promise<void> {
     return async (params: HSSettingActionParams) => {
-        const mod = HSModuleManager.getModule<T>(moduleName);
+        const mod = HSModuleRegistry.getModule(moduleName);
         if (!mod) return;
 
         await (params.disable === true ? off(mod, params) : on(mod, params));
@@ -99,7 +95,7 @@ export class HSSettingActions {
             }
         },
 
-        ambrosiaMinibarAction: moduleToggle<HSAmbrosia>('HSAmbrosia',
+        ambrosiaMinibarAction: moduleToggle('HSAmbrosia',
             (mod, params) => {
                 // Where they need GDS (bookmarklet: no live player to read), they turn it on
                 const minibars = HSSettings.getSetting('ambrosiaMinibars')?.getDefinition();
@@ -116,7 +112,7 @@ export class HSSettingActions {
             document.documentElement.classList.toggle('hs-minibars-framed', params.disable !== true);
         },
 
-        ambrosiaRateHeaderAction: moduleToggle<HSAmbrosia>('HSAmbrosia',
+        ambrosiaRateHeaderAction: moduleToggle('HSAmbrosia',
             (mod) => mod.enableRateHeader(),
             (mod) => mod.disableRateHeader()
         ),
@@ -158,17 +154,17 @@ export class HSSettingActions {
 
         // Not awaited: the GDS start and stop run on their own.
         // Only bookmarklet players have the setting: elsewhere GDS always runs, even with an OFF saved before.
-        useGameData: moduleToggle<HSGameData>('HSGameData',
+        useGameData: moduleToggle('HSGameData',
             (mod) => { void mod.enableGDS(); },
             (mod) => { void (mod.isGDSWanted() ? mod.enableGDS() : mod.disableGDS()); }
         ),
 
-        persistentAmbrosiaLevelsAction: moduleToggle<HSAmbrosia>('HSAmbrosia',
+        persistentAmbrosiaLevelsAction: moduleToggle('HSAmbrosia',
             (mod) => mod.applyPersistentAmbrosiaLevelsSetting(true),
             (mod) => mod.applyPersistentAmbrosiaLevelsSetting(false)
         ),
 
-        addTimeAutoLoadoutsAction: moduleToggle<HSAmbrosia>('HSAmbrosia',
+        addTimeAutoLoadoutsAction: moduleToggle('HSAmbrosia',
             (mod) => mod.enableAutoLoadout(),
             (mod) => mod.disableAutoLoadout()
         ),
@@ -182,7 +178,7 @@ export class HSSettingActions {
                 return;
             }
 
-            const autosingMod = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+            const autosingMod = HSModuleRegistry.getModule('HSAutosing');
             if (autosingMod) {
                 if (params.disable && params.disable === true) {
                     // Review mode: we stop autosing process but keep the modal visible
@@ -193,12 +189,12 @@ export class HSSettingActions {
             }
         },
 
-        autosingKeepAwakeAction: moduleToggle<HSAutosing>('HSAutosing',
+        autosingKeepAwakeAction: moduleToggle('HSAutosing',
             (mod) => mod.setKeepAwake(true),
             (mod) => mod.setKeepAwake(false)
         ),
 
-        autosingNoAmbrosiaSwitchAction: moduleToggle<HSAutosing>('HSAutosing',
+        autosingNoAmbrosiaSwitchAction: moduleToggle('HSAutosing',
             (mod) => mod.setAmbrosiaSwitchesOff(true),
             (mod) => mod.setAmbrosiaSwitchesOff(false)
         ),
@@ -256,43 +252,43 @@ export class HSSettingActions {
         },
 
         hideMaxedGQUpgradesAction: async (params: HSSettingActionParams) => {
-            const qolButtonsMod = HSModuleManager.getModule<HSQOLButtons>('HSQOLButtons');
+            const qolButtonsMod = HSModuleRegistry.getModule('HSQOLButtons');
             if (qolButtonsMod) {
                 qolButtonsMod.setMaxedGQUpgradesVisibility();
             }
         },
 
         hideMaxedOctUpgradesAction: async (params: HSSettingActionParams) => {
-            const qolButtonsMod = HSModuleManager.getModule<HSQOLButtons>('HSQOLButtons');
+            const qolButtonsMod = HSModuleRegistry.getModule('HSQOLButtons');
             if (qolButtonsMod) {
                 qolButtonsMod.setMaxedOctUpgradesVisibility();
             }
         },
 
-        enableGQDistributorAction: moduleToggle<HSQOLButtons>('HSQOLButtons',
+        enableGQDistributorAction: moduleToggle('HSQOLButtons',
             (mod) => mod.showGQDistributor(),
             (mod) => mod.hideGQDistributor()
         ),
 
         autoExportSaveFolderAction: async (params: HSSettingActionParams) => {
-            await HSModuleManager.getModule<HSAutoExport>('HSAutoExport')?.chooseFolder();
+            await HSModuleRegistry.getModule('HSAutoExport')?.chooseFolder();
         },
 
         autoExportSaveForgetFolderAction: async (params: HSSettingActionParams) => {
-            await HSModuleManager.getModule<HSAutoExport>('HSAutoExport')?.forgetFolder();
+            await HSModuleRegistry.getModule('HSAutoExport')?.forgetFolder();
         },
 
-        enableHepteractDistributorAction: moduleToggle<HSHepteractDistributor>('HSHepteractDistributor',
+        enableHepteractDistributorAction: moduleToggle('HSHepteractDistributor',
             (mod) => mod.showDistributor(),
             (mod) => mod.hideDistributor()
         ),
 
-        perksFindAction: moduleToggle<HSPerksFind>('HSPerksFind',
+        perksFindAction: moduleToggle('HSPerksFind',
             (mod) => mod.show(),
             (mod) => mod.hide()
         ),
 
-        enableAutomationQuickBarAction: moduleToggle<HSQOLButtons>('HSQOLButtons',
+        enableAutomationQuickBarAction: moduleToggle('HSQOLButtons',
             (mod) => mod.enableAutomationQuickbar(),
             (mod) => mod.disableAutomationQuickbar()
         ),

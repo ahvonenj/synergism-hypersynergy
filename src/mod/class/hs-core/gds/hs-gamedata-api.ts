@@ -8,8 +8,8 @@ import { HSModuleOptions } from "../../../types/hs-types";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
-import { HSModuleManager } from "../module/hs-module-manager";
-import { HSGameData } from "./hs-gamedata";
+import { HSModuleRegistry } from "../module/hs-module-registry";
+
 import { HSGameDataAPIPartial } from "./hs-gamedata-api-partial";
 import { ShopUpgradeHelper } from "./hs-gamedata-api-quarkShop";
 import { AntUpgradeHelper } from "./hs-gamedata-api-ant";
@@ -417,7 +417,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
     ]
 
-
     getRuneBonusLevels(rune: RuneKeys): number {
         if (!this.gameData) return 0;
 
@@ -465,7 +464,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         }
     }
 
-
     // =============================
     // ======== Constructor ========
     // =============================
@@ -492,7 +490,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.synergismLevel = this.registerCalculationHelper(new SynergismLevelHelper(this));
     }
 
-
     /** An isolated calculation context: its helpers and caches use the supplied data, never the live player. */
     createCalculationSnapshot(data: GameData): HSGameDataAPI {
         const snapshot = new HSGameDataAPI({ moduleName: this.moduleName, context: this.context });
@@ -511,7 +508,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         this.#calculationHelperProviders.push(helper);
         return helper;
     }
-
 
     // =============================
     // ======= General Utils =======
@@ -1212,7 +1208,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         return base;
     }
 
-
     // =============================
     // ======== Rune Heater ========
     // =============================
@@ -1242,7 +1237,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
             return 2 + 2 * Math.floor(Math.log2(Math.min(tokens, 24_000) / 750));
         });
     }
-
 
     // =============================
     // ========= Offering ==========
@@ -1354,7 +1348,6 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         if (!reduce_vals) return calculateVals();
         return this.memoizeCalculation(cacheName, calculationVars, () => Object.values(calculateVals()).reduce((a, b) => a + b, 0));
     }
-
 
     // =============================
     // ====== Event =======
@@ -1489,7 +1482,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
     }
 
     async dumpDataForHeater(): Promise<any> {
-        const gameDataModule = HSModuleManager.getModule("HSGameData") as HSGameData;
+        const gameDataModule = HSModuleRegistry.getModule("HSGameData");
 
         if (gameDataModule) {
             // PseudoCoin levels, quark bonus and consumables are pushed by HSGameData at each change: only the save is forced

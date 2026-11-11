@@ -10,26 +10,49 @@
 // @run-at       document-start
 // ==/UserScript==
 
-(function () {
-    'use strict';
-    const repo = 'maenhiir'; // Stable: 'Ferlieloi', Dev: 'maenhiir'
-    const version = 'master'; // 'master', specific tag (e.g. 'v2.11.0-dev13'), specific commit (e.g. '0611b83')
-    const baseUrl = `http://127.0.0.1:8080/src/loader/hypersynergism.dev.js`;
-    const url = baseUrl + '?t=' + Date.now();
-    window.__HS_REPO = repo;
-    window.__HS_VERSION = version;
+// Generated from src/loader/shared by npm run build:loaders.
+(() => {
+  // src/loader/shared/loader-urls.mjs
+  var DEV_SERVER_ORIGIN = "http://127.0.0.1:8080";
+  function defaultRepo(dev) {
+    return dev ? "maenhiir" : "Ferlieloi";
+  }
+  function repositoryRoot(repo2, version2) {
+    return `https://cdn.jsdelivr.net/gh/${repo2}/synergism-hypersynergy@${version2}`;
+  }
+
+  // src/loader/shared/userscript-entry.mjs
+  function requestScript(url) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, false);
+    xhr.send();
+    return xhr;
+  }
+  function scriptWithSourceUrl(xhr, url) {
+    return xhr.responseText + "\n//# sourceURL=" + url + "\n";
+  }
+  function runBridge(dev, repo2, version2) {
+    const baseUrl = dev ? `${DEV_SERVER_ORIGIN}/src/loader/hypersynergism.dev.js` : `${repositoryRoot(repo2, version2)}/src/loader/hypersynergism.user.js`;
+    const url = `${baseUrl}?t=${Date.now()}`;
+    window.__HS_REPO = repo2;
+    window.__HS_VERSION = version2;
     try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false);
-        xhr.send();
-        if (xhr.status === 200) {
-            const fn = new Function(xhr.responseText + '\n//# sourceURL=' + url);
-            fn();
-            console.log(`%c[HS-BRIDGE] HS loader loaded fresh from ${url}`, 'color:#4af');
-        } else {
-            console.error(`%c[HS-BRIDGE] Dev server returned ${xhr.status} — ${xhr.statusText} — ${url} — is it running?`, 'color:#b02');
-        }
-    } catch (e) {
-        console.error(`%c[HS-BRIDGE] Loader error: ${e}`, 'color:#b02');
+      const xhr = requestScript(url);
+      if (xhr.status === 200) {
+        new Function(scriptWithSourceUrl(xhr, url))();
+        console.log(`%c[HS-BRIDGE] HS loader loaded fresh from ${url}`, "color:#4af");
+      } else {
+        const message = dev ? "Dev server returned" : "Failed to fetch loader:";
+        const hint = dev ? " — is it running?" : "";
+        console.error(`%c[HS-BRIDGE] ${message} ${xhr.status} — ${xhr.statusText} — ${url}${hint}`, "color:#b02");
+      }
+    } catch (error) {
+      console.error(`%c[HS-BRIDGE] Loader error: ${error}`, "color:#b02");
     }
+  }
+
+  // src/loader/shared/bridge-entry.js
+  var repo = defaultRepo(true);
+  var version = "master";
+  runBridge(true, repo, version);
 })();

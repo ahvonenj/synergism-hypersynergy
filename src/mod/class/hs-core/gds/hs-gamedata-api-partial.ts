@@ -7,7 +7,7 @@ import { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
 import { HSModuleOptions } from "../../../types/hs-types";
 import { HSLogger } from "../hs-logger";
 import { HSModule } from "../module/hs-module";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSCalculationDefinitions } from "./hs-calculation-definition";
 import { HSGameData } from "./hs-gamedata";
 
@@ -53,7 +53,7 @@ export abstract class HSGameDataAPIPartial extends HSModule {
 
     async init() {
         HSLogger.log(`Initializing HSGameDataAPI module`, this.context);
-        this.gameDataModule = HSModuleManager.getModule<HSGameData>('HSGameData');
+        this.gameDataModule = HSModuleRegistry.getModule('HSGameData');
 
         this.isInitialized = true;
     }
