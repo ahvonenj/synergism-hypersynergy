@@ -837,6 +837,105 @@
       ]
     }
   },
+  "ascensionAutoLoadout": {
+    "settingName": "ascensionAutoLoadout",
+    "settingDescription": "Ascension loadout auto-switch",
+    "settingHelpText": "Use a saved Ambrosia loadout for manual ascensions, then switch back. Switching resets Ambrosia progress. Shift+A requires a patched game.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "ambrosia",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-ascension-auto-loadout-btn"
+    }
+  },
+  "autoLoadoutAscension": {
+    "settingName": "autoLoadoutAscension",
+    "settingDescription": "Ascension loadout",
+    "settingHelpText": "Choose a saved slot. Without the patch, load or save your current slot before ascending so it can be restored.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlId": "hs-setting-ascension-loadout-value",
+      "controlType": "select",
+      "controlGroup": "ambrosia",
+      "controlParent": "ascensionAutoLoadout",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
   "startAutosing": {
     "settingName": "startAutosing",
     "settingDescription": "Start/Stop Auto-Sing (S216+)",

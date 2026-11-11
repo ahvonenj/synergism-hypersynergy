@@ -30,6 +30,7 @@ declare global {
         __HS_dialogOrigin?: (kind: HSDialogKind, firstArg?: unknown) => unknown;
         __HS_onDialog?: (kind: HSDialogKind, origin: unknown) => { value: unknown } | undefined;
         __HS_onSaveImport?: (reset: unknown) => void;
+        __HS_runManualAscension?: (reset: () => void) => void;
         __HS_headerModuleUnlocks?: Record<string, () => boolean>;
         __HS_beforeHeaderRender?: () => void;
         __HS_HEADER_BUTTONS_PATCHED?: boolean;

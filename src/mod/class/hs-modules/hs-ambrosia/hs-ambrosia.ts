@@ -14,6 +14,7 @@ import { HSModule } from "../../hs-core/module/hs-module";
 import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
+import { escapeLogText } from "../hs-heater/hs-heater-utils";
 import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
@@ -142,6 +143,11 @@ export class HSAmbrosia extends HSModule
         this.#subscribeGameStateViewChanges();
 
         HSSettingsUI.refreshAmbrosiaLoadoutDropdowns();
+        if (window.__HS_PATCH_REPORT?.manualAscension) {
+            window.__HS_runManualAscension = (reset) => this.#runManualAscension(reset);
+        } else {
+            this.#autoLoadout.installAscensionButtonFallback();
+        }
         this.isInitialized = true;
     }
 
@@ -587,6 +593,27 @@ export class HSAmbrosia extends HSModule
     /** Runs a synchronous action with a loadout loaded, then puts the player's tree back (HSAmbrosiaTemporaryTree). */
     runWithLoadout(loadoutSetting: string, owner: string, action: () => void): string | undefined {
         return this.#temporaryTree.runWithLoadout(loadoutSetting, owner, action);
+    }
+
+    #runManualAscension(reset: () => void): void {
+        const loadout = HSAmbrosiaAutoLoadout.getAscensionLoadout();
+        if (!loadout) {
+            reset();
+            return;
+        }
+
+        let resetStarted = false;
+        try {
+            const note = this.#temporaryTree.runWithLoadout(loadout, 'ascensionLoadout', () => {
+                resetStarted = true;
+                reset();
+            }, { requireRestore: true });
+            if (note) HSLogger.warn(`Ascension loadout: ${escapeLogText(note)}`, this.context);
+        } catch (error) {
+            if (resetStarted) throw error;
+            HSLogger.warn('Could not switch ascension loadout. Ascending with the current tree.', this.context);
+            reset();
+        }
     }
 
 

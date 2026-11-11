@@ -72,6 +72,8 @@ export interface HSSettingsDefinition {
     addTimeAutoLoadouts: AddTimeAutoLoadoutsSetting;
     autoLoadoutAdd: AutoLoadoutAddSetting;
     autoLoadoutTime: AutoLoadoutTimeSetting;
+    ascensionAutoLoadout: HSSettingBase<boolean>;
+    autoLoadoutAscension: HSSettingBase<string>;
     ambrosiaMinibars: AmbrosiaMinibarsSetting;
     ambrosiaMinibarBorders: HSSettingBase<boolean>;
     ambrosiaRateHeader: AmbrosiaRateHeaderSetting;

@@ -16,6 +16,7 @@ import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
  * Description:
  *     Created by HSAmbrosia. Auto-Loadout: a click on the game's Add or Time code buttons loads the loadout chosen for
  *     that code first, then loads the previous one back once the code has paid out.
+ *     Also handles the Ascend button when the shared reset hook is unavailable.
  * Author: Swiffy, Shewchou
  */
 export class HSAmbrosiaAutoLoadout {
@@ -49,6 +50,109 @@ export class HSAmbrosiaAutoLoadout {
         this.#addCodeAllButton = addCodeAllButton as HTMLButtonElement;
         this.#addCodeOneButton = addCodeOneButton as HTMLButtonElement;
         this.#timeCodeButton = timeCodeButton as HTMLButtonElement;
+    }
+
+    static getAscensionLoadout(): string {
+        if (!HSSettings.getSetting('ascensionAutoLoadout')?.isEnabled()
+            || HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return '';
+        return String(HSSettings.getSetting('autoLoadoutAscension')?.getValue() ?? '');
+    }
+
+    installAscensionButtonFallback(): void {
+        const ascend = document.querySelector<HTMLImageElement>('#ascendbtn');
+        if (!ascend) return;
+        const mobile = document.documentElement.dataset.mobile === 'true';
+        const clickRoot = mobile ? document.getElementById('modalContent') : ascend;
+        if (!clickRoot) return;
+
+        const awaitingConfirmation = new WeakSet<Event>();
+        clickRoot.addEventListener('click', (event) => {
+            if (!event.isTrusted || !HSAmbrosiaAutoLoadout.getAscensionLoadout()) return;
+            if (mobile && (!(event.target instanceof Element) || !event.target.closest('[data-modal-action="reset"]')
+                || !ascend.src || clickRoot.querySelector<HTMLImageElement>('.resetModalTitle img')?.src !== ascend.src)) return;
+            if (!HSGameDialogs.isQueueIdle()) return;
+
+            // The game uses the toggle's border colour for its state in every language.
+            const confirmation = document.getElementById('toggle31')?.style.borderColor;
+            if (confirmation === 'red') this.#switchLoadoutForAscension();
+            if (confirmation === 'green') awaitingConfirmation.add(event);
+        }, true);
+        document.addEventListener('click', (event) => {
+            // The game's listener has run. An idle queue opens this click's confirmation synchronously.
+            if (awaitingConfirmation.has(event)) this.#watchAscensionConfirmation();
+        });
+    }
+
+    #watchAscensionConfirmation(): void {
+        const wrapper = document.getElementById('confirmWrapper');
+        const popup = document.getElementById('confirm');
+        const ok = document.getElementById('ok_confirm');
+        const cancel = document.getElementById('cancel_confirm');
+        if (!wrapper || wrapper.style.display !== 'block' || !popup || !ok || !cancel) return;
+
+        const listeners = new AbortController();
+        const observer = new MutationObserver(() => {
+            if (wrapper.style.display !== 'block') stop();
+        });
+        const stop = () => {
+            listeners.abort();
+            observer.disconnect();
+        };
+        const accept = () => {
+            stop();
+            this.#switchLoadoutForAscension();
+        };
+        const options = { capture: true, signal: listeners.signal };
+        ok.addEventListener('click', accept, options);
+        cancel.addEventListener('click', stop, options);
+        popup.addEventListener('keyup', (event) => {
+            if (event.key === 'Escape') stop();
+            if (event.key === 'Enter' || event.key === ' ') {
+                if (event.target === cancel) stop();
+                else accept();
+            }
+        }, options);
+        observer.observe(wrapper, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    #switchLoadoutForAscension(): void {
+        const loadout = HSAmbrosiaAutoLoadout.getAscensionLoadout();
+        if (!loadout) return;
+        const target = this.#slots.byId(HSAmbrosiaHelper.convertSettingLoadoutToSlot(loadout));
+        const previous = this.#slots.gameActive();
+        if (!target || target.disabled || target.style.display === 'none') {
+            HSLogger.warn('Ascension loadout: the selected slot is unavailable.', this.#context);
+            return;
+        }
+        if (!previous || previous.disabled || previous.style.display === 'none') {
+            HSLogger.warn('Ascension loadout: load a saved slot first so it can be restored.', this.#context);
+            return;
+        }
+        if (previous === target) return;
+
+        this.#loadAscensionSlot(target);
+        if (this.#slots.gameActive() !== target) {
+            HSLogger.warn('Ascension loadout: the game did not load the selected slot.', this.#context);
+            return;
+        }
+        // With a Confirm, the native reset runs in the microtasks after its OK listener.
+        window.setTimeout(() => {
+            if (this.#slots.gameActive() !== target) return;
+            this.#loadAscensionSlot(previous);
+            if (this.#slots.gameActive() !== previous) {
+                HSLogger.warn('Ascension loadout: the game did not reload your previous slot.', this.#context);
+            }
+        }, 0);
+    }
+
+    #loadAscensionSlot(slot: HTMLButtonElement): void {
+        const wasSaveMode = HSAmbrosiaHelper.isLoadoutMode('saveTree');
+        try {
+            HSAmbrosiaHelper.ensureLoadoutMode('loadTree');
+            if (HSAmbrosiaHelper.isLoadoutMode('loadTree')) this.#slots.load(slot, 'ascensionLoadout');
+        } finally {
+            if (wasSaveMode) HSAmbrosiaHelper.ensureLoadoutMode('saveTree');
+        }
     }
 
     async enable() {

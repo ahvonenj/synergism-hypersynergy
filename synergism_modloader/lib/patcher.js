@@ -664,6 +664,29 @@ function patchBundle(code, options = {}) {
         warn('Error while patching the save import hook', e);
     }
 
+    // ── MANUAL ASCENSION PATCH — wrap the reset after the game's own confirmation.
+    // Ascend and its hotkey use resetConfirmation. Challenge entry also uses main.ascendPrompt, but does
+    // not have the other reset prompts. Capture the initiating event before confirmation can suspend.
+    report.manualAscension = false;
+    const ascensionLabel = 'manualAscension';
+    const confirmation = findEnclosingFunction(code, /["']main\.ascendPrompt["']/g,
+        ['main.transcendPrompt', 'main.reincarnatePrompt'], ascensionLabel);
+    if (confirmation && !ambiguous.includes(ascensionLabel)) {
+        const body = code.slice(confirmation.bodyStart, confirmation.bodyEnd);
+        const resets = [...body.matchAll(/(?<![\w$.])[a-zA-Z_$][\w$]*\s*\(\s*["']ascension["']\s*\)/g)];
+        if (resets.length === 1) {
+            const [reset] = resets;
+            const call = reset[0];
+            const wrapped = `(__hsManual&&window.__HS_runManualAscension?window.__HS_runManualAscension(()=>${call}):${call})`;
+            code = code.slice(0, confirmation.bodyStart) + '\nconst __hsManual=window.event?.isTrusted;\n' +
+                body.slice(0, reset.index) + wrapped + body.slice(reset.index + call.length) +
+                code.slice(confirmation.bodyEnd);
+            report.manualAscension = true;
+            log(`Patched resetConfirmation (manual ascension, fn=${confirmation.fnName})`);
+        }
+    }
+    if (!report.manualAscension) warn('Could not patch manual ascension — confirmed ascension reset not uniquely identified');
+
     // ==================================================================================
     // ── CONSUMABLES PATCH — expose Login.ts allDurableConsumables as window.__HS_consumables
     // The game's own consumables WebSocket keeps the active Happy Hour Bells in that object; the mod

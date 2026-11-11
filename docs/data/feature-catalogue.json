@@ -403,6 +403,27 @@
           ]
         },
         {
+          "id": "ascension-loadout",
+          "title": "Ascension loadout auto-switch",
+          "where": "Settings → QoL → Ascension loadout auto-switch",
+          "summary": "Uses a chosen Ambrosia loadout for a manual ascension and restores the previous tree afterward.",
+          "details": [
+            "Enable the switch and choose a saved slot. The game confirms the ascension as usual.",
+            "The Ascend button works with or without the patch. Shift+A uses the configured loadout when the game is patched."
+          ],
+          "limits": [
+            "Switching loadouts resets Ambrosia bar progress. Without the patch, the mod restores the saved contents of the previously marked slot, so save tree edits before ascending."
+          ],
+          "settings": [
+            "ascensionAutoLoadout",
+            "autoLoadoutAscension"
+          ],
+          "sources": [
+            "docs/features/ascension-loadout.md",
+            "src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-auto-loadout.ts"
+          ]
+        },
+        {
           "id": "ambrosia-minibars",
           "title": "Blue, red and purple progress minibars",
           "where": "Header editor → [HS] Header → Mod modules",
