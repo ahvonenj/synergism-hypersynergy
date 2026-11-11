@@ -136,7 +136,8 @@ const PASS = `(() => {
     window.__HSloadStats();
     window.__HSstat = window.__HStotal = null;
     const player = JSON.parse(JSON.stringify(${game.PLAYER}, flat));
-    for (const [t, v] of Object.entries(window.__HS_talismans ?? {})) player.talismans[t] = JSON.parse(JSON.stringify(v.fragmentsInvested, flat));
+    // Before game commit 075dfeaa the live fragments were in the talismans object, player.talismans a copy at each save
+    for (const [t, v] of Object.entries(window.__HS_talismans ?? {})) if (v.fragmentsInvested) player.talismans[t] = JSON.parse(JSON.stringify(v.fragmentsInvested, flat));
     const progressive = {};
     for (const [k, v] of Object.entries(window.__HSprog ?? {})) progressive[k] = v.rewardedAP;
     return JSON.stringify({ lines, totals, player, pseudoCoinLevels: window.__HS_pcoinLevels ?? null, quarkBonus: window.__HS_quarkBonus ?? null,

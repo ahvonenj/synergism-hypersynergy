@@ -8,13 +8,13 @@ import type { GameData, TalismanShards } from "../../../types/data-types/hs-play
 import type { HSGameDataAPI } from "./hs-gamedata-api";
 
 /**
- * The fragments invested in a talisman. The live player's talismans are only a copy the game makes at each save (every
- * 5 s): on the live player, they are read from the game's talismans object (patcher: window.__HS_talismans) when it is
- * exposed. A save's own are what that save holds.
+ * The fragments invested in a talisman: player.talismans, live since game commit 075dfeaa. Before it, the live player's
+ * were only a copy the game made at each save (every 5 s), and the live ones were in the game's talismans object
+ * (patcher: window.__HS_talismans, fragmentsInvested). A save's own are what that save holds.
  */
 export const getTalismanFragments = (data: GameData, t: TalismanKeys): Readonly<TalismanShards> => {
-    const live = window.__HS_talismans;
-    if (live && data === (HSGlobal.exposedPlayer as unknown)) return live[t].fragmentsInvested;
+    const live = window.__HS_talismans?.[t]?.fragmentsInvested;
+    if (live && data === (HSGlobal.exposedPlayer as unknown)) return live;
     return data.talismans[t];
 };
 

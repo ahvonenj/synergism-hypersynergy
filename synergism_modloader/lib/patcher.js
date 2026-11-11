@@ -443,14 +443,15 @@ function patchBundle(code, options = {}) {
 
     // ==================================================================================
     // ── TALISMANS PATCH — capture Talismans.ts talismans as window.__HS_talismans
-    // The fragments invested in each talisman live in talismans[k].fragmentsInvested; player.talismans only gets a copy
-    // at each save. Found by what it is: the object literal assigned to a variable with exemption as one of its own keys,
-    // holding fragmentsInvested and horseShoe. Wrapped in a call that keeps a reference:
+    // The game's talisman levels live in talismans[k].level (no save holds them). Before game commit 075dfeaa the
+    // fragments invested lived there too (talismans[k].fragmentsInvested), player.talismans being a copy made at each
+    // save; since, player.talismans is the live store. Found by what it is: the object literal assigned to a variable
+    // with exemption as one of its own keys, holding baseMult and horseShoe. Wrapped in a call that keeps a reference:
     //   Te={exemption:{…},…}  becomes  Te=(function(o){window.__HS_talismans=o;return o})({exemption:{…},…})
     report.talismans = false;
     try {
         const talismans = findAssignedObjectLiteral(code, /(?<![\w$.])["']?exemption["']?\s*:/g,
-            ['fragmentsInvested', 'horseShoe'], 'talismans');
+            ['baseMult', 'horseShoe'], 'talismans');
         if (talismans) {
             const capture = '(function(o){window.__HS_talismans=o;return o})(';
             code = code.slice(0, talismans.start) + capture + code.slice(talismans.start, talismans.end + 1) + ')' + code.slice(talismans.end + 1);
@@ -815,8 +816,7 @@ function patchBundle(code, options = {}) {
     // player.headerLayouts: the game's save schema checks every id against its own list, and one unknown id resets the
     // whole layout. So no save ever holds them, and a save loaded by an unpatched game keeps the player's header.
     // The mod remembers where its modules are, and puts them back before each render.
-    // 1. saveSynergy, found by its "testing.gameSaved" message and the talismans it writes (fragmentsInvested):
-    //    its one schema parse of the player saves a copy without the mod's ids:
+    // 1. saveSynergy, found by its "testing.gameSaved" message and the offlinetick it writes: its one schema parse of the player saves a copy without the mod's ids:
     //      let t=Yp.parse(n)  becomes  let t=Yp.parse(window.__HS_stripHeaderModules(n))
     // 2. loadSynergy, found by its "testing.saveInLive2" message: the save it parses loses the mod's ids (a singularity
     //    reloads the live layout, and importSynergism stores that save as is until the next saveSynergy):
@@ -831,7 +831,7 @@ function patchBundle(code, options = {}) {
         let next = code;
         const problems = [];
 
-        const saveResult = findEnclosingFunction(next, /["']testing\.gameSaved["']/g, ['fragmentsInvested'], 'header modules (saveSynergy)');
+        const saveResult = findEnclosingFunction(next, /["']testing\.gameSaved["']/g, ['offlinetick'], 'header modules (saveSynergy)');
         const schemaParse = /(?<![\w$.])(?!JSON\.)([a-zA-Z_$][\w$]*)\.parse\(\s*([a-zA-Z_$][\w$]*)\s*\)/g;
         const saveParses = saveResult ? [...next.slice(saveResult.bodyStart, saveResult.bodyEnd).matchAll(schemaParse)] : [];
         if (saveParses.length === 1) {
@@ -890,13 +890,13 @@ function patchBundle(code, options = {}) {
     // ── SAVE SEED CAP — keep saves working when an RNG seed overtakes the clock (docs/game/behaviours.md)
     // The game's save schema wants each player.seed below Date.now() + 1000, and each draw adds 1 to a seed that began
     // as a timestamp in ms: over 1000 draws per second, every save throws, and the throw kills the autosave's interval.
-    // saveSynergy, found by its "testing.gameSaved" message and the talismans it writes (fragmentsInvested): its one
+    // saveSynergy, found by its "testing.gameSaved" message and the offlinetick it writes: its one
     // schema parse saves a copy with the seeds capped at the clock, the live player's draws carry on untouched:
     //   let t=Yp.parse(n)  becomes  let t=Yp.parse(window.__HS_capSaveSeeds(n))
     // After the header modules patch: it applies with or without that one's edit of the same parse.
     report.saveSeedCap = false;
     try {
-        const saveResult = findEnclosingFunction(code, /["']testing\.gameSaved["']/g, ['fragmentsInvested'], 'save seed cap');
+        const saveResult = findEnclosingFunction(code, /["']testing\.gameSaved["']/g, ['offlinetick'], 'save seed cap');
         const schemaParse = /(?<![\w$.])(?!JSON\.)([a-zA-Z_$][\w$]*)\.parse\(\s*(window\.__HS_stripHeaderModules\(\s*[a-zA-Z_$][\w$]*\s*\)|[a-zA-Z_$][\w$]*)\s*\)/g;
         const saveParses = saveResult ? [...code.slice(saveResult.bodyStart, saveResult.bodyEnd).matchAll(schemaParse)] : [];
         if (saveParses.length === 1) {

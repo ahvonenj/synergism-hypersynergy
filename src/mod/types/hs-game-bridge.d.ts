@@ -42,8 +42,8 @@ declare global {
         __HS_parseSave?: (text: string) => Record<string, unknown> | null;
         __HS_stripHeaderModules?: <T>(player: T) => T;
         __HS_consumables?: Partial<ConsumableGameEvents>;
-        // The game's own Decimals, read through parseGameDataDecimal
-        __HS_talismans?: Readonly<Record<TalismanKeys, { readonly level: number; readonly fragmentsInvested: Readonly<TalismanShards> }>>;
+        // The game's own Decimals, read through parseGameDataDecimal. fragmentsInvested: only before game commit 075dfeaa
+        __HS_talismans?: Readonly<Record<TalismanKeys, { readonly level: number; readonly fragmentsInvested?: Readonly<TalismanShards> }>>;
         __HS_globalEvent?: unknown;
         __HS_onGlobalEvent?: (event: unknown) => void;
         __HS_pcoinLevels?: Partial<Record<PseudoCoinUpgradeNames, number>>;
