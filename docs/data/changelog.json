@@ -33,10 +33,14 @@
       "commit": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
       "previous_commit": "006d1a98df27e8a9f9dbfea7974c75d825c84ce0",
       "date": "2026-11-11",
-      "date_kind": "tag",
-      "status": "tagged",
+      "date_kind": "published",
+      "status": "published",
       "release_url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.7e",
       "sources": [
+        {
+          "label": "Published release",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.7e"
+        },
         {
           "label": "Git tag",
           "url": "https://github.com/Ferlieloi/synergism-hypersynergy/tree/v2.14.7e"
