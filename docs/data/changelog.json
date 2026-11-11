@@ -30,7 +30,7 @@
       "version": "2.14.8",
       "channel": "live",
       "repository": "Ferlieloi/synergism-hypersynergy",
-      "commit": "c3d707be18f95a0261cea04984ffc75faeeac4d0",
+      "commit": "61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e",
       "previous_commit": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
       "date": "2026-11-11",
       "date_kind": "published",
@@ -47,7 +47,7 @@
         },
         {
           "label": "Release build",
-          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c3d707be18f95a0261cea04984ffc75faeeac4d0"
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e"
         }
       ],
       "notes": [],
@@ -89,13 +89,14 @@
             "release"
           ],
           "commits": [
-            "c3d707be18f95a0261cea04984ffc75faeeac4d0"
+            "c3d707be18f95a0261cea04984ffc75faeeac4d0",
+            "61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e"
           ]
         }
       ],
       "contributor_range": {
         "base": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
-        "head": "c3d707be18f95a0261cea04984ffc75faeeac4d0",
+        "head": "61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e",
         "scope": "repository"
       },
       "merges": []

@@ -134,6 +134,24 @@ Returns a tab to the subtab you last used after resets and reloads.
 
 **Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
 
+### Grouped Stats for Nerds list
+
+Replaces the game's grid of category buttons with a compact list sorted into groups.
+
+**Where:** Settings → Stats for Nerds, left side
+
+- Groups follow the game's progression: general, offerings and runes, obtainium, ants, ascension and cubes, singularity, ambrosia, red ambrosia, purple honey.
+- Labels are the game's, in your game language. Categories you haven't unlocked stay hidden, as in the game.
+- Off by default: turn on Settings → UI → Grouped Stats for Nerds list to use it.
+
+**Availability and limits**
+
+- Desktop layout only: on a phone the game's icons are kept.
+
+**Related settings:** [`statsForNerdsGroups`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#statsfornerdsgroups)
+
+**Source:** [hs-stats-for-nerds.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-stats-for-nerds.ts) · [stats-for-nerds.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/stats-for-nerds.md) · [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+
 ### Search the singularity perks
 
 Lists the tooltips of the perks matching what you type.

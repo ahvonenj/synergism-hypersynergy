@@ -196,6 +196,14 @@ Remember last used subtab
 - Location: Panel control / ui.
 - Guide: [Remember each tab's last subtab](Features-interface#remember-each-tabs-last-subtab).
 
+## statsForNerdsGroups
+
+Grouped Stats for Nerds list
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / ui.
+- Guide: [Grouped Stats for Nerds list](Features-interface#grouped-stats-for-nerds-list).
+
 ## hiddenVanillaTabs
 
 Hide vanilla tabs
