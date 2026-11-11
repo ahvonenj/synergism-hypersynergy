@@ -48,7 +48,7 @@ export const parseGameDataDecimal = (value: unknown, fallback?: Decimal): Decima
             return Decimal.fromMantissaExponent_noNormalize(mantissa, exponent);
         }
 
-        // The live player's counters (worlds, cubes) are classes whose valueOf() gives the number
+        // Before game commit 075dfeaa, the live player's counters (worlds, cubes) are classes whose valueOf() gives the number
         const primitive = value.valueOf();
         if (primitive !== value) {
             return parseGameDataDecimal(primitive, fallback);

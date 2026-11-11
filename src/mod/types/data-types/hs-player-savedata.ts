@@ -18,8 +18,9 @@ declare const gameCountBrand: unique symbol
 export type GameDecimal = { readonly [gameDecimalBrand]: true }
 
 /**
- * A count read from getGameData() (worlds, cubes): a number in a save, a game class whose valueOf()
- * gives the number on the live player. Opaque on purpose: read it with Number() or parseGameDataNumber.
+ * A count read from getGameData() (worlds, cubes): a number, except on the live player of a game before commit
+ * 075dfeaa (2026-11-10), where it is a game class whose valueOf() gives the number. Opaque on purpose: read it with
+ * Number() or parseGameDataNumber.
  */
 export type GameCount = { readonly [gameCountBrand]: true }
 
@@ -843,8 +844,8 @@ export type DeepReadonly<T> =
     : T
 
 /**
- * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-09 with vanilla's master
- * (commit fc9f007ca, 2026-11-08, game 4.4.1): no field here is missing from vanilla, and these vanilla fields aren't
+ * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-11 with vanilla's master
+ * (commit 075dfeaa, 2026-11-10): no field here is missing from vanilla, and these vanilla fields aren't
  * declared, as no feature reads them through this type (add one when a feature needs it):
  * - firstPaidDiamonds … fifthPaidDiamonds, and the same for Mythos and Particles (Decimals)
  * - multiplierPaid, acceleratorPaid, acceleratorBoostPaid (Decimals)
@@ -986,7 +987,7 @@ interface GameDataFields {
     tesseractbuyamount: number;
     shoptoggles: ShopToggles;
 
-    codes: unknown; // [codeId, redeemed] tuples in a save, a Map on the live player; not read by the mod
+    codes: unknown; // Redeemed code ids (a Map on the live player before game commit 075dfeaa); not read by the mod
 
     shopUpgrades: ShopUpgrades;
 
@@ -1083,7 +1084,7 @@ interface GameDataFields {
     saveString: string; // Format string for save file names
     exporttest: string | boolean; // The game refuses to import a save without 'YES!' or true (outside its test builds)
 
-    dayCheck: unknown; // ISO date string in a save, a Date on the live player; not read by the mod
+    dayCheck: unknown; // ISO date string (a Date on the live player before game commit 075dfeaa); not read by the mod
     dayTimer: number;
     cubeOpenedDaily: number;
     cubeQuarkDaily: number;
@@ -1097,7 +1098,6 @@ interface GameDataFields {
     version: string
 
     rngCode: number;
-    skillCode?: number;
     promoCodeTiming: {
         time: number
     }
