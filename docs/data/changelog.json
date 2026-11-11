@@ -26,6 +26,167 @@
   ],
   "entries": [
     {
+      "id": "dev-2.14.7d-dev4",
+      "version": "2.14.7d-dev4",
+      "channel": "dev",
+      "repository": "maenhiir/synergism-hypersynergy",
+      "commit": "97cfa4131c620047171f61a443f962a1d70ead8f",
+      "previous_commit": "f278aec92a1df1beff95be74bbc7e127a811d509",
+      "date": "2026-11-11",
+      "date_kind": "published",
+      "status": "published",
+      "release_url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.7d-dev4",
+      "sources": [
+        {
+          "label": "Published release",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.7d-dev4"
+        },
+        {
+          "label": "Git tag",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/tree/v2.14.7d-dev4"
+        },
+        {
+          "label": "Release/build commit",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/97cfa4131c620047171f61a443f962a1d70ead8f"
+        },
+        {
+          "label": "Source: caad33d5",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/caad33d55dc32180dd8bdd52b446e0cb0f2cf23c"
+        },
+        {
+          "label": "Source: 7024beda",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/7024beda4092d3e17a5a7d7f4f2b4a04bc7a99c9"
+        },
+        {
+          "label": "Source: c292b9d4",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/c292b9d41ea51385c0af6033d215612fff247654"
+        },
+        {
+          "label": "Source: c353036a",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/c353036a8bbd9a3f1fb1a967fdbb8191e13fb284"
+        },
+        {
+          "label": "Source: 43421699",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/43421699ff0584fee094e879ace0e6dd2ac15877"
+        },
+        {
+          "label": "Source: b68a5547",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/b68a55479bbeed512bcf0c21eec5fb820a513629"
+        },
+        {
+          "label": "Source: 6b72cd95",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/6b72cd95bc73d2add5f9130aa2646b237e3bc8cc"
+        },
+        {
+          "label": "Source: 25e0725a",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/25e0725a58e3cdebd84c73214a8c6891f37dd7bd"
+        },
+        {
+          "label": "Source: 49d116c2",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/49d116c2213b573f0ebfa96b3870f57ec959d0c5"
+        },
+        {
+          "label": "Source: ac193ea9",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/ac193ea96d5ebb22f36278ffbf017f5d6621c082"
+        },
+        {
+          "label": "Source: 6c280a7f",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/6c280a7fe3857abb2631a7b57456c7b2ec6396e6"
+        },
+        {
+          "label": "Source: 1203f85b",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/commit/1203f85b6ff2459de86d6445c08613edf0d5461e"
+        }
+      ],
+      "notes": [
+        "Steam: re-patch once."
+      ],
+      "changes": [
+        {
+          "type": "fixed",
+          "text": "Follows the game’s November 10 save format: talisman levels and fragments, the mod’s header modules and the save seed cap work again, without the patch missing warning.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/caad33d55dc32180dd8bdd52b446e0cb0f2cf23c"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Corruption cube rates follow the game’s November 9 update.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/7024beda4092d3e17a5a7d7f4f2b4a04bc7a99c9"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "AutoSing: IF steps get an optional Max jumps, after which the IF goes on to the next step; the default strategies use it on their last C15 loop.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/c292b9d41ea51385c0af6033d215612fff247654"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "AutoSing: game settings are restored after a reload or a closed game during a run, as a Stop would.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/c353036a8bbd9a3f1fb1a967fdbb8191e13fb284"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Heater: Max SR rows are much faster when the Ambrosia budget covers the best tree.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/43421699ff0584fee094e879ace0e6dd2ac15877"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Heater: the row limit notification names the search that hit it; Import all loadouts shows one notification instead of two.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/b68a55479bbeed512bcf0c21eec5fb820a513629",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/6b72cd95bc73d2add5f9130aa2646b237e3bc8cc"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Grouped Stats for Nerds list setting (off by default): a compact list sorted into groups instead of the grid of category buttons.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/25e0725a58e3cdebd84c73214a8c6891f37dd7bd",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/49d116c2213b573f0ebfa96b3870f57ec959d0c5"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Perk search: a real Clear button next to the field, and the result count inside the field.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/ac193ea96d5ebb22f36278ffbf017f5d6621c082"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Ambrosia loaded-slot borders glow, with a lighter silver; log lines align their contexts and debug lines are no longer italic.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/6c280a7fe3857abb2631a7b57456c7b2ec6396e6",
+            "https://github.com/maenhiir/synergism-hypersynergy/commit/1203f85b6ff2459de86d6445c08613edf0d5461e"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "maenhiir",
+          "roles": [
+            "changes"
+          ],
+          "commits": [
+            "8ca65a07316a80e83d39cad4648596da6acbbf44"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "f278aec92a1df1beff95be74bbc7e127a811d509",
+        "head": "97cfa4131c620047171f61a443f962a1d70ead8f",
+        "scope": "repository"
+      }
+    },
+    {
       "id": "dev-2.14.7d-dev3",
       "version": "2.14.7d-dev3",
       "channel": "dev",
@@ -279,7 +440,7 @@
             "release"
           ],
           "commits": [
-            "b3aea6914abd8c1c1d4d6b898654c1a7ff694631",
+            "ee452af0329d9a033c86b0933e229fadae16a9fd",
             "006d1a98df27e8a9f9dbfea7974c75d825c84ce0"
           ]
         }
