@@ -1,6 +1,6 @@
 # Mod features
 
-113 documented features, grouped below. Open a guide for usage, settings and limitations.
+114 documented features, grouped below. Open a guide for usage, settings and limitations.
 
 ## Installation & updates
 
@@ -46,6 +46,7 @@ The mod enhances the game's Ambrosia loadout controls and adds generation inform
 - [Quick Import one or multiple loadouts](Features-ambrosia#quick-import-one-or-multiple-loadouts): Imports one to sixteen newline-separated loadouts from the clipboard.
 - [Keep Ambrosia upgrade levels visible](Features-ambrosia#keep-ambrosia-upgrade-levels-visible): Keeps the game's levels view pinned while the tree is idle.
 - [Separate ADD and TIME Auto-Loadouts](Features-ambrosia#separate-add-and-time-auto-loadouts): Loads the configured tree before a code pays out and restores the previous loadout afterward.
+- [Ascension loadout auto-switch](Features-ambrosia#ascension-loadout-auto-switch): Uses a chosen Ambrosia loadout for a manual ascension and restores the previous tree afterward.
 - [Blue, red and purple progress minibars](Features-ambrosia#blue-red-and-purple-progress-minibars): Shows compact progress bars without keeping the Ambrosia tab open.
 - [Expected Ambrosia income per hour](Features-ambrosia#expected-ambrosia-income-per-hour): Shows expected blue Ambrosia, red Ambrosia and purple honey income for the current tree.
 

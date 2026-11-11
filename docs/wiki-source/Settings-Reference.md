@@ -332,6 +332,22 @@ TIME loadout
 - Location: Panel control / qol.
 - Guide: [Separate ADD and TIME Auto-Loadouts](Features-ambrosia#separate-add-and-time-auto-loadouts).
 
+## ascensionAutoLoadout
+
+Ascension loadout auto-switch
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / qol.
+- Guide: [Ascension loadout auto-switch](Features-ambrosia#ascension-loadout-auto-switch).
+
+## autoLoadoutAscension
+
+Ascension loadout
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Ascension loadout auto-switch](Features-ambrosia#ascension-loadout-auto-switch).
+
 ## startAutosing
 
 Start/Stop Auto-Sing (S216+)

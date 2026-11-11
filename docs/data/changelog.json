@@ -26,6 +26,295 @@
   ],
   "entries": [
     {
+      "id": "live-2.14.7e",
+      "version": "2.14.7e",
+      "channel": "live",
+      "repository": "Ferlieloi/synergism-hypersynergy",
+      "commit": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
+      "previous_commit": "006d1a98df27e8a9f9dbfea7974c75d825c84ce0",
+      "date": "2026-11-11",
+      "date_kind": "tag",
+      "status": "tagged",
+      "release_url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.7e",
+      "sources": [
+        {
+          "label": "Git tag",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/tree/v2.14.7e"
+        },
+        {
+          "label": "Release build",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000"
+        },
+        {
+          "label": "Dev into Live",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/pull/44"
+        }
+      ],
+      "notes": [],
+      "changes": [
+        {
+          "type": "added",
+          "text": "Manual ascension can use a chosen Ambrosia loadout for rewards, then restore the previous tree. Ascend works on patched and unpatched games, and Shift+A supports the swap on patched games.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/eb9a4d98d486e7a3d239358fd71096423da94a9c"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Auto-Sing can record sortable step timings and copy them to a spreadsheet. The run panel shows the ants’ share of Quarks and reports C15 as a geometric mean.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/783015eddea6575d4241ccaee168e61ebf40b403",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/f95bd70c5ceb0757c6d56c761a28b93ab123aa32"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Auto-Sing IF steps can limit jumps per phase pass. The last C15 loop in the Demon King, Quark Factory and Quark Molker defaults is capped at five jumps.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c292b9d41ea51385c0af6033d215612fff247654"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Auto-Sing maintains its speed in hidden tabs and can keep the computer awake. Its loadout labels are clearer, and Don’t switch Ambrosia loadouts can be changed during a run.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/de10686f680dea9f32618da6610df06a125528d7",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/88c57426ba6cef3bfb9c6d4e2dc09fc9e2896da9",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/e8911562552a2c51afe8ca4fcdbbd6bd0a37b20c",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/ba80b525cdc9a1b2748ef8292eefac68cdad623b"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Bookmarklet Auto-Sing reaches its chosen Elevator target, handles maxed C11–14 correctly and can start with subtab memory enabled.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/be203ee57cb8d41a81ba8246272b34e3ba6f01b0",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/809b30fdfccfacbf5cc622d915303dd0b55896e4",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/1fda55d9774855c9c0b148ddb74fa7fcefac77df"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Search Singularity perks by name or description. Click the Singularity count to open the Elevator, or adjust corruption levels directly from the header module at size M or L.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/779e8cfc463584d85e1a9783ecafabcbb75a5bc8",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/de0a73e71caf1496003a4c501f5a8ec9a3038dde",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c5b00a17e92127246091e85f38906cd84e731e61"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Header edit buttons open edit mode again. The challenge progress module uses larger text with fewer challenges, and Ambrosia slot borders use less page rendering work.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/9e54823da99a1afbbd054f45aa6dd2e64342ff1f",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b34d98421c2cb36d2c0a0a1964c96554d92bb0e5",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/9a94ae34b4c5b7913358201ef4ec96142067cdd2"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "The Heater previews missing levels when you hover over a ✘ in Maxed. Cube and H rows account for Brick of Lead when deciding whether a build is maxed.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c7d07decf2f791f73b6231546592c5f28b7be837",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/5acaf0f32b215de7cf3eb48f911337aa033c7cc8",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/6e92df182c95bf8f330c8c354b90096563a6f6ad"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The Heater supports one to three workers, uses more compact Inputs and Results windows, and shows a single notification when importing all loadouts. Sync All Loadout Settings also sets the timed export slot.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/74baf9d250c63018fa28629b0eed4971ed879db7",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c99947d0e0418e1a958572c6c4af5a3af2a0bb86",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/899c03e5bc7341038a2f060f546e16e7eb8019f3",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/94accb1cb6a5e05fc7437d4fd580820e727476d2",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/6b72cd95bc73d2add5f9130aa2646b237e3bc8cc",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/ffcc0cf5cb2e9f073c4e0750dff164b8fdeea366"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "The Heater names invalid input fields immediately. Hepteract distribution handles partial fills and expansions more reliably.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/bf3bd7bf8bc32e62b5991ba019721a0a4703431c",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/e2164c2e91347b91bebfa6e48a1377723c07633b"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Settings are grouped by game tab under QoL, with clearer Input and UI sections, fixed subtabs while scrolling, and compact fields. The mod panel is smaller and can be resized further. Timed export shows its folder and offers a button to forget it.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/a14445b296259a361975b91cf6d8fc3de0690700",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/ec2496d3ec734bc86cdcb7463c71ad985cf67cbe",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/5233a8b3e2eba865435983b2983669313d074be4",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/ae93060d2eab775e17bddd2fcb176ba62992a284",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/d323e8c4fc148e3d4d700a7832869dc2f214abad",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/daf66e766b8c3ccb44cc669d25fbd81ad2155f0d",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b2b5f14e13d553f1812f43036ef199025ce39d7e",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/93d109c567c0e3bee220993a7b56ab893efb6aed",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/7018e18d3c1a3e7bebb3979d08dc1018d227da31"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The GQ Distributor opens from its own button and remembers its state. The Cycle BUY button and the player-build Debug tab have been removed.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/e9bd3ee8931b4e9f3612123a2c2b6ea5a432961a",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/4809f315b08891b1a2e3dc0b1faf025b9bb1c32e"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Notifications are easier to dismiss, and hidden-dialog notices have their own corner. Log levels and contexts line up. The mod starts its initial checks sooner.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/410ece745fa47d16364009838ea71df9be72a26a",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/6a9e794a2b93bafdb1869f7a3372745a56e1f47d",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/1203f85b6ff2459de86d6445c08613edf0d5461e",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/ef25d34793f120d1e2c1227a18c51688790b2387"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Tools adds a Mod Website shortcut and three Construction calculations. Calculation results show three decimals and use scientific notation for small values. The website includes a step-by-step Auto-Sing guide.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/db07bf9a2e36dc35b5726b016cbb76ff4553ab8b",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/2c1516ecf810f26d24c26695d5b0467d9e5d8f44",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/02c4b3c3a91a6e8f5b5b1e59a30e9dd368831f01",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/0f22daeef33349fbcb8f2ba4237f77987291d5c2"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Updated game data for Synergism 4.4.1, including campaign rewards, corruption cube rates, achievements, coin buildings, Exalt 10, Ultrafusion and Infinite Ascent. PseudoCoin levels are detected again, and several rune, Octeract and Red accumulator formulas were corrected.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/2d24c55c93eb895685322ef23051055fae339b87",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/183c82e8eda64668724822a3c7d795338a59a4d1",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/b6ed713ae05345fb22730e44bae27f972ef2dd1a",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/2c1516ecf810f26d24c26695d5b0467d9e5d8f44",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/a5a51de6de3770478d9b19403c42223f30709db7",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/a2fa510537c3a0c9ae6ca38021abca668a22616c",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/d67a5ab05f449268ab71915d5745346c7d15ac84",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/7e2696577f980e4a7aec16de68fa4eebfd111e1d"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Updated the patcher for the game’s new save format. Custom header modules and talisman data work with the new format, and rapidly filling Ambrosia bars no longer break saves or exports.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/704075850c48ce4136162aaa5d27e6305d6192f9",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/5fd348a64727c1e4331e9c03b5dec34f6178d9b4",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c16933f95e3ac058bec817151a3ab815e1f8c3e8"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Adapted the Platonic upgrade tooltip, Exalt fix and bookmarklet stage reading to the game’s color changes.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/0832718c8360f7e17d24a279c3466d9c1016ccf8"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "Ferlieloi",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "eb9a4d98d486e7a3d239358fd71096423da94a9c",
+            "0f22daeef33349fbcb8f2ba4237f77987291d5c2",
+            "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000"
+          ]
+        },
+        {
+          "id": "maenhiir",
+          "roles": [
+            "changes"
+          ],
+          "commits": [
+            "783015eddea6575d4241ccaee168e61ebf40b403",
+            "f95bd70c5ceb0757c6d56c761a28b93ab123aa32",
+            "c292b9d41ea51385c0af6033d215612fff247654",
+            "de10686f680dea9f32618da6610df06a125528d7",
+            "88c57426ba6cef3bfb9c6d4e2dc09fc9e2896da9",
+            "e8911562552a2c51afe8ca4fcdbbd6bd0a37b20c",
+            "ba80b525cdc9a1b2748ef8292eefac68cdad623b",
+            "be203ee57cb8d41a81ba8246272b34e3ba6f01b0",
+            "809b30fdfccfacbf5cc622d915303dd0b55896e4",
+            "1fda55d9774855c9c0b148ddb74fa7fcefac77df",
+            "779e8cfc463584d85e1a9783ecafabcbb75a5bc8",
+            "de0a73e71caf1496003a4c501f5a8ec9a3038dde",
+            "c5b00a17e92127246091e85f38906cd84e731e61",
+            "9e54823da99a1afbbd054f45aa6dd2e64342ff1f",
+            "b34d98421c2cb36d2c0a0a1964c96554d92bb0e5",
+            "9a94ae34b4c5b7913358201ef4ec96142067cdd2",
+            "c7d07decf2f791f73b6231546592c5f28b7be837",
+            "5acaf0f32b215de7cf3eb48f911337aa033c7cc8",
+            "6e92df182c95bf8f330c8c354b90096563a6f6ad",
+            "74baf9d250c63018fa28629b0eed4971ed879db7",
+            "c99947d0e0418e1a958572c6c4af5a3af2a0bb86",
+            "899c03e5bc7341038a2f060f546e16e7eb8019f3",
+            "94accb1cb6a5e05fc7437d4fd580820e727476d2",
+            "6b72cd95bc73d2add5f9130aa2646b237e3bc8cc",
+            "ffcc0cf5cb2e9f073c4e0750dff164b8fdeea366",
+            "bf3bd7bf8bc32e62b5991ba019721a0a4703431c",
+            "e2164c2e91347b91bebfa6e48a1377723c07633b",
+            "a14445b296259a361975b91cf6d8fc3de0690700",
+            "ec2496d3ec734bc86cdcb7463c71ad985cf67cbe",
+            "5233a8b3e2eba865435983b2983669313d074be4",
+            "ae93060d2eab775e17bddd2fcb176ba62992a284",
+            "d323e8c4fc148e3d4d700a7832869dc2f214abad",
+            "daf66e766b8c3ccb44cc669d25fbd81ad2155f0d",
+            "b2b5f14e13d553f1812f43036ef199025ce39d7e",
+            "93d109c567c0e3bee220993a7b56ab893efb6aed",
+            "7018e18d3c1a3e7bebb3979d08dc1018d227da31",
+            "e9bd3ee8931b4e9f3612123a2c2b6ea5a432961a",
+            "4809f315b08891b1a2e3dc0b1faf025b9bb1c32e",
+            "410ece745fa47d16364009838ea71df9be72a26a",
+            "6a9e794a2b93bafdb1869f7a3372745a56e1f47d",
+            "1203f85b6ff2459de86d6445c08613edf0d5461e",
+            "ef25d34793f120d1e2c1227a18c51688790b2387",
+            "db07bf9a2e36dc35b5726b016cbb76ff4553ab8b",
+            "2c1516ecf810f26d24c26695d5b0467d9e5d8f44",
+            "02c4b3c3a91a6e8f5b5b1e59a30e9dd368831f01",
+            "2d24c55c93eb895685322ef23051055fae339b87",
+            "183c82e8eda64668724822a3c7d795338a59a4d1",
+            "b6ed713ae05345fb22730e44bae27f972ef2dd1a",
+            "a5a51de6de3770478d9b19403c42223f30709db7",
+            "a2fa510537c3a0c9ae6ca38021abca668a22616c",
+            "d67a5ab05f449268ab71915d5745346c7d15ac84",
+            "7e2696577f980e4a7aec16de68fa4eebfd111e1d",
+            "704075850c48ce4136162aaa5d27e6305d6192f9",
+            "5fd348a64727c1e4331e9c03b5dec34f6178d9b4",
+            "c16933f95e3ac058bec817151a3ab815e1f8c3e8",
+            "0832718c8360f7e17d24a279c3466d9c1016ccf8"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "006d1a98df27e8a9f9dbfea7974c75d825c84ce0",
+        "head": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
+        "scope": "repository"
+      },
+      "merges": [
+        {
+          "direction": "dev-to-live",
+          "commit": "80b5ac08f58c9e01da0ef941678e1e82b2d15138",
+          "commits": [
+            "80b5ac08f58c9e01da0ef941678e1e82b2d15138"
+          ],
+          "summary": "Includes Dev changes through v2.14.7d-dev3 and the later Auto-Sing and Heater updates from PR #44.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/80b5ac08f58c9e01da0ef941678e1e82b2d15138",
+            "https://github.com/Ferlieloi/synergism-hypersynergy/pull/44"
+          ],
+          "from_entry_id": "dev-2.14.7d-dev3",
+          "through_version": "2.14.7d-dev3"
+        }
+      ]
+    },
+    {
       "id": "dev-2.14.7d-dev3",
       "version": "2.14.7d-dev3",
       "channel": "dev",

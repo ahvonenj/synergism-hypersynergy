@@ -9,6 +9,7 @@ The mod enhances the game's Ambrosia loadout controls and adds generation inform
 - [Quick Import one or multiple loadouts](#quick-import-one-or-multiple-loadouts)
 - [Keep Ambrosia upgrade levels visible](#keep-ambrosia-upgrade-levels-visible)
 - [Separate ADD and TIME Auto-Loadouts](#separate-add-and-time-auto-loadouts)
+- [Ascension loadout auto-switch](#ascension-loadout-auto-switch)
 - [Blue, red and purple progress minibars](#blue-red-and-purple-progress-minibars)
 - [Expected Ambrosia income per hour](#expected-ambrosia-income-per-hour)
 
@@ -83,6 +84,23 @@ Loads the configured tree before a code pays out and restores the previous loado
 **Related settings:** [`addTimeAutoLoadouts`](Settings-Reference#addtimeautoloadouts), [`autoLoadoutAdd`](Settings-Reference#autoloadoutadd), [`autoLoadoutTime`](Settings-Reference#autoloadouttime)
 
 **Source:** [hs-ambrosia-auto-loadout.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-auto-loadout.ts) · [hs-ambrosia.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia.ts) · [hs-ambrosia-quick-import.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-quick-import.ts) · [hs-ambrosia-rates.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-rates.ts) · [header-loadouts.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-loadouts.md) · [header-modules.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-modules.md)
+
+### Ascension loadout auto-switch
+
+Uses a chosen Ambrosia loadout for a manual ascension and restores the previous tree afterward.
+
+**Where:** Settings → QoL → Ascension loadout auto-switch
+
+- Enable the switch and choose a saved slot. The game confirms the ascension as usual.
+- The Ascend button works with or without the patch. Shift+A uses the configured loadout when the game is patched.
+
+**Availability and limits**
+
+- Switching loadouts resets Ambrosia bar progress. Without the patch, the mod restores the saved contents of the previously marked slot, so save tree edits before ascending.
+
+**Related settings:** [`ascensionAutoLoadout`](Settings-Reference#ascensionautoloadout), [`autoLoadoutAscension`](Settings-Reference#autoloadoutascension)
+
+**Source:** [ascension-loadout.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/ascension-loadout.md) · [hs-ambrosia-auto-loadout.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-auto-loadout.ts) · [hs-ambrosia.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia.ts) · [hs-ambrosia-quick-import.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-quick-import.ts) · [hs-ambrosia-rates.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-rates.ts) · [header-loadouts.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-loadouts.md) · [header-modules.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/header-modules.md)
 
 ### Blue, red and purple progress minibars
 
