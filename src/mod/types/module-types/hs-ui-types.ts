@@ -24,11 +24,6 @@ export type HSPanelTabDefinition = {
     panelDisplayType: "flex" | "block";
 }
 
-export interface HTMLData {
-    key: string;
-    value: string;
-}
-
 export enum HSInputType {
     CHECK = 1,
     COLOR = 2,
@@ -80,29 +75,48 @@ export interface HSUICGridOptions extends HSOptional<HSUICOptions, 'id'> {
     html?: string | string[];
 }
 
-export interface HSUICFlexOptions extends HSOptional<HSUICOptions, 'id'> {
-    html?: string | string[];
-}
-
 export interface HSUIModalOptions extends HSOptional<HSUICOptions, 'id'> {
     htmlContent?: string;
     position?: HSUIDOMCoordinates;
     needsToLoad?: boolean;
+    title?: string;
+    parentModalId?: string;
+    headerClass?: string;
+    bodyClass?: string;
+    // Called with the modal laid out, its CSS applied, before it is placed and shown
+    onBeforeShow?: (modal: HTMLElement) => void;
+    /** Runs once after CloseModal removes the window. */
+    onClose?: (modal: HTMLDivElement) => void;
 }
 
 export type HSNotifyPosition = "topLeft" | "top" | "topRight" | "right" | "bottomRight" | "bottom" | "bottomLeft" | "left";
 export type HSNotifyType = "default" | "warning" | "error" | "success";
+export type HSNotifyColumn = "top" | "bottomLeft";
 
 export interface HSNotifyOptions {
+    // "bottomLeft" has its own column, any other value goes in the top-centre one
     position: HSNotifyPosition;
     popDuration: number;
+    // A minimum: a caller can make a notification last longer, never cut a long text short
     displayDuration: number;
     hideDuration: number;
     notificationType: HSNotifyType;
 }
 
+export interface HSNotification {
+    text: string;
+    notificationType: HSNotifyType;
+    column: HSNotifyColumn;
+    element: HTMLElement;
+    lifetime: Animation;
+    onRemoved: () => void;
+}
+
 export interface HSUICModalOptions extends HSUICOptions {
     htmlContent?: string;
+    title?: string;
+    headerClass?: string;
+    bodyClass?: string;
 }
 
 export interface HSUICSelectOption {

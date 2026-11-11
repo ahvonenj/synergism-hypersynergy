@@ -2,6 +2,12 @@ import { HSModuleOptions } from "../../types/hs-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
 
+/**
+ * Class: HSStats
+ * IsExplicitHSModule: No
+ * Description: ???
+ * Author: Swiffy
+ */
 export class HSStats extends HSModule {
 
     constructor(moduleOptions : HSModuleOptions) {

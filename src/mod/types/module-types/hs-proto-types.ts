@@ -21,3 +21,4 @@ export type DelegateEventListener<T extends Node> = <K extends keyof EventMap>(
     callback: (event: EventMap[K]) => void, 
     singleton?: boolean
   ) => T;
+  

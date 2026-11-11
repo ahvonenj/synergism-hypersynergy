@@ -1,0 +1,137 @@
+#headerEditToolbar .hs-header-cell-controls > span {
+    color: #ccc;
+    font-size: 0.85em;
+    margin-right: 2px;
+}
+
+/* Keep the cell's grid position and span; move its content within that space. */
+.headerRegion > [data-hs-header-align="left"] {
+    justify-self: start;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.headerRegion > [data-hs-header-align="center"] {
+    justify-self: center;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.headerRegion > [data-hs-header-align="right"] {
+    justify-self: end;
+    justify-content: flex-end;
+    align-items: flex-end;
+    text-align: right;
+}
+
+/* The editor is a live preview: align actual buttons and insert between them instead of reserving empty columns. */
+#mainHeader .headerRegion > .headerStack.headerStackRow[data-hs-header-align] {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-self: stretch;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+#mainHeader .headerRegion > .headerStackRow[data-hs-header-align="left"] { justify-content: flex-start; }
+#mainHeader .headerRegion > .headerStackRow[data-hs-header-align="center"] {
+    justify-content: space-around;
+    /* Half a gap at each edge gives each button an equal share, including a partial wrapped row. */
+    padding-inline: 2.5px;
+    box-sizing: border-box;
+}
+#mainHeader .headerRegion > .headerStackRow[data-hs-header-align="right"] { justify-content: flex-end; }
+
+#mainHeader .headerStackRow[data-hs-header-align] > .resetbtn.headerModule {
+    flex: none;
+    margin: 0;
+}
+
+#mainHeader .headerStackRow > .headerButtonSlot { display: none; }
+
+/* The ascension timer's text sits in a box at least 8em wide (the game's, against bouncing). Stacked, it keeps its
+   text at the box's start, as the other modules keep their content at theirs, so it lines up with its partner;
+   alone, a cell alignment centres it like any content. */
+.headerRegion > .headerStack[data-hs-header-align] #ascLen {
+    text-align: left;
+}
+
+/* Single stat modules are flex rows: their icons and text remain vertically centered. */
+.headerRegion > .headerModule[data-hs-header-align] {
+    align-items: center;
+}
+
+/* Progress modules need their cell width for native text fitting, especially size-contained 1x2 modules. */
+.headerRegion > .headerProgress[data-hs-header-align] {
+    justify-self: stretch;
+    min-width: 0;
+}
+
+.headerRegion > [data-hs-header-vertical="top"] {
+    --hs-header-vertical: start;
+    --hs-header-vertical-content: flex-start;
+}
+
+.headerRegion > [data-hs-header-vertical="center"] {
+    --hs-header-vertical: center;
+    --hs-header-vertical-content: center;
+}
+
+.headerRegion > [data-hs-header-vertical="bottom"] {
+    --hs-header-vertical: end;
+    --hs-header-vertical-content: flex-end;
+}
+
+.headerRegion > [data-hs-header-vertical] {
+    align-self: var(--hs-header-vertical);
+}
+
+/* Size-contained progress modules must fill their row span; align their text inside that box. */
+.headerRegion > .headerProgress[data-hs-header-vertical] {
+    align-self: stretch;
+    align-items: var(--hs-header-vertical-content);
+}
+
+/* The game's grid rows stay full height, just as when a slot contains two small modules. */
+#headerGrid .headerModule.hs-header-half {
+    align-self: var(--hs-header-vertical, start);
+    min-height: 0;
+    height: 16px;
+}
+
+#headerGrid .headerProgress.hs-header-half {
+    overflow: hidden;
+}
+
+.hs-header-progress-compact {
+    display: none;
+}
+
+html.hs-compact-challenge-text .headerProgress {
+    position: relative;
+    justify-self: stretch;
+    min-width: 0;
+}
+
+/* Keep native text measurable so switching back to Full preserves the game's text fitting. */
+html.hs-compact-challenge-text .headerProgress > .fitText {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+html.hs-compact-challenge-text .headerProgress > .hs-header-progress-compact {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: inherit;
+    line-height: 1.2;
+}

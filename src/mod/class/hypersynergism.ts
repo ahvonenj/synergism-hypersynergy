@@ -1,39 +1,51 @@
-import { HSModuleDefinition, HSReleaseInfo } from "../types/hs-types";
+import type { HSRegisteredModuleDefinition } from "./hs-core/module/hs-module-definitions";
 import { HSLogger } from "./hs-core/hs-logger";
 import { HSModuleManager } from "./hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "./hs-core/module/hs-module-registry";
 import { HSUI } from "./hs-core/hs-ui";
 import { HSUIC } from "./hs-core/hs-ui-components";
-import corruption_ref_b64 from "inline:../resource/txt/corruption_ref.txt";
-import corruption_ref_b64_2 from "inline:../resource/txt/corruption_ref_onemind.txt";
 import { HSSettings } from "./hs-core/settings/hs-settings";
+import { HSSettingsUI } from "./hs-core/settings/hs-settings-ui";
+import { HSAutosingStrategyControls } from "./hs-modules/hs-autosing/ui/hs-autosing-strategy-controls";
 import { HSGlobal } from "./hs-core/hs-global";
-import { HSStorage } from "./hs-core/hs-storage";
+import { HSBackup } from "./hs-core/hs-backup";
+import { HSCalculationTools } from "./hs-core/hs-calculation-tools";
+import { HSBookmarkletNotice } from "./hs-core/hs-bookmarklet-notice";
+import { HSPlatform } from "./hs-core/hs-platform";
+import { HSHeaderEditSettings } from "./hs-core/header/hs-header-edit-settings";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
-import { HSInputType, HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
-import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
-import { HSWebSocket } from "./hs-core/hs-websocket";
-import { GameEventResponse, GameEventType } from "../types/data-types/hs-event-data";
+import quickbarsCSS from "inline:../resource/css/module/hs-quickbars.css";
+import strategyEditionCSS from "inline:../resource/css/hs-strategy-edition.css";
+import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
+
+import { HSHeaterInputModalController } from "./hs-modules/hs-heater/ui/hs-heater-input-modal-controller";
 import { HSUtils } from "./hs-utils/hs-utils";
 import { HSGithub } from "./hs-core/github/hs-github";
+import { HSGameDialogs } from "./hs-core/dialogs/hs-game-dialogs";
+import { HSDevTools } from "./hs-core/dev/hs-dev-tools";
 
-/*
-    Class: Hypersynergism
-    Description: 
-        Hypersynergism main class.
-        Instantiates the module manager and handles calls to building the mod's panel and working with mod's settings
-    Author: Swiffy
+// Build-time injected by esbuild via `define`: false in the release build only.
+declare const HS_DEV_BUILD: boolean;
+
+/**
+ * Class: Hypersynergism
+ * Description: 
+ *     Hypersynergism main class.
+ *     Instantiates the module manager and handles calls to building the mod's panel and working with mod's settings
+ * Author: Swiffy, Shewchou
 */
 export class Hypersynergism {
     // Class context, mainly for HSLogger
     #context = 'HSMain';
 
-    // HSModuleManager instance
-    #moduleManager : HSModuleManager;
+    // Patches the mod no longer uses: an install patched by an older patcher still reports them,
+    // so they are left out of the "patch incomplete" warning (old corruption loadouts, and action 404's free levels)
+    static readonly #RETIRED_PATCHES = new Set(['applyCorruptions', 'corruptionFreeLevels']);
 
-    #versionCheckIvl? : number;
-    #latestRelease?: HSReleaseInfo;
+    #moduleManager: HSModuleManager;
+    #isInitialized = false;
 
-    constructor(modulesToEnable : HSModuleDefinition[]) {
+    constructor(modulesToEnable: readonly HSRegisteredModuleDefinition[]) {
         // Instantiate the module manager
         this.#moduleManager = new HSModuleManager('HSModuleManager', modulesToEnable);
     }
@@ -44,7 +56,23 @@ export class Hypersynergism {
 
     // Called from loader
     async init() {
+        if (this.#isInitialized) return;
+        this.#isInitialized = true;
+        HSGlobal.General.isModFullyLoaded = false;
+
+        // Wait for game to be ready before doing ANYTHING substantial
+        if (!await this.#waitForGameReady()) {
+            HSLogger.warn("Hypersynergism: Game load timed out, attempting init anyway...", this.#context);
+        }
+
         HSLogger.log("Initialising Hypersynergism modules", this.#context);
+
+        // Now that game is ready, we can process modules (which might init immediate modules like HSUI)
+        await this.preprocessModules();
+        HSLogger.log(`Platform: ${HSPlatform.get()}`, this.#context);
+        // After preprocessModules(), which attaches HSLogger to the panel (it drops panel logs written before that),
+        // and before the feature modules, which may click game buttons that open dialogs
+        HSGameDialogs.init();
         await this.#moduleManager.initModules();
 
         HSLogger.log("Building UI Panel", this.#context);
@@ -55,168 +83,309 @@ export class Hypersynergism {
 
         // Do this after UI Panel stuff is ready, because
         // syncing basically means syncing the UI with the settings
-        await HSSettings.syncSettings();
+        await HSSettingsUI.syncSettings(HSSettings.getUIDependencies());
+        HSAutosingStrategyControls.updateStrategyDropdownList();
+        // After the sync: its checkboxes show the settings' states
+        HSHeaderEditSettings.install();
 
-        await HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
+        const ambrosiaMod = HSModuleRegistry.getModule('HSAmbrosia');
+        if (ambrosiaMod) {
+            await ambrosiaMod.initializeActiveLoadoutFromGameData();
+        }
+
+        // Mod fully loaded, so we show HS icon, and update the flag
+        const hsui = HSModuleRegistry.getModule('HSUI');
+        hsui?.setPanelControlVisible(true);
+        HSGlobal.General.isModFullyLoaded = true;
+
+        void HSUI.Notify(`Hypersynergism v${HSGlobal.General.currentModVersion} loaded`, {
             position: 'top',
             notificationType: "success"
         });
 
-        this.#versionCheckIvl = setInterval(async () => {
-            const latestRelease = await HSGithub.getLatestRelease();
-
-            if(latestRelease) {
-                HSLogger.debug(`Latest release: ${latestRelease.name} (${latestRelease.version})`, this.#context);
-
-                if(latestRelease.version !== HSGlobal.General.currentModVersion) {
-                    HSGlobal.General.isLatestVersion = false;
-
-                    const modIcon = document.querySelector('#hs-panel-control') as HTMLDivElement;
-                    const modPanelHead = document.querySelector('#hs-panel-version') as HTMLDivElement;
-
-                    if(modIcon && modPanelHead) {
-                        modIcon.classList.add('hs-rainbowBorder');
-                        modPanelHead.innerHTML += ` - <span id="hs-panel-new-ver">New version available!</span>`;
-
-                        clearInterval(this.#versionCheckIvl);
-                        this.#versionCheckIvl = undefined;
-                    }
-                }
-            }
-        }, HSGlobal.PrivateAPI.checkIntervalMs);
+        HSGithub.startVersionPolling(HSGlobal.Release.checkIntervalMs);
+        void this.#onGameLoaded();
+        void HSBookmarkletNotice.showIfBookmarklet();
     }
 
-    #buildUIPanelContents() {
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+    /**
+     * Once the game has finished loading: expose the patched game internals (hidden behind the offline
+     * popup when it is open), then close the popup if the autoDismissOfflinePopup setting is on.
+     * The browser loader usually did both already, in which case this does nothing.
+     */
+    async #onGameLoaded(): Promise<void> {
+        const autoDismissPopup = !!HSSettings.getSetting('autoDismissOfflinePopup')?.isEnabled();
 
-        if(hsui) {
-            // Update panel title with current version
+        await this.#waitForGameLoaded();
+        this.#reportPatchProblems();
+        await this.#ensurePatcherExposure(autoDismissPopup);
+
+        if (autoDismissPopup) this.#dismissOfflinePopup();
+
+        // The game can't save while the offline popup is open, and the restore reads a fresh save
+        await this.#waitForPopupClosed();
+        HSModuleRegistry.getModule('HSAutosing')?.restoreAfterInterruptedRun();
+    }
+
+    /** Resolves once the offline popup is closed (exitOffline removes body.loading). */
+    #waitForPopupClosed(): Promise<void> {
+        return new Promise<void>(resolve => {
+            if (!document.body.classList.contains('loading')) { resolve(); return; }
+            const observer = new MutationObserver(() => {
+                if (document.body.classList.contains('loading')) return;
+                observer.disconnect();
+                resolve();
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        });
+    }
+
+    /**
+     * What the patcher applied to the game bundle ({ patch name: applied }), written into it as
+     * window.__HS_PATCH_REPORT. Undefined without a patched bundle (bookmarklet) or with a patcher older than it.
+     */
+    #getPatchReport(): Record<string, boolean> | undefined {
+        return window.__HS_PATCH_REPORT;
+    }
+
+    /**
+     * Tell the player once when the game patch is incomplete or in doubt, both usually after a game update the
+     * patcher doesn't match yet: a notification, and the detail in the Log tab (bug reports carry it).
+     * - Missing (window.__HS_PATCH_REPORT): the features using those patches run on their fallbacks, as for
+     *   bookmarklet players.
+     * - In doubt (window.__HS_PATCH_AMBIGUOUS, the labels of patches whose anchor matched several functions): the
+     *   first one was patched, maybe the wrong one, so what relies on it may misbehave.
+     */
+    #reportPatchProblems(): void {
+        const report = this.#getPatchReport();
+        if (!report) return;
+        const missing = Object.keys(report).filter(name => !report[name] && !Hypersynergism.#RETIRED_PATCHES.has(name));
+        const ambiguous: string[] = Array.isArray(window.__HS_PATCH_AMBIGUOUS)
+            ? window.__HS_PATCH_AMBIGUOUS.filter(name => !Hypersynergism.#RETIRED_PATCHES.has(name)) : [];
+        if (missing.length === 0 && ambiguous.length === 0) return;
+
+        if (missing.length) {
+            HSLogger.warn(`Game patch incomplete, missing: ${missing.join(', ')}. The features using them fall back to other ways, `
+                + 'some slower or partial.', this.#context);
+        }
+        if (ambiguous.length) {
+            HSLogger.warn(`Game patch in doubt: ${ambiguous.join(', ')} matched several places in the game's code, the first one `
+                + 'was patched and may be the wrong one. What relies on it may misbehave.', this.#context);
+        }
+        HSLogger.warn('A game update probably changed what the patcher looks for: please report it with this log.', this.#context);
+
+        const problems = [
+            missing.length ? `${missing.length} part(s) missing` : '',
+            ambiguous.length ? `${ambiguous.length} in doubt` : ''
+        ].filter(Boolean).join(', ');
+        void HSUI.Notify(`Game patch: ${problems}. Some features may not work as usual, details in the Log tab.`, {
+            position: 'top',
+            notificationType: 'warning',
+            displayDuration: 10000
+        });
+    }
+
+    /** Close the offline progress popup if it is open. */
+    #dismissOfflinePopup() {
+        if (document.getElementById('offlineContainer')?.style.display !== 'flex') return;
+        document.getElementById('exitOffline')?.click();
+    }
+
+    /**
+     * Resolve once the game has finished loading. Same signal as the browser loader: the offline progress
+     * popup is shown. Also resolves when the popup was already dismissed (body.loading removed by exitOffline).
+     */
+    #waitForGameLoaded(): Promise<void> {
+        const isLoaded = () => document.getElementById('offlineContainer')?.style.display === 'flex'
+            || !document.body.classList.contains('loading');
+
+        return new Promise(resolve => {
+            if (isLoaded()) { resolve(); return; }
+
+            const observer = new MutationObserver(() => {
+                if (!isLoaded()) return;
+                observer.disconnect();
+                resolve();
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'], subtree: true });
+        });
+    }
+
+    /**
+     * Patched bundles expose some game internals (__HS_i18next, __HS_synergismStage, __HS_exportSynergism...)
+     * only once the game runs the patched functions. The browser loader triggers them before loading the mod,
+     * the Steam injector doesn't, so do the same here: open Settings → Stats for nerds → Misc, run a silent
+     * export, then go back to the previous tab. Called once the game has loaded; the game's tab buttons don't
+     * check for the offline popup, so the navigation runs hidden behind it when it is open (the stage itself
+     * is only exposed once the popup closes, see below).
+     * Done here in the mod rather than in the Steam injector, so it reaches Steam players with a mod release
+     * instead of requiring a new exe launcher. Skipped when the loader already did it (browser).
+     */
+    async #ensurePatcherExposure(autoDismissPopup: boolean): Promise<void> {
+        const w = window;
+        // Without the patched bundle (bookmarklet loader), navigating can't expose anything
+        if (!HSGlobal.exposedPlayer) return;
+
+        // Only what the patcher applied (all of it with a patcher older than its report): never click the
+        // export without the export patch, it would run a real export (a file or the clipboard, and its rewards)
+        const report = this.#getPatchReport();
+        const isStagePatched = report?.stage !== false;
+        const isExportPatched = report?.export !== false;
+        if (!isStagePatched && !isExportPatched) return;
+
+        const isExposed = () => (!isStagePatched || !!w.__HS_STAGE_EXPOSED) && (!isExportPatched || !!w.__HS_EXPORT_EXPOSED);
+        if (isExposed()) return;
+
+        const click = async (id: string) => {
+            document.getElementById(id)?.click();
+            await HSUtils.sleep(100);
+        };
+        // Only the active main tab button has aria-current (its panel also gets .active-tab)
+        const previousTab = document.querySelector<HTMLElement>('[aria-current="page"]');
+        const settingsTab = document.getElementById('settingstab');
+
+        // Safety net: the game should accept tab clicks once loaded, even behind the offline popup
+        for (let check = 0; check < 10; check++) {
+            await click('settingstab');
+            if (settingsTab?.classList.contains('active-tab')) break;
+            await HSUtils.sleep(1000);
+        }
+        if (!settingsTab?.classList.contains('active-tab')) {
+            HSLogger.warn('Could not expose patched game internals: the settings tab did not open', this.#context);
+            return;
+        }
+
+        if (isStagePatched && !w.__HS_STAGE_EXPOSED) {
+            await click('switchSettingSubTab4');
+            await click('kMisc');
+        }
+
+        if (isExportPatched && !w.__HS_EXPORT_EXPOSED) {
+            // The patched exportSynergism exposes itself right away, then returns early while this flag is set
+            w.__HS_SILENT_EXPORT = true;
+            try {
+                document.getElementById('exportgame')?.click();
+            } finally {
+                w.__HS_SILENT_EXPORT = false;
+            }
+        }
+
+        // The stage is only exposed when the game renders the Misc stats, and the game pauses its display
+        // updates while the offline popup is open. It happens on the first update after the popup closes,
+        // with Misc still active behind it: close it (setting on) or wait for the player to (no limit).
+        if (isStagePatched) {
+            if (document.body.classList.contains('loading')) {
+                if (autoDismissPopup) this.#dismissOfflinePopup();
+                await this.#waitForPopupClosed();
+            }
+
+            const stageDeadline = Date.now() + 5000;
+            while (!w.__HS_STAGE_EXPOSED && Date.now() < stageDeadline) {
+                await HSUtils.sleep(100);
+            }
+        }
+
+        // Go back to where the player was, unless they already moved away from Settings
+        if (settingsTab?.classList.contains('active-tab')) {
+            (previousTab ?? document.getElementById('buildingstab'))?.click();
+        }
+
+        if (isExposed()) {
+            HSLogger.log('Patched game internals exposed (stage, i18n, export)', this.#context);
+        } else {
+            HSLogger.warn(`Could not expose patched game internals (stage: ${!!w.__HS_STAGE_EXPOSED}, export: ${!!w.__HS_EXPORT_EXPOSED})`, this.#context);
+        }
+    }
+
+    async #waitForGameReady(): Promise<boolean> {
+        let attempts = 0;
+        // Wait up to 30 seconds
+        while (attempts < 300) {
+            // The tab appears before later game controls while the HTML is still
+            // parsing. Starting modules then can make their short element hooks
+            // time out on slower Steam launches.
+            if (document.readyState !== 'loading' && document.getElementById('buildingstab')) {
+                return true;
+            }
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+        return false;
+    }
+
+    // ===============================
+    // --- UI panel construction -----
+    // ===============================
+
+    #buildUIPanelContents() {
+        const hsui = HSModuleRegistry.getModule('HSUI');
+
+        if (hsui) {
             hsui.updateTitle(`Hypersynergism v${HSGlobal.General.currentModVersion}`);
 
-            // BUILD TOOLS TAB
             this.#buildToolsTab(hsui);
-            
-            // BUILD SETTINGS TAB
             this.#buildSettingsTab(hsui);
-            
-            // BUILD DEBUG TAB
-            this.#buildDebugTab(hsui);
-            
-            // Rename tabs
+
             hsui.renameTab(2, 'Tools');
             hsui.renameTab(3, 'Settings');
-            hsui.renameTab(4, 'Debug');
+
+            // The Debug tab is for dev builds only
+            if (HS_DEV_BUILD) {
+                this.#buildDebugTab(hsui);
+                hsui.renameTab(4, 'Debug');
+            } else {
+                hsui.removeTab(4);
+            }
         }
     }
 
     #injectStyleOverrides() {
         HSUI.injectStyle(overrideCSS, 'hs-override-css');
+        HSUI.injectStyle(strategyEditionCSS, 'hs-panel-strategy-edition-css');
+        HSUI.injectStyle(quickbarsCSS, 'hs-quickbars-css');
     }
 
-    #buildToolsTab(hsui: HSUI) {
-        const calculationOptions = HSGameDataAPI.getCalculationDefinitions({ toolingSupport: "true" })
-        .map((def) => {
-            return {
-                text: def.supportsReduce ? `${def.calculationName} (C)` : def.calculationName,
-                value: def.supportsReduce ? `${def.fnName}|c` : def.fnName,
-            };
+    #buildGridSectionHeader(text: string) {
+        return HSUIC.Div({
+            class: 'hs-panel-grid-section-header',
+            html: text
         });
+    }
 
-        // BUILD TOOLS TAB
-        // Add corruption reference modal button
-        hsui.replaceTabContents(2, 
-            HSUIC.Grid({ 
+
+    // ================================
+    // --- Tools tab implementation ---
+    // ================================
+
+    #buildToolsTab(hsui: HSUI) {
+        // Only for players who loaded the mod with the bookmark, hence at the very top
+        const bookmarkletSection = HSBookmarkletNotice.buildToolsSection();
+
+        hsui.replaceTabContents(2,
+            HSUIC.Grid({
+                class: 'hs-panel-grid-2col',
                 html: [
-                    HSUIC.Div({ 
-                        html: 'Export tools',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Div({ 
-                        id: 'hs-panel-amb-heater-p', 
-                        html: `Export an extended save file string for the <a href="${HSGlobal.General.heaterUrl}" class="hs-link" target="_blank">Ambrosia Heater.</a>`,
-                        styles: {
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Ambrosia heater' }),
-                    HSUIC.Div({ 
-                        html: 'References',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Button({ id: 'hs-panel-cor-ref-btn', text: 'Corruption Ref.' }),
-                    HSUIC.Button({ id: 'hs-panel-cor-ref-btn-2', text: 'Crpt. Onemind' }),
-                    HSUIC.Div({ 
-                        html: 'Mod links',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Button({ id: 'hs-panel-mod-github-btn', text: 'Mod Github' }),
-                    HSUIC.Button({ id: 'hs-panel-mod-wiki-btn', text: 'Mod Wiki' }),
-                    HSUIC.Button({ id: 'hs-panel-mod-wiki_features-btn', text: 'Mod Features' }),
+                    ...(bookmarkletSection.length > 0 ? [this.#buildGridSectionHeader('Recommended: Tampermonkey loader'), ...bookmarkletSection] : []),
+                    this.#buildGridSectionHeader('Backup & Restore'),
+                    ...HSBackup.buildToolsSection(),
+                    this.#buildGridSectionHeader('Ambrosia Heater'),
+                    HSUIC.Button({ id: 'hs-panel-amb-heater-compute-btn', text: 'Ambrosia Heater' }),
+                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Copy Heater Data' }),
+                    this.#buildGridSectionHeader('Mod links'),
                     HSUIC.Button({ id: 'hs-panel-mod-website-btn', text: 'Mod Website' }),
-                    HSUIC.Div({ 
-                        html: 'Other tools',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
+                    HSUIC.Button({ id: 'hs-panel-mod-github-btn', text: 'Mod Github' }),
+                    HSUIC.Button({ id: 'hs-panel-discord-thread-btn', text: 'Discord Thread' }),
+                    HSUIC.Button({ id: 'hs-panel-check-version-btn', text: 'CHECK VERSION' }),
+                    this.#buildGridSectionHeader('Other tools'),
                     HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
                     HSUIC.Button({ id: 'hs-panel-dump-gamedata-btn', text: 'Dump Game vars' }),
+                    HSUIC.Button({ id: 'hs-panel-exit-exalt-bug-btn', text: 'Fix Exalt Bug' }),
                     HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
-                    HSUIC.Button({ id: 'hs-panel-check-version-btn', text: 'CHECK VERSION' }),
-                    HSUIC.Div({ 
-                        html: 'Testing tools',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
+                    this.#buildGridSectionHeader('Testing tools'),
                     HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
                     HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
-                    HSUIC.Div({ 
-                        html: 'Calculation tools',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Div({ 
-                        id: 'hs-panel-calc-tools-p', 
-                        html: `Execute supported calculations and see their results. Calculations denoted with "(C)" support "calculating by components",
-                        meaning that the calculation results can be output as an array of components that make up the calculations.<br><br>
-                        Note that calculating by components always clears the calculation cache first.`,
-                        styles: {
-                            gridColumn: 'span 2',
-                            fontSize: '10pt'
-                        }
-                    }),
-                    HSUIC.Select({ 
-                        class: 'hs-panel-setting-block-select-input', 
-                        id: 'hs-panel-test-calc-sel', 
-                        type: HSInputType.TEXT,
-                        styles: {
-                            gridColumn: 'span 2'
-                        }
-                    }, calculationOptions),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-redu-btn', text: 'Calculate reduced', styles: { width: 'auto' } }),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-comps-btn', text: 'Calculate components', styles: { width: 'auto' } }),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-cache-clear-btn', text: 'Clear cache' }),
-                    HSUIC.Button({ id: 'hs-panel-test-calc-cache-dump-btn', text: 'Dump cache' }),
-                    HSUIC.Div({ 
-                        id: 'hs-panel-test-calc-latest', 
-                        styles: {
-                            gridColumn: 'span 2'
-                        }
-                    }),
+                    this.#buildGridSectionHeader('Calculation tools'),
+                    ...HSCalculationTools.buildToolsSection(),
                 ],
                 styles: {
                     gridTemplateColumns: 'repeat(2, 1fr)',
@@ -228,313 +397,225 @@ export class Hypersynergism {
             })
         );
 
-        document.querySelector('#hs-panel-amb-heater-btn')?.addEventListener('click', async () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        this.#bindToolsTabEvents(hsui);
+    }
 
-            if(dataModule) {
-                const heaterData = await dataModule.dumpDataForHeater();
-
-                if(heaterData) {
-                    await navigator.clipboard.writeText(btoa(JSON.stringify(heaterData)));
-
-                    HSUI.Notify('Ambrosia heater data copied to clipboard', {
-                        position: 'top',
-                        notificationType: "success"
-                    });
-                }
-            }
-        });
-
-        // Bind corruption reference button to open a modal
-        document.querySelector('#hs-panel-cor-ref-btn')?.addEventListener('click', () => {
-            hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64}" />`, needsToLoad: true })
-        });
-
-        // Bind corruption reference button to open a modal
-        document.querySelector('#hs-panel-cor-ref-btn-2')?.addEventListener('click', () => {
-            hsui.Modal({ htmlContent: `<img class="hs-modal-img" src="${corruption_ref_b64_2}" />`, needsToLoad: true })
-        });
-
-        document.querySelector('#hs-panel-mod-github-btn')?.addEventListener('click', () => {
-            window.open(HSGlobal.General.modGithubUrl, '_blank')
-        });
-
-        document.querySelector('#hs-panel-mod-wiki-btn')?.addEventListener('click', () => {
-            window.open(HSGlobal.General.modWikiUrl, '_blank')
-        });
-
-        document.querySelector('#hs-panel-mod-wiki_features-btn')?.addEventListener('click', () => {
-            window.open(HSGlobal.General.modWikiFeaturesUrl, '_blank')
-        });
-
-        document.querySelector('#hs-panel-mod-website-btn')?.addEventListener('click', () => {
-            window.open(HSGlobal.General.modWebsiteUrl, '_blank')
-        });
-
-        document.querySelector('#hs-panel-dump-settings-btn')?.addEventListener('click', () => {
-            HSSettings.dumpToConsole();
-        });
-
-        document.querySelector('#hs-panel-dump-gamedata-btn')?.addEventListener('click', () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
-
-            if(dataModule) {
-                console.log(`----- GAME DATA -----`);
-                console.log(dataModule.getGameData());
-
-                console.log(`----- PSEUDO DATA -----`);
-                console.log(dataModule.getPseudoData());
-
-                console.log(`----- CAMPAIGN DATA -----`);
-                console.log(dataModule.getCampaignData());
-
-                console.log(`----- ME DATA -----`);
-                console.log(dataModule.getMeData());
-
-                console.log(`----- EVENT DATA -----`);
-                console.log(dataModule.getEventData());
-            }
-        });
-
-        document.querySelector('#hs-panel-clear-settings-btn')?.addEventListener('click', () => {
-            const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
-            
-            if(storageMod) {
-                storageMod.clearData(HSGlobal.HSSettings.storageKey);
-                HSLogger.info('Stored settings cleared', this.#context);
-            }
-        });
-
-        document.querySelector('#hs-panel-check-version-btn')?.addEventListener('click', async() => {
-            const isLatest = await HSUtils.isLatestVersion();
-            
-            if(isLatest) {
-                HSUI.Notify('You are using the latest version of Hypersynergism!', {
-                    position: 'top',
-                    notificationType: "success"
-                });
-            } else {
-                HSUI.Notify('You are not using the latest version of Hypersynergism!', {
-                    position: 'top',
-                    notificationType: "warning"
-                });
-            }
-        });
-
-        document.querySelector('#hs-panel-test-calc-redu-btn')?.addEventListener('click', () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
-            const sel = document.querySelector('#hs-panel-test-calc-sel') as HTMLSelectElement;
-
-            if(dataModule && sel) {
-                const calcFnName = sel.value.split('|')[0];
-
-                if(typeof (dataModule as any)[calcFnName] === 'function') {
-                    const result = (dataModule as any)[calcFnName]() as number;
-                    console.log(`--- CALCULATED ${calcFnName} ---`);
-                    console.log(result);
-
-                    const latestDiv = document.querySelector('#hs-panel-test-calc-latest') as HTMLDivElement;
-
-                    if(latestDiv) {
-                        latestDiv.innerText = `Last calc result: ${HSUtils.N(result)}`;
-                    }
-                } else {
-                    HSLogger.warn(`${calcFnName} is not a function`, this.#context);
-                }
-            } else {
-                HSLogger.warn('dataModule or calculation select was null', this.#context);
-            }
-        });
-
-        document.querySelector('#hs-panel-test-calc-comps-btn')?.addEventListener('click', () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
-            const sel = document.querySelector('#hs-panel-test-calc-sel') as HTMLSelectElement;
-
-            if(dataModule && sel) {
-                const selVal = sel.value.split('|');
-                const calcFnName = selVal[0];
-                const comp = selVal.includes('c');
-
-                if(typeof (dataModule as any)[calcFnName] === 'function') {
-                    if(comp) {
-                        dataModule.clearCache();
-                        const result = (dataModule as any)[calcFnName](false) as number[];
-
-                        const latestDiv = document.querySelector('#hs-panel-test-calc-latest') as HTMLDivElement;
-
-                        if(latestDiv) {
-                            latestDiv.innerText = `Last calc result: [${result.toString().split(',').join(', ')}]`;
-                        }
-
-                        console.log(`--- CALCULATED ${calcFnName} ---`);
-                        console.log(result);
-                    } else {
-                        HSLogger.warn(`${calcFnName} cannot be calculated by components`, this.#context);
-                    }
-                } else {
-                    HSLogger.warn(`${calcFnName} is not a function`, this.#context);
-                }
-            } else {
-                HSLogger.warn('dataModule or calculation select was null', this.#context);
-            }
-        });
-
-        document.querySelector('#hs-panel-test-calc-cache-clear-btn')?.addEventListener('click', () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
-
-            if(dataModule) {
-                HSLogger.info('Cleared calculation cache', this.#context);
-                dataModule.clearCache();
-            }
-        });
-
-        document.querySelector('#hs-panel-test-calc-cache-dump-btn')?.addEventListener('click', () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
-
-            if(dataModule) {
-                HSLogger.info('Calculation cache dump', this.#context);
-                dataModule.dumpCache();
-            }
-        });
-
-        let positions: HSNotifyPosition[] = ["topLeft", "top", "topRight", "right", "bottomRight", "bottom", "bottomLeft", "left"]
-        let colors: HSNotifyType[] = ["default", "warning", "error", "success"];
+    #bindToolsTabEvents(hsui: HSUI) {
+        const positions: HSNotifyPosition[] = ["topLeft", "top", "topRight", "right", "bottomRight", "bottom", "bottomLeft", "left"];
+        const colors: HSNotifyType[] = ["default", "warning", "error", "success"];
         let p_idx = -1;
         let c_idx = -1;
 
-        document.querySelector('#hs-panel-test-notify-btn')?.addEventListener('click', async () => {
-            p_idx++;
-            c_idx++;
+        HSBookmarkletNotice.bindToolsSection();
+        HSBackup.bindToolsSection();
+        HSCalculationTools.bindToolsSection();
 
-            if(p_idx > positions.length - 1)
-                p_idx = 0;
+        this.#bindToolsButton('#hs-panel-amb-heater-btn', async () => {
+            const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
+            if (!dataModule) return;
 
-            if(c_idx > colors.length - 1)
-                c_idx = 0;
+            const heaterData = await dataModule.dumpDataForHeater();
+            if (!heaterData) return;
 
+            const json = JSON.stringify(heaterData);
+            const base64 = btoa(json);
+            const tsv = HSUtils.base64WithCRLF(base64);
+            await navigator.clipboard.writeText(tsv);
+
+            HSUI.Notify('Ambrosia heater data copied to clipboard', {
+                position: 'top',
+                notificationType: 'success'
+            });
+        });
+
+        this.#bindToolsButton('#hs-panel-amb-heater-compute-btn', async () => {
+            await HSHeaterInputModalController.openHeaterComputationModal();
+        });
+
+        this.#bindToolsButton('#hs-panel-mod-website-btn', () => this.#openUrl(HSGlobal.General.modWebsiteUrl));
+        this.#bindToolsButton('#hs-panel-mod-github-btn', () => this.#openUrl(HSGlobal.General.modGithubUrl));
+        this.#bindToolsButton('#hs-panel-discord-thread-btn', () => this.#openUrl(HSGlobal.General.modDiscordThreadUrl));
+
+        this.#bindToolsButton('#hs-panel-dump-settings-btn', () => HSSettings.dumpToConsole());
+        this.#bindToolsButton('#hs-panel-dump-gamedata-btn', () => this.#dumpGameData());
+        this.#bindToolsButton('#hs-panel-clear-settings-btn', () => HSBackup.clearSettingsAndReload());
+        this.#bindToolsButton('#hs-panel-check-version-btn', () => this.#checkVersion());
+        this.#bindToolsButton('#hs-panel-exit-exalt-bug-btn', () => this.#fixExaltBug());
+
+        this.#bindToolsButton('#hs-panel-test-notify-btn', async () => {
+            p_idx = (p_idx + 1) % positions.length;
+            c_idx = (c_idx + 1) % colors.length;
             await HSUI.Notify('Test notification', {
                 position: positions[p_idx],
                 notificationType: colors[c_idx]
             });
         });
 
-        document.querySelector('#hs-panel-test-notify-long-btn')?.addEventListener('click', async () => {
-            p_idx++;
-            c_idx++;
-
-            if(p_idx > positions.length - 1)
-                p_idx = 0;
-
-            if(c_idx > colors.length - 1)
-                c_idx = 0;
-
-            await HSUI.Notify('This is a really very extremely long test notification which tests if the notification works with a long notification test notification ',{
+        this.#bindToolsButton('#hs-panel-test-notify-long-btn', async () => {
+            p_idx = (p_idx + 1) % positions.length;
+            c_idx = (c_idx + 1) % colors.length;
+            await HSUI.Notify('This is a really very extremely long test notification which tests if the notification works with a long notification test notification ', {
                 position: positions[p_idx],
                 notificationType: colors[c_idx]
-            })
+            });
         });
     }
 
+    #bindToolsButton(selector: string, callback: () => void | Promise<void>) {
+        document.querySelector(selector)?.addEventListener('click', async () => {
+            await callback();
+        });
+    }
+
+    // ===================================
+    // ----- Tools helpers / actions -----
+    // ===================================
+
+    #openUrl(url: string) {
+        window.open(url, '_blank');
+    }
+
+    async #checkVersion() {
+        const isLatest = await HSGithub.isLatestTag();
+        // Dev channel players only
+        const liveTag = HSGithub.liveReleaseTag;
+        const liveRelease = liveTag ? ` Latest Live release: ${liveTag}.` : '';
+
+        HSUI.Notify((isLatest
+            ? 'You are using the latest version of Hypersynergism!'
+            : 'You are NOT using the latest version of Hypersynergism!') + liveRelease, {
+            position: 'top',
+            notificationType: isLatest ? 'success' : 'warning'
+        });
+    }
+
+    #fixExaltBug() {
+        HSLogger.log('Attempting to exit an exalt by clicking the active challenge (if any).');
+
+        const img = HSUtils.getActiveExaltElement();
+        if (img) {
+            console.log('Found active challenge img, clicking:', img);
+            img.click();
+            return;
+        }
+
+        const exposedPlayer = HSGlobal.exposedPlayer;
+        if (!exposedPlayer) {
+            HSLogger.log('If you are using the bookmark loader, please try again with the TAMPERMONKEY loader instead.', this.#context);
+            return;
+        }
+
+        if (exposedPlayer.insideSingularityChallenge === false) {
+            HSLogger.info('No active Exalt found in DOM or exposed stuff... Are you sure you have a bug?', this.#context);
+            return;
+        }
+
+        exposedPlayer.insideSingularityChallenge = true;
+        HSLogger.info('Exalt bug fixed.', this.#context);
+    }
+
+    #dumpGameData() {
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
+        if (!dataModule) return;
+
+        console.log('----- GAME DATA -----');
+        console.log(dataModule.getGameData());
+        console.log('----- PSEUDO DATA -----');
+        // Patched game: the game's own levels, which the mod reads instead
+        console.log(window.__HS_pcoinLevelsLoaded ? window.__HS_pcoinLevels : dataModule.getPseudoData());
+        console.log('----- CAMPAIGN DATA -----');
+        console.log(dataModule.getCampaignData());
+        console.log('----- ME DATA -----');
+        console.log(dataModule.getMeData());
+        console.log('----- EVENT DATA -----');
+        console.log(dataModule.getEventData());
+    }
+
+    // ===================================
+    // --- Settings tab implementation ---
+    // ===================================
+
     #buildSettingsTab(hsui: HSUI) {
-        // BUILD SETTINGS TAB
-        const settingsTabContents = HSSettings.autoBuildSettingsUI();
+        const settingsTabContents = HSSettingsUI.autoBuildSettingsUI(HSSettings.getUIDependencies());
 
-        if(settingsTabContents.didBuild) {
-            hsui.replaceTabContents(3, 
-                [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
-            );
+        if (!settingsTabContents.didBuild) return;
 
-            document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
-                const subtab = document.querySelector(`#hs-panel-settings-subtab-gamedata`) as HTMLDivElement;
-                const color = subtab.dataset.color;
-                const subSettingsContainer = document.querySelector(`#settings-grid-gamedata`) as HTMLDivElement;
-                const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
-                const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+        hsui.replaceTabContents(3,
+            [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
+        );
 
-                if(subtab && subSettingsContainer &&allSubSettingContainers && allSubTabs) {
-                    allSubSettingContainers.forEach(container => {
-                        container.classList.remove('open');
-                    });
+        this.#bindSettingsTabEvents();
+    }
 
-                    allSubTabs.forEach(subTab => {
-                        subTab.style.backgroundColor = '';
-                    });
+    #bindSettingsTabEvents() {
+        document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
+            this.#handleGameDataIconClick(e);
+        });
 
-                    subSettingsContainer.classList.add('open');
+        document.delegateEventListener('click', '.hs-panel-subtab', (e) => {
+            this.#handleSettingsSubtabClick(e);
+        });
+    }
 
-                    if(color && color.length > 0) {
-                        subtab.style.backgroundColor = color;
-                    }
-                }
+    #handleGameDataIconClick(_e: Event) {
+        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
+        const color = subtab?.dataset.color;
 
-                const gameDataSettingBlock = document.querySelector('#hs-setting-block-gamedata') as HTMLDivElement;
+        this.#activateSettingsSubtab('qol', subtab, color);
 
-                gameDataSettingBlock.scrollIntoView({
-                    block: 'start',
-                    behavior: 'smooth',
-                })
-            });
+        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
+        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-            document.delegateEventListener('click', '.hs-panel-subtab', (e) => {
-                const target = e.target as HTMLDivElement;
-                const subtab = target.dataset.subtab;
-                const color = target.dataset.color;
-                
-                if(subtab) {
-                    const subtabSelector = `#settings-grid-${subtab}`;
-                    const subSettingsContainer = document.querySelector(subtabSelector) as HTMLDivElement;
-                    const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
-                    const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+    #handleSettingsSubtabClick(e: Event) {
+        const target = (e.target as HTMLElement).closest('.hs-panel-subtab') as HTMLDivElement | null;
+        const subtab = target?.dataset.subtab;
+        const color = target?.dataset.color;
 
-                    if(subSettingsContainer && allSubSettingContainers && allSubTabs) {
-                        allSubSettingContainers.forEach(container => {
-                            container.classList.remove('open');
-                        });
+        if (!subtab) return;
+        this.#activateSettingsSubtab(subtab, target, color);
+    }
 
-                        allSubTabs.forEach(subTab => {
-                            subTab.style.backgroundColor = '';
-                        });
+    #activateSettingsSubtab(subtab: string, activeTab: HTMLDivElement | null, color?: string) {
+        const subSettingsContainer = document.querySelector(`#settings-grid-${subtab}`) as HTMLDivElement | null;
+        const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
+        const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
 
-                        subSettingsContainer.classList.add('open');
+        if (!subSettingsContainer) return;
 
-                        if(color && color.length > 0) {
-                            target.style.backgroundColor = color;
-                        }
-                    }
-                }
-            });
+        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
+        if (!subSettingsContainer.classList.contains('open')) {
+            const settingsPanel = document.querySelector('#hs-settings-panel');
+            if (settingsPanel) settingsPanel.scrollTop = 0;
+        }
+
+        allSubSettingContainers.forEach(container => container.classList.remove('open'));
+        allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
+
+        subSettingsContainer.classList.add('open');
+        if (activeTab && color) {
+            activeTab.style.backgroundColor = color;
         }
     }
 
+    // ================================
+    // --- Debug tab implementation ---
+    // ================================
+
     #buildDebugTab(hsui: HSUI) {
-        // BUILD DEBUG TAB
-        hsui.replaceTabContents(4, 
-            HSUIC.Grid({ 
-                html: [
-                    HSUIC.Div({ 
-                        html: 'Mouse',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Div({ id: 'hs-panel-debug-mousepos' }),
-                    HSUIC.Div({ 
-                        html: 'Game Data',
-                        styles: {
-                            borderBottom: '1px solid limegreen',
-                            gridColumn: 'span 2'
-                        }
-                    }),
-                    HSUIC.Div({ id: 'hs-panel-debug-gamedata-currentambrosia', styles: { gridColumn: 'span 2' } }),
-                ],
-                styles: {
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gridTemplateRows: '1fr',
-                    columnGap: '5px',
-                    rowGap: '5px'
-                }
+        hsui.replaceTabContents(4,
+            HSUIC.Grid({
+                id: 'hs-panel-debug-grid',
+                class: 'hs-panel-grid-2col',
+                html: []
             })
         );
+
+        // Dev builds only: the release build drops this block, and HSDevTools with it
+        if (HS_DEV_BUILD) {
+            const debugGrid = document.getElementById('hs-panel-debug-grid');
+            if (debugGrid) new HSDevTools().build(debugGrid);
+        }
     }
+
 }

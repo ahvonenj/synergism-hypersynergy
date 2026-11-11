@@ -41,38 +41,6 @@ export type CSSEasingFunction =
   | "ease-out-bounce"
   | "ease-in-out-bounce";
 
-export const CSSEasingPresets = {
-    EASE: "ease" as const,
-    EASE_IN: "ease-in" as const,
-    EASE_OUT: "ease-out" as const,
-    EASE_IN_OUT: "ease-in-out" as const,
-    LINEAR: "linear" as const,
-
-    SINE_IN: "cubic-bezier(0.47, 0, 0.745, 0.715)" as const,
-    SINE_OUT: "cubic-bezier(0.39, 0.575, 0.565, 1)" as const,
-    SINE_IN_OUT: "cubic-bezier(0.445, 0.05, 0.55, 0.95)" as const,
-
-    QUAD_IN: "cubic-bezier(0.55, 0.085, 0.68, 0.53)" as const,
-    QUAD_OUT: "cubic-bezier(0.25, 0.46, 0.45, 0.94)" as const,
-    QUAD_IN_OUT: "cubic-bezier(0.455, 0.03, 0.515, 0.955)" as const,
-
-    CUBIC_IN: "cubic-bezier(0.55, 0.055, 0.675, 0.19)" as const,
-    CUBIC_OUT: "cubic-bezier(0.215, 0.61, 0.355, 1)" as const,
-    CUBIC_IN_OUT: "cubic-bezier(0.645, 0.045, 0.355, 1)" as const,
-
-    CIRC_IN: "cubic-bezier(0.6, 0.04, 0.98, 0.335)" as const,
-    CIRC_OUT: "cubic-bezier(0.075, 0.82, 0.165, 1)" as const,
-    CIRC_IN_OUT: "cubic-bezier(0.785, 0.135, 0.15, 0.86)" as const,
-
-    EXPO_IN: "cubic-bezier(0.95, 0.05, 0.795, 0.035)" as const,
-    EXPO_OUT: "cubic-bezier(0.19, 1, 0.22, 1)" as const,
-    EXPO_IN_OUT: "cubic-bezier(1, 0, 0, 1)" as const,
-
-    BACK_IN: "cubic-bezier(0.6, -0.28, 0.735, 0.045)" as const,
-    BACK_OUT: "cubic-bezier(0.175, 0.885, 0.32, 1.275)" as const,
-    BACK_IN_OUT: "cubic-bezier(0.68, -0.55, 0.265, 1.55)" as const
-};
-
 export type TransitionableCSSProperty =
   | "background"
   | "backgroundColor"

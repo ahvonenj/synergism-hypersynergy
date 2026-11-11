@@ -1,0 +1,27 @@
+{
+  "preset": [
+    "alert:main.welcomeToSingularity",
+    "alert:singularityChallenge.enterChallenge.acceptSuccess",
+    "alert:singularityChallenge.exitChallenge.acceptSuccess",
+    "alert:singularityChallenge.exitChallenge.acceptFailure",
+    "alert:ambrosia.importTree.success",
+    "alert:singularity.elevator.teleportSuccess",
+    "alert:hepteracts.craftedHepteracts",
+    "alert:hepteracts.expandedInventory",
+    "alert:ambrosia.refund",
+    "alert:octeract.buyLevel.multiBuy",
+    "alert:singularity.goldenQuarks.multiBuyPurchased",
+    "alert:singularity.goldenQuarks.transaction",
+    "alert:hepteracts.purchasedOrbs",
+    "alert:main.singularityCancelled",
+    "alert:singularityChallenge.enterChallenge.decline",
+    "alert:singularityChallenge.exitChallenge.decline",
+    "alert:hepteracts.cancelled",
+    "alert:general.cancelled"
+  ],
+  "blocked": [
+    "alert:importexport.promocodes.time.confirm",
+    "confirm:account.steamCloud.confirmOverwrite",
+    "confirm:account.refreshSavePrompt"
+  ]
+}

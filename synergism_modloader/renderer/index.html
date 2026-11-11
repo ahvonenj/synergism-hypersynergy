@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Hypersynergism Loader</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- ══ HEADER ═══════════════════════════════════════════════════ -->
+    <header class="titlebar">
+
+      <!-- Brand + pill -->
+      <div class="brand-row">
+        <div class="brand">
+          <img src="../assets/eyesmith.webp" class="brand-mark-img" alt="Hypersynergism icon" />
+          <div class="brand-text">
+            <span class="brand-name rainbow-text">Hypersynergism Loader</span>
+            <span class="stat-unit"> — Mod loader for Synergism</span>
+          </div>
+        </div>
+        <span id="statusPill" class="pill pill-idle">Idle</span>
+      </div>
+
+      <div class="launcher-update" aria-live="polite">
+        <span id="launcherUpdateStatus">Launcher update status loading…</span>
+        <button id="checkLauncherUpdateBtn" class="btn-secondary" type="button">Check for updates</button>
+        <button id="installLauncherUpdateBtn" class="btn-primary is-hidden" type="button">Restart to update</button>
+      </div>
+
+      <!-- Tab nav (styled exactly like hypersynergism tabs) -->
+      <nav class="tab-nav">
+        <div id="tabs">
+          <button data-tab="locate" class="tab-active">① Locate game</button>
+          <button data-tab="build">② Choose build</button>
+          <button data-tab="patch">③ Patch &amp; play</button>
+        </div>
+      </nav>
+
+    </header>
+
+    <!-- ══ PAGE CONTENT ══════════════════════════════════════════════ -->
+    <div class="page-container">
+
+      <!-- Mini step indicator bar -->
+      <div class="step-indicator">
+        <span class="step-node current" id="node1">1</span>
+        <span class="step-label">Locate</span>
+        <span class="step-line"><span class="step-line-fill" id="fill1"></span></span>
+        <span class="step-node" id="node2">2</span>
+        <span class="step-label">Build</span>
+        <span class="step-line"><span class="step-line-fill" id="fill2"></span></span>
+        <span class="step-node" id="node3">3</span>
+        <span class="step-label">Patch</span>
+      </div>
+
+      <!-- ── STEP 1 ─────────────────────────────────────────────── -->
+      <div class="step is-active" data-step="1">
+        <h2 class="step-heading">Locate your game</h2>
+        <p class="hint">We need your Steam install to find Synergism's files on disk.</p>
+
+        <div class="field">
+          <span>Steam install folder</span>
+          <div class="field-row">
+            <input id="steamPathInput" type="text" placeholder="C:\Program Files (x86)\Steam" />
+            <button id="browseSteamBtn" class="btn-secondary">Browse…</button>
+            <button id="autodetectSteamBtn" class="btn-secondary">Auto-detect</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span>Detected game folder</span>
+          <input id="gameDirOutput" type="text" readonly placeholder="Not found yet" />
+        </div>
+        <p id="gameDirStatus" class="status-line"></p>
+        <p id="legacyCleanupStatus" class="status-line" aria-live="polite"></p>
+
+        <div class="field">
+          <span>7-Zip</span>
+          <div class="field-row">
+            <input id="sevenZipInput" type="text" placeholder="C:\Program Files\7-Zip\7z.exe" />
+            <button id="browse7zBtn" class="btn-secondary">Browse…</button>
+            <button id="autodetect7zBtn" class="btn-secondary">Auto-detect</button>
+          </div>
+        </div>
+        <p class="hint small">The loader has its own 7-Zip. Change this only if the patch fails while extracting the
+          game: an installed <a href="#" data-external="https://www.7-zip.org/" class="link">7-Zip</a>'s 7z.exe works too.</p>
+        <p id="sevenZipStatus" class="status-line"></p>
+
+        <div class="actions">
+          <button id="toStep2Btn" class="btn-primary" disabled>Continue →</button>
+          <button id="retryLegacyCleanupBtn" class="btn-secondary is-hidden">Retry old folder cleanup</button>
+          <button id="launchLastPlayedBtn" class="btn-secondary" disabled>Launch last played build</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2 ─────────────────────────────────────────────── -->
+      <div class="step" data-step="2">
+        <h2 class="step-heading">Choose a mod build</h2>
+        <p class="hint">Pick a channel, then the branch or tagged release within it. The mod script and its bundle
+          patcher are always pulled from the same channel's repo, so they stay in sync.</p>
+
+        <div class="field">
+          <span>Channel</span>
+          <div class="channel-toggle" id="channelToggle" role="group" aria-label="Mod channel"></div>
+        </div>
+        <p id="channelStatus" class="status-line"></p>
+
+        <div class="field">
+          <span>Build</span>
+          <div class="field-row">
+            <select id="modRefSelect"></select>
+            <button id="refreshRefsBtn" class="btn-secondary">Refresh list</button>
+          </div>
+        </div>
+        <p id="refsStatus" class="status-line"></p>
+
+        <div class="field">
+          <span>Resolved mod URL</span>
+          <input id="modUrlPreview" type="text" readonly class="mono" />
+        </div>
+
+        <div class="field">
+          <span>Resolved patcher URL</span>
+          <input id="patcherUrlPreview" type="text" readonly class="mono" />
+        </div>
+        <p class="hint small">Most builds don't have a patcher.js of their own yet — when it's missing, the loader falls
+          back to the copy bundled with this app automatically.</p>
+
+        <div class="actions">
+          <button id="backTo1Btn" class="btn-secondary">← Back</button>
+          <button id="toStep3Btn" class="btn-primary">Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3 ─────────────────────────────────────────────── -->
+      <div class="step" data-step="3">
+        <h2 class="step-heading">Patch &amp; play</h2>
+
+        <dl class="summary">
+          <div>
+            <dt>Game folder</dt>
+            <dd id="summaryGameDir">—</dd>
+          </div>
+          <div>
+            <dt>Channel</dt>
+            <dd id="summaryChannel">—</dd>
+          </div>
+          <div>
+            <dt>Mod build</dt>
+            <dd id="summaryModRef">—</dd>
+          </div>
+        </dl>
+
+        <p id="updateBanner" class="banner is-hidden"></p>
+
+        <p id="patcherBanner" class="banner is-hidden"></p>
+
+        <p id="mismatchBanner" class="banner is-hidden">You've selected a different channel or mod build than what's
+          currently patched. Use <strong>Quick switch</strong> to update instantly (no repatch needed), or
+          <strong>Patch &amp; launch</strong> to do a full repatch.
+        </p>
+
+        <div class="actions">
+          <button id="backTo2Btn" class="btn-secondary">← Back</button>
+          <button id="launchOnlyBtn" class="btn-secondary" disabled>Launch only</button>
+          <button id="quickSwitchBtn" class="btn-secondary" style="display:none">⚡ Quick switch</button>
+          <button id="patchAndLaunchBtn" class="btn-primary">Patch &amp; launch</button>
+        </div>
+
+        <div class="console-wrap">
+          <div class="console" id="console" aria-live="polite"></div>
+          <button id="copyLogBtn" class="console-copy" title="Copy the log">Copy</button>
+        </div>
+      </div>
+
+    </div><!-- /page-container -->
+  </div><!-- /app-shell -->
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>

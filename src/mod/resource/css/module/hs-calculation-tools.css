@@ -1,0 +1,27 @@
+/* ===== CALCULATION TOOLS (Tools tab section) ===== */
+
+.hs-calc-params {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 6px 10px;
+}
+
+.hs-calc-params:empty {
+    display: none;
+}
+
+.hs-calc-params input[type="number"] {
+    color: white;
+    background-color: #101828;
+    padding: 0 0 0 0.2em;
+}
+
+/* Components are indented under their group (luck's luckBase / luckMult) */
+.hs-calc-result {
+    white-space: pre-wrap;
+}
+
+.hs-calc-result-error {
+    color: #ff6b6b;
+}

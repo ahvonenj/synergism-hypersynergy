@@ -1,1 +1,3 @@
-http-server ./build/ --mimetypes ./mimes.types --cors
+@echo off
+cd /d "%~dp0"
+node scripts/start-dev-server.cjs

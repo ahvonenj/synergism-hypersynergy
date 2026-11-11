@@ -1,0 +1,112 @@
+/* "Challenge progress", a module of the game's header (HSHeaderChallengeModule). In the header, its text is out of
+   the flow (absolute): the module's size is the cell's, never its text's, which is fitted to it. In the tray, which
+   has no cell to give it a size, the text sizes the module. Not on a locked module, which the game hides with
+   display: none. */
+#hsChallengeProgress:not(.headerModuleLocked) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#hsChallengeProgress {
+    position: relative;
+    box-sizing: border-box;
+    /* A currency module's width out of the grid, as the ambrosia minibars; in the grid, the cell's */
+    width: calc(38px + 7.5em);
+    min-width: 150px;
+    /* As the game's progress modules */
+    min-height: 1.5lh;
+    align-self: stretch;
+    overflow: hidden;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+#headerGrid #hsChallengeProgress {
+    justify-self: stretch;
+    width: auto;
+    min-width: 0;
+}
+
+#hsChallengeProgress > .hs-cp-text {
+    width: max-content;
+}
+.headerRegion #hsChallengeProgress > .hs-cp-text {
+    position: absolute;
+}
+/* The room's lines (--hs-cp-room, set by the module: 2 or 3, 4 or 6 at 1x2 with the requirement), filled from the
+   top. A grid lines the columns up: challenge, completions, amount, "/", requirement, resource (each row's cells are
+   the grid's, through display: contents) */
+#hsChallengeProgress > .hs-cp-text.hs-cp-lines {
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+    align-content: start;
+    min-height: calc(var(--hs-cp-room, 3) * 1.2em);
+}
+#hsChallengeProgress .hs-cp-row {
+    display: contents;
+}
+/* Each column from its left, the amounts against the "/" */
+#hsChallengeProgress .hs-cp-lines span {
+    text-align: left;
+}
+#hsChallengeProgress .hs-cp-lines .hs-cp-comp:not(:empty),
+#hsChallengeProgress .hs-cp-lines .hs-cp-amount:not(:empty),
+#hsChallengeProgress .hs-cp-lines .hs-cp-res:not(:empty) {
+    padding-left: 0.4em;
+}
+#hsChallengeProgress .hs-cp-lines .hs-cp-amount {
+    text-align: right;
+}
+#hsChallengeProgress .hs-cp-lines .hs-cp-sep:not(:empty) {
+    padding: 0 0.25em;
+}
+/* At 1x2, the requirement on a line of its own: the challenge line across the module, the requirement below it in
+   four columns (amount, "/", requirement, resource), indented under the challenge */
+#hsChallengeProgress > .hs-cp-text.hs-cp-lines.hs-cp-split {
+    grid-template-columns: repeat(4, auto);
+}
+#hsChallengeProgress .hs-cp-split .hs-cp-head {
+    grid-column: 1 / -1;
+}
+#hsChallengeProgress .hs-cp-lines.hs-cp-split .hs-cp-amount {
+    padding-left: 1em;
+}
+
+/* The game's tier colours (its progress modules) for the challenges; discreet greys for the rest */
+#hsChallengeProgress .hs-cp-ascension { color: orange; }
+#hsChallengeProgress .hs-cp-reincarnation { color: limegreen; }
+#hsChallengeProgress .hs-cp-transcension { color: var(--orchid-text-color); }
+#hsChallengeProgress .hs-cp-comp { color: #ccc; }
+#hsChallengeProgress .hs-cp-amount,
+#hsChallengeProgress .hs-cp-req { color: #999; }
+#hsChallengeProgress .hs-cp-arrow,
+#hsChallengeProgress .hs-cp-sep,
+#hsChallengeProgress .hs-cp-res { color: #777; }
+
+/* As the game's empty progress modules in edit mode, also in place of "CØ" */
+#mainHeader.headerEditMode #hsChallengeProgress > .hs-cp-text:is(:empty, :has(> .hs-cp-none))::before {
+    content: "[HS] Challenge progress";
+    opacity: 0.6;
+}
+#mainHeader.headerEditMode #hsChallengeProgress .hs-cp-none {
+    display: none;
+}
+
+/* The cell settings (HSHeaderCellSettings) move the text, not the module, which keeps the cell's size */
+#hsChallengeProgress[data-hs-header-align] {
+    justify-self: stretch;
+}
+#hsChallengeProgress[data-hs-header-align="left"] { justify-content: flex-start; text-align: left; }
+#hsChallengeProgress[data-hs-header-align="center"] { justify-content: center; text-align: center; }
+#hsChallengeProgress[data-hs-header-align="right"] { justify-content: flex-end; text-align: right; }
+#hsChallengeProgress[data-hs-header-vertical] {
+    align-self: stretch;
+    align-items: var(--hs-header-vertical-content);
+}
+/* Stacked: from the left, as the game's stacked modules (fixed widths, at the stack's start); its cell's alignment
+   is on the stack */
+.headerStack > #hsChallengeProgress { justify-content: flex-start; }
+.headerStack[data-hs-header-align="center"] > #hsChallengeProgress { justify-content: center; }
+.headerStack[data-hs-header-align="right"] > #hsChallengeProgress { justify-content: flex-end; }
+
+/* "CØ" outside a challenge (challengeProgressShowNone) */
+#hsChallengeProgress .hs-cp-none { color: #555; }

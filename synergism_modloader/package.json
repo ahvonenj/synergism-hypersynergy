@@ -1,0 +1,76 @@
+{
+  "name": "hypersynergism-loader",
+  "productName": "Hypersynergism Loader",
+  "version": "0.2.10",
+  "description": "Mod loader for Synergism that patches a copy of the game to load Hypersynergism mod builds.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "dist": "electron-builder",
+    "dist:dir": "electron-builder --dir"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ferlieloi/synergism-hypersynergy.git"
+  },
+  "dependencies": {
+    "@electron/asar": "^3.2.10",
+    "electron-updater": "^6.8.10"
+  },
+  "devDependencies": {
+    "7zip-bin": "~5.2.0",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.hypersynergism.loader",
+    "productName": "Hypersynergism Loader",
+    "publish": {
+      "provider": "github",
+      "owner": "Ferlieloi",
+      "repo": "synergism-hypersynergy"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*",
+      "lib/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/7zip-bin/win/x64/7za.exe",
+        "to": "7zip-bin/7za.exe"
+      },
+      {
+        "from": "assets/7za-License.txt",
+        "to": "7zip-bin/License.txt"
+      }
+    ],
+    "win": {
+      "icon": "assets/favicon.ico",
+      "signAndEditExecutable": true,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "HypersynergismLoader-Setup-${version}.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    }
+  }
+}

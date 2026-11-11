@@ -1,0 +1,60 @@
+/* ===== BACKUP (Tools tab section and import modal) ===== */
+
+.hs-backup-parts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+.hs-backup-parts label,
+.hs-backup-modal label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.hs-backup-parts input[type="checkbox"],
+.hs-backup-modal input[type="checkbox"] {
+    height: 16px;
+    width: 16px;
+    margin: 0;
+}
+
+.hs-backup-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    min-width: 380px;
+    max-width: 520px;
+}
+
+.hs-backup-file {
+    font-weight: bold;
+    word-break: break-all;
+}
+
+.hs-backup-details {
+    white-space: pre-line;
+    opacity: 0.85;
+}
+
+.hs-backup-part-note {
+    opacity: 0.7;
+}
+
+.hs-backup-status {
+    color: gold;
+    min-height: 1.2em;
+}
+
+.hs-backup-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.hs-backup-actions .hs-panel-btn-auto-width {
+    padding: 0 12px;
+}

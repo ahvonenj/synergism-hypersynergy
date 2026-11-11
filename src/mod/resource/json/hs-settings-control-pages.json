@@ -1,62 +1,32 @@
 {
-    "hepteract": {
-        "page": "hepteract",
-        "pageName": "Hepteracts",
-        "pageColor": "mediumpurple",
-        "order": 1
-    },
-    "ui": {
-        "page": "ui",
-        "pageName": "UI",
-        "pageColor": "cyan",
-        "order": 2
-    },
-    "log": {
-        "page": "log",
-        "pageName": "Logging",
-        "pageColor": "orange",
-        "order": 3
-    },
-    "input": {
-        "page": "input",
-        "pageName": "Input",
-        "pageColor": "plum",
-        "order": 4
-    },
-    "ambrosia": {
-        "page": "ambrosia",
-        "pageName": "Ambrosia",
-        "pageColor": "gold",
-        "order": 5
-    },
-    "patch": {
-        "page": "patch",
-        "pageName": "Patch",
-        "pageColor": "fuchsia",
-        "order": 6
-    },
-    "gamedata": {
-        "page": "gamedata",
-        "pageName": "Game Data",
-        "pageColor": "crimson",
-        "order": 7
-    },
-    "shop": {
-        "page": "shop",
-        "pageName": "Shop",
-        "pageColor": "#b300b2",
-        "order": 8
-    },
-    "debug": {
-        "page": "debug",
-        "pageName": "Debugging",
-        "pageColor": "maroon",
-        "order": 9
-    },
-    "misc": {
-        "page": "misc",
-        "pageName": "Misc.",
-        "pageColor": "white",
-        "order": 9
-    }
+  "ui": {
+    "pageName": "UI",
+    "pageColor": "#4fc3c7",
+    "pageSelectedColor": "#0e7477",
+    "order": 2
+  },
+  "qol": {
+    "pageName": "QoL",
+    "pageColor": "#a8a8b0",
+    "pageSelectedColor": "#5b5b5e",
+    "order": 3
+  },
+  "input": {
+    "pageName": "Input",
+    "pageColor": "#c79ac9",
+    "pageSelectedColor": "#674e69",
+    "order": 4
+  },
+  "auto-sing": {
+    "pageName": "Auto-Sing",
+    "pageColor": "#4fbf85",
+    "pageSelectedColor": "#0e7444",
+    "order": 9
+  },
+  "debug": {
+    "pageName": "Debugging",
+    "pageColor": "#b0605f",
+    "pageSelectedColor": "#6e2f2e",
+    "order": 12
+  }
 }

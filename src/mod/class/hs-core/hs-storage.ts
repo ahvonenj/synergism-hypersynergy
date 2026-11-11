@@ -3,13 +3,13 @@ import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./module/hs-module";
 
-/*
-    Class: HSStorage
-    IsExplicitHSModule: Yes
-    Description: 
-        Hypersynergism module for managing localStorage data.
-        Provides methods to set, get, and clear data in localStorage.
-*/
+/**
+ *   Class: HSStorage
+ *   IsExplicitHSModule: Yes
+ *   Description: Hypersynergism module for managing localStorage data.
+ *     - Provides methods to set, get, and clear data in localStorage.
+ *   Author: Swiffy
+ */
 export class HSStorage extends HSModule {
 
     constructor(moduleOptions : HSModuleOptions) {

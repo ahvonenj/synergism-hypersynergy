@@ -1,0 +1,102 @@
+name: Release Windows loader
+
+on:
+  push:
+    tags:
+      - 'loader-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.repository == 'Ferlieloi/synergism-hypersynergy'
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: synergism_modloader
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      # actions/checkout fetches the tagged commit under the tag's name, not the tag itself:
+      # without this, the tag's message (the release notes) is not on the runner.
+      # A tag without a message is refused: its commit's message would be published as the notes.
+      - name: Fetch the release tag and check it has a message
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          git fetch --force --no-tags --depth=1 origin "+refs/tags/${env:RELEASE_TAG}:refs/tags/${env:RELEASE_TAG}"
+          if ($LASTEXITCODE -ne 0) { throw "Could not fetch tag $env:RELEASE_TAG" }
+          if ((git cat-file -t "refs/tags/$env:RELEASE_TAG") -ne 'tag') {
+            throw "Tag $env:RELEASE_TAG has no message. Delete it and create it again with: git tag -a $env:RELEASE_TAG (a title line, an empty line, then the release notes)"
+          }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: synergism_modloader/package-lock.json
+      - name: Verify the release tag matches the launcher version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -ne "loader-v$version") {
+            throw "Tag $env:RELEASE_TAG does not match launcher version $version"
+          }
+      - name: Install dependencies
+        run: npm ci
+      - name: Test launcher updates
+        run: npm test
+      - name: Build installer and update metadata
+        run: npm run dist -- --publish never
+      - name: Verify launcher and installer icons
+        run: |
+          Add-Type -AssemblyName System.Drawing
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $sourceIcon = [Drawing.Icon]::new((Resolve-Path 'assets/favicon.ico').Path)
+          $expected = $sourceIcon.ToBitmap()
+          try {
+            foreach ($file in @("dist/win-unpacked/Hypersynergism Loader.exe", "dist/HypersynergismLoader-Setup-$version.exe")) {
+              $embeddedIcon = [Drawing.Icon]::ExtractAssociatedIcon((Resolve-Path $file).Path)
+              if ($null -eq $embeddedIcon) { throw "No icon in $file" }
+              $actual = $embeddedIcon.ToBitmap()
+              try {
+                if ($actual.Width -ne $expected.Width -or $actual.Height -ne $expected.Height) { throw "Wrong icon size in $file" }
+                for ($y = 0; $y -lt $expected.Height; $y++) {
+                  for ($x = 0; $x -lt $expected.Width; $x++) {
+                    if ($actual.GetPixel($x, $y).ToArgb() -ne $expected.GetPixel($x, $y).ToArgb()) {
+                      throw "HS icon is missing from $file"
+                    }
+                  }
+                }
+              } finally {
+                $actual.Dispose()
+                $embeddedIcon.Dispose()
+              }
+            }
+          } finally {
+            $expected.Dispose()
+            $sourceIcon.Dispose()
+          }
+      - name: Publish launcher release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $assets = @(
+            "dist/HypersynergismLoader-Setup-$version.exe"
+            "dist/HypersynergismLoader-Setup-$version.exe.blockmap"
+            "dist/latest.yml"
+          )
+          foreach ($asset in $assets) {
+            if (-not (Test-Path -LiteralPath $asset)) { throw "Missing release asset: $asset" }
+          }
+          # Release notes: the tag's message without its first line (the title, already the release's title).
+          # A one-line message is used as is.
+          [Console]::OutputEncoding = [Text.Encoding]::UTF8
+          $notes = (git tag --list $env:RELEASE_TAG --format='%(contents:body)' | Out-String).Trim()
+          if (-not $notes) { $notes = (git tag --list $env:RELEASE_TAG --format='%(contents:subject)' | Out-String).Trim() }
+          $notesFile = Join-Path $env:RUNNER_TEMP 'loader-release-notes.md'
+          [IO.File]::WriteAllText($notesFile, $notes, [Text.UTF8Encoding]::new($false))
+          gh release create $env:RELEASE_TAG $assets --verify-tag --latest --title "Hypersynergism Loader $version" --notes-file $notesFile

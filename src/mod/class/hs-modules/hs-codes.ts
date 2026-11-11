@@ -1,15 +1,15 @@
 import { HSModuleOptions } from "../../types/hs-types";
+import { HSGameDialogs } from "../hs-core/dialogs/hs-game-dialogs";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSModule } from "../hs-core/module/hs-module";
-import { HSUtils } from "../hs-utils/hs-utils";
+import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 
-/*
-    Class: HSCodes
-    IsExplicitHSModule: Yes
-    Description: 
-        Hypersynergism module aimed to make reusable code input more convenient.
-    Author: Swiffy
+/**
+ * Class: HSCodes
+ * IsExplicitHSModule: Yes
+ * Description: Hypersynergism module aimed to make reusable code input more convenient.
+ * Author: Swiffy, Shewchou
 */
 export class HSCodes extends HSModule {
     #codeBoxLabel?: HTMLLabelElement;
@@ -17,6 +17,8 @@ export class HSCodes extends HSModule {
     #config : MutationObserverInit;
     #codeBoxLabelObserver? : MutationObserver;
     #codeSpanStyle = 'white-space: nowrap; user-select: all; -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all;';
+    #codeInfo?: HTMLElement;
+    #pendingCodeInfoRefresh = new Set<string>();
 
     constructor(moduleOptions : HSModuleOptions) {
         super(moduleOptions);
@@ -33,7 +35,8 @@ export class HSCodes extends HSModule {
 
         const self = this;
 
-        this.#codeBoxOpenButton = await HSElementHooker.HookElement('#promocodes') as HTMLButtonElement;
+        this.#codeBoxOpenButton = await HSElementHooker.HookElement<HTMLButtonElement>('#promocodes') ?? undefined;
+        if (!this.#codeBoxOpenButton) { this.isInitialized = true; return; }
 
         this.#codeBoxOpenButton.addEventListener('click', function(ev) {
             self.#codeBoxLabel = document.querySelector('#promptWrapper > #prompt > label') as HTMLLabelElement;
@@ -45,15 +48,47 @@ export class HSCodes extends HSModule {
             }
         }, { capture: true });
 
-        this.#codeBoxLabel = await HSElementHooker.HookElement('#promptWrapper > #prompt > label') as HTMLLabelElement;
+        this.#codeBoxLabel = await HSElementHooker.HookElement<HTMLLabelElement>('#promptWrapper > #prompt > label') ?? undefined;
 
         this.#observe();
+        await this.#hookCodeInfoRefresh();
         this.isInitialized = true;
+    }
+
+    // The game writes the code info (#promocodeinfo) only on mouseover of the code buttons. When a code's dialogs
+    // are answered without the pointer leaving the button (Add x10, Auto-Loadout Time), it keeps showing the uses
+    // from before the click. So once the code's dialogs are over (it has paid out), the game's mouseover listener
+    // is run again. The clicks on the Add buttons bubble to #addCodeBox, which holds that listener.
+    async #hookCodeInfoRefresh() {
+        const [addCodeBox, timeCodeButton, codeInfo] = await Promise.all([
+            HSElementHooker.HookElement('#addCodeBox'),
+            HSElementHooker.HookElement('#timeCode'),
+            HSElementHooker.HookElement('#promocodeinfo'),
+        ]);
+        if (!addCodeBox || !timeCodeButton || !codeInfo) return;
+        this.#codeInfo = codeInfo;
+
+        addCodeBox.addEventListener('click', () => this.#refreshCodeInfoWhenDone('add', addCodeBox));
+        timeCodeButton.addEventListener('click', () => this.#refreshCodeInfoWhenDone('time', timeCodeButton));
+    }
+
+    // Not while autosing runs: it uses both codes at every singularity, with the Settings tab hidden.
+    #refreshCodeInfoWhenDone(code: 'add' | 'time', hoverTarget: HTMLElement) {
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
+        if (this.#pendingCodeInfoRefresh.has(code)) return;
+        this.#pendingCodeInfoRefresh.add(code);
+
+        void HSGameDialogs.whenQueueIdle().then(() => {
+            this.#pendingCodeInfoRefresh.delete(code);
+            // Only while the info still shows this code. The prefix is a literal of the game's promocodesInfoText(), not translated
+            if (!this.#codeInfo?.textContent?.startsWith(`'${code}': `)) return;
+            hoverTarget.dispatchEvent(new MouseEvent('mouseover'));
+        });
     }
 
     #observe() {
         this.#codeBoxLabelObserver?.disconnect();
-        this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel as HTMLLabelElement, this.#config);
+        if (this.#codeBoxLabel) this.#codeBoxLabelObserver?.observe(this.#codeBoxLabel, this.#config);
     }
 
     #disconnect() {
@@ -67,11 +102,10 @@ export class HSCodes extends HSModule {
             // Need to disconnect or our changes will put this observer into a loop
             this.#disconnect();
 
-            if(this.#codeBoxLabel && this.#codeBoxLabel.innerText.includes("synergism2021")) {
-                const originalText = this.#codeBoxLabel.innerText;
+            if(this.#codeBoxLabel && this.#codeBoxLabel.innerText.includes("synergism2026")) {
                 this.#codeBoxLabel.innerHTML = `<div id="hs-hijack-codes-wrapper">
                     [HSCodes] Hypersynergism has hijacked this modal to offer you all the reusable codes conveniently (click code to auto input it):</br>
-                    <span style="${this.#codeSpanStyle}" data-code="synergism2021">synergism2021</span>
+                    <span style="${this.#codeSpanStyle}" data-code="synergism2026">synergism2026</span>
                     <span style="${this.#codeSpanStyle}" data-code="Khafra">Khafra</span>
                     <span style="${this.#codeSpanStyle}" data-code=":unsmith:">:unsmith:</span>
                     <span style="${this.#codeSpanStyle}" data-code=":antismith:">:antismith:</span>
@@ -88,7 +122,7 @@ export class HSCodes extends HSModule {
                     }
                 }, true);
 
-                HSLogger.debug("Hijacked code redeem panel", this.context);
+                HSLogger.debug(() => "Hijacked code redeem panel", this.context);
             }
         } finally {
             // Need to remember to connect the observer again

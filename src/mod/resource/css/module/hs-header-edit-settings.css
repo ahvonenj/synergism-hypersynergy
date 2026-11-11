@@ -1,0 +1,276 @@
+/* "[HS] Header", the block next to the game's header tray in edit mode (HSHeaderEditSettings) */
+
+html.hs-remove-header-gap #mainHeader:not(.headerEditMode):not([data-hs-header-gap-measuring]) .hs-header-gap-last {
+   margin-bottom: var(--hs-header-gap-margin, 0px);
+}
+html.hs-remove-header-gap #mainHeader:not(.headerEditMode):not([data-hs-header-gap-measuring]) .hs-header-gap-empty {
+   display: none;
+}
+
+/* "Hide ambrosia bar icon": the leading icon of the game's Ambrosia loadouts module, not of its loadout page module (a
+   click outside a slot turns its page). */
+html.hs-header-no-loadout-icons #ambrosiaLoadoutsHeader > img {
+   display: none;
+}
+
+/* The currency icon uses 32px by default; the cube icons in the top row use 20px. */
+html.hs-match-octeract-icon-size #ascensionStats #octeractHeader > img {
+   width: 20px;
+   height: 20px;
+}
+html.hs-match-octeract-icon-size #ascensionStats #octeractHeader[data-size="S"] > img {
+   width: 12px;
+   height: 12px;
+}
+html.hs-match-octeract-icon-size #ascensionStats #octeractHeader:is([data-size="L"], [data-size="XL"]) > img {
+   width: 28px;
+   height: 28px;
+}
+
+#octeractHeaderDisplay[data-hs-octeract-unit]::after {
+   content: "\00a0" attr(data-hs-octeract-unit);
+   color: white;
+}
+
+/* The game stacks the panel's children: in a wrapping row, the toolbar and the hint keep their own lines, and the
+   tray and the block share one (the block under the tray when the screen is too narrow) */
+#mainHeader.headerEditMode #headerEditPanel {
+   flex-flow: row wrap;
+   justify-content: center;
+   align-items: stretch;
+}
+
+#mainHeader.headerEditMode #headerEditToolbar,
+#mainHeader.headerEditMode #headerEditHint {
+   flex-basis: 100%;
+}
+
+/* The tray (the game's width: min(100%, 1000px)) gives way to the block before the block wraps: a row wraps on the
+   items' base sizes, so the tray's base is its smallest width, and it grows back to 1000px */
+#mainHeader.headerEditMode #headerTray {
+   flex: 1 1 500px;
+   max-width: 1000px;
+}
+
+/* "Top row at the bottom" (headerStatsAtBottom): the top row (#ascensionStats) under the grid, above the edit panel,
+   by CSS order only. On desktop both are items of #mainHeader's grid (#mobileHeaderContent is display: contents), so
+   the header's other children (the tabs, #quickbarsRow) go after them; on mobile they are items of
+   #mobileHeaderContent's column, where the game orders the row 1, the grid 2 and the panel 4 */
+html.hs-header-stats-bottom #ascensionStats {
+   order: 3;
+   /* Only the grid's 5px bottom margin: a tighter gap than the row's 10px at the top */
+   margin-top: 0;
+}
+
+/* The row's top margin no longer keeps the grid off the top of the page (mobile has its own) */
+html.hs-header-stats-bottom:not([data-mobile="true"]) #headerGrid {
+   margin-top: 5px;
+}
+
+/* "Grid width" (HSHeaderGridWidth): the game's cap moved (none = the header's width); width: 100% and the 1250px
+   floor stay the game's, so the grid still follows a smaller window. Desktop only */
+html.hs-header-grid-width:not([data-mobile="true"]) #headerGrid {
+   max-width: var(--hs-header-grid-width);
+}
+
+html.hs-header-stats-bottom #headerEditPanel {
+   order: 4;
+}
+
+html.hs-header-stats-bottom #mainHeader > :not(#mobileHeaderContent) {
+   order: 5;
+}
+
+/* As the game's #headerTray */
+#hs-header-edit-settings {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+   box-sizing: border-box;
+   min-height: 44px;
+   padding: 4px 8px;
+   border: 1px dashed #ffffff60;
+   border-radius: 6px;
+   /* Restarts each time edit mode shows the block: its animationstart refreshes the block */
+   animation: hs-header-edit-settings-shown 1ms;
+}
+
+@keyframes hs-header-edit-settings-shown {
+   from { opacity: 1; }
+   to { opacity: 1; }
+}
+
+/* As the game's #headerTrayLabel */
+#hs-header-edit-settings .hs-hes-title {
+   color: #ccc;
+   font-size: 0.85em;
+}
+
+#hs-header-edit-settings .hs-hes-sections {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px 16px;
+}
+
+#hs-header-edit-settings .hs-hes-section {
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
+}
+
+#hs-header-edit-settings .hs-hes-subtitle {
+   color: #999;
+   font-size: 0.7em;
+   white-space: nowrap;
+}
+
+/* As "[HS] Keep my header layout" */
+#hs-header-edit-settings .hs-hes-toggle {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   color: #bbb;
+   font-size: 0.75em;
+   white-space: nowrap;
+   cursor: pointer;
+}
+
+#hs-header-edit-settings .hs-hes-section[hidden],
+#hs-header-edit-settings .hs-hes-width[hidden],
+#hs-header-edit-settings .hs-hes-toggle[hidden],
+#hs-header-edit-settings .hs-hes-choice[hidden],
+#hs-header-edit-settings .hs-hes-choice > button[hidden] {
+   display: none;
+}
+
+/* A setting picked among a few values: its label, then a button each, the one in use pressed */
+#hs-header-edit-settings .hs-hes-choice {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   color: #bbb;
+   font-size: 0.75em;
+   white-space: nowrap;
+}
+
+#hs-header-edit-settings .hs-hes-choice > button[aria-pressed="true"] {
+   border-color: gold;
+   color: gold;
+}
+
+#hs-header-edit-settings .hs-hes-toggle > input {
+   margin: 0;
+   cursor: pointer;
+}
+
+#hs-header-edit-settings .hs-hes-slots {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   font-size: 0.75em;
+}
+
+#hs-header-edit-settings .hs-hes-slots > img {
+   width: 1.6em;
+   height: 1.6em;
+   object-fit: contain;
+}
+
+/* The game's buttons are 0.75em with a 30px min-height */
+#hs-header-edit-settings button {
+   min-width: 1.6em;
+   min-height: 0;
+   height: 1.6em;
+   padding: 0 4px;
+   border: 1px solid #ffffff80;
+   border-radius: 4px;
+   background-color: var(--button-color);
+   color: white;
+   font-size: inherit;
+   line-height: 1;
+   cursor: pointer;
+}
+
+#hs-header-edit-settings button:disabled {
+   opacity: 0.4;
+   cursor: default;
+}
+
+/* "Grid width": label, width and Reset on a first line, the slider under them at the section's width (set by its
+   checkboxes), so the line doesn't widen the section */
+#hs-header-edit-settings .hs-hes-width {
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
+   color: #bbb;
+   font-size: 0.75em;
+   white-space: nowrap;
+}
+
+#hs-header-edit-settings .hs-hes-width-top {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+}
+
+#hs-header-edit-settings .hs-hes-width-top > button {
+   margin-left: auto;
+}
+
+#hs-header-edit-settings .hs-hes-width > input {
+   width: 100%;
+   margin: 0;
+   cursor: pointer;
+}
+
+#hs-header-edit-settings .hs-hes-width > input:disabled {
+   cursor: default;
+}
+
+/* Fixed width so Reset stays in place while typing or dragging the slider. */
+#hs-header-edit-settings .hs-hes-width-value {
+   width: 9ch;
+   min-width: 0;
+   padding: 2px 4px;
+   color: inherit;
+   background: transparent;
+   border: 1px solid #ffffff60;
+   border-radius: 3px;
+   font-variant-numeric: tabular-nums;
+}
+
+#hs-header-edit-settings .hs-hes-slots-value {
+   min-width: 2em;
+   color: #bbb;
+   text-align: center;
+}
+
+/* "✎ Header edit button": a faint pencil right of the mod icon (#hs-panel-control, 35px at 10px, 10px) that
+   toggles edit mode, kept in edit mode so its checkbox shows its effect. On the page only: above the page's layers (up
+   to 1000) and well under the game's overlays (tooltips #modal, notifications, dialogs, announcements: 6967 and up)
+   and the mod's panel and windows (7000), with room on both sides if the game moves them. */
+#hs-header-edit-button {
+   all: unset;
+   display: none;
+   position: fixed;
+   z-index: 2000;
+   top: 10px;
+   left: 48px;
+   width: 18px;
+   font-size: 14px;
+   line-height: 35px;
+   text-align: center;
+   color: #ccc;
+   opacity: 0.3;
+   cursor: pointer;
+}
+html.hs-header-edit-button #hs-header-edit-button {
+   display: block;
+}
+/* Fully lit while edit mode is open: a click closes it. The button is appended to <body> after #mainHeader (a body
+   child): a sibling selector, not html:has(), which made every DOM write of the game re-check <html> (style time x8) */
+#hs-header-edit-button:hover,
+#hs-header-edit-button:focus-visible,
+#mainHeader.headerEditMode ~ #hs-header-edit-button {
+   opacity: 1;
+}

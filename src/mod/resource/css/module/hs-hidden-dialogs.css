@@ -1,0 +1,60 @@
+/* "Always confirm" / "Don't show again" checkbox, injected right above the OK button of the game's Confirm and Alert */
+.hs-hidden-dialog-option {
+    grid-area: btn;
+    align-self: start;
+    justify-self: center;
+    transform: translateY(calc(-100% - 4px));
+    position: relative;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7em;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.hs-hidden-dialog-offer > .hs-hidden-dialog-option {
+    display: inline-flex;
+}
+
+#confirm.hs-hidden-dialog-offer > p,
+#alert.hs-hidden-dialog-offer > p {
+    padding-bottom: 1.6em;
+}
+
+.hs-hidden-dialog-option > input {
+    margin: 0;
+    cursor: pointer;
+}
+
+/* The "Hidden dialogs" list belongs to "Hide game dialogs", as "Show as notifications" does
+   (controlParent in hs-settings.json). The list is built by the module, not by the settings UI, so it has its
+   own rules: indented under its label (block padding + switch width + gap)... */
+#hs-hidden-dialogs-block {
+    padding-left: calc(10px + var(--hs-setting-switch-size) + 0.5em);
+}
+
+/* ...and hidden while it's off: its switch has .hs-disabled then, kept up to date by the settings UI */
+.hs-panel-setting-block:has(#hs-setting-hide-game-dialogs-btn.hs-disabled) ~ #hs-hidden-dialogs-block {
+    display: none;
+}
+
+/* "Hidden dialogs" list in the panel: "Restore default" below it */
+#hs-hidden-dialogs-list {
+    grid-column: 1 / span 2;
+    max-width: 400px;
+    height: 70px;
+}
+
+/* Hidden dialogs are marked with a class, not selected (selection changes make the browser scroll the list) */
+#hs-hidden-dialogs-list option.hs-hidden-dialog-on {
+    background-color: green;
+    color: white;
+}
+
+#hs-hidden-dialogs-restore {
+    grid-column: 1 / span 2;
+    justify-self: start;
+}

@@ -4,19 +4,18 @@ export interface PseudoUpgrade {
     name: string;
     description: string;
     internalName: string;
-    level: number;
-    cost: number;
+    cost?: number;
 }
 
 export interface PseudoPlayerUpgrade {
     level: number;
     upgradeId: number;
-    internalName: string;
+    internalName?: string;
 }
 
 export interface PseudoGameData {
     coins: number;
-    upgrades: PseudoUpgrade[];
+    /** Upgrade metadata. Older responses may contain player-level entries here. */
+    upgrades: Array<PseudoUpgrade | PseudoPlayerUpgrade>;
     playerUpgrades: PseudoPlayerUpgrade[];
-    tier: number;
 }

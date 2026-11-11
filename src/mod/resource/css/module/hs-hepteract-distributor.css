@@ -1,0 +1,242 @@
+/* ===== HEPTERACT DISTRIBUTOR (Hepteract Forge) ===== */
+
+/* The open button sits on the forge's welcome line, without moving the game's own elements */
+#cubeTab7 {
+    position: relative;
+}
+
+/* No taller than the welcome line (the game gives buttons a min-height of 30px) */
+#hs-hept-distributor-open {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-height: 0;
+    height: 22px;
+    padding: 0 10px;
+    border: 2px solid pink;
+    cursor: pointer;
+}
+
+/* Room for the button: a long translated welcome line wraps instead of running under it */
+#hs-hept-distributor-open ~ #hepteractWelcome {
+    padding: 0 100px;
+}
+
+/* Open: the panel takes the place of the forge's three intro lines */
+#cubeTab7.hs-hept-distributor-opened > #hepteractWelcome,
+#cubeTab7.hs-hept-distributor-opened > #hepteractExpository1,
+#cubeTab7.hs-hept-distributor-opened > #hepteractExpository2,
+#cubeTab7.hs-hept-distributor-opened > #hs-hept-distributor-open,
+#cubeTab7:not(.hs-hept-distributor-opened) > #hs-hept-distributor {
+    display: none;
+}
+
+#hs-hept-distributor {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 34px;
+    /* The game's own box border, which follows its theme */
+    border: 3px solid;
+    border-color: var(--boxmain-bordercolor);
+    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 0.85em;
+}
+
+/* As wide as the game's #heptGrid below (left-aligned, sized by its columns: Synergism.css .hepteractGrid):
+   4 columns of 60px + 7.6em, 3 gaps of 15px, 8px padding and 3px border on each side.
+   The grid's em is min(1em, 20px) of #cubeTab7; this panel's is 0.85 of it. Narrower screens: the grid changes, 100% kept. */
+@media (width > 1024px) {
+    #hs-hept-distributor {
+        width: calc(4 * (60px + 7.6 * min(1em / 0.85, 20px)) + 3 * 15px + 2 * 8px + 2 * 3px);
+        align-self: flex-start;
+    }
+}
+
+#hs-hept-distributor-minimize {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    min-height: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.hs-hept-distributor-title {
+    font-size: 1.15em;
+    font-weight: bold;
+}
+
+/* The "?" after the title: the feature in a few lines, shown on hover */
+.hs-hept-distributor-help {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    border: 1px solid #aaa;
+    border-radius: 50%;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 16px;
+    text-align: center;
+    vertical-align: middle;
+    cursor: help;
+}
+
+.hs-hept-distributor-cells {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 6px 12px;
+}
+
+.hs-hept-distributor-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Keep and Orbs come before the ratios: a line after Keep, a dot (centred on icon and field) after Orbs */
+.hs-hept-distributor-separated,
+.hs-hept-distributor-dotted {
+    margin-right: 12px;
+    padding-right: 18px;
+}
+
+.hs-hept-distributor-separated {
+    border-right: 1px solid #666;
+}
+
+.hs-hept-distributor-dotted {
+    position: relative;
+}
+
+.hs-hept-distributor-dotted::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #777;
+}
+
+/* The game's icons are 56px sprites: shown at 40px */
+.hs-hept-distributor-icon {
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+}
+
+.hs-hept-distributor-icon > img {
+    width: 56px;
+    height: 56px;
+    transform: scale(0.7143);
+    transform-origin: top left;
+}
+
+/* The game gives every input a left padding, which shifts centred text to the right */
+#hs-hept-distributor input[type="number"] {
+    width: 45px;
+    padding: 1px 0;
+    border: 1px solid #666;
+    text-align: center;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+#hs-hept-distributor input[type="number"]::-webkit-outer-spin-button,
+#hs-hept-distributor input[type="number"]::-webkit-inner-spin-button {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* A short field with its text: "Keep 1e [15]", "[50] % first" */
+.hs-hept-distributor-field {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+#hs-hept-distributor .hs-hept-distributor-field input[type="number"] {
+    width: 30px;
+}
+
+/* Same gap as the panel's rows */
+.hs-hept-distributor-options {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.hs-hept-distributor-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.hs-hept-distributor-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+/* A sub-option belongs to the option above it, and is only offered while that one is ticked */
+.hs-hept-distributor-suboption {
+    margin-left: 22px;
+}
+
+.hs-hept-distributor-option:has(input:not(:checked)) + .hs-hept-distributor-suboption {
+    display: none;
+}
+
+.hs-hept-distributor-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.hs-hept-distributor-actions button {
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+#hs-hept-distributor button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.hs-hept-distributor-warning {
+    font-size: 12px;
+    color: orange;
+    text-align: center;
+}
+
+/* One line per topic; can be selected and copied (the game blocks selection by default) */
+.hs-hept-distributor-status {
+    min-height: 16px;
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+    white-space: pre-line;
+    user-select: text;
+}

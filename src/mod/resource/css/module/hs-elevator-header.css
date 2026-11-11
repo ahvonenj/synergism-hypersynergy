@@ -1,0 +1,84 @@
+/* The game's Singularity count header module (HSElevatorHeader): the Elevator's popover a click opens */
+
+html.hs-elevator-header #mainHeader:not(.headerEditMode) #ascSingularityCountStats {
+   cursor: pointer;
+}
+
+/* One width whatever the texts say, so nothing moves when a toggle or the target changes them */
+#hs-elevator-popover {
+   box-sizing: border-box;
+   width: 320px;
+   max-width: calc(100vw - 16px);
+}
+
+#hs-elevator-popover .hs-elevator-title {
+   color: #ccc;
+}
+
+#hs-elevator-popover .hs-elevator-out-of-order {
+   color: #ccc;
+   text-align: center;
+}
+
+#hs-elevator-popover .hs-elevator-controls {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 6px;
+   width: 100%;
+}
+
+#hs-elevator-popover .hs-elevator-row {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+}
+/* As the corruption popover's input */
+#hs-elevator-popover .hs-elevator-input {
+   width: 5em;
+   border: 1px solid orange;
+   color: gold;
+   background-color: var(--blackbtn-color);
+   font-size: inherit;
+}
+#hs-elevator-popover .hs-elevator-max {
+   color: #999;
+}
+/* Room for the game's longest word in English, "Reopen!" */
+#hs-elevator-popover .hs-elevator-teleport {
+   min-width: 6em;
+   margin-left: 6px;
+   padding: 0 10px;
+   border: 1px solid var(--gold-color);
+   color: white;
+   font-size: inherit;
+   cursor: pointer;
+}
+#hs-elevator-popover .hs-elevator-teleport:hover {
+   background-color: rgba(255, 255, 255, 0.12);
+}
+
+#hs-elevator-popover .hs-elevator-toggles {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: center;
+   gap: 2px 24px;
+}
+#hs-elevator-popover .hs-elevator-toggle {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   cursor: pointer;
+}
+#hs-elevator-popover .hs-elevator-toggle.hs-elevator-disabled {
+   opacity: 0.45;
+   cursor: default;
+}
+
+/* One line, locked or not (the game's own line, shown when its number can't be read, may take two) */
+#hs-elevator-popover .hs-elevator-status {
+   min-height: 1.25em;
+   line-height: 1.25;
+   color: #ccc;
+   text-align: center;
+}

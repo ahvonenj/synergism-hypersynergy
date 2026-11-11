@@ -1,12 +1,29 @@
-import { AMBROSIA_ICON, HSAmbrosiaLoadoutIcon } from "../../types/module-types/hs-ambrosia-types";
-import { HSViewProperties, MAIN_VIEW } from "../../types/module-types/hs-gamestate-types";
+import {
+    HSViewProperties, MAIN_VIEW, subtabButtonIds,
+    BUILDING_VIEW_BUTTON_IDS, ACHIEVEMENT_VIEW_BUTTON_IDS, RUNE_VIEW_BUTTON_IDS, CHALLENGE_VIEW_BUTTON_IDS, ANT_VIEW_BUTTON_IDS,
+    CUBE_VIEW_BUTTON_IDS, TRAITS_VIEW_BUTTON_IDS, SINGULARITY_VIEW_BUTTON_IDS, SETTINGS_VIEW_BUTTON_IDS, PSEUDOCOIN_VIEW_BUTTON_IDS,
+} from "../../types/module-types/hs-gamestate-types";
 import { IHSGlobal } from "../../types/module-types/hs-global-types";
 import { ELogLevel } from "../../types/module-types/hs-logger-types";
 
+// Build-time injected by esbuild via `define`.
+declare const HS_BUILD_VERSION: string;
+
+/**
+ * Class: HSGlobal
+ * IsExplicitHSModule: No
+ * Description:
+ *     Static class containing global configuration and constants for the Hypersynergism mod.
+ * Author: Swiffy, Shewchou
+ */
 export const HSGlobal: IHSGlobal = class {
 
-    private constructor() {
+    constructor() {
         throw new Error("Cannot instantiate a static class");
+    }
+
+    static get exposedPlayer() {
+        return (window as any)[(window as any).symp] || null;
     }
 
     // --- DEBUG ---
@@ -17,48 +34,39 @@ export const HSGlobal: IHSGlobal = class {
         calculationCacheDebugMode: false,
     }
 
-    // --- PrivateAPI ---
-
-    static PrivateAPI = {
-        base: 'https://jonah.fi',
-        latestRelease: '/hs-version',
-
-        checkIntervalMs: 900000 // 15min
+    // --- Release check configuration ---
+    static Release = {
+        githubOwner: 'Ferlieloi',    // The Live repo: version check fallback and the Mod Github link
+        checkIntervalMs: 1800000     // 30min
     }
 
     // --- GENERAL ---
-
     static General = {
-        currentModVersion: '2.8.1',
-        isLatestVersion: true,
-        
-        modGithubUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/',
-        modWikiUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/wiki/',
-        modWikiFeaturesUrl: 'https://github.com/ahvonenj/synergism-hypersynergy/wiki/Mod-Features',
-        modWebsiteUrl: 'https://ahvonenj.github.io/synergism-hypersynergy/',
-        heaterUrl: 'https://docs.google.com/spreadsheets/d/1v02fjAeAHtLBMB5-7Spz5OHVb-eEDg7m5ISi5Mk0YAY/edit?usp=sharing'
+        // Version number bumping should be done in package.json.version
+        currentModVersion: (typeof HS_BUILD_VERSION !== 'undefined') ? HS_BUILD_VERSION : '0.0.0',
+        isModFullyLoaded: false,
+
+        get modGithubUrl() { return `https://github.com/${HSGlobal.Release.githubOwner}/synergism-hypersynergy/`; },
+        get modWebsiteUrl() { return 'https://ferlieloi.github.io/synergism-hypersynergy/'; },
+        get modDiscordThreadUrl() { return 'https://discord.com/channels/677271830838640680/1456904896099127367'; },
     };
 
     // --- COMMON ---
-
     static Common = {
-        eventAPIUrl: 'wss://synergism.cc/consumables/connect',
         pseudoAPIurl: 'https://synergism.cc/stripe/upgrades',
         meAPIurl: 'https://synergism.cc/api/v1/users/me',
-
-        experimentalGDS: true
+        // Sent with every request to synergism.cc, so the game's backend can tell the mod's traffic and its version apart
+        // (a custom header: Chromium drops a User-Agent set through fetch)
+        get modRequestHeaders(): Record<string, string> { return { 'X-HyperSynergism-Version': HSGlobal.General.currentModVersion }; },
     }
 
     // --- HSPrototypes ---
-    
-    // Default CSS transition timing 100ms
     static HSPrototypes = {
+        // Default CSS transition timing 100ms
         defaultTransitionTiming: 100
     }
 
-
     // --- HSElementHooker ---
-
     // watchElement's MutationObserver can fire max 20 times / second
     static HSElementHooker = {
         // HookElement / HookElements
@@ -82,62 +90,99 @@ export const HSGlobal: IHSGlobal = class {
         }
     }
 
-
     // --- HSLogger ---
-
     static HSLogger = {
-        logLevel: ELogLevel.ALL,
-        logSize: 100
+        logLevel: ELogLevel.NONE,
+        logSize: 5000,
+
+        // Log tab colors of the contexts that aren't modules (modules have their moduleColor, in index.ts).
+        // A module's name gives that module's color, anything else is a CSS color.
+        contextColors: {
+            // Autosing
+            HSAutosingModal: 'HSAutosing',
+            HSAutosingSettingsFixer: 'HSAutosing',
+            HSAutosingCorruption: 'HSAutosing',
+            HSAutosingStrategyModal: 'HSAutosing',
+            HSAutosingStrategyControls: 'HSAutosing',
+            // Ambrosia
+            HSAmbrosiaHelper: 'HSAmbrosia',
+            // Settings
+            HSSetting: 'HSSettings',
+            HSSettingsUI: 'HSSettings',
+            // QoL quickbars
+            HSQuickbarManager: 'HSQOLButtons',
+            HSQOLAutomationQuickbar: 'HSQOLButtons',
+            HSHeaderModules: 'HSQOLButtons',
+            HSHeaderKeepOnImport: 'HSQOLButtons',
+            HSHeaderEditSettings: 'HSQOLButtons',
+            HSHeaderCellSettings: 'HSQOLButtons',
+            HSHeaderGridWidth: 'HSQOLButtons',
+            HSHeaderChallengeModule: 'HSQOLButtons',
+            HSCorruptionHeader: 'HSQOLButtons',
+            HSElevatorHeader: 'HSQOLButtons',
+            HSMinibarResize: 'HSAmbrosia',
+            HSLoadoutIconStore: 'HSHeaderLoadoutIcons',
+            // UI
+            HSUIC: 'HSUI',
+            Notify: 'HSUI',
+            // Heater
+            HSHeater: 'darkorange',
+            HSHeaterOptimizer: 'darkorange',
+            HSHeaterUIResult: 'darkorange',
+            HSHeaterInputModalController: 'darkorange',
+            // Game dialogs
+            HSGameDialogs: 'hotpink',
+            HSHiddenDialogs: 'hotpink',
+            HSDialogIdentity: 'hotpink',
+            // Core and the rest
+            HSMain: 'plum',
+            HSLogger: 'plum',
+            HSModuleManager: 'plum',
+            HSElementHooker: 'plum',
+            HSUtils: 'plum',
+            Once: 'plum',
+            HSBackup: 'plum',
+            HSCalculationTools: 'plum',
+            HSGithub: 'plum',
+            HSBookmarkletNotice: 'plum',
+            HSDevTools: 'plum',
+        }
     }
 
     // --- HSStorage ---
-
     static HSStorage = {
         storagePrefix: 'hs-',
     }
 
     // --- HSUI ---
-
     static HSUI = {
         injectedStylesDomId: 'hs-injected-styles',
+        notifyColumnClassName: 'hs-notifications',
         notifyClassName: 'hs-notification',
         notifyTextClassName: 'hs-notification-text',
     }
 
     // --- HSUIC ---
-
     static HSUIC = {
         defaultImageWidth: 32,
         defaultImageHeight: 32,
     }
 
     // --- HSSettings ---
-
     static HSSettings = {
         storageKey: 'settings',
-        serializationBlackList: [
-            'settingDescription',
-            'settingHelpText',
-            'settingValueMultiplier',
-            'defaultValue',
-            'settingControl',
-            'settingAction',
-            'patchConfig',
-            'usesGameData',
-        ],
+        strategiesKey: 'strategies',
         gameDataRequiredTooltip: 'This feature requires Game Data Sniffing to be enabled.',
 
-        // When game data is disabled, we will auto-disable all features that use it
-        // This blacklist is to ensure that auto-disable ignores these features even if they use game data
+        // Settings exempt from the "GDS must already be enabled" check. Features in
+        // this list may enable GDS themselves when switched on.
         gameDataCheckBlacklist: [
             'useGameData',
-            'stopSniffOnError'
+            // These settings below auto-enable GDS when toggled on,
+            // so they should be allowed to toggle even when GDS is off
+            'ambrosiaMinibars'
         ]
     }
-
-    /*static HSSettingAction = {
-        
-    }*/
 
     static HSMouse = {
         autoClickIgnoredElements: [
@@ -238,249 +283,17 @@ export const HSGlobal: IHSGlobal = class {
         ]
     }
 
+    // HSHiddenDialogs
+    static HSHiddenDialogs = {
+        storageKey: 'hidden-dialogs',
+    }
+
     // HSAmbrosia
     static HSAmbrosia = {
-        storageKey: 'ambrosia-loadouts',
-        quickBarId: 'hs-ambrosia-quick-loadout-container',
-        quickBarLoadoutIdPrefix: 'hs-ambrosia-quickbar',
-        ambrosiaLoadoutIcons: new Map<AMBROSIA_ICON, HSAmbrosiaLoadoutIcon>([
-            // First set
-            [AMBROSIA_ICON.TUTORIAL, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryTutorial.png',
-                draggableIconId: AMBROSIA_ICON.TUTORIAL
-            }],
-            [AMBROSIA_ICON.PATREON, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryPatreon.png',
-                draggableIconId: AMBROSIA_ICON.PATREON
-            }],
-            [AMBROSIA_ICON.OBTAINIUM, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryObtainium.png',
-                draggableIconId: AMBROSIA_ICON.OBTAINIUM
-            }],
-            [AMBROSIA_ICON.OFFERING, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryOffering.png',
-                draggableIconId: AMBROSIA_ICON.OFFERING
-            }],
-            [AMBROSIA_ICON.HYPEFLUX, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryHyperflux.png',
-                draggableIconId: AMBROSIA_ICON.HYPEFLUX
-            }],
-            
-            // First Red Ambrosia set
-            [AMBROSIA_ICON.RA_TUTORIAL, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaTutorial.png',
-                draggableIconId: AMBROSIA_ICON.RA_TUTORIAL
-            }],
-            [AMBROSIA_ICON.RA_FREE, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaFreeTutorialLevels.png',
-                draggableIconId: AMBROSIA_ICON.RA_FREE
-            }],
-            [AMBROSIA_ICON.RA_CONV1, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaConversionImprovement1.png',
-                draggableIconId: AMBROSIA_ICON.RA_CONV1
-            }],
-            [AMBROSIA_ICON.RA_BLUEGEN, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaBlueberryGenerationSpeed.png',
-                draggableIconId: AMBROSIA_ICON.RA_BLUEGEN
-            }],
-            [AMBROSIA_ICON.RA_REGLUCK, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRegularLuck.png',
-                draggableIconId: AMBROSIA_ICON.RA_REGLUCK
-            }],
-            
-            // QUARKS, CUBES, LUCK 1
-            [AMBROSIA_ICON.QUARKS1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryQuarks.png',
-                draggableIconId: AMBROSIA_ICON.QUARKS1
-            }],
-            [AMBROSIA_ICON.CUBES1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryCubes.png',
-                draggableIconId: AMBROSIA_ICON.CUBES1
-            }],
-            [AMBROSIA_ICON.LUCK1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryLuck.png',
-                draggableIconId: AMBROSIA_ICON.LUCK1
-            }],
-            
-            // Some base set
-            [AMBROSIA_ICON.BASE_OBT1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryBaseObtainium1.png',
-                draggableIconId: AMBROSIA_ICON.BASE_OBT1
-            }],
-            [AMBROSIA_ICON.BASE_OFF1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryBaseOffering1.png',
-                draggableIconId: AMBROSIA_ICON.BASE_OFF1
-            }],
-            [AMBROSIA_ICON.SING_RED1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberrySingReduction.png',
-                draggableIconId: AMBROSIA_ICON.SING_RED1
-            }],
-            
-            // Second Red Ambrosia set
-            [AMBROSIA_ICON.RA_FREE2, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaFreeLevelsRow2.png',
-                draggableIconId: AMBROSIA_ICON.RA_FREE2
-            }],
-            [AMBROSIA_ICON.RA_CUBE, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRedAmbrosiaCube.png',
-                draggableIconId: AMBROSIA_ICON.RA_CUBE
-            }],
-            [AMBROSIA_ICON.RA_OBT, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaObtainium.png',
-                draggableIconId: AMBROSIA_ICON.RA_OBT
-            }],
-            [AMBROSIA_ICON.RA_OFF, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaOffering.png',
-                draggableIconId: AMBROSIA_ICON.RA_OFF
-            }],
-            
-            // Hybrid set
-            [AMBROSIA_ICON.CUBE_QUARK, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryCubeQuark.png',
-                draggableIconId: AMBROSIA_ICON.CUBE_QUARK
-            }],
-            [AMBROSIA_ICON.LUCK_QUARK, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryLuckQuark.png',
-                draggableIconId: AMBROSIA_ICON.LUCK_QUARK
-            }],
-            [AMBROSIA_ICON.LUCK_CUBE, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryLuckCube.png',
-                draggableIconId: AMBROSIA_ICON.LUCK_CUBE
-            }],
-            [AMBROSIA_ICON.QUARK_CUBE, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryQuarkCube.png',
-                draggableIconId: AMBROSIA_ICON.QUARK_CUBE
-            }],
-            [AMBROSIA_ICON.CUBE_LUCK, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryCubeLuck.png',
-                draggableIconId: AMBROSIA_ICON.CUBE_LUCK
-            }],
-            [AMBROSIA_ICON.QUARK_LUCK, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryQuarkLuck.png',
-                draggableIconId: AMBROSIA_ICON.QUARK_LUCK
-            }],
-            
-            // Third Red Ambrosia set
-            [AMBROSIA_ICON.RA_FREE3, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaFreeLevelsRow3.png',
-                draggableIconId: AMBROSIA_ICON.RA_FREE3
-            }],
-            [AMBROSIA_ICON.RA_CONV2, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaConversionImprovement2.png',
-                draggableIconId: AMBROSIA_ICON.RA_CONV2
-            }],
-            [AMBROSIA_ICON.RA_REDGEN, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRedGenerationSpeed.png',
-                draggableIconId: AMBROSIA_ICON.RA_REDGEN
-            }],
-            [AMBROSIA_ICON.RA_REDLUCK, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRedLuck.png',
-                draggableIconId: AMBROSIA_ICON.RA_REDLUCK
-            }],
-            
-            // QUARKS, CUBES, LUCK 2
-            [AMBROSIA_ICON.QUARKS2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryQuarks2.png',
-                draggableIconId: AMBROSIA_ICON.QUARKS2
-            }],
-            [AMBROSIA_ICON.CUBES2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryCubes2.png',
-                draggableIconId: AMBROSIA_ICON.CUBES2
-            }],
-            [AMBROSIA_ICON.LUCK2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryLuck2.png',
-                draggableIconId: AMBROSIA_ICON.LUCK2
-            }],
-            
-            // Some base set 2
-            [AMBROSIA_ICON.BASE_OBT2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryBaseObtainium2.png',
-                draggableIconId: AMBROSIA_ICON.BASE_OBT2
-            }],
-            [AMBROSIA_ICON.BASE_OFF2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryBaseOffering2.png',
-                draggableIconId: AMBROSIA_ICON.BASE_OFF2
-            }],
-            [AMBROSIA_ICON.INF_SHOP1, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryInfiniteShopUpgrades.png',
-                draggableIconId: AMBROSIA_ICON.INF_SHOP1
-            }],
-            
-            // Fourth Red Ambrosia set
-            [AMBROSIA_ICON.RA_FREE4, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaFreeLevelsRow4.png',
-                draggableIconId: AMBROSIA_ICON.RA_FREE4
-            }],
-            [AMBROSIA_ICON.RA_CUBE_IMPR, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRedAmbrosiaCubeImprover.png',
-                draggableIconId: AMBROSIA_ICON.RA_CUBE_IMPR
-            }],
-            [AMBROSIA_ICON.RA_INF_SHOP, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaInfiniteShopLevels.png',
-                draggableIconId: AMBROSIA_ICON.RA_INF_SHOP
-            }],
-            [AMBROSIA_ICON.RA_ACC, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaAccelerator.png',
-                draggableIconId: AMBROSIA_ICON.RA_ACC
-            }],
-            
-            // QUARKS, CUBES, LUCK 3
-            [AMBROSIA_ICON.QUARKS3, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryQuarks3.png',
-                draggableIconId: AMBROSIA_ICON.QUARKS3
-            }],
-            [AMBROSIA_ICON.CUBES3, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryCubes3.png',
-                draggableIconId: AMBROSIA_ICON.CUBES3
-            }],
-            [AMBROSIA_ICON.LUCK3, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryLuck3.png',
-                draggableIconId: AMBROSIA_ICON.LUCK3
-            }],
-            
-            // Some base set 3
-            [AMBROSIA_ICON.SING_RED2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberrySingReduction2.png',
-                draggableIconId: AMBROSIA_ICON.SING_RED2
-            }],
-            [AMBROSIA_ICON.INF_SHOP2, {
-                url:'https://synergism.cc/Pictures/Default/BlueberryInfiniteShopUpgrades2.png',
-                draggableIconId: AMBROSIA_ICON.INF_SHOP2
-            }],
-            
-            // Fifth Red Ambrosia set
-            [AMBROSIA_ICON.RA_VISCOUNT, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaTutorial.png',
-                draggableIconId: AMBROSIA_ICON.RA_VISCOUNT
-            }],
-            [AMBROSIA_ICON.RA_FREE5, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaFreeLevelsRow5.png',
-                draggableIconId: AMBROSIA_ICON.RA_FREE5
-            }],
-            [AMBROSIA_ICON.RA_CONV3, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaConversionImprovement3.png',
-                draggableIconId: AMBROSIA_ICON.RA_CONV3
-            }],
-            [AMBROSIA_ICON.RA_BLUEGEN2, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaBlueberryGenerationSpeed.png',
-                draggableIconId: AMBROSIA_ICON.RA_BLUEGEN2
-            }],
-            [AMBROSIA_ICON.RA_REGLUCK2, {
-                url:'https://synergism.cc/Pictures/RedAmbrosia/RedAmbrosiaRegularLuck.png',
-                draggableIconId: AMBROSIA_ICON.RA_REGLUCK2
-            }],
-        ]),
-
-        idleSwapIndicatorId: 'hs-ambrosia-loadout-idle-swap-indicator',
-        idleSwapMaxBlueTreshold: 97,
-        idleSwapMinBlueTreshold: 3,
-        idleSwapMaxRedTreshold: 99,
-        idleSwapMinRedTreshold: 1,
-
         // Constants ripped from the game code
-        R_TIME_PER_AMBROSIA: 30,
-        R_TIME_PER_RED_AMBROSIA: 100000,
-        R_digitReduction: 4,
+        TIME_PER_AMBROSIA: 45,
+        TIME_PER_RED_AMBROSIA: 1000,
+        digitReduction: 4,
 
         blueBarId: 'hs-blue-progress-bar',
         blueBarProgressId: 'hs-blue-progress',
@@ -488,48 +301,62 @@ export const HSGlobal: IHSGlobal = class {
         redBarId: 'hs-red-progress-bar',
         redBarProgressId: 'hs-red-progress',
         redBarProgressTextId: 'hs-red-progress-text',
-        barWrapperId: 'hs-minibar-wrapper',
+        purpleBarId: 'hs-purple-progress-bar',
+        purpleBarProgressId: 'hs-purple-progress',
+        barWrapperId: 'hs-minibars-wrapper',
     }
 
     // HSGameState
     static HSGameState = {
         viewProperties: new Map<MAIN_VIEW, HSViewProperties>([
+            [MAIN_VIEW.BUILDINGS, {
+                subViewIds: subtabButtonIds(BUILDING_VIEW_BUTTON_IDS),
+                viewClassName: 'BuildingView'
+            }],
+            [MAIN_VIEW.ACHIEVEMENTS, {
+                subViewIds: subtabButtonIds(ACHIEVEMENT_VIEW_BUTTON_IDS),
+                viewClassName: 'AchievementView'
+            }],
+            [MAIN_VIEW.RUNES, {
+                subViewIds: subtabButtonIds(RUNE_VIEW_BUTTON_IDS),
+                viewClassName: 'RuneView'
+            }],
+            [MAIN_VIEW.CHALLENGES, {
+                subViewIds: subtabButtonIds(CHALLENGE_VIEW_BUTTON_IDS),
+                viewClassName: 'ChallengeView'
+            }],
+            [MAIN_VIEW.ANTS, {
+                subViewIds: subtabButtonIds(ANT_VIEW_BUTTON_IDS),
+                viewClassName: 'AntView'
+            }],
             [MAIN_VIEW.CUBES, {
-                subViewIds: [
-                    'cubeTab1',
-                    'cubeTab2',
-                    'cubeTab3',
-                    'cubeTab4',
-                    'cubeTab5',
-                    'cubeTab6',
-                    'cubeTab7'
-                ],
-                subViewsSelector: '.cubeTab',
+                subViewIds: subtabButtonIds(CUBE_VIEW_BUTTON_IDS),
                 viewClassName: 'CubeView'
             }],
+            [MAIN_VIEW.TRAITS, {
+                subViewIds: subtabButtonIds(TRAITS_VIEW_BUTTON_IDS),
+                viewClassName: 'TraitsView'
+            }],
             [MAIN_VIEW.SINGULARITY, {
-                subViewIds: [
-                    'singularityContainer1',
-                    'singularityContainer2',
-                    'singularityContainer3',
-                    'singularityContainer4'
-                ],
-                subViewsSelector: [
-                    '#singularityContainer1',
-                    '#singularityContainer2',
-                    '#singularityContainer3',
-                    '#singularityContainer4',
-                ],
+                subViewIds: subtabButtonIds(SINGULARITY_VIEW_BUTTON_IDS),
                 viewClassName: 'SingularityView'
+            }],
+            [MAIN_VIEW.SETTINGS, {
+                subViewIds: subtabButtonIds(SETTINGS_VIEW_BUTTON_IDS),
+                viewClassName: 'SettingsView'
+            }],
+            [MAIN_VIEW.PSEUDOCOINS, {
+                subViewIds: subtabButtonIds(PSEUDOCOIN_VIEW_BUTTON_IDS),
+                viewClassName: 'PseudoCoinView'
             }]
         ])
     }
 
     // HSGameData
     static HSGameData = {
-        fetchedDataRefreshInterval: 60000,
-        campaignTokenRefreshInterval: 60000,
-        turboModeSpeedMs: 66,
-        turboCSSId: 'hs-game-data-turbo-css'
+        consumablesPollInterval: 1000, // a read of the game's Happy Hour Bells, no request
+        // A save every 500ms: the Ambrosia tab's rates refresh at that pace, and the minibars read the live player
+        gdsSpeedMs: 500,
+        gdsCSSId: 'hs-game-data-turbo-css'
     }
 }

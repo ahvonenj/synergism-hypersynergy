@@ -1,19 +1,41 @@
 {
   "name": "synergism-hypersynergy",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "node esbuild.config.js build",
-    "release": "node esbuild.config.js release",
-    "dev": "node esbuild.config.js dev"
+  "version": "2.14.8",
+  "private": true,
+  "description": "Hypersynergism mod for the Synergism browser game.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ferlieloi/synergism-hypersynergy.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Ferlieloi",
+  "keywords": [
+    "synergism",
+    "mod",
+    "hypersynergism"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test \"scripts/tests/*.cjs\"",
+    "test:autosing": "node scripts/tests/test-autosing-corruption.cjs",
+    "test:auto-export": "node scripts/tests/test-auto-export.cjs",
+    "test:heater": "node scripts/tests/test-heater-vouchers.cjs",
+    "test:heater-coins": "node scripts/tests/test-heater-coins.cjs",
+    "build": "node esbuild.config.js build",
+    "build:loaders": "node scripts/build-loaders.cjs",
+    "release": "node esbuild.config.js release",
+    "dev": "node esbuild.config.js dev",
+    "release-and-tag-helper": "node scripts/release-and-tag-helper.mjs",
+    "merge-live": "node scripts/merge-live-release.mjs"
+  },
+  "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.27.4",
     "esbuild-plugin-inline-import": "^1.1.0",
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "break_infinity.js": "^2.2.0"
   }
 }

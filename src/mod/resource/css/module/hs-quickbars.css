@@ -1,0 +1,106 @@
+/*  ==============================
+    --- Common Quickbar Styles --- 
+    ============================== */
+
+#quickbarsRow {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0px 4px;
+    margin: 0px 4% 10px 0px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* "Center quick bars" setting */
+.hs-quickbars-centered #quickbarsRow {
+    justify-content: center;
+}
+
+.hs-quickbar {
+   display: flex;
+   flex-direction: column;
+   align-items: flex-start;
+   justify-content: flex-end;
+   background: none;
+   padding: 0px;
+   border-radius: 0px;
+   box-shadow: none;
+   width: auto;
+   max-width: 100%;
+   gap: 2px;
+   margin-left: 50px;
+   box-sizing: border-box;
+}
+/* The ambrosia minibars, without the header modules patch */
+#quickbarsRow > #hs-minibars-wrapper {
+    align-self: flex-end;
+    margin-left: 50px;
+}
+
+.hs-quickbar-slots-wrapper {
+   display: inline-flex;
+   flex-wrap: wrap;
+   align-items: flex-end;
+   justify-content: center;
+   gap: 4px;
+   width: auto;
+   max-width: 100%;
+}
+
+
+/*  ===========================
+    --- Automation Quickbar --- 
+    =========================== */
+
+/* 26px around an 18px icon: 6 buttons (2 hide once their automation is on) fit one cell of the game's header grid */
+#automationQuickBar button.autoToggle {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 26px;
+   height: 26px;
+   min-height: 0;
+   padding: 0;
+   border-radius: 0px;
+   background: transparent;
+   border: 1px solid #4f86f7;
+}
+
+#automationQuickBar button.autoToggle.enabled { border-color: #006500; }
+#automationQuickBar button.autoToggle.disabled { border-color: #bb0000; background-color: rgba(255, 0, 0, 0.2); }
+#automationQuickBar button.autoToggle.mixed { border-color: #dd8e01; background-color: rgba(220, 140, 0, 0.2); }
+
+#automationQuickBar button.autoToggle img,
+#automationQuickBar button.autoToggle .hs-automation-icon {
+   height: 18px;
+   width: 18px;
+   display: block;
+}
+
+/* As a module of the game's header (HSHeaderModules): the buttons on one line, zoomed by the header's S / M / L
+   (their icons are sprites drawn for 18px). Not on a locked module, which the game hides with display: none. */
+#hsAutomationHeader:not(.headerModuleLocked) {
+   display: flex;
+   align-items: center;
+}
+#hsAutomationHeader #automationQuickBar {
+   margin-left: 0;
+}
+#hsAutomationHeader .hs-quickbar-slots-wrapper {
+   flex-wrap: nowrap;
+   align-items: center;
+   gap: 2px;
+}
+#hsAutomationHeader[data-size="S"] .hs-quickbar-slots-wrapper { zoom: 0.75; }
+#hsAutomationHeader[data-size="L"] .hs-quickbar-slots-wrapper { zoom: 1.25; }
+
+
+/* Icon picking (game's header loadout slots, heater results). Above the loaded slot's rainbow/silver border
+   (hs-animations.css, !important, a border-image), as specific as its rules and injected after them */
+.hs-quickbar-slot-pickmode,
+.hs-quickbar-slot-pickmode:is(.hs-rainbow-border, .hs-silver-border) {
+   border: 2px dashed #ffff00 !important;
+   border-image: none !important;
+   box-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+}

@@ -1,7 +1,7 @@
-import { HSAmbrosiaLoadoutIconMapping } from "./hs-ambrosia-types";
 import { HSWatcherOptions } from "./hs-elementhooker-types";
 import { HSViewProperties, MAIN_VIEW } from "./hs-gamestate-types";
 import { ELogLevel } from "./hs-logger-types";
+import { PlayerData } from "../data-types/hs-player-savedata";
 
 interface IStoreable {
     storageKey: string;
@@ -14,27 +14,23 @@ export interface HSGlobalDebug {
     calculationCacheDebugMode: boolean;
 }
 
-export interface HSGlobalPrivateAPI {
-    base: string;
-    latestRelease: string;
+export interface HSGlobalRelease {
+    githubOwner: string;
     checkIntervalMs: number;
 }
 
 export interface HSGlobalGeneral {
     currentModVersion: string;
-    isLatestVersion: boolean;
+    isModFullyLoaded: boolean;
     modGithubUrl: string;
-    modWikiUrl: string;
-    modWikiFeaturesUrl: string;
     modWebsiteUrl: string;
-    heaterUrl: string;
+    modDiscordThreadUrl: string;
 }
 
 export interface HSGlobalCommon {
-    eventAPIUrl: string;
     pseudoAPIurl: string;
     meAPIurl: string;
-    experimentalGDS: boolean,
+    readonly modRequestHeaders: Record<string, string>;
 }
 
 export interface HSGlobalPrototypes {
@@ -51,8 +47,9 @@ export interface HSGlobalElementHooker {
 }
 
 export interface HSGlobalLogger {
-    logLevel: ELogLevel.ALL,
+    logLevel: ELogLevel,
     logSize: number;
+    contextColors: Record<string, string>;
 }
 
 export interface HSGlobalStorage {
@@ -60,7 +57,7 @@ export interface HSGlobalStorage {
 }
 
 export interface HSGlobalSettings extends IStoreable {
-    serializationBlackList: string[];
+    strategiesKey: string;
     gameDataRequiredTooltip: string;
     gameDataCheckBlacklist: string[];
 }
@@ -73,21 +70,12 @@ export interface HSGlobalMouse {
     autoClickIgnoredElements: string[];
 }
 
-export interface HSGlobalAmbrosia extends IStoreable {
-    ambrosiaLoadoutIcons: HSAmbrosiaLoadoutIconMapping;
-    quickBarId: string;
-    quickBarLoadoutIdPrefix: string;
+export interface HSGlobalHiddenDialogs extends IStoreable { }
 
-    idleSwapIndicatorId: string;
-    idleSwapMaxBlueTreshold: number;
-    idleSwapMinBlueTreshold: number;
-
-    idleSwapMaxRedTreshold: number;
-    idleSwapMinRedTreshold: number;
-
-    R_TIME_PER_AMBROSIA: number;
-    R_TIME_PER_RED_AMBROSIA: number;
-    R_digitReduction: number;
+export interface HSGlobalAmbrosia {
+    TIME_PER_AMBROSIA: number;
+    TIME_PER_RED_AMBROSIA: number;
+    digitReduction: number;
 
     blueBarId: string;
     blueBarProgressId: string;
@@ -95,22 +83,25 @@ export interface HSGlobalAmbrosia extends IStoreable {
     redBarId: string;
     redBarProgressId: string;
     redBarProgressTextId: string;
+    purpleBarId: string;
+    purpleBarProgressId: string;
     barWrapperId: string;
 }
+
 
 export interface HSGlobalGameState {
     viewProperties: Map<MAIN_VIEW, HSViewProperties>;
 }
 
 export interface HSGlobalGameData {
-    fetchedDataRefreshInterval: number;
-    campaignTokenRefreshInterval: number;
-    turboModeSpeedMs: number;
-    turboCSSId: string;
+    consumablesPollInterval: number;
+    gdsSpeedMs: number;
+    gdsCSSId: string;
 }
 
 export interface HSGlobalHSUI {
     injectedStylesDomId: string;
+    notifyColumnClassName: string;
     notifyClassName: string;
     notifyTextClassName: string;
 }
@@ -121,8 +112,9 @@ export interface HSGlobalHSUIC {
 }
 
 export interface IHSGlobal {
+    exposedPlayer: PlayerData | null;
     Debug: HSGlobalDebug;
-    PrivateAPI: HSGlobalPrivateAPI;
+    Release: HSGlobalRelease;
     General: HSGlobalGeneral;
     Common: HSGlobalCommon;
     HSPrototypes: HSGlobalPrototypes;
@@ -131,6 +123,7 @@ export interface IHSGlobal {
     HSStorage: HSGlobalStorage;
     HSSettings: HSGlobalSettings;
     HSMouse: HSGlobalMouse;
+    HSHiddenDialogs: HSGlobalHiddenDialogs;
     HSAmbrosia: HSGlobalAmbrosia;
     HSGameData: HSGlobalGameData;
     HSUI: HSGlobalHSUI;

@@ -1,32 +1,24 @@
 import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSUI } from "./hs-ui";
 import { HSModule } from "./module/hs-module";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
 
+/**
+ *  Class: HSMouse
+ *  IsExplicitHSModule: Yes
+ *  Description: Module for capturing and handling mouse events.
+ *  Author: Swiffy
+ */
 export class HSMouse extends HSModule {
 
-    static #staticContext = '';
-
-    static #mousePosition: HSMousePosition;
-    static #mousePositionDebugElement?: HTMLDivElement;
+    static readonly #mousePosition: HSMousePosition = { x: 0, y: 0 };
 
     static #hoverUpdateInterval: number | null;
     static #autoClickUpdateInterval: number | null;
 
-    static #ignoredElements: string[] = [];
-
-    constructor(moduleOptions : HSModuleOptions) {
-        super(moduleOptions);
-        HSMouse.#staticContext = moduleOptions.context;
-    }
-
     async init() {
-        const self = this;
-
         HSLogger.log(`Capturing mouse events`, this.context);
 
         // Bind mouse move
@@ -54,21 +46,34 @@ export class HSMouse extends HSModule {
             if (event.code === EKeyBoardKeys.LEFT_CTRL) HSMouse.clearInterval('click');
         });
 
+        // Clear auto hover/click timers when the page loses focus, so they don't remain active
+        // if the user switches windows or opens a new tab/window with CTRL or SHIFT pressed.
+        window.addEventListener('blur', () => {
+            HSMouse.clearInterval('click');
+            HSMouse.clearInterval('hover');
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                HSMouse.clearInterval('click');
+                HSMouse.clearInterval('hover');
+            }
+        });
+
         this.isInitialized = true;
     }
 
     static #updateMousePosition(e: MouseEvent) {
-        this.#mousePosition = {
-            x: e.clientX,
-            y: e.clientY
-        }
-
-        this.#updateDebug();
+        this.#mousePosition.x = e.clientX;
+        this.#mousePosition.y = e.clientY;
     }
 
     // Emits a mouse event at the current mouse position
     static #mouseEventAtPoint(eventType: 'mouseover' | 'click') {
-        const { x, y } = this.#mousePosition;
+        const pos = this.#mousePosition;
+        if (!pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
+
+        const { x, y } = pos;
 
         // The emitted event needs to have some (HTML) Element target it is emitted to
         // This is done by using the document.elementFromPoint method, which returns the topmost element at the specified coordinates
@@ -88,13 +93,8 @@ export class HSMouse extends HSModule {
                     }
 
                     // If the element under cursor has some classes defined, go through them all and check the ignore list by class
-                    if(elementUnderCursor.classList.length > 0) {
-                        elementUnderCursor.classList.forEach(cls => {
-                            if(HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)) {
-                                return;
-                            }
-                        })
-                    }
+                    if(Array.from(elementUnderCursor.classList).some(cls => HSGlobal.HSMouse.autoClickIgnoredElements.includes(`.${cls}`)))
+                        return;
                 }
             }
 
@@ -110,22 +110,6 @@ export class HSMouse extends HSModule {
         }
     }
 
-    // This updates the mouse position in the debug tab of the mod's panel
-    static #updateDebug() {
-        if(!HSUI.isModPanelOpen()) return;
-        
-        if(!this.#mousePositionDebugElement || this.#mousePositionDebugElement === undefined) {
-            const debugElement = document.querySelector('#hs-panel-debug-mousepos') as HTMLDivElement;
-
-            if(debugElement) {
-                this.#mousePositionDebugElement = debugElement;
-                this.#mousePositionDebugElement.innerHTML = `Mouse: (X: ${this.#mousePosition.x}, Y: ${this.#mousePosition.y})`;
-            }
-        } else {
-            this.#mousePositionDebugElement.innerHTML = `Mouse: (X: ${this.#mousePosition.x}, Y: ${this.#mousePosition.y})`;
-        }
-    }
-
     static clearInterval(intervalType: 'hover' | 'click') {
         if(intervalType === 'hover' && HSMouse.#hoverUpdateInterval) {
             clearInterval(HSMouse.#hoverUpdateInterval);
@@ -134,9 +118,5 @@ export class HSMouse extends HSModule {
             clearInterval(HSMouse.#autoClickUpdateInterval);
             HSMouse.#autoClickUpdateInterval = null;
         }
-    }
-
-    static getPosition() : HSMousePosition {
-        return this.#mousePosition;
     }
 }

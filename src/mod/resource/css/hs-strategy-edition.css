@@ -1,0 +1,793 @@
+/* ===== STRATEGY MODAL ===== */
+
+.hs-strategy-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    min-width: 500px;
+    min-height: 400px;
+    background-color: #18171c;
+    border-radius: 3px;
+    box-sizing: border-box;
+    /* Holds the overlays ("Discard unsaved changes?", deleting the phase of the open actions window) */
+    position: relative;
+}
+
+.hs-strategy-input-label {
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.hs-strategy-name-input {
+    padding: 5px 8px;
+    background-color: #101828;
+    border: 2px solid white;
+    border-radius: 3px;
+    color: white;
+    font-size: 13px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.hs-strategy-name-input:focus {
+    border-color: cyan;
+    background-color: #005;
+    outline: none;
+}
+
+/* Edit mode: the name can't change */
+.hs-strategy-name-input:disabled {
+    background-color: #000;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.hs-strategy-note {
+    margin-top: 6px;
+    opacity: 0.8;
+    font-size: 12px;
+}
+
+.hs-strategy-phase-list {
+    flex: 1;
+    background-color: #1c1b22;
+    border-radius: 3px;
+    border: 1px solid #353439;
+    padding: 12px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.hs-strategy-phase-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: #353439;
+    border: 1px solid white;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+    /* Holds the "+" above it */
+    position: relative;
+}
+
+/* "+": on the row's left border, in the gap above it (inserts a phase before this one) */
+.hs-strategy-insert {
+    position: absolute;
+    left: -10px;
+    top: -13px;
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border: 1px solid #888;
+    border-radius: 50%;
+    background-color: #18171c;
+    z-index: 1;
+}
+
+/* The "+" drawn as two bars: a select's own text can't be centred exactly */
+.hs-strategy-insert::before,
+.hs-strategy-insert::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #c8c8c8;
+    pointer-events: none;
+}
+
+.hs-strategy-insert::before {
+    width: 8px;
+    height: 2px;
+}
+
+.hs-strategy-insert::after {
+    width: 2px;
+    height: 8px;
+}
+
+/* Not :focus-within: the select keeps the focus once its list is closed without a pick, and the "+" stayed lit */
+.hs-strategy-insert:hover,
+.hs-strategy-insert:has(.hs-strategy-insert-select:focus-visible) {
+    border-color: cyan;
+}
+
+.hs-strategy-insert:hover::before,
+.hs-strategy-insert:hover::after,
+.hs-strategy-insert:has(.hs-strategy-insert-select:focus-visible)::before,
+.hs-strategy-insert:has(.hs-strategy-insert-select:focus-visible)::after {
+    background-color: cyan;
+}
+
+/* Invisible over the circle: a click opens its list */
+.hs-strategy-insert-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* The heading "Insert a phase from X to:" */
+.hs-strategy-insert-select optgroup {
+    background-color: #101828;
+    color: #c8c8c8;
+    font-size: 12px;
+}
+
+.hs-strategy-insert-select option {
+    background-color: #101828;
+    color: white;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.hs-strategy-phase-item:hover {
+    background-color: #005;
+    border-color: cyan;
+}
+
+.hs-strategy-phase-text {
+    flex: 1;
+    font-weight: 500;
+    color: white;
+    font-size: 12px;
+}
+
+.hs-strategy-phase-arrow {
+    color: cyan;
+    font-weight: bold;
+}
+
+/* "Phase N:" on the left, "start →" on the right next to the end dropdown; a fixed width so that the dropdowns line up */
+.hs-strategy-phase-text.hs-strategy-phase-start {
+    flex: 0 0 170px;
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.hs-strategy-end-select {
+    margin-right: auto;
+    padding: 3px 6px;
+    background-color: #101828;
+    border: 1px solid white;
+    border-radius: 3px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.hs-strategy-end-select:focus {
+    border-color: cyan;
+    outline: none;
+}
+
+/* "Add phase until…", below the last phase */
+.hs-strategy-add-select {
+    display: block;
+    padding: 4px 10px;
+    background-color: #101828;
+    border: 1px dashed #888;
+    border-radius: 3px;
+    color: #c8c8c8;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.hs-strategy-add-select:hover,
+.hs-strategy-add-select:focus {
+    background-color: #005;
+    border-color: cyan;
+    color: white;
+    outline: none;
+}
+
+.hs-strategy-add-select option {
+    background-color: #101828;
+    color: white;
+}
+
+
+.hs-strategy-btn-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.hs-strategy-btn {
+    padding: 6px 16px;
+    border-radius: 3px;
+    border: 2px solid white;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    background-color: #101828;
+    color: white;
+}
+
+.hs-strategy-btn:hover {
+    background-color: #005;
+}
+
+.hs-strategy-btn-primary {
+    border-color: green;
+}
+
+.hs-strategy-btn-primary:hover {
+    background-color: #006;
+}
+
+.hs-strategy-btn-secondary {
+    border-color: white;
+}
+
+/* A phase row's ✎ and × */
+.hs-strategy-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 8px;
+    font-size: 13px;
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
+    line-height: 16px;
+    border: 1px solid white;
+}
+
+/* An IF jump and its target, while one of them is hovered (not orange: the step being edited is) */
+.hs-jump-highlight {
+    background: rgba(170, 90, 255, 0.25);
+    outline: 4px solid rgba(170, 90, 255, 0.8);
+}
+
+.hs-strategy-btn.hs-strategy-btn-icon.hs-strategy-btn-steps {
+    width: auto;
+    min-width: 84px;
+    font-size: 12px;
+    white-space: nowrap;
+    border-color: orange;
+}
+
+.hs-strategy-btn-steps:hover {
+    background-color: #660;
+}
+
+/* Saving refuses a phase without steps */
+.hs-strategy-btn-steps.hs-strategy-btn-steps-empty {
+    color: #ef5350;
+}
+
+.hs-strategy-btn-delete {
+    border-color: red;
+}
+
+.hs-strategy-btn-delete:hover {
+    background-color: maroon;
+}
+
+.hs-strategy-empty-state {
+    text-align: center;
+    color: #888;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+/* ===== CHALLENGES MODAL ===== */
+
+.hs-challenges-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    width: 100%;
+    height: 100%;
+    min-width: 550px;
+    min-height: 500px;
+    background-color: #18171c;
+    border-radius: 3px;
+    box-sizing: border-box;
+    /* Holds the "Discard unsaved changes?" overlay */
+    position: relative;
+}
+
+.hs-challenges-input-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+    background-color: #353439;
+    border: 1px solid white;
+    border-radius: 3px;
+}
+
+.hs-challenges-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* A field the selected action doesn't use */
+.hs-challenges-input-row[hidden] {
+    display: none;
+}
+
+.hs-challenges-input-row-wide {
+    grid-column: 1 / -1;
+}
+
+.hs-challenges-input-label {
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 500;
+}
+
+/* A line of text in place of a field */
+.hs-challenges-input-note {
+    font-size: 12px;
+    color: #c8c8c8;
+}
+
+.hs-challenges-input {
+    flex: 1;
+    width: 100%;
+    padding: 5px 8px;
+    background-color: #101828;
+    border: 2px solid white;
+    border-radius: 3px;
+    color: white;
+    font-size: 12px;
+    transition: all 0.15s;
+    box-sizing: border-box;
+}
+
+.hs-challenges-input:focus {
+    border-color: royalblue;
+    background-color: #005;
+    outline: none;
+}
+
+.hs-challenges-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.hs-challenges-input[type="checkbox"] {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* The Add/Update button, and in edit mode a Cancel button on its right */
+.hs-challenges-add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.hs-challenges-edit-cancel-btn {
+    padding: 6px 12px;
+    background-color: #101828;
+    border: 2px solid white;
+    color: white;
+    border-radius: 3px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-size: 12px;
+}
+
+.hs-challenges-edit-cancel-btn:hover {
+    background-color: #005;
+}
+
+.hs-challenges-edit-cancel-btn[hidden] {
+    display: none;
+}
+
+.hs-challenges-add-btn {
+    flex: 1;
+    padding: 6px 16px;
+    background-color: #101828;
+    border: 2px solid green;
+    color: white;
+    border-radius: 3px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-size: 12px;
+}
+
+.hs-challenges-add-btn:hover {
+    background-color: #060;
+}
+
+/* A refused Add/Update: the reason in the button's own box (one line, the button keeps its size) */
+.hs-challenges-add-btn.hs-challenges-add-btn-refused,
+.hs-challenges-add-btn.hs-challenges-add-btn-refused:hover {
+    border-color: #c33;
+    background-color: #3a1010;
+    color: #ff8a8a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hs-challenges-input.hs-challenges-input-invalid {
+    border-color: #c33;
+}
+
+.hs-challenges-list-container {
+    flex: 1 1 400px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #1c1b22;
+    border: 1px solid #353439;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.hs-challenge-item {
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+    background-color: #353439;
+    border: 1px solid white;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    transition: all 0.15s;
+}
+
+/* Border only: the step labels' colours stay readable on the row's background */
+.hs-challenge-item:hover {
+    border-color: royalblue;
+}
+
+.hs-challenge-item-text {
+    flex: 1;
+    font-weight: 500;
+    color: white;
+    font-size: 12px;
+}
+
+.hs-challenge-meta {
+    font-size: 11px;
+    color: #4db8ca;
+    margin-top: 2px;
+}
+
+/* The step's number (the logs' "Step N") */
+.hs-challenge-step-no {
+    flex: 0 0 auto;
+    min-width: 14px;
+    align-self: center;
+    text-align: right;
+    font-size: 12px;
+    color: #c8c8c8;
+}
+
+/* An IF jump's text (the font of the window, not the smaller one of the other steps) */
+.hs-if-content {
+    flex: 1;
+}
+
+.hs-challenge-drag-handle {
+    align-self: center;
+    cursor: grab;
+}
+
+/* Where new steps are added */
+.hs-challenge-separator {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    cursor: grab;
+}
+
+.hs-challenge-separator-line {
+    flex: 1 1 auto;
+    height: 2px;
+    background: #1f4889;
+}
+
+.hs-challenge-separator-label {
+    display: flex;
+    align-items: center;
+    height: 18px;
+    margin: 0 8px;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #e2e2e2;
+    background: #030331;
+    pointer-events: none;
+}
+
+/* The row or separator being dragged (its size and place are set inline), and its faded copy in the list */
+.hs-challenge-lifted,
+.hs-challenge-item.hs-challenge-lifted {
+    position: fixed;
+    z-index: 10000;
+    box-sizing: border-box;
+    cursor: grabbing;
+    pointer-events: none;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transform: scale(1.03);
+    transition: transform 0.15s ease;
+}
+
+.hs-challenge-placeholder {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* A step's comment: apart from the step's own text */
+.hs-challenge-comment {
+    color: #b4b4b4;
+    font-weight: normal;
+    font-style: italic;
+}
+
+/* Where an IF jumps, after its condition, and which IF a "Jump here" row belongs to */
+.hs-challenge-jump-to {
+    color: #b4b4b4;
+}
+
+/* A click shows the other row of the IF pair */
+.hs-challenge-jump-link {
+    cursor: pointer;
+}
+
+.hs-challenge-jump-link:hover {
+    text-decoration: underline;
+}
+
+/* An IF that jumps back */
+.hs-challenge-loop {
+    font-weight: bold;
+}
+
+/* The row a jump link shows (above the hover highlight, which the mouse may still give it) */
+.hs-challenge-item.hs-jump-flash {
+    animation: hs-jump-flash 0.5s ease-in-out 2;
+}
+
+@keyframes hs-jump-flash {
+    50% {
+        background-color: rgba(170, 90, 255, 0.6);
+        outline: 4px solid rgb(190, 120, 255);
+    }
+}
+
+/* A step label's colour: its challenge's tier (the game's colours), else its action group's (game actions and IF jumps stay white) */
+.hs-step-transcension { color: var(--orchid-text-color); }
+.hs-step-reincarnation { color: limegreen; }
+.hs-step-ascension { color: orange; }
+/* Mid-way along the game's ambrosia bar (navy to darkturquoise); darkturquoise itself is too close to the step's meta line */
+.hs-step-ambrosia { color: #3c8fd8; }
+.hs-step-corruption { color: #e07a7a; }
+.hs-step-autosing { color: #e8d27a; }
+
+/* An action's id, after its label */
+.hs-challenge-action-id {
+    font-size: 10px;
+    font-weight: normal;
+    color: #8a8a8a;
+}
+
+/* The step loaded in the fields by ✎ (after :hover, which it overrides) */
+.hs-challenge-item.hs-challenge-item-editing {
+    border-color: orange;
+    box-shadow: inset 3px 0 0 orange;
+}
+
+.hs-challenge-btn {
+    /* The glyph centred in the button (its line is shorter than the button) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 6px;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    background-color: #101828;
+    border: 1px solid white;
+    border-radius: 3px;
+    text-align: center;
+    font-weight: 600;
+    line-height: 16px;
+    font-size: 11px;
+    transition: all 0.15s;
+}
+
+.hs-challenge-btn:hover {
+    background-color: #005;
+}
+
+.hs-challenge-btn-edit {
+    border-color: orange;
+}
+
+.hs-challenge-btn-edit:hover {
+    background-color: #660;
+}
+
+.hs-challenge-btn-duplicate {
+    font-size: 13px;
+}
+
+.hs-challenge-btn-delete {
+    border-color: red;
+}
+
+.hs-challenge-btn-delete:hover {
+    background-color: maroon;
+}
+
+.hs-challenges-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #353439;
+}
+
+.hs-challenges-footer-btn {
+    padding: 6px 16px;
+    border-radius: 3px;
+    border: 2px solid white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    background-color: #101828;
+    color: white;
+    font-size: 13px;
+}
+
+.hs-challenges-cancel-btn {
+    border-color: white;
+}
+
+.hs-challenges-cancel-btn:hover {
+    background-color: #005;
+}
+
+.hs-challenges-save-btn {
+    border-color: green;
+}
+
+.hs-challenges-save-btn:hover {
+    background-color: #060;
+}
+
+/* "?", Undo and Redo: narrower than Cancel and Save */
+.hs-challenges-footer-btn.hs-challenges-small-btn {
+    padding: 6px 10px;
+}
+
+.hs-challenges-undo-btn,
+.hs-challenges-help-btn {
+    border-color: #888;
+}
+
+.hs-challenges-help-btn {
+    cursor: help;
+}
+
+.hs-challenges-undo-btn:hover {
+    background-color: #005;
+}
+
+/* Nothing to undo */
+.hs-challenges-undo-btn.hs-challenges-undo-btn-off {
+    opacity: 0.4;
+    cursor: default;
+    background-color: #101828;
+}
+
+/* Pushes Cancel and Save to the right */
+.hs-challenges-fixed-time {
+    margin-right: auto;
+    align-self: center;
+    font-size: 12px;
+    color: #c8c8c8;
+    cursor: help;
+}
+
+/* A question over the strategy window or the actions window ("Discard unsaved changes?"…) */
+.hs-editor-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 3px;
+    z-index: 1;
+}
+
+.hs-editor-overlay[hidden] {
+    display: none;
+}
+
+.hs-editor-overlay-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    background-color: #353439;
+    border: 1px solid white;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.hs-editor-overlay-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.hs-editor-overlay-confirm {
+    border-color: #c33;
+}
+
+.hs-editor-overlay-confirm:hover {
+    background-color: maroon;
+}
+
+/* Mark visually the default strategies in dropdown list */
+select option[data-default="true"] {
+    font-weight: bold;
+    color: #888; 
+}
+
+.hs-strategy-error {
+    padding: 10px;
+    background: rgba(239, 83, 80, 0.1);
+    border: 1px solid #ef5350;
+    border-radius: 3px;
+    color: #ef5350;
+    font-size: 0.9em;
+}

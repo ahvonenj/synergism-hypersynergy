@@ -1,17 +1,49 @@
 /*
-    NOTE: THIS WHOLE THING IS GENERATE BY GOOGLE GEMINI PRO 2.5
-    The main interface for the save data is: export interface PlayerData
+    The game's player data, two views of it:
+    - GameData: what getGameData() returns, the live player or the parsed save. Every read of game data goes through it.
+    - PlayerData: HSGlobal.exposedPlayer, the live player as the patcher exposes it: the same fields, writable.
 */
 
+export type RuneBlessingKeys = string
+export type RuneSpiritKeys = string
+
+declare const gameDecimalBrand: unique symbol
+declare const gameCountBrand: unique symbol
+
 /**
- * Represents the state of a single type of building or generator (Coins, Diamonds, Mythos, etc.).
+ * A big number read from getGameData(): a string in a save, the game's own Decimal on the live player
+ * (not `instanceof` the mod's Decimal, and `<` on it compares strings). Opaque on purpose:
+ * read it with parseGameDataDecimal / parseGameDataNumber (hs-gamedata-utils.ts).
  */
-export interface GeneratorStats {
-    owned: number;
-    generated: string; // Often large numbers stored as strings
-    cost: string;      // Often large numbers stored as strings
-    produce: number;
+export type GameDecimal = { readonly [gameDecimalBrand]: true }
+
+/**
+ * A count read from getGameData() (worlds, cubes): a number, except on the live player of a game before commit
+ * 075dfeaa (2026-11-10), where it is a game class whose valueOf() gives the number. Opaque on purpose: read it with
+ * Number() or parseGameDataNumber.
+ */
+export type GameCount = { readonly [gameCountBrand]: true }
+
+// The game stores these modes as numbers (enums in its Toggles.ts); old string saves are converted on load.
+export enum AutoResetModes {
+  amount = 0,
+  time = 1
 }
+export enum AutoAscensionModes {
+  amount = 0,
+  percentage = 1
+}
+
+
+export type HepteractKeys =
+  | 'chronos'
+  | 'hyperrealism'
+  | 'quark'
+  | 'challenge'
+  | 'abyss'
+  | 'accelerator'
+  | 'acceleratorBoost'
+  | 'multiplier'
 
 /**
  * Represents the state of an ascension building.
@@ -19,7 +51,7 @@ export interface GeneratorStats {
 export interface AscendBuilding {
     cost: number;
     owned: number;
-    generated: string; // Often large numbers stored as strings
+    generated: GameDecimal;
     multiplier: number;
 }
 
@@ -29,10 +61,6 @@ export interface AscendBuilding {
  */
 export interface Toggles {
     [key: string]: boolean;
-    // Example explicit keys (add all if known and fixed):
-    // '1': boolean;
-    // '2': boolean;
-    // ...
 }
 
 /**
@@ -48,19 +76,82 @@ export interface CurrentChallenge {
  * Represents the unlocked features.
  */
 export interface Unlocks {
-    coinone: boolean;
-    cointwo: boolean;
-    cointhree: boolean;
-    coinfour: boolean;
-    prestige: boolean;
-    generation: boolean;
-    transcend: boolean;
-    reincarnate: boolean;
-    rrow1: boolean;
-    rrow2: boolean;
-    rrow3: boolean;
-    rrow4: boolean;
-    // Add others if they exist
+    coinone: boolean
+    cointwo: boolean
+    cointhree: boolean
+    coinfour: boolean
+    prestige: boolean
+    generation: boolean
+    transcend: boolean
+    reincarnate: boolean
+    rrow1: boolean
+    rrow2: boolean
+    rrow3: boolean
+    rrow4: boolean
+    anthill: boolean
+    blessings: boolean
+    spirits: boolean
+    talismans: boolean
+    ascensions: boolean
+    tesseracts: boolean
+    hypercubes: boolean
+    platonics: boolean
+    hepteracts: boolean
+}
+/**
+ * The raw rune experience of each rune, from which the game derives rune levels (and the mod the heater export's).
+ */
+export interface Runes {
+    speed: GameDecimal;
+    duplication: GameDecimal;
+    prism: GameDecimal;
+    thrift: GameDecimal;
+    superiorIntellect: GameDecimal;
+    infiniteAscent: GameDecimal;
+    antiquities: GameDecimal;
+    horseShoe: GameDecimal;
+    topHat: GameDecimal;
+    finiteDescent: GameDecimal;
+}
+
+interface Ants {
+    producers: Record<string, {
+        purchased: number;
+        generated: GameDecimal;
+    }>;
+    masteries: Record<string, {
+        mastery: number;
+        highestMastery: number;
+    }>;
+    upgrades: Record<string, number>;
+    crumbs: GameDecimal;
+    crumbsThisSacrifice: GameDecimal;
+    crumbsEverMade: GameDecimal;
+    immortalELO: number;
+    rebornELO: number;
+    highestRebornELODaily: Array<{
+        elo: number;
+        sacrificeId: number;
+    }>;
+    highestRebornELOEver: Array<{
+        elo: number;
+        sacrificeId: number;
+    }>;
+    quarksGainedFromAnts: number;
+    antSacrificeCount: number;
+    currentSacrificeId: number;
+    toggles: {
+        autobuyProducers: boolean;
+        autobuyMasteries: boolean;
+        autobuyUpgrades: boolean;
+        maxBuyProducers: boolean;
+        maxBuyUpgrades: boolean;
+        autoSacrificeEnabled: boolean;
+        autoSacrificeThreshold: number;
+        autoSacrificeMode: number;
+        alwaysSacrificeMaxRebornELO: boolean;
+        onlySacrificeMaxRebornELO: boolean;
+    };
 }
 
 /**
@@ -142,13 +233,17 @@ export interface ShopUpgrades {
     shopEXUltra: number;
     shopChronometerS: number;
     shopAmbrosiaUltra: number;
+    shopPanthema: number;
     shopSingularitySpeedup: number;
     shopSingularityPotency: number;
     shopSadisticRune: number;
     shopRedLuck1: number;
     shopRedLuck2: number;
     shopRedLuck3: number;
+    shopRedLuck4: number;
     shopInfiniteShopUpgrades: number;
+    shopHorseShoe: number;
+    shopPurpleBarRebate?: number;
 }
 
 /**
@@ -168,14 +263,7 @@ export interface ShopToggles {
     transcend: boolean;
     generators: boolean;
     reincarnate: boolean;
-    // Add others if they exist
 }
-
-/**
- * Represents the structure for talisman enhancement levels (or similar attributes).
- * The first element is often null, followed by numbers.
- */
-export type TalismanEnhancementArray = (number | null)[];
 
 /**
  * Represents the blessings associated with Cubes, Tesseracts, and Hypercubes.
@@ -211,21 +299,15 @@ export interface PlatonicBlessings {
  * Represents the state of a specific Hepteract craft type.
  */
 export interface HepteractCraft {
-    UNLOCKED: boolean;
-    BAL: number; // Balance?
-    CAP: number; // Capacity?
-    BASE_CAP: number;
-    HEPTERACT_CONVERSION: number;
+    BAL: number;
     AUTO: boolean;
-    DISCOUNT: number;
-    OTHER_CONVERSIONS: Record<string, number | string>; // Contains different resource types and amounts (string or number)
-    HTML_STRING: string; // Internal identifier string
+    TIMES_CAP_EXTENDED: number;
 }
 
 /**
  * Contains the state for all Hepteract crafts.
  */
-export interface HepteractCrafts {
+export interface hepteracts {
     chronos: HepteractCraft;
     hyperrealism: HepteractCraft;
     quark: HepteractCraft;
@@ -242,109 +324,24 @@ export interface HepteractCrafts {
  */
 export interface AscStatToggles {
     [key: string]: boolean;
-    // Example explicit keys:
-    // '1': boolean;
-    // '2': boolean;
-    // ...
 }
 
 /**
- * Represents the completion status of various campaigns.
- */
-export interface CampaignProgress {
-    first: number;
-    second: number;
-    third: number;
-    fourth: number;
-    fifth: number;
-    sixth: number;
-    seventh: number;
-    eighth: number;
-    ninth: number;
-    tenth: number;
-    eleventh: number;
-    twelfth: number;
-    thirteenth: number;
-    fourteenth: number;
-    fifteenth: number;
-    sixteenth: number;
-    seventeenth: number;
-    eighteenth: number;
-    nineteenth: number;
-    twentieth: number;
-    twentyFirst: number;
-    twentySecond: number;
-    twentyThird: number;
-    twentyFourth: number;
-    twentyFifth: number;
-    twentySixth: number;
-    twentySeventh: number;
-    twentyEighth: number;
-    twentyNinth: number;
-    thirtieth: number;
-    thirtyFirst: number;
-    thirtySecond: number;
-    thirtyThird: number;
-    thirtyFourth: number;
-    thirtyFifth: number;
-    thirtySixth: number;
-    thirtySeventh: number;
-    thirtyEighth: number;
-    thirtyNinth: number;
-    fortieth: number;
-    fortyFirst: number;
-    fortySecond: number;
-    fortyThird: number;
-    fortyFourth: number;
-    fortyFifth: number;
-    fortySixth: number;
-    fortySeventh: number;
-    fortyEighth: number;
-    fortyNinth: number;
-    fiftieth: number;
-}
-
-/**
- * Contains the campaign progress data.
- */
-export interface Campaigns {
-    campaigns: CampaignProgress;
-}
-
-/**
- * Represents the levels of different corruption types.
- */
-export interface CorruptionLevels {
-    viscosity: number;
-    drought: number;
-    deflation: number;
-    extinction: number;
-    illiteracy: number;
-    recession: number;
-    dilation: number;
-    hyperchallenge: number;
-}
-
-/**
- * Represents saved loadouts for corruptions.
- * Keys are the names of the saved loadouts.
- */
-export interface CorruptionSaves {
-    [key: string]: CorruptionLevels;
-    // Example explicit keys:
-    // '3D': CorruptionLevels;
-    // 'Pre w5x10': CorruptionLevels;
-    // ...
-}
-
-/**
- * Contains the current, next, and saved corruption states.
+ * The corruption state since the game's 4.4.0 update: one level, no longer 8 corruptions.
  */
 export interface Corruptions {
-    used: CorruptionLevels;
-    next: CorruptionLevels;
-    saves: CorruptionSaves;
-    showStats: boolean;
+    used: number;
+    next: number;
+    /** The level the current ascension started at (at most used). */
+    ascensionLevel: number;
+    /** The highest level cleared: the climb goes 1 or 2 levels past it. */
+    highestCleared: number;
+    autoIncrease: boolean;
+    cleanseToHighest: boolean;
+    /** Saved levels, one per loadout slot. */
+    loadouts: number[];
+    /** Best Challenge 10 completions per corruption level (index 0 unused): the source of the campaign tokens. */
+    tokenCompletions?: number[];
 }
 
 /**
@@ -355,13 +352,38 @@ export interface AntSacrificeHistoryEntry {
     seconds: number;
     kind: 'antsacrifice';
     offerings: number;
-    obtainium: number; // Represented as number, potentially large
+    obtainium: number;
     antSacrificePointsBefore: number;
     antSacrificePointsAfter: number;
     baseELO: number;
     effectiveELO: number;
     crumbs: string;      // Very large number stored as string
     crumbsPerSecond: string; // Very large number stored as string
+}
+
+export interface TalismanShards {
+    shard: GameDecimal;
+    commonFragment: GameDecimal;
+    uncommonFragment: GameDecimal;
+    rareFragment: GameDecimal;
+    epicFragment: GameDecimal;
+    legendaryFragment: GameDecimal;
+    mythicalFragment: GameDecimal;
+}
+
+export interface Talismans {
+    exemption: TalismanShards;
+    chronos: TalismanShards;
+    midas: TalismanShards;
+    metaphysics: TalismanShards;
+    polymath: TalismanShards;
+    mortuus: TalismanShards;
+    plastic: TalismanShards;
+    wowSquare: TalismanShards;
+    achievement: TalismanShards;
+    purpleGem: TalismanShards;
+    cookieGrandma: TalismanShards;
+    horseShoe: TalismanShards;
 }
 
 /**
@@ -371,15 +393,15 @@ export interface SingularityHistoryEntry {
     seconds: number;
     date: number; // Timestamp
     singularityCount: number;
-    quarks: number;        // Represented as number, potentially large
-    c15Score: number;      // Represented as number, potentially large (e+)
-    goldenQuarks: number;  // Represented as number, potentially large
-    wowTribs: number;      // Represented as number, potentially large (e+)
-    tessTribs: number;     // Represented as number, potentially large (e+)
-    hyperTribs: number;    // Represented as number, potentially large (e+)
-    platTribs: number;     // Represented as number, potentially large (e+)
-    octeracts: number;     // Represented as number, potentially large (e+)
-    quarkHept: number;     // Represented as number, potentially large
+    quarks: number;
+    c15Score: number;
+    goldenQuarks: number;
+    wowTribs: number;
+    tessTribs: number;
+    hyperTribs: number;
+    platTribs: number;
+    octeracts: number;
+    quarkHept: number;
     kind: 'singularity';
 }
 
@@ -399,41 +421,25 @@ export interface History {
 }
 
 /**
- * Represents the timer settings for auto challenge retries.
- */
-export interface AutoChallengeTimer {
-    start: number;
-    exit: number;
-    enter: number;
-}
-
-/**
- * Represents timing information related to promo codes.
- */
-export interface PromoCodeTiming {
-    time: number; // Timestamp
-}
-
-/**
  * Represents the common structure for singularity and octeract upgrade data.
  */
 export interface UpgradeData {
-    level: number;
-    toggleBuy: number; // Often 1, could potentially be boolean
-    freeLevels: number;
+    /** Present only in legacy saves. Current saves reconstruct this from the invested resource. */
+    level?: number;
+    freeLevel: number;
 }
 
 /**
  * Represents data for a specific singularity upgrade.
  */
 export interface SingularityUpgradeData extends UpgradeData {
-    goldenQuarksInvested: number; // Represented as number, potentially large
+    goldenQuarksInvested: number;
 }
 
 /**
  * Contains the state of all singularity upgrades. Keys are internal upgrade names.
  */
-export interface SingularityUpgrades {
+export interface goldenQuarkUpgrades {
     goldenQuarks1: SingularityUpgradeData;
     goldenQuarks2: SingularityUpgradeData;
     goldenQuarks3: SingularityUpgradeData;
@@ -495,6 +501,7 @@ export interface SingularityUpgrades {
     halfMind: SingularityUpgradeData;
     oneMind: SingularityUpgradeData;
     wowPass4: SingularityUpgradeData;
+    wowPass5: SingularityUpgradeData;
     blueberries: SingularityUpgradeData;
     singAmbrosiaLuck: SingularityUpgradeData;
     singAmbrosiaLuck2: SingularityUpgradeData;
@@ -509,19 +516,24 @@ export interface SingularityUpgrades {
     singBonusTokens3: SingularityUpgradeData;
     singBonusTokens4: SingularityUpgradeData;
     singInfiniteShopUpgrades: SingularityUpgradeData;
+    singTalismanBonusRunes1: SingularityUpgradeData;
+    singTalismanBonusRunes2: SingularityUpgradeData;
+    singTalismanBonusRunes3: SingularityUpgradeData;
+    singTalismanBonusRunes4: SingularityUpgradeData;
+    favoriteUpgrade: SingularityUpgradeData;
 }
 
 /**
  * Represents data for a specific octeract upgrade.
  */
 export interface OcteractUpgradeData extends UpgradeData {
-    octeractsInvested: number; // Represented as number, potentially large (e+)
+    octeractsInvested: number;
 }
 
 /**
  * Contains the state of all octeract upgrades. Keys are internal upgrade names.
  */
-export interface OcteractUpgrades {
+export interface octUpgrades {
     octeractStarter: OcteractUpgradeData;
     octeractGain: OcteractUpgradeData;
     octeractGain2: OcteractUpgradeData;
@@ -565,6 +577,10 @@ export interface OcteractUpgrades {
     octeractBonusTokens4: OcteractUpgradeData;
     octeractBlueberries: OcteractUpgradeData;
     octeractInfiniteShopUpgrades: OcteractUpgradeData;
+    octeractTalismanLevelCap1: OcteractUpgradeData;
+    octeractTalismanLevelCap2: OcteractUpgradeData;
+    octeractTalismanLevelCap3: OcteractUpgradeData;
+    octeractTalismanLevelCap4: OcteractUpgradeData;
 }
 
 /**
@@ -574,6 +590,93 @@ export interface SingularityChallengeStatus {
     completions: number;
     highestSingularityCompleted: number;
     enabled: boolean;
+    rewards?: SingularityChallengeRewards;
+}
+
+export interface SingularityChallengeRewards {
+    noSingularityUpgrades: {
+        cubes: number;
+        goldenQuarks: number;
+        blueberries: number;
+        shopUpgrade: boolean;
+        additiveLuckMult: number;
+        shopUpgrade2: boolean;
+    };
+    oneChallengeCap: {
+        blueberrySpeedMult: number;
+        capIncrease: number;
+        freeCorruptionLevel: number;
+        shopUpgrade: boolean;
+        reinCapIncrease2: number;
+        ascCapIncrease2: number;
+    };
+    noOcteracts: {
+        octeractPow: number;
+        offeringBonus: boolean;
+        obtainiumBonus: boolean;
+        shopUpgrade: boolean;
+    };
+    limitedAscensions: {
+        ascensionSpeedMult: number;
+        hepteractCap: boolean;
+        shopUpgrade: boolean;
+        shopUpgrade2: boolean;
+    };
+    noAmbrosiaUpgrades: {
+        bonusAmbrosia: number;
+        blueberries: number;
+        additiveLuckMult: number;
+        ambrosiaLuck: number;
+        redLuck: number;
+        blueberrySpeedMult: number;
+        redSpeedMult: number;
+        shopUpgrade: boolean;
+        shopUpgrade2: boolean;
+    };
+    noQuarkUpgrades: {
+        freeObtainiumLevels: number;
+        freeOfferingLevels: number;
+        freeSpeedLevels: number;
+        freeCubeLevels: number;
+        freeQuarkLevel: number;
+        freeInfinityLevels: number;
+        shopUpgrade: boolean;
+        topHatUnlock: boolean;
+    };
+    limitedTime: {
+        preserveQuarks: boolean;
+        quarkMult: number;
+        globalSpeed: number;
+        ascensionSpeed: number;
+        barRequirementMultiplier: number;
+        shopUpgrade: boolean;
+        shopUpgrade2: boolean;
+    };
+    sadisticPrequel: {
+        extraFree: number;
+        quarkMult: number;
+        freeUpgradeMult: number;
+        shopUpgrade: boolean;
+        shopUpgrade2: boolean;
+        shopUpgrade3: boolean;
+    };
+    taxmanLastStand: {
+        horseShoeUnlock: boolean;
+        shopUpgrade: boolean;
+        talismanUnlock: boolean;
+        talismanFreeLevel: number;
+        talismanRuneEffect: number;
+        purpleHoneyLuck: number;
+        purpleBarSize: number;
+        antiquityOOM: number;
+        horseShoeOOM: number;
+    };
+    barDependence: {
+        purpleAmbrosiaCostReduction: number;
+        purpleHoneyLuck: number;
+        blueberries: number;
+        shopUpgrade: boolean;
+    };
 }
 
 /**
@@ -582,11 +685,14 @@ export interface SingularityChallengeStatus {
 export interface SingularityChallenges {
     noSingularityUpgrades: SingularityChallengeStatus;
     oneChallengeCap: SingularityChallengeStatus;
-    noOcteracts: SingularityChallengeStatus;
     limitedAscensions: SingularityChallengeStatus;
+    noQuarkUpgrades: SingularityChallengeStatus;
+    noOcteracts: SingularityChallengeStatus;
     noAmbrosiaUpgrades: SingularityChallengeStatus;
     limitedTime: SingularityChallengeStatus;
     sadisticPrequel: SingularityChallengeStatus;
+    taxmanLastStand: SingularityChallengeStatus;
+    barDependence: SingularityChallengeStatus;
 }
 
 /**
@@ -595,12 +701,13 @@ export interface SingularityChallenges {
 export interface AmbrosiaUpgradeData extends UpgradeData {
     ambrosiaInvested: number;
     blueberriesInvested: number;
+    purpleAmbrosiaInvested?: number;
 }
 
 /**
  * Contains the state of all Ambrosia/Blueberry upgrades. Keys are internal upgrade names.
  */
-export interface BlueberryUpgrades {
+export interface AmbrosiaUpgrades {
     ambrosiaTutorial: AmbrosiaUpgradeData;
     ambrosiaQuarks1: AmbrosiaUpgradeData;
     ambrosiaCubes1: AmbrosiaUpgradeData;
@@ -615,8 +722,12 @@ export interface BlueberryUpgrades {
     ambrosiaCubes2: AmbrosiaUpgradeData;
     ambrosiaLuck2: AmbrosiaUpgradeData;
     ambrosiaQuarks3: AmbrosiaUpgradeData;
+    ambrosiaQuarks4: AmbrosiaUpgradeData;
     ambrosiaCubes3: AmbrosiaUpgradeData;
+    ambrosiaCubes4: AmbrosiaUpgradeData;
+    ambrosiaFreeCubeUpgrades: AmbrosiaUpgradeData;
     ambrosiaLuck3: AmbrosiaUpgradeData;
+    ambrosiaLuck4: AmbrosiaUpgradeData;
     ambrosiaPatreon: AmbrosiaUpgradeData;
     ambrosiaObtainium1: AmbrosiaUpgradeData;
     ambrosiaOffering1: AmbrosiaUpgradeData;
@@ -628,19 +739,25 @@ export interface BlueberryUpgrades {
     ambrosiaSingReduction1: AmbrosiaUpgradeData;
     ambrosiaInfiniteShopUpgrades1: AmbrosiaUpgradeData;
     ambrosiaInfiniteShopUpgrades2: AmbrosiaUpgradeData;
+    ambrosiaInfiniteShopUpgrades3: AmbrosiaUpgradeData;
     ambrosiaSingReduction2: AmbrosiaUpgradeData;
+    ambrosiaTalismanBonusRuneLevel: AmbrosiaUpgradeData;
+    ambrosiaRuneOOMBonus: AmbrosiaUpgradeData;
+    ambrosiaBrickOfLead: AmbrosiaUpgradeData;
+    ambrosiaFreeQuarkUpgrades: AmbrosiaUpgradeData;
+    ambrosiaFreeLuckUpgrades: AmbrosiaUpgradeData;
+    ambrosiaFreeGenerationUpgrades: AmbrosiaUpgradeData;
+    ambrosiaFreeRedLuckUpgrades: AmbrosiaUpgradeData;
+    ambrosiaFreeObtainiumUpgrades: AmbrosiaUpgradeData;
+    ambrosiaFreeOfferingUpgrades: AmbrosiaUpgradeData;
+    twoMind: AmbrosiaUpgradeData;
 }
-
 /**
  * Represents a single saved blueberry loadout.
  * Keys are internal upgrade names, values are the levels in that loadout.
  */
 export interface BlueberryLoadout {
     [upgradeName: string]: number;
-    // Example explicit keys for Loadout 1:
-    // ambrosiaTutorial: number;
-    // ambrosiaQuarks1: number;
-    // ... (many more)
 }
 
 /**
@@ -649,11 +766,6 @@ export interface BlueberryLoadout {
  */
 export interface BlueberryLoadouts {
     [loadoutNumber: string]: BlueberryLoadout | {}; // Can be an empty object if not set
-    // Example explicit keys:
-    // '1': BlueberryLoadout;
-    // '2': BlueberryLoadout;
-    // ...
-    // '9': {}; // Example of an empty loadout
 }
 
 /**
@@ -670,263 +782,119 @@ export interface RedAmbrosiaUpgrades {
     freeLevelsRow4: number;
     freeLevelsRow5: number;
     blueberryGenerationSpeed: number;
-    blueberryGenerationSpeed2: number;
     regularLuck: number;
-    regularLuck2: number;
     redGenerationSpeed: number;
+    redGenerationSpeed2: number;
     redLuck: number;
     redAmbrosiaCube: number;
     redAmbrosiaObtainium: number;
     redAmbrosiaOffering: number;
     redAmbrosiaCubeImprover: number;
+    redAmbrosiaFreeAccumulator: number;
     viscount: number;
     infiniteShopUpgrades: number;
     redAmbrosiaAccelerator: number;
+    regularLuck2: number;
+    blueberryGenerationSpeed2: number;
+    salvageYinYang: number;
+    blueberries: number;
+    freeOfferingUpgrades: number;
+    freeObtainiumUpgrades: number;
+    freeCubeUpgrades: number;
+    freeSpeedUpgrades: number;
 }
 
-export interface Campaigns {
-    first: number;
-    second: number;
-    third: number;
-    fourth: number;
-    fifth: number;
-    sixth: number;
-    seventh: number;
-    eighth: number;
-    ninth: number;
-    tenth: number;
-    eleventh: number;
-    twelfth: number;
-    thirteenth: number;
-    fourteenth: number;
-    fifteenth: number;
-    sixteenth: number;
-    seventeenth: number;
-    eighteenth: number;
-    nineteenth: number;
-    twentieth: number;
-    twentyFirst: number;
-    twentySecond: number;
-    twentyThird: number;
-    twentyFourth: number;
-    twentyFifth: number;
-    twentySixth: number;
-    twentySeventh: number;
-    twentyEighth: number;
-    twentyNinth: number;
-    thirtieth: number;
-    thirtyFirst: number;
-    thirtySecond: number;
-    thirtyThird: number;
-    thirtyFourth: number;
-    thirtyFifth: number;
-    thirtySixth: number;
-    thirtySeventh: number;
-    thirtyEighth: number;
-    thirtyNinth: number;
-    fortieth: number;
-    fortyFirst: number;
-    fortySecond: number;
-    fortyThird: number;
-    fortyFourth: number;
-    fortyFifth: number;
-    fortySixth: number;
-    fortySeventh: number;
-    fortyEighth: number;
-    fortyNinth: number;
-    fiftieth: number;
-  }
-
+export interface progressiveAchievements {
+    "runeLevel": number;
+    "freeRuneLevel": number;
+    "quarkUpgrades": number;
+    "antMasteries": number;
+    "rebornELO": number;
+    "singularityCount": number;
+    "ambrosiaCount": number;
+    "redAmbrosiaCount": number;
+    "exalts": number;
+    "talismanRarities": number;
+    "singularityUpgrades": number;
+    "octeractUpgrades": number;
+    "redAmbrosiaUpgrades": number;
+    "purpleHoneyUpgrades": number;
+    "purpleAmbrosiaUpgrades": number;
+}
 
 /**
- * The main interface representing the entire player save data structure.
+ * What getGameData() returns: the live player when the patcher exposes it, else the parsed save.
+ * Fields whose shape differs between the two (found by comparing a live player with its own save in the browser)
+ * are typed GameDecimal / GameCount, so every read goes through a helper that accepts both.
+ * Deeply read-only: the mod never writes into the game's data through it.
  */
-export interface PlayerData {
-    // Basic Info & Timestamps
+export type GameData = DeepReadonly<GameDataFields>
+
+/**
+ * The live player as the patcher exposes it (HSGlobal.exposedPlayer): GameData's fields, writable, for direct reads
+ * and writes of the live player. Code that reads game data uses GameData (getGameData()).
+ */
+export type PlayerData = GameDataFields
+
+/** Every field readonly, down to array items; functions and branded values kept as they are. */
+export type DeepReadonly<T> =
+    T extends (...args: never[]) => unknown ? T
+    : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepReadonly<U>>
+    : T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+    : T
+
+/**
+ * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-11 with vanilla's master
+ * (commit 075dfeaa, 2026-11-10): no field here is missing from vanilla, and these vanilla fields aren't
+ * declared, as no feature reads them through this type (add one when a feature needs it):
+ * - firstPaidDiamonds … fifthPaidDiamonds, and the same for Mythos and Particles (Decimals)
+ * - multiplierPaid, acceleratorPaid, acceleratorBoostPaid (Decimals)
+ * - coinsThisAscension, coinsThisSingularity, ascensionAttemptCounter
+ * - autoAscendRules
+ * - headerLayouts (the header files read it through their own casts)
+ * - spentPurpleHoney, purpleUpdateQuarkRefundAwarded
+ * - synthesisUpgrades, synthesisAutomationUnlocked, synthesisAutomationEnabled
+ */
+interface GameDataFields {
     firstPlayed: string; // ISO Date string
-    version: string;
-    rngCode: number;
-    seed: number[];
-    lastExportedSave: number; // Timestamp
-    dayCheck: string; // ISO Date string
-    dayTimer: number;
-    dailyCodeUsed: boolean;
-    promoCodeTiming: PromoCodeTiming;
 
-    // Core Currencies & Progression
-    worlds: string; // Large number stored as string
-    coins: string; // Large number stored as string
-    coinsThisPrestige: string;
-    coinsThisTranscension: string;
-    coinsThisReincarnation: string;
-    coinsTotal: string;
+    worlds: GameCount;
+    coins: GameDecimal;
+    coinsThisPrestige: GameDecimal;
+    coinsThisTranscension: GameDecimal;
+    coinsThisReincarnation: GameDecimal;
+    coinsTotal: GameDecimal;
 
-    prestigeCount: number;
-    transcendCount: number;
-    reincarnationCount: number;
-    ascensionCount: number;
-    singularityCount: number;
-    highestSingularityCount: number;
+    firstGeneratedCoin: GameDecimal;
+    firstPaidCoin: GameDecimal;
+    secondGeneratedCoin: GameDecimal;
+    secondPaidCoin: GameDecimal;
+    thirdGeneratedCoin: GameDecimal;
+    thirdPaidCoin: GameDecimal;
+    fourthGeneratedCoin: GameDecimal;
+    fourthPaidCoin: GameDecimal;
+    fifthGeneratedCoin: GameDecimal;
+    fifthPaidCoin: GameDecimal;
 
-    prestigePoints: string; // Can be large/decimal stored as string
-    transcendPoints: string;
-    reincarnationPoints: string;
-    prestigeShards: string;
-    transcendShards: string;
-    reincarnationShards: string;
-    ascendShards: string;
+    firstGeneratedDiamonds: GameDecimal;
+    secondGeneratedDiamonds: GameDecimal;
+    thirdGeneratedDiamonds: GameDecimal;
+    fourthGeneratedDiamonds: GameDecimal;
+    fifthGeneratedDiamonds: GameDecimal;
 
-    antPoints: string; // Very large number stored as string
-    antSacrificePoints: number;
+    firstGeneratedMythos: GameDecimal;
+    secondGeneratedMythos: GameDecimal;
+    thirdGeneratedMythos: GameDecimal;
+    fourthGeneratedMythos: GameDecimal;
+    fifthGeneratedMythos: GameDecimal;
 
-    campaigns: Campaigns;
+    firstGeneratedParticles: GameDecimal;
+    secondGeneratedParticles: GameDecimal;
+    thirdGeneratedParticles: GameDecimal;
+    fourthGeneratedParticles: GameDecimal;
+    fifthGeneratedParticles: GameDecimal;
 
-    researchPoints: number; // Represented as number, potentially large (e+)
-    runeshards: number; // Represented as number, potentially large (e+)
-    maxofferings: number; // Represented as number, potentially large (e+)
-    offeringpersecond: number; // Represented as number, potentially large
-    obtainiumtimer: number;
-    obtainiumpersecond: number;
-    maxobtainiumpersecond: number;
-    maxobtainium: number; // Represented as number, potentially large (e+)
-    overfluxOrbs: number;
-    overfluxPowder: number;
-    dailyPowderResetUses: number;
-    quarksThisSingularity: number;
-    totalQuarksEver: number; // Represented as number, potentially large
-    goldenQuarks: number; // Represented as number, potentially large
-    wowCubes: number;
-    wowTesseracts: number;
-    wowHypercubes: number;
-    wowPlatonicCubes: number;
-    wowAbyssals: number;
-    wowOcteracts: number; // Represented as number, potentially large (e+)
-    totalWowOcteracts: number; // Represented as number, potentially large (e+)
-    ambrosia: number;
-    lifetimeAmbrosia: number;
-    ambrosiaRNG: number;
-    redAmbrosia: number;
-    lifetimeRedAmbrosia: number;
-    spentBlueberries: number;
-    ultimateProgress: number;
-
-    // Generators (Coins, Diamonds, Mythos, Particles, Ants)
-    firstOwnedCoin: number;
-    firstGeneratedCoin: string;
-    firstCostCoin: string;
-    firstProduceCoin: number;
-    secondOwnedCoin: number;
-    secondGeneratedCoin: string;
-    secondCostCoin: string;
-    secondProduceCoin: number;
-    thirdOwnedCoin: number;
-    thirdGeneratedCoin: string;
-    thirdCostCoin: string;
-    thirdProduceCoin: number;
-    fourthOwnedCoin: number;
-    fourthGeneratedCoin: string;
-    fourthCostCoin: string;
-    fourthProduceCoin: number;
-    fifthOwnedCoin: number;
-    fifthGeneratedCoin: string;
-    fifthCostCoin: string;
-    fifthProduceCoin: number;
-
-    firstOwnedDiamonds: number;
-    firstGeneratedDiamonds: string;
-    firstCostDiamonds: string;
-    firstProduceDiamonds: number;
-    secondOwnedDiamonds: number;
-    secondGeneratedDiamonds: string;
-    secondCostDiamonds: string;
-    secondProduceDiamonds: number;
-    thirdOwnedDiamonds: number;
-    thirdGeneratedDiamonds: string;
-    thirdCostDiamonds: string;
-    thirdProduceDiamonds: number;
-    fourthOwnedDiamonds: number;
-    fourthGeneratedDiamonds: string;
-    fourthCostDiamonds: string;
-    fourthProduceDiamonds: number;
-    fifthOwnedDiamonds: number;
-    fifthGeneratedDiamonds: string;
-    fifthCostDiamonds: string;
-    fifthProduceDiamonds: number;
-
-    firstOwnedMythos: number;
-    firstGeneratedMythos: string;
-    firstCostMythos: string;
-    firstProduceMythos: number;
-    secondOwnedMythos: number;
-    secondGeneratedMythos: string;
-    secondCostMythos: string;
-    secondProduceMythos: number;
-    thirdOwnedMythos: number;
-    thirdGeneratedMythos: string;
-    thirdCostMythos: string;
-    thirdProduceMythos: number;
-    fourthOwnedMythos: number;
-    fourthGeneratedMythos: string;
-    fourthCostMythos: string;
-    fourthProduceMythos: number;
-    fifthOwnedMythos: number;
-    fifthGeneratedMythos: string;
-    fifthCostMythos: string;
-    fifthProduceMythos: number;
-
-    firstOwnedParticles: number;
-    firstGeneratedParticles: string;
-    firstCostParticles: string;
-    firstProduceParticles: number;
-    secondOwnedParticles: number;
-    secondGeneratedParticles: string;
-    secondCostParticles: string;
-    secondProduceParticles: number;
-    thirdOwnedParticles: number;
-    thirdGeneratedParticles: string;
-    thirdCostParticles: string;
-    thirdProduceParticles: number;
-    fourthOwnedParticles: number;
-    fourthGeneratedParticles: string;
-    fourthCostParticles: string;
-    fourthProduceParticles: number;
-    fifthOwnedParticles: number;
-    fifthGeneratedParticles: string;
-    fifthCostParticles: string;
-    fifthProduceParticles: number;
-
-    firstOwnedAnts: number;
-    firstGeneratedAnts: string;
-    firstCostAnts: string;
-    firstProduceAnts: number;
-    secondOwnedAnts: number;
-    secondGeneratedAnts: string;
-    secondCostAnts: string;
-    secondProduceAnts: number;
-    thirdOwnedAnts: number;
-    thirdGeneratedAnts: string;
-    thirdCostAnts: string;
-    thirdProduceAnts: number;
-    fourthOwnedAnts: number;
-    fourthGeneratedAnts: string;
-    fourthCostAnts: string;
-    fourthProduceAnts: number;
-    fifthOwnedAnts: number;
-    fifthGeneratedAnts: string;
-    fifthCostAnts: string;
-    fifthProduceAnts: number;
-    sixthOwnedAnts: number;
-    sixthGeneratedAnts: string;
-    sixthCostAnts: string;
-    sixthProduceAnts: number;
-    seventhOwnedAnts: number;
-    seventhGeneratedAnts: string;
-    seventhCostAnts: string;
-    seventhProduceAnts: number;
-    eighthOwnedAnts: number;
-    eighthGeneratedAnts: string;
-    eighthCostAnts: string;
-    eighthProduceAnts: number;
+    ants: Ants;
 
     // Buildings & Accelerators
     ascendBuilding1: AscendBuilding;
@@ -935,144 +903,36 @@ export interface PlayerData {
     ascendBuilding4: AscendBuilding;
     ascendBuilding5: AscendBuilding;
 
-    multiplierCost: string;
-    multiplierBought: number;
-    acceleratorCost: string;
-    acceleratorBought: number;
-    acceleratorBoostBought: number;
-    acceleratorBoostCost: string;
-
     // Upgrades & Research
     upgrades: number[]; // Array of upgrade levels/statuses (0 or 1)
-    researches: number[]; // Array of research levels
-    crystalUpgrades: number[];
-    crystalUpgradesCost: number[]; // Costs corresponding to crystalUpgrades
-    cubeUpgrades: (number | null)[]; // Array of cube upgrade levels (starts with null)
-    platonicUpgrades: number[];
-    constantUpgrades: (number | null)[]; // Array of constant upgrade levels (starts with null)
-    antUpgrades: number[]; // Array of ant upgrade levels
-    shopUpgrades: ShopUpgrades;
-    singularityUpgrades: SingularityUpgrades;
-    octeractUpgrades: OcteractUpgrades;
-    blueberryUpgrades: BlueberryUpgrades;
-    redAmbrosiaUpgrades: RedAmbrosiaUpgrades;
 
-    // Runes & Talismans
-    runelevels: number[];
-    runeexp: number[]; // Represented as number, potentially large (e+)
-    runeBlessingLevels: number[]; // Represented as number, potentially large
-    runeSpiritLevels: number[]; // Represented as number, potentially large
-    talismanLevels: number[];
-    talismanRarity: number[];
-    talismanOne: TalismanEnhancementArray;
-    talismanTwo: TalismanEnhancementArray;
-    talismanThree: TalismanEnhancementArray;
-    talismanFour: TalismanEnhancementArray;
-    talismanFive: TalismanEnhancementArray;
-    talismanSix: TalismanEnhancementArray;
-    talismanSeven: TalismanEnhancementArray;
-    talismanShards: number;
-    commonFragments: number;
-    uncommonFragments: number;
-    rareFragments: number;
-    epicFragments: number;
-    legendaryFragments: number;
-    mythicalFragments: number; // Represented as number, potentially large
+    prestigeCount: number;
+    transcendCount: number;
+    reincarnationCount: number;
 
-    // Blessings & Crafts
-    cubeBlessings: CubeTesseractHypercubeBlessings;
-    tesseractBlessings: CubeTesseractHypercubeBlessings;
-    hypercubeBlessings: CubeTesseractHypercubeBlessings;
-    platonicBlessings: PlatonicBlessings;
-    hepteractCrafts: HepteractCrafts;
+    prestigePoints: GameDecimal;
+    transcendPoints: GameDecimal;
+    reincarnationPoints: GameDecimal;
+    prestigeShards: GameDecimal;
+    transcendShards: GameDecimal;
+    reincarnationShards: GameDecimal;
+
+    // Automation & Toggles
+    toggles: Toggles;
 
     // Challenges & Corruptions
     challengecompletions: number[]; // Completions per challenge
     highestchallengecompletions: number[]; // Highest completions per challenge
     challenge15Exponent: number;
-    highestChallenge15Exponent: number;
-    currentChallenge: CurrentChallenge;
     retrychallenges: boolean;
-    corruptions: Corruptions;
-    insideSingularityChallenge: boolean;
-    singularityChallenges: SingularityChallenges;
-    singChallengeTimer: number;
+    currentChallenge: CurrentChallenge;
+    obtainium: GameDecimal;
+    maxObtainium: GameDecimal;
 
-
-    // Automation & Toggles
-    toggles: Toggles;
+    researches: number[]; // Array of research levels
     unlocks: Unlocks;
     achievements: number[]; // Status per achievement (0 or 1)
-    achievementPoints: number;
-    shoptoggles: ShopToggles;
-    shopBuyMaxToggle: boolean;
-    shopHideToggle: boolean;
-    shopConfirmationToggle: boolean;
-    resettoggle1: number;
-    resettoggle2: number;
-    resettoggle3: number;
-    resettoggle4: number;
-    saveOfferingToggle: boolean;
-    ascStatToggles: AscStatToggles;
-    autoSacrificeToggle: boolean;
-    autoBuyFragment: boolean;
-    autoFortifyToggle: boolean;
-    autoEnhanceToggle: boolean;
-    autoResearchToggle: boolean;
-    researchBuyMaxToggle: boolean;
-    autoResearchMode: string; // e.g., "cheapest"
-    autoResearch: number;
-    autoSacrifice: number;
-    autoAntSacrifice: boolean;
-    autoAntSacTimer: number;
-    autoAntSacrificeMode: number;
-    antMax: boolean;
-    buyTalismanShardPercent: number;
-    cubeUpgradesBuyMaxToggle: boolean;
-    autoCubeUpgradesToggle: boolean;
-    autoPlatonicUpgradesToggle: boolean;
-    autoAscend: boolean;
-    autoAscendMode: string; // e.g., "realAscensionTime"
-    autoAscendThreshold: number;
-    autoOpenCubes: boolean;
-    openCubes: number;
-    autoOpenTesseracts: boolean;
-    openTesseracts: number;
-    autoOpenHypercubes: boolean;
-    openHypercubes: number;
-    autoOpenPlatonicsCubes: boolean;
-    openPlatonicsCubes: number;
-    autoChallengeRunning: boolean;
-    autoChallengeIndex: number;
-    autoChallengeToggles: boolean[];
-    autoChallengeStartExponent: number;
-    autoChallengeTimer: AutoChallengeTimer;
-    autoPotionTimer: number;
-    autoPotionTimerObtainium: number;
-    shopPotionsConsumed: ShopPotionsConsumed;
-    autoTesseracts: boolean[]; // Toggles for auto-opening Tesseract types
-    autoWarpCheck: boolean;
-    overfluxOrbsAutoBuy: boolean;
-    hepteractAutoCraftPercentage: number;
-
-    // Timers & Counters
-    prestigecounter: number;
-    transcendcounter: number;
-    reincarnationcounter: number;
-    ascensionCounter: number;
-    ascensionCounterReal: number;
-    ascensionCounterRealReal: number;
-    singularityCounter: number;
-    offlinetick: number; // Timestamp? Large number
-    sacrificeTimer: number;
-    quarkstimer: number;
-    goldenQuarksTimer: number;
-    antSacrificeTimer: number;
-    antSacrificeTimerReal: number;
-    octeractTimer: number;
-    blueberryTime: number;
-    redAmbrosiaTime: number;
-
+    progressiveAchievements: progressiveAchievements;
 
     // Reset Related Flags & Stats
     prestigenomultiplier: boolean;
@@ -1088,29 +948,35 @@ export interface PlayerData {
     reincarnatenocoinorprestigeupgrades: boolean;
     reincarnatenocoinprestigeortranscendupgrades: boolean;
     reincarnatenocoinprestigetranscendorgeneratorupgrades: boolean;
-    fastestprestige: number;
-    fastesttranscend: number;
-    fastestreincarnate: number;
+    crystalUpgrades: number[];
+    crystalUpgradesCost: number[]; // Costs corresponding to crystalUpgrades
+
+    // Runes & Talismans
+    runes: Runes;
+    runeBlessings: Record<RuneBlessingKeys, GameDecimal>;
+    runeSpirits: Record<RuneSpiritKeys, GameDecimal>;
+    offerings: GameDecimal;
+    maxOfferings: GameDecimal;
+
+    // Timers & Counters
+    prestigecounter: number;
+    transcendcounter: number;
+    reincarnationcounter: number;
+    offlinetick: number; // Timestamp (ms) of the last save, only refreshed at a save
     prestigeamount: number;
     transcendamount: number;
     reincarnationamount: number;
-
-    // UI & Settings
-    tabnumber: number;
-    subtabNumber: number;
-    saveString: string; // Format string for save file names
-    exporttest: boolean; // Internal/debug flag?
-    hotkeys: Record<string, any>; // Structure depends on defined hotkeys
-    theme: string; // e.g., "Dark Mode"
-    iconSet: number;
-    notation: string; // e.g., "Default"
-    historyShowPerSecond: boolean;
-    roombaResearchIndex: number;
-    visitedAmbrosiaSubtab: boolean;
-    visitedAmbrosiaSubtabRed: boolean;
-    blueberryLoadoutMode: string; // e.g., "loadTree"
-    blueberryLoadouts: BlueberryLoadouts;
-
+    fastestprestige: number;
+    fastesttranscend: number;
+    fastestreincarnate: number;
+    resetToggleModes: {
+      prestige: AutoResetModes;
+      transcend: AutoResetModes;
+      reincarnation: AutoResetModes;
+      ascension: AutoAscensionModes;
+    };
+    tesseractAutoBuyerToggle: boolean;
+    tesseractAutoBuyerAmount: number;
 
     // Buy Amounts
     coinbuyamount: number;
@@ -1119,31 +985,107 @@ export interface PlayerData {
     particlebuyamount: number;
     offeringbuyamount: number;
     tesseractbuyamount: number;
-    tesseractAutoBuyerToggle: number; // Likely boolean represented as number
-    tesseractAutoBuyerAmount: number;
-    runeBlessingBuyAmount: number; // Represented as number, potentially large (e+)
-    runeSpiritBuyAmount: number; // Represented as number, potentially large (e+)
+    shoptoggles: ShopToggles;
 
-    // Codes & Version Loads
-    codes: [number, boolean][]; // Array of [codeId, redeemedStatus] tuples
-    loaded1009: boolean;
-    loaded1009hotfix1: boolean;
-    loaded10091: boolean;
-    loaded1010: boolean;
-    loaded10101: boolean;
-    loadedOct4Hotfix: boolean; // Example old version flag
-    loadedNov13Vers: boolean;
-    loadedDec16Vers: boolean;
-    loadedV253: boolean;
-    loadedV255: boolean;
-    loadedV297Hotfix1: boolean;
-    loadedV2927Hotfix1: boolean;
-    loadedV2930Hotfix1: boolean;
-    loadedV2931Hotfix1: boolean;
-    loadedV21003Hotfix1: boolean;
-    loadedV21007Hotfix1: boolean;
+    codes: unknown; // Redeemed code ids (a Map on the live player before game commit 075dfeaa); not read by the mod
 
-    // Daily Stats
+    shopUpgrades: ShopUpgrades;
+
+    shopPotionsConsumed: ShopPotionsConsumed;
+
+    shopConfirmationToggle: boolean;
+    shopBuyMaxToggle: boolean | 'TEN' | 'ANY';
+    shopHideToggle: boolean;
+    autoPotionTimer: number;
+    autoPotionTimerObtainium: number;
+
+    autoSacrificeToggle: boolean;
+    autoBuyFragment: boolean;
+    autoFortifyToggle: boolean;
+    autoResearchToggle: boolean;
+    researchBuyMaxToggle: boolean;
+    autoResearchMode: 'cheapest' | 'manual';
+    autoResearch: number;
+    autoSacrifice: number;
+    sacrificeTimer: number;
+    quarkstimer: number;
+    goldenQuarksTimer: number;
+
+    antSacrificeTimer: number;
+    antSacrificeTimerReal: number;
+
+    talismans: Talismans;
+
+    talismanShards: GameDecimal;
+    commonFragments: GameDecimal;
+    uncommonFragments: GameDecimal;
+    rareFragments: GameDecimal;
+    epicFragments: GameDecimal;
+    legendaryFragments: GameDecimal;
+    mythicalFragments: GameDecimal;
+
+    buyTalismanShardPercent: number;
+    ascensionCount: number;
+
+    ascensionCounter: number;
+    ascensionCounterReal: number;
+    ascensionCounterRealReal: number;
+    autoOpenCubes: boolean;
+    openCubes: number;
+    autoOpenTesseracts: boolean;
+    openTesseracts: number;
+    autoOpenHypercubes: boolean;
+    openHypercubes: number;
+    autoOpenPlatonicsCubes: boolean;
+    openPlatonicsCubes: number;
+    cubeUpgrades: (number | null)[]; // Array of cube upgrade levels (starts with null)
+    cubeUpgradesBuyMaxToggle: boolean;
+    autoCubeUpgradesToggle: boolean;
+    autoPlatonicUpgradesToggle: boolean;
+    platonicUpgrades: number[];
+    maxPlatToggle: boolean;
+    wowCubes: GameCount;
+    wowTesseracts: GameCount;
+    wowHypercubes: GameCount;
+    wowPlatonicCubes: GameCount;
+    wowAbyssals: number;
+    wowOcteracts: number;
+    totalWowOcteracts: number;
+
+    cubeBlessings: CubeTesseractHypercubeBlessings;
+    tesseractBlessings: CubeTesseractHypercubeBlessings;
+    hypercubeBlessings: CubeTesseractHypercubeBlessings;
+    platonicBlessings: PlatonicBlessings;
+
+    ascendShards: GameDecimal;
+    autoAscend: boolean;
+    roombaResearchIndex: number;
+    ascStatToggles: AscStatToggles;
+
+    corruptions: Corruptions;
+
+    constantUpgrades: (number | null)[]; // Array of constant upgrade levels (starts with null)
+    history: History;
+    historyShowPerSecond: boolean;
+
+    autoChallengeRunning: boolean;
+    autoChallengeToggles: boolean[];
+    autoChallengeTimer: {
+        start: number
+        exit: number
+        enter: number
+    };
+
+    runeBlessingBuyAmount: number;
+    runeSpiritBuyAmount: number;
+
+    autoTesseracts: boolean[]; // Toggles for auto-opening Tesseract types
+
+    saveString: string; // Format string for save file names
+    exporttest: string | boolean; // The game refuses to import a save without 'YES!' or true (outside its test builds)
+
+    dayCheck: unknown; // ISO date string (a Date on the live player before game commit 075dfeaa); not read by the mod
+    dayTimer: number;
     cubeOpenedDaily: number;
     cubeQuarkDaily: number;
     tesseractOpenedDaily: number;
@@ -1152,9 +1094,82 @@ export interface PlayerData {
     hypercubeQuarkDaily: number;
     platonicCubeOpenedDaily: number;
     platonicCubeQuarkDaily: number;
+    
+    version: string
 
-    // History Data
-    history: History;
+    rngCode: number;
+    promoCodeTiming: {
+        time: number
+    }
+    hepteracts: hepteracts;
 
-    // Add any missing top-level keys if necessary
+    overfluxOrbs: number;
+    overfluxOrbsAutoBuy: boolean;
+    overfluxPowder: number;
+    dailyPowderResetUses: number;
+    autoWarpCheck: boolean;
+
+    singularityCount: number;
+    highestSingularityCount: number;
+    singularityCounter: number;
+    singularityElevatorTarget: number;
+    singularityElevatorSlowClimb: boolean;
+    singularityElevatorLocked: boolean;
+    goldenQuarks: number;
+    quarksThisSingularity: number;
+    totalQuarksEver: number;
+    hotkeys: Record<string, any>; // Structure depends on defined hotkeys
+    iconSet: number;
+    notation: 'Pure Scientific' | 'Pure Engineering' | 'Default';
+    
+    goldenQuarkUpgrades: goldenQuarkUpgrades;
+    octUpgrades: octUpgrades;
+    ambrosiaUpgrades: AmbrosiaUpgrades;
+
+    dailyCodeUsed: boolean;
+    hepteractAutoCraftPercentage: number;
+    octeractTimer: number;
+
+    insideSingularityChallenge: boolean;
+    singularityChallenges: SingularityChallenges;
+
+    ambrosia: number;
+    lifetimeAmbrosia: number;
+    purpleAmbrosia?: number;
+    lifetimePurpleAmbrosia?: number;
+
+    blueberryTime: number;
+    spentBlueberries: number;
+
+    blueberryLoadouts: BlueberryLoadouts;
+    blueberryLoadoutMode: 'saveTree' | 'loadTree';
+
+    redAmbrosia: number;
+    lifetimeRedAmbrosia: number;
+    redAmbrosiaTime: number;
+    redAmbrosiaUpgrades: RedAmbrosiaUpgrades;
+
+    purpleHoneyProgress?: number;
+    purpleReactor?: {
+        purpleHoney: number;
+        lifetimePurpleHoney: number;
+        storedAmbrosiaBarPoints: number;
+        storedRedAmbrosiaBarPoints: number;
+        ambrosiaBarPointPercentage: number;
+        redAmbrosiaBarPointPercentage: number;
+    };
+    purpleReactorUpgrades?: Record<string, number>;
+    purpleAmbrosiaUpgrades?: Record<string, number>;
+    encabulatorOvercapToggle?: boolean;
+
+    singChallengeTimer: number;
+
+    lastExportedSave: number; // Timestamp
+
+    seed: number[];
+
+    stats: {
+        totalAddCodesUsed: number;
+        talismanShardsThisAscension: GameDecimal;
+    }
 }

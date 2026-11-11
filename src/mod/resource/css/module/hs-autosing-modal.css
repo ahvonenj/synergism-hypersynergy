@@ -1,0 +1,677 @@
+/* ===== HSAUTOSING TIMER MODAL STYLES ===== */
+
+/* ===== CSS CUSTOM PROPERTIES ===== */
+/* Color scheme variables for consistent theming across timer components */
+#hs-autosing-timer-display {
+    --timer-text-primary: #ffffff;     /* Main text color */
+    --timer-text-secondary: #999999;   /* Secondary/muted text */
+    --timer-text-muted: #666666;       /* Very muted text for less important info */
+    --timer-text-accent: #FF8A80;      /* Accent color for highlights */
+    --timer-color-progress: #00E676;   /* Green for progress indicators */
+    --timer-color-phase: #B33A3A;      /* Red for phase indicators */
+    --timer-color-quarks: #00BCD4;     /* Cyan for quark values */
+    --timer-color-gquarks: #F1FA8C;    /* Yellow for golden quark values */
+    --timer-bg-hover: rgba(255, 255, 255, 0.4);  /* Hover background */
+    --timer-border-color: #333333;     /* Border colors */
+    --timer-section-bg: #18171c;       /* Section background */
+}
+
+/* ===== BASE TIMER DISPLAY ===== */
+
+/* Main timer modal container */
+#hs-autosing-timer-display {
+    position: fixed;
+    top: 10px;
+    left: 50px;
+    background: rgba(0, 0, 0, 1);
+    color: var(--timer-text-primary);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    z-index: 7000; /* same stacking as the other mod windows: HSUI.bringToFront */
+    min-width: 250px;
+    width: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== TIMER HEADER ===== */
+
+.hs-timer-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 4px 12px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    border-radius: 8px 8px 0 0;
+}
+
+.hs-timer-title {
+    font-weight: bold;
+    font-size: 13px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== CONTROL BUTTONS ===== */
+
+.hs-timer-ctrl-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--timer-text-primary);
+    width: 30px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.hs-timer-ctrl-btn:hover {
+    background: var(--timer-bg-hover);
+}
+
+.hs-timer-ctrl-btn-secondary {
+    width: 30px;
+    font-size: 16px;
+    margin-right: 0;
+}
+
+/* ===== TIMER CONTENT ===== */
+
+.hs-timer-content {
+    padding: 6px 10px 0px 10px;
+    overflow: visible;
+}
+
+.hs-timer-section {
+    margin-bottom: 0px !important;
+}
+
+/* ===== SECTION HEADERS ===== */
+
+.hs-section-header {
+    font-size: 15px;
+    font-weight: bold;
+    color: #888;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.hs-c15-top {
+    margin-left: auto;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 1.1;
+    text-align: right;
+}
+
+/* ===== INFO LINES ===== */
+
+.hs-info-line {
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.hs-info-line-phase {
+    font-size: 13px;
+    margin-top: 4px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.hs-info-line-detailed {
+    font-size: 10px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    line-height: 1.1;
+}
+
+/* Dimmed per child (0.7 for the line x 0.7 for the footer), so that the slow patch state can stand out */
+.hs-info-line-detailed > :not(#hs-footer-patch),
+#hs-footer-patch:not(.hs-footer-patch-slow) {
+    opacity: 0.49;
+}
+
+/* ===== TIMER LABELS ===== */
+
+.hs-timer-label {
+    color: var(--timer-text-primary);
+}
+
+.hs-info-line-detailed .hs-timer-label {
+    color: var(--timer-text-secondary) !important;
+}
+
+.hs-times-grid .hs-timer-label {
+    text-align: right;
+}
+
+.hs-secondary-data-style {
+    color: var(--timer-text-secondary) !important;
+    font-weight: normal !important;
+    font-size: 11px;
+}
+
+/* ===== SPARKLINE STYLES ===== */
+
+.hs-sparkline-labels {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 30px;
+    margin-left: 2px;
+    margin-top: 0;
+    font-size: 9px;
+    line-height: 1;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.hs-sparkline-row {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.hs-sparkline-muted {
+    color: #777;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+/* ===== TIMER CONTROLS ===== */
+
+.hs-timer-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ===== VALUE COLORS ===== */
+
+#hs-sing-target {
+    color: var(--timer-text-primary);
+    font-weight: normal;
+    margin-left: 8px;
+}
+
+#hs-completed-sing-full-div {
+    display: flex;
+    align-items: flex-end;
+}
+
+#hs-completed-sing-amount {
+    color: var(--timer-color-progress);
+    font-weight: bold;
+    margin: 0 6px;
+}
+
+#hs-phase-name-val {
+    color: var(--timer-color-phase);
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+#hs-phase-timer-val {
+    color: var(--timer-text-accent);
+    margin-left: 4px;
+}
+
+/* ===== AVERAGE VALUES ===== */
+
+#hs-live-timer-val,
+#hs-avg-1,
+#hs-avg-10,
+#hs-avg-50,
+#hs-avg-all {
+    color: var(--timer-text-accent);
+    font-weight: bold;
+}
+
+#hs-avg-all-count {
+    color: var(--timer-text-primary);
+    font-weight: bold;
+}
+
+/* ===== QUARKS VALUES ===== */
+
+#hs-quarks-total,
+#hs-quarks-rate-val {
+    color: var(--timer-color-quarks);
+    font-weight: bold;
+}
+
+#hs-quarks-prev,
+#hs-quarks-rate-val-hr,
+#hs-quarks-ants-share,
+#hs-gquarks-prev,
+#hs-gquarks-rate-val-hr {
+    color: var(--timer-text-muted);
+    font-size: 11px;
+}
+
+#hs-gquarks-total,
+#hs-gquarks-rate-val {
+    color: var(--timer-color-gquarks);
+    font-weight: bold;
+}
+
+/* ===== FOOTER STYLES ===== */
+
+.hs-footer-loadouts {
+    white-space: pre-wrap;
+    margin-top: 2px;
+}
+
+#hs-footer-patch {
+    margin-left: auto;
+    padding-left: 12px;
+    color: var(--timer-text-secondary);
+    cursor: help;
+}
+
+#hs-footer-patch.hs-footer-patch-slow {
+    color: #ff9f43;
+    font-weight: bold;
+}
+
+.hs-footer-info {
+    border-bottom: none;
+    padding-top: 0;
+}
+
+/* ===== STEP TIMINGS WINDOW ===== */
+
+/* Fills the window, whose size the player can change (its first size: HSAutosingStepTimingsWindow) */
+.hs-step-timings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    font-family: monospace;
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.hs-step-timings-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Room for its two lines from the start: the table doesn't move when the figures arrive */
+.hs-step-timings-summary {
+    flex: 1;
+    min-height: 2.6em;
+    color: #999999;
+    white-space: pre-line;
+}
+
+.hs-step-timings-copy {
+    padding: 2px 10px;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    background: #222222;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.hs-step-timings-copy:hover:not(:disabled) {
+    background: #333333;
+}
+
+.hs-step-timings-copy:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.hs-step-timings-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.hs-step-timings-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.hs-step-timings-table th {
+    position: sticky;
+    top: 0;
+    padding: 2px 6px;
+    background: #18171c;
+    color: #999999;
+    font-weight: normal;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.hs-step-timings-table th:hover,
+.hs-step-timings-table th.hs-step-timings-sorted {
+    color: #ffffff;
+}
+
+/* Every title keeps the arrow's room: nothing moves when the sort changes */
+.hs-step-timings-table th::after {
+    content: '▾';
+    margin-left: 2px;
+    visibility: hidden;
+}
+
+.hs-step-timings-table th.hs-step-timings-sorted::after {
+    visibility: visible;
+}
+
+.hs-step-timings-table td {
+    padding: 1px 6px;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hs-step-timings-table th:nth-child(1) { width: 24%; }
+.hs-step-timings-table th:nth-child(2) { width: 8%; }
+.hs-step-timings-table th:nth-child(4) { width: 8%; }
+.hs-step-timings-table th:nth-child(5) { width: 8%; }
+.hs-step-timings-table th:nth-child(6) { width: 7%; }
+.hs-step-timings-table th:nth-child(7) { width: 8%; }
+
+.hs-step-timings-table .hs-step-timings-num {
+    text-align: right;
+}
+
+.hs-step-timings-dim {
+    color: #888888;
+}
+
+.hs-step-timings-comment {
+    color: #888888;
+    font-style: italic;
+}
+
+.hs-step-timings-between .hs-step-timings-action,
+.hs-step-timings-other .hs-step-timings-action {
+    color: #999999;
+    font-style: italic;
+}
+
+/* ===== RESIZE HANDLE ===== */
+
+.hs-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.2) 50%);
+}
+
+/* ===== AVERAGE SD STYLE ===== */
+
+.hs-avg-sd {
+    color: var(--timer-text-muted);
+    font-size: 11px;
+}
+
+/* ===== PHASE STATISTICS GRID ===== */
+
+/* ===== PHASE STATISTICS GRID ===== */
+#hs-phase-stats-container {
+    display: grid;
+    grid-template-columns: max-content max-content max-content max-content max-content;
+    gap: 4px 2px;
+    font-size: 11px;
+    align-items: center;
+    justify-items: end;
+    margin-top: 8px;
+}
+
+/* ===== PHASE STATS HEADERS ===== */
+
+.hs-phase-stats-header {
+    color: #888;
+    font-size: 10px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--timer-border-color);
+    padding-bottom: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    justify-self: stretch;
+    align-self: stretch;
+}
+
+.hs-phase-stats-header-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #888;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--timer-border-color);
+    padding-bottom: 4px;
+    display: flex;
+    justify-content: flex-start;
+    justify-self: stretch;
+}
+
+/* ===== PHASE STATS CELLS ===== */
+
+.hs-phase-empty {
+    color: #666;
+    font-style: italic;
+    font-size: 12px;
+    grid-column: span 5;
+    justify-self: start;
+}
+
+.hs-phase-name {
+    color: var(--timer-color-phase);
+    font-size: 12px;
+    padding: 2px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #222;
+    text-align: left;
+    justify-self: start;
+}
+
+.hs-phase-count {
+    color: #888;
+    font-size: 10px;
+    margin-right: 2px;
+}
+
+.hs-phase-loops {
+    color: #888;
+    font-size: 11px;
+    padding: 2px 4px;
+    text-align: right;
+    border-bottom: 1px solid #222;
+}
+
+.hs-phase-avg,
+.hs-phase-last {
+    color: var(--timer-text-accent);
+    font-size: 12px;
+    padding: 2px 4px;
+    text-align: right;
+    border-bottom: 1px solid #222;
+}
+
+.hs-phase-sd {
+    color: #888;
+    font-size: 10px;
+    padding: 2px 4px;
+    text-align: right;
+    border-bottom: 1px solid #222;
+}
+
+.hs-phase-row {
+    display: grid;
+    grid-template-columns: max-content max-content max-content max-content max-content;
+    color: #bcb9b9;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== STATS COLOR VARIANTS ===== */
+
+.hs-stats-loops {
+    text-align: center;
+    color: #888 !important;
+}
+
+.hs-stats-avg {
+    text-align: center;
+    color: #eee !important;
+}
+
+.hs-stats-sd {
+    text-align: center;
+    color: #555 !important;
+    font-size: 10px;
+}
+
+.hs-stats-last {
+    text-align: center;
+    color: var(--timer-color-quarks) !important;
+}
+
+
+/* ===== GRID LAYOUTS ===== */
+
+/* ===== CELL ALIGNMENT UTILITIES ===== */
+
+/* General cell alignment classes for grid layouts */
+.hs-label-cell {
+    text-align: right;
+}
+
+.hs-value-cell {
+    text-align: left;
+}
+
+/* ===== COLOR CLASSES ===== */
+
+/* Quarks rate color styling */
+.hs-quarks-rate-color {
+    color: var(--timer-color-quarks);
+    font-weight: bold;
+}
+
+/* Golden quarks rate color styling */
+.hs-gquarks-rate-color {
+    color: var(--timer-color-gquarks);
+    font-weight: bold;
+}
+
+/* ===== DISPLAY UTILITIES ===== */
+
+/* Flex display for current value displays */
+.hs-current-display {
+    display: flex;
+    align-items: center;
+}
+
+/* ===== SECTION HEADER VARIANTS ===== */
+
+/* Base section header styling */
+.hs-section-header-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #888;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    grid-column: span 1;
+}
+
+/* Section header spanning 2 grid columns */
+.hs-section-header-title-span2 {
+    font-size: 15px;
+    font-weight: bold;
+    color: #888;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    grid-column: span 2;
+}
+
+/* Full-width section header */
+.hs-section-header-title-full {
+    grid-column: 1 / -1;
+}
+
+/* Single column section header */
+.hs-section-header-title-single {
+    grid-column: span 1;
+}
+
+/* ===== GRID DEFINITIONS ===== */
+
+/* Farming section grid layout */
+#hs-farming-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 2px;
+}
+#hs-farming-grid .hs-label-cell {
+    text-align: left;
+}
+#hs-farming-grid .hs-value-cell {
+    text-align: right;
+}
+
+/* Timer display grid layout */
+.hs-times-grid {
+    display: grid;
+    grid-template-columns: min-content auto min-content auto;
+    column-gap: 5px;
+    row-gap: 3px;
+    align-items: center;
+}
+
+/* General section grid layout */
+.hs-section-grid {
+    display: grid;
+    grid-template-columns: min-content auto min-content auto;
+    gap: 2px;
+}
+
+.hs-grid-4col { grid-template-columns: min-content auto min-content auto !important; }
+.hs-grid-2col-min-auto { grid-template-columns: min-content auto !important; }
+.hs-grid-2col-auto-auto { grid-template-columns: auto auto !important; }
+.hs-grid-1col { grid-template-columns: auto !important; }

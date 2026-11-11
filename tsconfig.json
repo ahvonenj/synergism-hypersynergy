@@ -1,9 +1,11 @@
 {
     "compilerOptions": {
         "target": "ES2020",
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
         "module": "ESNext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "esModuleInterop": true,
+        "resolveJsonModule": true,
         "strict": true,
         "outDir": "./build",
         "rootDir": "./src/mod"

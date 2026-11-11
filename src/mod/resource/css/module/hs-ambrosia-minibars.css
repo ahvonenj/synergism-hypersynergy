@@ -1,0 +1,147 @@
+#hs-minibars-wrapper {
+    position: relative;
+    --hs-minibar-height: 8px;
+
+    width: 281px;
+    display: flex;
+    padding: 0;
+    /* 2px between bars, none from 5px bars down (they would be more gap than bar). Same rule: barGap in
+       hs-minibar-resize.ts */
+    gap: clamp(0px, calc((var(--hs-minibar-height) - 5px) * 2), 2px);
+    flex-direction: column;
+    margin-bottom: 3px;
+    box-sizing: border-box;
+}
+
+/* "Minibars border" setting: one frame around the group, an outline so it takes no room from the bars at any size
+   (the resize limits stay the bars' own) */
+html.hs-minibars-framed #hs-minibars-wrapper {
+    outline: 1px solid #808080;
+}
+
+/* As a module of the game's header (HSHeaderModules): a currency module's width (its em follow the header's S / M / L),
+   the cell's when the game makes it wide (L in the grid). Not on a locked module, which the game hides with
+   display: none. */
+#hsAmbrosiaBars:not(.headerModuleLocked) {
+    display: flex;
+    align-items: center;
+}
+#hsAmbrosiaBars {
+    width: calc(38px + 7.5em);
+    min-width: 150px;
+}
+#hsAmbrosiaBars.headerModuleWide {
+    justify-self: stretch;
+    width: auto;
+}
+/* An explicit cell alignment also applies to the game's wide-module size. */
+#hsAmbrosiaBars[data-hs-header-align="left"] { justify-self: start; }
+#hsAmbrosiaBars[data-hs-header-align="center"] { justify-self: center; }
+#hsAmbrosiaBars[data-hs-header-align="right"] { justify-self: end; }
+#hsAmbrosiaBars[data-hs-minibar-custom-size] {
+    width: var(--hs-minibar-width);
+    min-width: 0;
+    max-width: 100%;
+}
+#hsAmbrosiaBars #hs-minibars-wrapper {
+    width: 100%;
+    margin-bottom: 0;
+}
+#hsAmbrosiaBars[data-size="S"] #hs-minibars-wrapper { --hs-minibar-height: 6px; }
+#hsAmbrosiaBars[data-size="L"] #hs-minibars-wrapper { --hs-minibar-height: 12px; }
+
+/* A half slot holds the entire group, including its gaps. Keep all three bars inside it at Top or Bottom. */
+#hsAmbrosiaBars.hs-header-half #hs-minibars-wrapper { max-height: 16px; }
+#hsAmbrosiaBars.hs-header-half #hs-minibars-wrapper > :is(#hs-blue-progress-bar, #hs-red-progress-bar, #hs-purple-progress-bar) {
+    min-height: 3px;
+    flex-shrink: 1;
+}
+
+.hs-minibar-resize-handle { display: none; }
+#mainHeader.headerEditMode .hs-minibar-resize-handle {
+    display: block;
+    position: absolute;
+    z-index: 4;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    min-width: 0;
+    min-height: 0;
+    background: transparent;
+    touch-action: none;
+}
+#mainHeader.headerEditMode .hs-minibar-resize-width { right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; }
+#mainHeader.headerEditMode .hs-minibar-resize-height { left: 0; right: 0; bottom: 0; height: 8px; cursor: ns-resize; }
+#mainHeader.headerEditMode .hs-minibar-resize-both {
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid gold;
+    border-bottom: 2px solid gold;
+    cursor: nwse-resize;
+}
+.hs-minibar-resize-handle:focus-visible { outline: 2px solid gold; }
+#mainHeader .hs-minibar-resizing { user-select: none; }
+#hs-minibar-size-controls[hidden] { display: none; }
+
+#hs-blue-progress-bar,
+#hs-red-progress-bar,
+#hs-purple-progress-bar {
+    width: 100%;
+    height: var(--hs-minibar-height);
+    min-height: var(--hs-minibar-height);
+    max-height: var(--hs-minibar-height);
+    flex: 0 0 var(--hs-minibar-height);
+    overflow: hidden;
+    background-color: black;
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+    position: relative;
+    box-sizing: border-box;
+}
+
+#hs-blue-progress,
+#hs-red-progress {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.4s ease;
+}
+
+#hs-blue-progress {
+    background: linear-gradient(to right, navy, darkturquoise);
+}
+
+#hs-red-progress {
+    background: linear-gradient(to right, maroon, red);
+}
+
+#hs-purple-progress {
+    --progress-fill: 0;
+
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.hs-purple-progress-fill {
+    width: 50%;
+    height: 100%;
+    flex: 0 0 50%;
+    transform: scaleX(var(--progress-fill));
+    transition: transform 0.4s ease;
+}
+
+.hs-purple-progress-fill:first-child {
+    background: linear-gradient(to right, indigo, mediumorchid);
+    transform-origin: left center;
+}
+
+.hs-purple-progress-fill:last-child {
+    background: linear-gradient(to left, indigo, mediumorchid);
+    transform-origin: right center;
+}

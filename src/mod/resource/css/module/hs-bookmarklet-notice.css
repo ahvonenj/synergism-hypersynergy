@@ -1,0 +1,46 @@
+/* ===== BOOKMARKLET NOTICE (modal shown to players who loaded the mod with the bookmark) ===== */
+
+.hs-bookmarklet-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 5px;
+    width: 470px;
+    max-width: calc(100vw - 60px);
+    box-sizing: border-box;
+    line-height: 1.4;
+}
+
+.hs-bookmarklet-notice ol {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding-left: 22px;
+    list-style: decimal;
+}
+
+.hs-bookmarklet-notice-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+/* The install button is a link: the game's own link colours must not apply to it */
+.hs-bookmarklet-notice .hs-panel-btn,
+.hs-bookmarklet-notice a.hs-panel-btn:visited {
+    width: auto;
+    padding: 0 12px;
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.hs-bookmarklet-notice .hs-bookmarklet-notice-install {
+    border-color: limegreen;
+}
+
+.hs-bookmarklet-notice-note {
+    opacity: 0.75;
+}

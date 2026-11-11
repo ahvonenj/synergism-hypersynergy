@@ -2,14 +2,15 @@ import { HSElementWatcher, HSWatcherOptions } from "../../types/module-types/hs-
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
+import { escapeLogText } from "../hs-utils/hs-escape";
 
-/*
-    Class: HSElementHooker
-    IsExplicitHSModule: No
-    Description: 
-        Contains static methods to await for element(s) to exist in the DOM
-        or to watch DOM elements and value changes to them
-    Author: Swiffy
+/**
+ * Class: HSElementHooker
+ * IsExplicitHSModule: No
+ * Description: 
+ *     Contains static methods to await for element(s) to exist in the DOM
+ *     or to watch DOM elements and value changes to them
+ * Author: Swiffy
 */
 export class HSElementHooker {
     // Class context, mainly for HSLogger
@@ -18,68 +19,71 @@ export class HSElementHooker {
     static #watchers = new Map<string, HSElementWatcher>();
 
     // Uses setInterval to "watch" for when an element is found in DOM
-    // Returns a promise which can be awaited and resolves with reference to the element when the element is found in DOM
-    static HookElement(selector: string, parent?: HTMLElement) : Promise<HTMLElement> {
+    // Resolves with the element when found, or null on timeout.
+    static HookElement<T extends HTMLElement = HTMLElement>(selector: string, parent?: HTMLElement, timeoutMs?: number): Promise<T | null> {
         const self = this;
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             let timeout: number | undefined = undefined;
-            const initialCheck = parent ? parent.querySelector(selector) as HTMLElement : document.querySelector(selector) as HTMLElement;
+            const initialCheck = parent ? parent.querySelector<T>(selector) : document.querySelector<T>(selector);
 
-            if(initialCheck) {
+            if (initialCheck) {
                 resolve(initialCheck);
+                return;
             }
 
             const ivl = setInterval(() => {
-                const element = parent ? parent.querySelector(selector) as HTMLElement : document.querySelector(selector) as HTMLElement;
-                
-                if(element) {
+                const element = parent ? parent.querySelector<T>(selector) : document.querySelector<T>(selector);
+
+                if (element) {
                     clearTimeout(timeout);
                     clearInterval(ivl);
                     resolve(element);
                 }
             }, HSGlobal.HSElementHooker.elementHookUpdateMS)
 
-            // Setup timeout for the hook if enabled
-            if(HSGlobal.HSElementHooker.elementHookTimeout) {
+            // Use the provided timeoutMs if given, otherwise fall back to the global default
+            const effectiveTimeout = typeof timeoutMs === 'number' ? timeoutMs : HSGlobal.HSElementHooker.elementHookTimeout;
+            if (effectiveTimeout) {
                 timeout = setTimeout(() => {
-                    HSLogger.warn('Hook timed out', self.#context);
+                    HSLogger.warn(escapeLogText(`Element ${selector} did not appear within ${effectiveTimeout} ms`), self.#context);
                     clearInterval(ivl);
-                      
-                    resolve(HSUtils.nullProxy<HTMLElement>('ElementHookTimeout'));
-                }, HSGlobal.HSElementHooker.elementHookTimeout)
+                    resolve(null);
+                }, effectiveTimeout);
             }
         });
     }
 
+    /** Required mod UI: fail at acquisition with the missing selector, rather than at a later method call. */
+    static async RequireElement<T extends HTMLElement = HTMLElement>(selector: string, parent?: HTMLElement, timeoutMs?: number): Promise<T> {
+        const element = await this.HookElement<T>(selector, parent, timeoutMs);
+        if (!element) throw new Error('Required element ' + selector + ' did not appear');
+        return element;
+    }
+
     // Same as HookElement, but accepts a selector like '.someClass' or an array of selectors
-    // Returns a promise which can be awaited and resolves with a list of references to all of the elements when ALL of the elements are found in DOM
-    static HookElements(selector: string | string[]) : Promise<HTMLElement[]> {
+    // Resolves with all requested elements, or an empty array on timeout (never a partial result).
+    static HookElements(selector: string | string[]): Promise<HTMLElement[]> {
+        if (selector.length === 0) return Promise.resolve([]);
         const self = this;
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             let timeout: number | undefined = undefined;
 
             const ivl = setInterval(() => {
-                const elements : (HTMLElement | null)[] = [];
+                const elements: (HTMLElement | null)[] = [];
 
-                if((Array.isArray(selector) && selector.length === 0) || (!Array.isArray(selector) && (!selector || selector === ''))) {
-                    clearInterval(ivl);
-                    resolve([]);
-                    return;
-                }
-
-                if(Array.isArray(selector)) {
+                if (Array.isArray(selector)) {
                     selector.forEach(selector => {
                         elements.push(document.querySelector(selector))
                     });
                 } else {
                     const nodeList = document.querySelectorAll<HTMLElement>(selector);
-                    const nodesToElements : (HTMLElement | null)[] = Array.from(nodeList);
+                    const nodesToElements: (HTMLElement | null)[] = Array.from(nodeList);
                     elements.push(...nodesToElements);
                 }
 
-                if(!elements.includes(null) && elements.length > 0) {
+                if (!elements.includes(null) && elements.length > 0) {
                     clearTimeout(timeout);
                     clearInterval(ivl);
                     resolve(elements as HTMLElement[]);
@@ -87,12 +91,12 @@ export class HSElementHooker {
             }, HSGlobal.HSElementHooker.elementsHookUpdateMS);
 
             // Setup timeout for the hook if enabled
-            if(HSGlobal.HSElementHooker.elementHookTimeout) {
+            if (HSGlobal.HSElementHooker.elementHookTimeout) {
                 timeout = setTimeout(() => {
-                    HSLogger.warn('Hook timed out', self.#context);
+                    HSLogger.warn(escapeLogText(`Elements ${Array.isArray(selector) ? selector.join(", ") : selector} did not appear within ${HSGlobal.HSElementHooker.elementHookTimeout} ms`), self.#context);
                     clearInterval(ivl);
-                      
-                    resolve(HSUtils.nullProxy<HTMLElement[]>('ElementsHookTimeout'));
+
+                    resolve([]);
                 }, HSGlobal.HSElementHooker.elementHookTimeout)
             }
         });
@@ -110,12 +114,12 @@ export class HSElementHooker {
 
     // If greedy is set to true, the callback will be called even if the current parsed element value is the same as previous
     // Sometimes you might want to update things when the element is updated, even if the value isn't
-    
+
     // Watches / MutationObservers are throttled to trigger 20 times per second at max to not degrade performance, especially if there are many watches
-    static watchElement(element: HTMLElement, callback : (currentValue: any) => void, watcherOptions?: HSWatcherOptions) {
+    static watchElement(element: HTMLElement, callback: (currentValue: any) => void, watcherOptions?: HSWatcherOptions) {
         const self = this;
 
-        const options : HSWatcherOptions = { ...HSGlobal.HSElementHooker.defaultWatcherOptions, ...watcherOptions };
+        const options: HSWatcherOptions = { ...HSGlobal.HSElementHooker.defaultWatcherOptions, ...watcherOptions };
 
         if (!element) {
             HSLogger.warn('watchElement - element not found', this.#context);
@@ -126,7 +130,7 @@ export class HSElementHooker {
         const uuid = HSUtils.uuidv4();
 
         // Save watcher
-        this.#watchers.set(uuid, { 
+        this.#watchers.set(uuid, {
             element: element,
             callback: callback,
             value: undefined,
@@ -139,9 +143,9 @@ export class HSElementHooker {
         const observer = new MutationObserver((mutations) => {
             const watcher = self.#watchers.get(uuid);
 
-            if(watcher) {
+            if (watcher) {
                 // Throttling
-                if(!options.overrideThrottle && (watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.watcherThrottlingMS)) {
+                if (!options.overrideThrottle && (watcher.lastCall && (performance.now() - watcher.lastCall) < HSGlobal.HSElementHooker.watcherThrottlingMS)) {
                     return;
                 }
 
@@ -149,7 +153,7 @@ export class HSElementHooker {
                 const wCallback = watcher.callback;
                 const prevValue = watcher.value;
 
-                if(wParser) {
+                if (wParser) {
                     // Parse the element's value with either the supplied valueParser or the default parser
                     const newValue = wParser(element, mutations);
 
@@ -174,20 +178,20 @@ export class HSElementHooker {
 
         const watcher = self.#watchers.get(uuid);
 
-        if(watcher) {
+        if (watcher) {
             watcher.observer = observer;
         } else {
             HSLogger.warn('watchElement - error while setting up observer, could not get watcher', this.#context);
         }
 
-        let observerOptions : MutationObserverInit = {
-                characterData: options.characterData,
-                childList:  options.childList,
-                subtree: options.subtree, 
-                attributes: options.attributes,
+        let observerOptions: MutationObserverInit = {
+            characterData: options.characterData,
+            childList: options.childList,
+            subtree: options.subtree,
+            attributes: options.attributes,
         }
 
-        if(options.attributes) {
+        if (options.attributes) {
             observerOptions = { ...observerOptions, attributeOldValue: options.attributeOldValue, attributeFilter: options.attributeFilter };
         }
 
@@ -207,28 +211,17 @@ export class HSElementHooker {
         const watcher = this.#watchers.get(id);
 
         if (watcher) {
-            if(watcher.observer) {
+            if (watcher.observer) {
                 watcher.observer.disconnect();
             } else {
                 HSLogger.warn(`Watcher found, but it's observer is null`, this.#context);
             }
-            
+
             this.#watchers.delete(id);
             return true;
         }
 
-        HSLogger.warn(`No watcher found for uuid: ${id}`);
+        HSLogger.warn(`No watcher found for uuid: ${id}`, this.#context);
         return false;
-    }
-
-    // Stops all watchers
-    static stopWatchers() {
-        HSLogger.log(`Stopping all watchers`, this.#context);
-
-        this.#watchers.forEach(({ observer }) => {
-            if(observer) observer.disconnect();
-        });
-
-        this.#watchers.clear();
     }
 }

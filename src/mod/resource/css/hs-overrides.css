@@ -1,13 +1,20 @@
- #hs-ambrosia-quick-loadout-container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 0px;
-    width: auto;
-    gap: 4px;
-    flex-direction: row;
-    align-self: flex-end;
-    margin: 0px 4% 10px 0px;
-    border: 0px solid #4f86f7;
- }   
-    
+/* New 'Add 10' button in Settings tab */
+#hs-add-10-btn {
+   border: 2px solid green;
+   border-right: none;
+}
+
+/* Quick import button in Ambrosia subtab
++ resizing of all the buttons around so they fit in a line.*/
+#hs-ambrosia-extra-btn {
+   border: 2px solid orange;
+}
+.ambrosiaLoadoutBtn {
+   width: 15% !important;
+}
+
+/* Always hide the visually-useless ambrosia minibars numbers to avoid a 'jump' when enabling them. */
+#hs-blue-progress-text,
+#hs-red-progress-text {
+   display: none;
+}

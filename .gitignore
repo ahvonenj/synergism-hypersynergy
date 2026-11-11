@@ -1,8 +1,14 @@
 node_modules
 build
-snippets
-quarks_save_*.txt
-converted_save_*.txt
 Synergism-*.txt
 cdn_cache_purge.bat
 cdn_cache_purge.ps1
+local/
+
+synergism_modloader/node_modules/
+synergism_modloader/dist/
+/synergism_modloader/vendor
+hypersynergism_steam_modloader.zip
+
+CLAUDE.local.md
+.claude/settings.local.json

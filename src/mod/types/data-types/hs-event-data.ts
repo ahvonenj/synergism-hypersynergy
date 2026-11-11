@@ -1,3 +1,4 @@
+/** Types of buffs that can be applied by events. */
 export enum EventBuffType {
     Quark = 0,
     GoldenQuark = 1,
@@ -15,65 +16,41 @@ export enum EventBuffType {
     OneMind = 13
 }
 
-export interface GameEvent {
-    name: string;
-    internalName: string;
-    endsAt: number;
+export interface VanillaGlobalEvent {
+    name: string[];
+    url: string[];
+    start: number;
+    end: number;
+    quark: number;
+    goldenQuark: number;
+    cubes: number;
+    powderConversion: number;
+    ascensionSpeed: number;
+    globalSpeed: number;
+    ascensionScore: number;
+    antSacrifice: number;
+    offering: number;
+    obtainium: number;
+    octeract: number;
+    blueberryTime: number;
+    ambrosiaLuck: number;
+    oneMind: number;
+    color: string[];
 }
 
-export enum GameEventType {
-    INFO_ALL = "info-all",
-    JOIN = "join",
-    ERROR = "error",
-    EVENT_ENDED = "consumable-ended"
-}
-
+/** Internal identifiers for tracked consumables (the keys of the game's allDurableConsumables, Login.ts). */
 export enum GameEventID {
-    HAPPY_HOUR_BELL = "HAPPY_HOUR_BELL",
+    HAPPY_HOUR_BELL = "HAPPY_HOUR_BELL"
 }
 
-export interface GameEventResponse {
-    type: string, // "info-all" | "join"
-    active?: GameEvent[],
-    tips?: number,
-    consumable: GameEventID
-}
-
+/** State for a single consumable game event (amount, end times, display name). */
 export interface ConsumableGameEvent {
     amount: number;
     ends: number[];
     displayName: string;
 }
 
+/** Mapping of GameEventID to their corresponding ConsumableGameEvent state. */
 export type ConsumableGameEvents = {
     [key in GameEventID]: ConsumableGameEvent;
 };
-
-/*
-{
-    "type": "info-all",
-    "active": [
-        {
-            "name": "Happy Hour Bell",
-            "internalName": "HAPPY_HOUR_BELL",
-            "endsAt": 1747402573000
-        },
-        {
-            "name": "Happy Hour Bell",
-            "internalName": "HAPPY_HOUR_BELL",
-            "endsAt": 1747402576000
-        },
-        {
-            "name": "Happy Hour Bell",
-            "internalName": "HAPPY_HOUR_BELL",
-            "endsAt": 1747402846000
-        },
-        {
-            "name": "Happy Hour Bell",
-            "internalName": "HAPPY_HOUR_BELL",
-            "endsAt": 1747402849000
-        }
-    ],
-    "tips": 0
-}
-*/

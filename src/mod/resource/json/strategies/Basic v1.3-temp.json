@@ -1,0 +1,720 @@
+{
+  "strategyName": "Basic v1.3-temp",
+  "strategy": [
+    {
+      "startPhase": "start",
+      "endPhase": "challenge10",
+      "strat": [
+        {
+          "challengeNumber": 305,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 1,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 2,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 3,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 4,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 5,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 6,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 7,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 8,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 9,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 250,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 301,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 104,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        }
+      ]
+    },
+    {
+      "startPhase": "challenge10",
+      "endPhase": "singularity",
+      "strat": [
+        {
+          "challengeNumber": 11,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 12,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 13,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 14,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 15,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 1,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 2,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 3,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 4,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 5,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 6,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 7,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 403,
+          "ascendAfterCorruption": true,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0,
+          "corruptionLevel": 20,
+          "comment": "Before leaving the 1st C15"
+        },
+        {
+          "challengeNumber": 103,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        }
+      ]
+    },
+    {
+      "startPhase": "singularity",
+      "endPhase": "end",
+      "strat": [
+        {
+          "challengeNumber": 403,
+          "ascendAfterCorruption": true,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0,
+          "corruptionLevel": 50
+        },
+        {
+          "challengeNumber": 302,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 104,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 212,
+          "challengeCompletions": 1,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 214,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 15,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 10000
+        },
+        {
+          "challengeNumber": 610,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 50,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 8,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 104,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 602,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 607,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 610,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 8,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 103,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 50,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 602,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 50,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 607,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 50,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 610,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 120,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 15,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 1,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 2,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 3,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 4,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 5,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 6,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 7,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 9,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 8,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 10,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 103,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 100,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 1,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 2,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 3,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 4,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 5,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 6,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 7,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 8,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 9,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 10,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 102,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 120,
+          "challengeMaxTime": 0
+        },
+        {
+          "challengeNumber": 104,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 304,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 0,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 50,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 40,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 30,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 20,
+          "challengeMaxTime": 1000000
+        },
+        {
+          "challengeNumber": 152,
+          "challengeCompletions": 0,
+          "challengeWaitTime": 0,
+          "challengeWaitBefore": 10,
+          "challengeMaxTime": 1000000
+        }
+      ]
+    }
+  ],
+  "aoagPhase": {
+    "startPhase": "ascension",
+    "endPhase": "ascension",
+    "strat": [
+      {
+        "challengeNumber": 103,
+        "challengeCompletions": 0,
+        "challengeWaitTime": 0,
+        "challengeMaxTime": 0
+      },
+      {
+        "challengeNumber": 152,
+        "challengeCompletions": 0,
+        "challengeWaitTime": 0,
+        "challengeWaitBefore": 100,
+        "challengeMaxTime": 0
+      },
+      {
+        "challengeNumber": 901,
+        "challengeCompletions": 0,
+        "challengeWaitTime": 0,
+        "challengeWaitBefore": 1,
+        "challengeMaxTime": 0
+      }
+    ],
+    "phaseId": "aoag"
+  }
+}

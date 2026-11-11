@@ -13,25 +13,17 @@ declare global {
     interface Element {
         delegateEventListener : DelegateEventListener<Element>;
         removeDelegateEventListener: RemoveDelegateEventListener<Element>;
-
-        // Declare _delegateListeners attribute where we store the delegateEventListeners
-        // This is so that we can use removeDelegateEventListener to remove delegate listeners
-        _delegateListeners?: Map<string, Map<Function, { delegateHandler: Function }>>;
     }
 
     interface HTMLElement {
         transition(properties: TransitionProperties, duration?: number, timingFunction?: string): Promise<void>;
-        clearTransitions(): void
         textNodes(): string[];
+        clearTransitions(): void
     }
 
     interface Document {
         delegateEventListener : DelegateEventListener<Document>;
         removeDelegateEventListener: RemoveDelegateEventListener<Document>;
-
-        // Declare _delegateListeners attribute where we store the delegateEventListeners
-        // This is so that we can use removeDelegateEventListener to remove delegate listeners
-        _delegateListeners?: Map<string, Map<Function, { delegateHandler: Function }>>;
     }
 
     interface Node {
@@ -49,14 +41,14 @@ declare global {
     }
 }
 
-/*
-    Class: HSPrototypes
-    IsExplicitHSModule: Yes
-    Description: 
-        Prototype extension module for Hypersynergism.
-        All (global) prototype extensions should be implemented here.
-    Author: Swiffy
-*/
+/**
+ *   Class: HSPrototypes
+ *   IsExplicitHSModule: Yes
+ *   Description: 
+ *     Prototype extension module for Hypersynergism.
+ *     All (global) prototype extensions should be implemented here.
+ *   Author: Swiffy
+ */
 export class HSPrototypes extends HSModule {
     
     constructor(moduleOptions : HSModuleOptions) {
@@ -76,7 +68,6 @@ export class HSPrototypes extends HSModule {
 
         // Extend HTMLElement prototype with transition method
         HTMLElement.prototype.transition = this.#createTransition();
-        HTMLElement.prototype.clearTransitions = this.#createClearTransitions();
 
         // Extend Object with typedEntries method
         // This method is a type-safe version of Object.entries
@@ -86,15 +77,6 @@ export class HSPrototypes extends HSModule {
         // This method wraps the string in a color tag for use in the mod's log
         String.prototype.colorTag = function(color: string) {
             return `<${color}>${this}</${color}>`;
-        }
-
-        // Extend HTMLElement prototype with textNodes method
-        // This method returns an array of text nodes in the element
-        HTMLElement.prototype.textNodes = function() {
-            return Array.from(this.childNodes)
-                        .filter(n => n.nodeType === Node.TEXT_NODE)
-                        .map(n => n.textContent ?? null)
-                        .filter(n => n !== null) as string[];
         }
 
         this.isInitialized = true;
@@ -328,23 +310,6 @@ export class HSPrototypes extends HSModule {
                 // Check completion immediately in case some properties were removed from pending
                 checkCompletion();
             });
-        };
-    }
-
-    #createClearTransitions(): () => void {
-        return function(this: HTMLElement): void {
-            this.style.transition = 'none';
-
-            if ((this as any)._hsTransitionEndHandler) {
-                this.removeEventListener('transitionend', (this as any)._hsTransitionEndHandler);
-                delete (this as any)._hsTransitionEndHandler; // Clean up the stored reference
-            }
-
-            // for (const prop in this.style) {
-            //     if (this.style.hasOwnProperty(prop) && prop !== 'transition') {
-            //         this.style[prop] = ''; // Or perhaps remove the property
-            //     }
-            // }
         };
     }
 

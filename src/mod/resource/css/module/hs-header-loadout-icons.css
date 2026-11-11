@@ -1,0 +1,83 @@
+/* Icons on the game's header loadout slots, and their size in the grid (HSHeaderLoadoutIcons). Injected by the module
+   before it paints: without position: relative on the slot, the game's absolute img (inset: 0) takes a far ancestor's
+   size. */
+
+/* The mod's icons: placed as the game places its own, which it does only on slots with a data-icon */
+#mainHeader .headerLoadoutSlot.hs-header-loadout-custom {
+   position: relative;
+}
+
+/* The slot number on any icon (the game's or the mod's): small, in the top-left corner, as on the ambrosia quickbar */
+#mainHeader .headerLoadoutSlot.hs-header-loadout-custom > span,
+#mainHeader .headerLoadoutSlot[data-icon] > span {
+   position: absolute;
+   top: 0;
+   left: 2px;
+   font-size: 0.7em;
+   line-height: 1.1;
+   text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black;
+}
+
+/* Above the game's slot borders and the loaded slot's rainbow/silver border (hs-animations.css, !important, a
+   border-image) */
+#mainHeader .headerLoadoutSlots .headerLoadoutSlot.hs-quickbar-slot-pickmode {
+   border: 2px dashed #ffff00 !important;
+   border-image: none !important;
+}
+
+/* Ambrosia loadout modules in the grid: the game gives them a currency module's width (158px) and wraps their slots
+   (5 + 3 at M for the default 8). Stretched to their cell, a row holds --hs-loadout-columns slots (HSHeaderEditSettings:
+   all those shown up to 8, then two even rows; 8 on the page module), as wide as the row allows up to the automation
+   bar's buttons (26px at M), and that tall. The cell's horizontal alignment (HSHeaderCellSettings) moves the slots,
+   centred by default as the game centres a module. Setting headerFitLoadoutSlots: its class on <html> while off gives
+   the game's own layout back. */
+html:not(.hs-header-game-loadout-slots) #headerGrid :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader) {
+   justify-self: stretch;
+   width: auto;
+}
+/* In a stack (a flex column), the cell's alignment would shrink it to its icon */
+html:not(.hs-header-game-loadout-slots) #headerGrid .headerStack > :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader) {
+   align-self: stretch;
+}
+html:not(.hs-header-game-loadout-slots) #headerGrid :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader) > .headerLoadoutSlots {
+   flex: 1 1 0;
+   min-width: 0;
+   container-type: inline-size;
+   display: grid;
+   grid-template-columns: repeat(var(--hs-loadout-columns, 8), max-content);
+   justify-content: center;
+   gap: 2px 0;
+}
+html:not(.hs-header-game-loadout-slots) #headerGrid :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader):is([data-hs-header-align="left"], [data-hs-header-align="left"] *) > .headerLoadoutSlots {
+   justify-content: start;
+}
+html:not(.hs-header-game-loadout-slots) #headerGrid :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader):is([data-hs-header-align="right"], [data-hs-header-align="right"] *) > .headerLoadoutSlots {
+   justify-content: end;
+}
+/* Each slot's share of the row (less 1px against rounding) holds the slot and its gap, half on each side: 2px as the
+   automation bar's when a full-size slot still fits, else 1px (the game's) and the slot shrinks. The row's own gap
+   can't do it: the row is the container the slots measure, and its own properties can't read its width. */
+html:not(.hs-header-game-loadout-slots) #headerGrid :is(#ambrosiaLoadoutsHeader, #ambrosiaLoadoutPageHeader) .headerLoadoutSlot {
+   --hs-slot-share: calc((100cqi - 1px) / var(--hs-loadout-columns, 8));
+   --hs-slot-gap: clamp(1px, round(down, var(--hs-slot-share) - 1.625em, 1px), 2px);
+   width: min(var(--hs-slot-share) - var(--hs-slot-gap), 1.625em);
+   min-width: 0;
+   height: 1.625em;
+   min-height: 0;
+   margin-inline: calc(var(--hs-slot-gap) / 2);
+   padding: 0;
+}
+
+/* Under the game's icon modal for a header slot, outside #modalContent (which the game patches) */
+#hs-header-loadout-pick-row {
+   display: flex;
+   justify-content: center;
+   gap: 8px;
+   padding: 0 15px 15px;
+}
+#hs-header-loadout-pick-row > button {
+   padding: 4px 10px;
+   border: 2px solid #ffffff40;
+   border-radius: 5px;
+   font-size: 1em;
+}

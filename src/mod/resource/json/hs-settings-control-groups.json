@@ -1,46 +1,62 @@
 {
-    "hepteracts": {
-        "groupName": "Hepteract settings",
-        "order": 1
-    },
-    "notifications": {
-        "groupName": "Notification settings",
-        "order": 2
-    },
-    "log": {
-        "groupName": "Log settings",
-        "order": 3
-    },
-    "mouse": {
-        "groupName": "Mouse settings",
-        "order": 4
-    },
-    "ambrosia": {
-        "groupName": "Ambrosia quickbar settings",
-        "order": 5
-    },
-    "ambrosia2": {
-        "groupName": "Idle Swapper settings",
-        "order": 6
-    },
-    "ambrosia3": {
-        "groupName": "Minibar settings",
-        "order": 7
-    },
-    "patch": {
-        "groupName": "Patch settings",
-        "order": 8
-    },
-    "gamedata": {
-        "groupName": "Game data settings",
-        "order": 9
-    },
-    "shop": {
-        "groupName": "Shop settings",
-        "order": 10
-    },
-    "debug": {
-        "groupName": "Debugging settings",
-        "order": 11
-    }
+  "dialogs-notifications": {
+    "groupName": "Dialogs & notifications",
+    "order": 2
+  },
+  "game-load": {
+    "groupName": "Game load",
+    "order": 3
+  },
+  "header-tabs": {
+    "groupName": "Header & tabs",
+    "order": 4
+  },
+  "mouse": {
+    "groupName": "Mouse",
+    "order": 6
+  },
+  "gamedata": {
+    "groupName": "Game data",
+    "order": 11
+  },
+  "save-export": {
+    "groupName": "Timed save export",
+    "order": 23
+  },
+  "debug": {
+    "groupName": "Debugging",
+    "order": 10
+  },
+  "auto-sing": {
+    "groupName": "Auto-Sing",
+    "order": 14
+  },
+  "auto-sing-strategy-controls": {
+    "groupName": "Strategy",
+    "order": 15
+  },
+  "auto-sing-ambrosia": {
+    "groupName": "Ambrosia loadouts",
+    "order": 16
+  },
+  "auto-sing-timer-modal": {
+    "groupName": "Advanced",
+    "order": 17
+  },
+  "quickbar-qol": {
+    "groupName": "Quickbar QoL",
+    "order": 18
+  },
+  "hepteracts": {
+    "groupName": "Hepteracts",
+    "order": 18.5
+  },
+  "singularity": {
+    "groupName": "Singularity",
+    "order": 19
+  },
+  "ambrosia": {
+    "groupName": "Ambrosia",
+    "order": 22
+  }
 }

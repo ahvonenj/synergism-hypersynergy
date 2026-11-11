@@ -1,444 +1,2085 @@
 {
-    "expandCostProtection": {
-        "settingName": "expandCostProtection",
-        "settingDescription": "Hept. expand cost protection",
-        "settingHelpText": "When enabled, makes clicking hepteract icons in the hepteract view (quick expand and max feature) not do anything if it would cost >= settingValue percentage hepteracts",
-        "settingType": "numeric",
-        "enabled": true,
-        "settingValue": 0.5,
-        "settingControl": {
-            "controlId": "hs-setting-expand-cost-protection-value",
-            "controlType": "number",
-            "controlGroup": "hepteracts",
-            "controlPage": "hepteract",
-            "controlEnabledId": "hs-setting-expand-cost-protection-btn",
-            "controlOptions": {
-                "min": 0,
-                "max": 1,
-                "step": 0.1
-            }
-        }
-    },
-
-    "expandCostProtectionDoubleCap": {
-        "settingName": "expandCostProtectionDoubleCap",
-        "settingDescription": "Hepteract double capacity unlocked?",
-        "settingHelpText": "Check this if you have the double capacity upgrade unlocked for hepteracts. This will make the expand cost protection setting work correctly.",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "hepteracts",
-            "controlPage": "hepteract",
-            "controlEnabledId": "hs-setting-hepteract-double-cap-btn"
-        }
-    },
-
-    "expandCostProtectionNotifications": {
-        "settingName": "expandCostProtectionNotifications",
-        "settingDescription": "Suppress cost protection logs",
-        "settingHelpText": "Check this if you want to suppress the rather spammy cost protection notifications in the log",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "hepteracts",
-            "controlPage": "hepteract",
-            "controlEnabledId": "hs-setting-hepteract-cost-protection-notifications-btn"
-        }
-    },
-
-    "syncNotificationOpacity": {
-        "settingName": "syncNotificationOpacity",
-        "settingDescription": "Notification opacity",
-        "settingHelpText": "Controls in-game notification opacity. Achievement notifications are one example of in-game notifications.",
-        "settingType": "numeric",
-        "enabled": true,
-        "settingValue": 0.6,
-        "settingAction": "syncNotificationOpacity",
-        "settingControl": {
-            "controlId": "hs-setting-notification-opacity-value",
-            "controlType": "number",
-            "controlGroup": "notifications",
-            "controlPage": "ui",
-            "controlEnabledId": "hs-setting-notification-opacity-btn",
-            "controlOptions": {
-                "min": 0,
-                "max": 1,
-                "step": 0.05
-            }
-        }
-    },
-
-    "logTimestamp": {
-        "settingName": "logTimestamp",
-        "settingDescription": "Display timestamps in log",
-        "settingHelpText": "Controls whether timestamps are visible or not in the mod's log view",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingAction": "logTimestamp",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "log",
-            "controlPage": "log",
-            "controlEnabledId": "hs-setting-display-timestamp-btn"
-        }
-    },
-
-    "showDebugLogs": {
-        "settingName": "showDebugLogs",
-        "settingDescription": "Show debug logs",
-        "settingHelpText": "Controls whether 'debug' type logs are visible or not in the mod's log view.",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "debug",
-            "controlPage": "debug",
-            "controlEnabledId": "hs-setting-display-debug-logs-btn"
-        }
-    },
-
-    "reactiveMouseHover": {
-        "settingName": "reactiveMouseHover",
-        "settingDescription": "Reactive mouse hover (when SHIFT is held)",
-        "settingHelpText": "When enabled, mouse will emit hover events at current mouse position when SHIFT is held. Setting value is event interval in seconds (0.1 = 100ms).",
-        "settingType": "numeric",
-        "enabled": true,
-        "settingValue": 0.2,
-        "settingValueMultiplier": 1000,
-        "settingAction": "reactiveMouseHover",
-        "settingControl": {
-            "controlId": "hs-setting-reactive-mouse-hover-value",
-            "controlType": "number",
-            "controlGroup": "mouse",
-            "controlPage": "input",
-            "controlEnabledId": "hs-setting-reactive-mouse-hover-btn",
-            "controlOptions": {
-                "min": 0,
-                "max": 1,
-                "step": 0.05
-            }
-        }
-    },
-
-    "autoClick": {
-        "settingName": "autoClick",
-        "settingDescription": "Auto click (when CTRL is held)",
-        "settingHelpText": "When enabled, mouse will click automatically at current mouse position when CTRL is held. Setting value is click interval in seconds (0.1 = 100ms)",
-        "settingType": "numeric",
-        "enabled": true,
-        "settingValue": 0.15,
-        "settingValueMultiplier": 1000,
-        "settingAction": "autoClick",
-        "settingControl": {
-            "controlId": "hs-setting-auto-click-value",
-            "controlType": "number",
-            "controlGroup": "mouse",
-            "controlPage": "input",
-            "controlEnabledId": "hs-setting-auto-click-btn",
-            "controlOptions": {
-                "min": 0,
-                "max": 1,
-                "step": 0.05
-            }
-        }
-    },
-
-    "autoClickIgnoreElements": {
-        "settingName": "autoClickIgnoreElements",
-        "settingDescription": "Auto click ignores certain elements",
-        "settingHelpText": "When enabled, auto click will ignore (not click on) certain elements such as some buttons which there should be no need to auto click. This is to prevent accidental clicks.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "mouse",
-            "controlPage": "input",
-            "controlEnabledId": "hs-setting-autoclick-ignore-btn"
-        }
-    },
-
-    "ambrosiaQuickBar": {
-        "settingName": "ambrosiaQuickBar",
-        "settingDescription": "Ambrosia quick bar",
-        "settingHelpText": "When enabled, displays ambrosia loadout quick bar in the header. This is a quick way to load ambrosia loadouts without having to open the ambrosia menu.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingAction": "ambrosiaQuickBarAction",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "ambrosia",
-            "controlPage": "ambrosia",
-            "controlEnabledId": "hs-setting-ambrosia-quickbar-btn"
-        }
-    },
-
-    "autoLoadout": {
-        "settingName": "autoLoadout",
-        "settingDescription": "Auto loadout",
-        "settingHelpText": "When enabled, the mod will automatically switch to configured ambrosia loadouts when ADD or TIME buttons are clicked.",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingAction": "autoLoadout",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "ambrosia",
-            "controlPage": "ambrosia",
-            "controlEnabledId": "hs-setting-auto-loadout-btn"
-        }
-    },
-
-    "autoLoadoutState": {
-        "settingName": "autoLoadoutState",
-        "settingDescription": "Current loadout state",
-        "settingHelpText": "This shows if the mod is aware of your current loadout state. If the state is Unknown, auto loadout switch will not work. To fix this, open the ambrosia menu and switch to any loadout.",
-        "settingType": "state",
-        "settingValue": "<red>Unknown</red>",
-        "enabled": true,
-        "settingControl": {
-            "controlId": "hs-setting-auto-loadout-state-value",
-            "controlType": "state",
-            "controlGroup": "ambrosia",
-            "controlPage": "ambrosia"
-        }
-    },
-
-    "autoLoadoutAdd": {
-        "settingName": "autoLoadoutAdd",
-        "settingDescription": "ADD Loadout",
-        "settingHelpText": "Configures to loadout to use when ADD button is clicked.",
-        "settingType": "selectstring",
-        "enabled": true,
-        "settingValue": "",
-        "settingControl": {
-            "controlId": "hs-setting-add-loadout-value",
-            "controlType": "select",
-            "controlGroup": "ambrosia",
-            "controlPage": "ambrosia",
-            "selectOptions": [
-                { "text": "None", "value": "" },
-                { "text": "Loadout 1", "value": "1" },
-                { "text": "Loadout 2", "value": "2" },
-                { "text": "Loadout 3", "value": "3" },
-                { "text": "Loadout 4", "value": "4" },
-                { "text": "Loadout 5", "value": "5" },
-                { "text": "Loadout 6", "value": "6" },
-                { "text": "Loadout 7", "value": "7" },
-                { "text": "Loadout 8", "value": "8" }
-            ]
-        }
-    },
-
-    "autoLoadoutTime": {
-        "settingName": "autoLoadoutTime",
-        "settingDescription": "TIME loadout",
-        "settingHelpText": "Configures to loadout to use when TIME button is clicked.",
-        "settingType": "selectstring",
-        "enabled": true,
-        "settingValue": "",
-        "settingControl": {
-            "controlId": "hs-setting-time-loadout-value",
-            "controlType": "select",
-            "controlGroup": "ambrosia",
-            "controlPage": "ambrosia",
-            "selectOptions": [
-                { "text": "None", "value": "" },
-                { "text": "Loadout 1", "value": "1" },
-                { "text": "Loadout 2", "value": "2" },
-                { "text": "Loadout 3", "value": "3" },
-                { "text": "Loadout 4", "value": "4" },
-                { "text": "Loadout 5", "value": "5" },
-                { "text": "Loadout 6", "value": "6" },
-                { "text": "Loadout 7", "value": "7" },
-                { "text": "Loadout 8", "value": "8" }
-            ]
-        }
-    },
-
-    "ambrosiaIdleSwap": {
-        "settingName": "ambrosiaIdleSwap",
-        "settingDescription": "Ambrosia AFK swapper",
-        "settingHelpText": "When enabled, automatically switches ambrosia loadouts depending on the ambrosia bar progress. IMPORTANT: BY DESIGN, THE AUTO SWAPPER WILL ONLY WORK WHEN IN THE AMBROSIA VIEW, SO NO 'SWAPPING IN THE BACKGROUND'",
-        "settingType": "boolean",
-        "enabled": true,
-        "usesGameData": true,
-        "settingAction": "ambrosiaIdleSwapAction",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "ambrosia2",
-            "controlPage": "ambrosia",
-            "controlEnabledId": "hs-setting-ambrosia-idle-swap-btn"
-        }
-    },
-
-    "ambrosiaIdleSwapNormalLoadout": {
-        "settingName": "ambrosiaIdleSwapNormalLoadout",
-        "settingDescription": "Normal loadout",
-        "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is not full.",
-        "settingType": "selectstring",
-        "enabled": true,
-        "settingValue": "",
-        "settingControl": {
-            "controlId": "hs-setting-idle-swap-normal-loadout-value",
-            "controlType": "select",
-            "controlGroup": "ambrosia2",
-            "controlPage": "ambrosia",
-            "selectOptions": [
-                { "text": "None", "value": "" },
-                { "text": "Loadout 1", "value": "1" },
-                { "text": "Loadout 2", "value": "2" },
-                { "text": "Loadout 3", "value": "3" },
-                { "text": "Loadout 4", "value": "4" },
-                { "text": "Loadout 5", "value": "5" },
-                { "text": "Loadout 6", "value": "6" },
-                { "text": "Loadout 7", "value": "7" },
-                { "text": "Loadout 8", "value": "8" }
-            ]
-        }
-    },
-
-    "ambrosiaIdleSwap100Loadout": {
-        "settingName": "ambrosiaIdleSwap100Loadout",
-        "settingDescription": "100% loadout",
-        "settingHelpText": "Ambrosia AFK swapper will switch to this loadout when ambrosia bar is about to hit 100%.",
-        "settingType": "selectstring",
-        "enabled": true,
-        "settingValue": "",
-        "settingControl": {
-            "controlId": "hs-setting-idle-swap-100-loadout-value",
-            "controlType": "select",
-            "controlGroup": "ambrosia2",
-            "controlPage": "ambrosia",
-            "selectOptions": [
-                { "text": "None", "value": "" },
-                { "text": "Loadout 1", "value": "1" },
-                { "text": "Loadout 2", "value": "2" },
-                { "text": "Loadout 3", "value": "3" },
-                { "text": "Loadout 4", "value": "4" },
-                { "text": "Loadout 5", "value": "5" },
-                { "text": "Loadout 6", "value": "6" },
-                { "text": "Loadout 7", "value": "7" },
-                { "text": "Loadout 8", "value": "8" }
-            ]
-        }
-    },
-
-    "ambrosiaMinibars": {
-        "settingName": "ambrosiaMinibars",
-        "settingDescription": "Ambrosia minibars",
-        "settingHelpText": "Displays small blue- and red ambrosia progress bars in the page header",
-        "settingType": "boolean",
-        "enabled": true,
-        "usesGameData": true,
-        "settingAction": "ambrosiaMinibarAction",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "ambrosia3",
-            "controlPage": "ambrosia",
-            "controlEnabledId": "hs-setting-ambrosia-minibar-btn"
-        }
-    },
-
-    "patch_ambrosiaViewOverflow": {
-        "settingName": "patch_ambrosiaViewOverflow",
-        "settingDescription": "Fix ambrosia view overflow",
-        "settingHelpText": "This patch fixes an overflow issue in the ambrosia view which makes the page jump around when hovering over ambrosia upgrades.",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingAction": "patch",
-        "patchConfig": {
-            "patchName": "AmbrosiaViewOverflow"
-        },
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "patch",
-            "controlPage": "patch",
-            "controlEnabledId": "hs-setting-patch-ambrosia-view-overflow-btn"
-        }
-    },
-
-    "patch_testPatch": {
-        "settingName": "patch_testPatch",
-        "settingDescription": "Test patch",
-        "settingHelpText": "Test patch (makes the Buildings button color red)",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingAction": "patch",
-        "patchConfig": {
-            "patchName": "TestPatch"
-        },
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "patch",
-            "controlPage": "patch",
-            "controlEnabledId": "hs-setting-patch-test-btn"
-        }
-    },
-
-    "patch_shopItemNameMapping": {
-        "settingName": "patch_shopItemNameMapping",
-        "settingDescription": "Display shop item names",
-        "settingHelpText": "Populates the shop items with their names.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingAction": "patch",
-        "patchConfig": {
-            "patchName": "ShopItemNameMapping"
-        },
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "patch",
-            "controlPage": "patch",
-            "controlEnabledId": "hs-setting-patch-shopnames-btn"
-        }
-    },
-
-    "patch_iconSetCaching": {
-        "settingName": "patch_iconSetCaching",
-        "settingDescription": "IconSet Caching",
-        "settingHelpText": "Use an alternative method of caching for certain icons to prevent excessive fetching when using DevTools. This probably doesn't matter for most players. Leave it off if you don't know what it does.",
-        "settingType": "boolean",
-        "enabled": false,
-        "settingAction": "patch",
-        "patchConfig": {
-            "patchName": "IconSetCaching"
-        },
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "patch",
-            "controlPage": "patch",
-            "controlEnabledId": "hs-setting-patch-iconsets-btn"
-        }
-    },
-
-    "useGameData": {
-        "settingBlockId": "hs-setting-block-gamedata",
-        "settingName": "useGameData",
-        "settingDescription": "Game Data Sniffing (GDS)",
-        "settingHelpText": "Enables game data sniffing by continuously scanning localStorage save data in the background. Enabling this gives the mod vastly enhanced functionality, but may cause performance issues on some systems.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingAction": "useGameData",
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "gamedata",
-            "controlPage": "gamedata",
-            "controlEnabledId": "hs-setting-use-game-data-btn"
-        }
-    },
-
-    "stopSniffOnError": {
-        "settingName": "stopSniffOnError",
-        "settingDescription": "Auto disable on error",
-        "settingHelpText": "When enabled, the mod will automatically disable game data sniffing if an error occurs. Recommended to be enabled as reading game data is not always reliable.",
-        "settingType": "boolean",
-        "enabled": true,
-        "settingControl": {
-            "controlType": "switch",
-            "controlGroup": "gamedata",
-            "controlPage": "gamedata",
-            "controlEnabledId": "hs-setting-stop-sniff-on-error-btn"
-        }
+  "enableHepteractDistributor": {
+    "settingName": "enableHepteractDistributor",
+    "settingDescription": "Hepteract Distributor",
+    "settingHelpText": "Adds a Distributor button to the Hepteract Forge. It opens a panel that spends your hepteracts on the hepteract types following the ratios you set. It crafts through the game's Auto craft, so it ascends several times in a row and only hepteracts are spent.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "enableHepteractDistributorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "hepteracts",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-hepteract-distributor-btn"
     }
+  },
+  "expandCostProtection": {
+    "settingName": "expandCostProtection",
+    "settingDescription": "Quick expand cost protection",
+    "settingHelpText": "When enabled, makes clicking hepteract icons in the hepteract view (quick expand and max feature) not do anything if it would cost \u003e= settingValue percentage hepteracts",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.5,
+    "settingControl": {
+      "controlId": "hs-setting-expand-cost-protection-value",
+      "controlType": "number",
+      "controlGroup": "hepteracts",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-expand-cost-protection-btn",
+      "controlOptions": {
+        "min": 0,
+        "max": 1,
+        "step": 0.1
+      }
+    }
+  },
+  "hepteractDistributorOpen": {
+    "settingName": "hepteractDistributorOpen",
+    "settingDescription": "Hepteract Distributor panel open",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "keepHeaderLayoutOnImport": {
+    "settingName": "keepHeaderLayoutOnImport",
+    "settingDescription": "Keep my header layout when a save is loaded (checkbox under Load from file)",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "headerAmbrosiaSlotsShown": {
+    "settingName": "headerAmbrosiaSlotsShown",
+    "settingDescription": "Ambrosia loadout slots shown in the header (block next to the header's edit tray, 16 = all)",
+    "settingType": "numeric",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": 16
+  },
+  "hepteractDistributorAllowPartial": {
+    "settingName": "hepteractDistributorAllowPartial",
+    "settingDescription": "Hepteract Distributor: allow partly filled meters",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "hepteractDistributorUseReducers": {
+    "settingName": "hepteractDistributorUseReducers",
+    "settingDescription": "Hepteract Distributor: use singularity reducers",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "hepteractDistributorTalismanAlone": {
+    "settingName": "hepteractDistributorTalismanAlone",
+    "settingDescription": "Hepteract Distributor: replace the ambrosia tree for Talisman Power alone",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "hepteractDistributorRatios": {
+    "settingName": "hepteractDistributorRatios",
+    "settingDescription": "Hepteract Distributor saved ratios",
+    "settingType": "string",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": ""
+  },
+  "hepteractDistributorOrbsPercent": {
+    "settingName": "hepteractDistributorOrbsPercent",
+    "settingDescription": "Hepteract Distributor: percentage of hepteracts for Overflux Orbs",
+    "settingType": "numeric",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": 0
+  },
+  "hepteractDistributorKeep": {
+    "settingName": "hepteractDistributorKeep",
+    "settingDescription": "Hepteract Distributor: hepteracts never spent, as how many powers of ten below the stock's own (1 with 3.4e16 owned keeps 1e15, -1 keeps nothing)",
+    "settingType": "numeric",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": -1
+  },
+  "editGameHeader": {
+    "settingName": "editGameHeader",
+    "settingDescription": "Edit game header",
+    "settingHelpText": "Open the game's header editor to move and resize modules, with HS alignment and half-height controls. You can also open it by holding down on the header when Long press to edit is enabled. Click Done in the header when finished.",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "editGameHeaderAction",
+    "settingControl": {
+      "controlId": "hs-setting-edit-game-header-button",
+      "controlType": "button",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui"
+    }
+  },
+  "hideGameDialogs": {
+    "settingName": "hideGameDialogs",
+    "settingDescription": "Hide game dialogs",
+    "settingHelpText": "Adds a 'Don't show again' / 'Always confirm' checkbox to the game's Confirm and Alert dialogs. Hidden dialogs are answered OK without being shown. Turning this on also hides a ready-made list of useless dialogs. The list of hidden dialogs is shown below while this is on.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "hideGameDialogs",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "dialogs-notifications",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-hide-game-dialogs-btn"
+    }
+  },
+  "hideGameDialogsNotify": {
+    "settingName": "hideGameDialogsNotify",
+    "settingBlockId": "hs-setting-block-hide-game-dialogs-notify",
+    "settingDescription": "Show as notifications",
+    "settingHelpText": "When a hidden Alert is answered, its text is shown as a notification instead (e.g. how many levels a multi-buy purchased). Hidden Confirms are never shown.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "dialogs-notifications",
+      "controlParent": "hideGameDialogs",
+      "controlHideWhenParentOff": true,
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-hide-game-dialogs-notify-btn"
+    }
+  },
+  "compactChallengeText": {
+    "settingName": "compactChallengeText",
+    "settingDescription": "Compact progress text in the game's challenge modules",
+    "settingHelpText": "Show current/required amounts or Challenge 15 scores without the challenge name, using one grid row. Hover for the full description. Inactive modules keep the game's challenge-name preview in the editor.",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true,
+    "settingAction": "compactChallengeTextAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-compact-challenge-text-btn"
+    }
+  },
+  "challengeProgressHeader": {
+    "settingName": "challengeProgressHeader",
+    "settingDescription": "Challenge progress module in the header",
+    "settingHelpText": "One header module for the challenges you are in.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "challengeProgressHeaderAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-challenge-progress-header-btn"
+    }
+  },
+  "challengeProgressLayout": {
+    "settingName": "challengeProgressLayout",
+    "settingDescription": "Challenge progress module: layout",
+    "settingHelpText": "All challenges on one line, or one line each.",
+    "settingType": "string",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": "line"
+  },
+  "challengeProgressDetails": {
+    "settingName": "challengeProgressDetails",
+    "settingDescription": "Challenge progress module: details",
+    "settingHelpText": "After each challenge: nothing, its completions (the score for C15), or its completions and requirement.",
+    "settingType": "string",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": "completions"
+  },
+  "challengeProgressShowNone": {
+    "settingName": "challengeProgressShowNone",
+    "settingDescription": "Challenge progress module: CØ outside challenges",
+    "settingHelpText": "A discreet CØ when you are in no challenge, instead of an empty module.",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "corruptionHeaderControls": {
+    "settingName": "corruptionHeaderControls",
+    "settingDescription": "Corruption module: next level and controls",
+    "settingHelpText": "Shows the next ascension's corruption level when it differs. Click the module to change it.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "corruptionHeaderControlsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-corruption-header-controls-btn"
+    }
+  },
+  "corruptionHeaderInline": {
+    "settingName": "corruptionHeaderInline",
+    "settingDescription": "Corruption module: level controls in the module",
+    "settingHelpText": "Change the next level in the module itself, at sizes M and L. The icon and the current level still open the popover.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "corruptionHeaderInlineAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-corruption-header-inline-btn"
+    }
+  },
+  "corruptionHeaderAlwaysShown": {
+    "settingName": "corruptionHeaderAlwaysShown",
+    "settingDescription": "Keep the corruption module visible",
+    "settingHelpText": "Keeps the Corruption level module in the header before Challenge 11 is completed in a singularity.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "corruptionHeaderAlwaysShownAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-corruption-header-always-shown-btn"
+    }
+  },
+  "singularityHeaderElevator": {
+    "settingName": "singularityHeaderElevator",
+    "settingDescription": "Singularity module: Elevator popover",
+    "settingHelpText": "Click the Singularity count module to use the Elevator.",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true,
+    "settingAction": "singularityHeaderElevatorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-singularity-header-elevator-btn"
+    }
+  },
+  "rememberSubtabs": {
+    "settingName": "rememberSubtabs",
+    "settingDescription": "Remember last used subtab",
+    "settingHelpText": "The game goes back to the first subtab of every tab at each singularity, Exalt, save load and page load. When enabled, a tab you open comes back on the subtab you last used there. A subtab that is locked again comes back the next time you open its tab once it is unlocked.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-remember-subtabs-btn"
+    }
+  },
+  "statsForNerdsGroups": {
+    "settingName": "statsForNerdsGroups",
+    "settingDescription": "Grouped Stats for Nerds list",
+    "settingHelpText": "Replaces the grid of category buttons in Settings > Stats for Nerds with a compact list sorted into groups. Turn it off for the game's buttons.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "statsForNerdsGroupsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-stats-for-nerds-groups-btn"
+    }
+  },
+  "hiddenVanillaTabs": {
+    "settingName": "hiddenVanillaTabs",
+    "settingDescription": "Hide vanilla tabs",
+    "settingHelpText": "Click each tab you want to hide. Click a selected tab again to restore it.",
+    "settingType": "selectstrings",
+    "enabled": true,
+    "settingValue": [],
+    "settingAction": "hiddenVanillaTabsAction",
+    "settingControl": {
+      "controlId": "hs-setting-hidden-vanilla-tabs",
+      "controlType": "select",
+      "controlGroup": "header-tabs",
+      "controlPage": "ui",
+      "props": {
+        "multiple": "multiple",
+        "size": "16"
+      },
+      "selectOptions": [
+        {
+          "text": "(none)",
+          "value": ""
+        },
+        {
+          "text": "Buildings",
+          "value": "buildingstab"
+        },
+        {
+          "text": "Upgrades",
+          "value": "upgradestab"
+        },
+        {
+          "text": "Achievements",
+          "value": "achievementstab"
+        },
+        {
+          "text": "Runes",
+          "value": "runestab"
+        },
+        {
+          "text": "Challenges",
+          "value": "challengetab"
+        },
+        {
+          "text": "Research",
+          "value": "researchtab"
+        },
+        {
+          "text": "Ant Hill",
+          "value": "anttab"
+        },
+        {
+          "text": "WOW! Cubes",
+          "value": "cubetab"
+        },
+        {
+          "text": "Corruption",
+          "value": "traitstab"
+        },
+        {
+          "text": "Singularity",
+          "value": "singularitytab"
+        },
+        {
+          "text": "Shop",
+          "value": "shoptab"
+        },
+        {
+          "text": "Events",
+          "value": "eventtab"
+        },
+        {
+          "text": "PseudoCoins",
+          "value": "pseudoCoinstab"
+        }
+      ]
+    }
+  },
+  "autoDismissOfflinePopup": {
+    "settingName": "autoDismissOfflinePopup",
+    "settingDescription": "Auto-dismiss offline popup",
+    "settingHelpText": "When enabled, the offline progress popup shown when the game loads is closed automatically. Disable it to read your offline progress summary. Takes effect on the next game load.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "game-load",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-auto-dismiss-offline-popup-btn"
+    }
+  },
+  "reloadOnLateLoaderStart": {
+    "settingName": "reloadOnLateLoaderStart",
+    "settingDescription": "Reload when the loader starts late",
+    "settingHelpText": "Browser (Tampermonkey) only. Sometimes Tampermonkey starts the mod's loader after the game has already started (Tampermonkey was idle, or the computer is slow), and the mod can't load. On: the page reloads automatically (at most 3 times in a row). Off: a message asks you to refresh.",
+    "settingType": "boolean",
+    "enabled": true,
+    "platforms": ["userscript"],
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "game-load",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-reload-on-late-loader-start-btn"
+    }
+  },
+  "syncNotificationOpacity": {
+    "settingName": "syncNotificationOpacity",
+    "settingDescription": "Notification opacity",
+    "settingHelpText": "Controls in-game notification opacity. Achievement notifications are one example of in-game notifications.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.6,
+    "settingAction": "syncNotificationOpacity",
+    "settingControl": {
+      "controlId": "hs-setting-notification-opacity-value",
+      "controlType": "number",
+      "controlGroup": "dialogs-notifications",
+      "controlPage": "ui",
+      "controlEnabledId": "hs-setting-notification-opacity-btn",
+      "controlOptions": {
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      }
+    }
+  },
+  "reactiveMouseHover": {
+    "settingName": "reactiveMouseHover",
+    "settingDescription": "Repeat hover (hold left Shift)",
+    "settingHelpText": "While left Shift is held, repeats the hover on whatever is under the pointer, without moving the mouse. Value: interval in seconds.",
+    "settingType": "numeric",
+    "enabled": false,
+    "settingValue": 0.2,
+    "settingValueMultiplier": 1000,
+    "settingAction": "reactiveMouseHover",
+    "settingControl": {
+      "controlId": "hs-setting-reactive-mouse-hover-value",
+      "controlType": "number",
+      "controlGroup": "mouse",
+      "controlPage": "input",
+      "controlEnabledId": "hs-setting-reactive-mouse-hover-btn",
+      "controlOptions": {
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      }
+    }
+  },
+  "autoClick": {
+    "settingName": "autoClick",
+    "settingDescription": "Auto click (hold left Ctrl)",
+    "settingHelpText": "While left Ctrl is held, clicks repeatedly on whatever is under the pointer. Value: interval in seconds.",
+    "settingType": "numeric",
+    "enabled": false,
+    "settingValue": 0.15,
+    "settingValueMultiplier": 1000,
+    "settingAction": "autoClick",
+    "settingControl": {
+      "controlId": "hs-setting-auto-click-value",
+      "controlType": "number",
+      "controlGroup": "mouse",
+      "controlPage": "input",
+      "controlEnabledId": "hs-setting-auto-click-btn",
+      "controlOptions": {
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      }
+    }
+  },
+  "autoClickIgnoreElements": {
+    "settingName": "autoClickIgnoreElements",
+    "settingDescription": "Skip risky buttons",
+    "settingHelpText": "Auto click won't click auto and mode toggles, hepteract craft and cap buttons, orb and powder trades, Retry Challenge, or dialog OK/Cancel.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "mouse",
+      "controlParent": "autoClick",
+      "controlHideWhenParentOff": true,
+      "controlPage": "input",
+      "controlEnabledId": "hs-setting-autoclick-ignore-btn"
+    }
+  },
+  "useGameData": {
+    "settingBlockId": "hs-setting-block-gamedata",
+    "settingName": "useGameData",
+    "settingDescription": "Game Data Sniffing (GDS)",
+    "settingHelpText": "The mod saves the game twice a second and reads that save, for the features that show values computed from your game data.",
+    "settingType": "boolean",
+    "enabled": true,
+    "platforms": ["bookmarklet"],
+    "settingAction": "useGameData",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "gamedata",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-use-game-data-btn"
+    }
+  },
+  "autoExportSave": {
+    "settingName": "autoExportSave",
+    "settingDescription": "Export the save every X minutes",
+    "settingHelpText": "When enabled, the mod presses the game's Export button once your last export is older than this many minutes. It is the game's own export: the export rewards (quarks, golden quarks) are collected and the file is downloaded by your browser, or written into the export folder if you chose one. An export you do yourself restarts the count. A file is made even if you export to the clipboard. Skipped while Auto-Sing is active. On Steam, choose an export folder first.",
+    "settingType": "numeric",
+    "enabled": false,
+    "settingValue": 30,
+    "settingControl": {
+      "controlId": "hs-setting-auto-export-save-value",
+      "controlType": "number",
+      "controlGroup": "save-export",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-auto-export-save-btn",
+      "controlOptions": {
+        "min": 1,
+        "max": 1440,
+        "step": 1
+      }
+    }
+  },
+  "autoExportSaveFolder": {
+    "settingName": "autoExportSaveFolder",
+    "settingDescription": "Choose folder",
+    "settingHelpText": "Picks the folder the timed export writes its files into, in place of a download. Needed on Steam, where a download opens a Save as dialog each time. Optional in Chrome and Edge, not available in Firefox. Your browser may refuse some system folders (Downloads, Documents, Desktop): pick or create a folder inside one of them. After each game start, the folder is given back at your first click or key press in the game.",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "autoExportSaveFolderAction",
+    "settingControl": {
+      "controlId": "hs-setting-auto-export-save-folder-button",
+      "controlType": "button",
+      "controlGroup": "save-export",
+      "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol"
+    }
+  },
+  "autoExportSaveForgetFolder": {
+    "settingName": "autoExportSaveForgetFolder",
+    "settingDescription": "✕",
+    "settingHelpText": "Forget this folder: the timed export no longer writes into it. The files already there are left as they are. In a browser, files are downloaded as usual again. On Steam, nothing is exported until a folder is chosen.",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "autoExportSaveForgetFolderAction",
+    "settingControl": {
+      "controlId": "hs-setting-auto-export-save-forget-folder-button",
+      "controlType": "button",
+      "controlGroup": "save-export",
+      "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol"
+    }
+  },
+  "autoExportSaveKeep": {
+    "settingName": "autoExportSaveKeep",
+    "settingDescription": "Keep only the last X files",
+    "settingHelpText": "With an export folder: once a timed export is written, the oldest files it wrote are removed so that this many are left. Only files written by the timed export are ever removed, nothing else in the folder. Without an export folder (plain downloads), nothing is removed.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 20,
+    "settingControl": {
+      "controlId": "hs-setting-auto-export-save-keep-value",
+      "controlType": "number",
+      "controlGroup": "save-export",
+      "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-auto-export-save-keep-btn",
+      "controlOptions": {
+        "min": 1,
+        "max": 1000,
+        "step": 1
+      }
+    }
+  },
+  "autoExportSaveLoadout": {
+    "settingName": "autoExportSaveLoadout",
+    "settingDescription": "Export loadout",
+    "settingHelpText": "The Ambrosia loadout to load for the timed export, so the export rewards are collected with it. Your tree is put back right after. With None, nothing is loaded. Each load restarts the progress of the ambrosia bars. When the game marks no loadout as active (after a singularity or a page load) and your tree is not the loadout with the silver border, the export loadout stays loaded.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlId": "hs-setting-auto-export-save-loadout-value",
+      "controlType": "select",
+      "controlGroup": "save-export",
+      "controlParent": "autoExportSave",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "persistentAmbrosiaLevels": {
+    "settingName": "persistentAmbrosiaLevels",
+    "settingDescription": "Keep tree levels shown",
+    "settingHelpText": "On the Ambrosia tab, keeps the game's current upgrade levels view on, except while the mouse is over the tree or a loadout. Same as clicking the game's levels button (📌 on, 🔎 off).",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "persistentAmbrosiaLevelsAction",
+    "skipInit": true,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "ambrosia",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-persistent-ambrosia-levels-btn"
+    }
+  },
+  "addTimeAutoLoadouts": {
+    "settingName": "addTimeAutoLoadouts",
+    "settingDescription": "Add+Time loadouts auto-switch",
+    "settingHelpText": "When enabled, the mod will automatically switch to configured ambrosia loadouts when ADD or TIME buttons are clicked.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "addTimeAutoLoadoutsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "ambrosia",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-add-time-auto-loadouts-btn"
+    }
+  },
+  "autoLoadoutAdd": {
+    "settingName": "autoLoadoutAdd",
+    "settingDescription": "ADD loadout",
+    "settingHelpText": "Configures the Ambrosia loadout to use when the ADD button is clicked.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlId": "hs-setting-add-loadout-value",
+      "controlType": "select",
+      "controlGroup": "ambrosia",
+      "controlParent": "addTimeAutoLoadouts",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autoLoadoutTime": {
+    "settingName": "autoLoadoutTime",
+    "settingDescription": "TIME loadout",
+    "settingHelpText": "Configures the Ambrosia loadout to use when the TIME button is clicked.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlId": "hs-setting-time-loadout-value",
+      "controlType": "select",
+      "controlGroup": "ambrosia",
+      "controlParent": "addTimeAutoLoadouts",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "ascensionAutoLoadout": {
+    "settingName": "ascensionAutoLoadout",
+    "settingDescription": "Ascension loadout auto-switch",
+    "settingHelpText": "Use a saved Ambrosia loadout for manual ascensions, then switch back. Switching resets Ambrosia progress. Shift+A requires a patched game.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "ambrosia",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-ascension-auto-loadout-btn"
+    }
+  },
+  "autoLoadoutAscension": {
+    "settingName": "autoLoadoutAscension",
+    "settingDescription": "Ascension loadout",
+    "settingHelpText": "Choose a saved slot. Without the patch, load or save your current slot before ascending so it can be restored.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlId": "hs-setting-ascension-loadout-value",
+      "controlType": "select",
+      "controlGroup": "ambrosia",
+      "controlParent": "ascensionAutoLoadout",
+      "controlHideWhenParentOff": true,
+      "controlPage": "qol",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "startAutosing": {
+    "settingName": "startAutosing",
+    "settingDescription": "Start/Stop Auto-Sing (S216+)",
+    "settingHelpText": "When enabled, the mod will automatically perform singularities.",
+    "settingType": "boolean",
+    "enabled": false,
+    "usesGameData": false,
+    "skipInit": false,
+    "settingAction": "startAutosingAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-enabled"
+    }
+  },
+  "singularityNumber": {
+    "settingName": "singularityNumber",
+    "settingDescription": "Singularity to farm",
+    "settingHelpText": "Controls at what singularity you will auto-sing.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 200,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-number",
+      "controlType": "number",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 1,
+        "max": 300,
+        "step": 1
+      }
+    }
+  },
+  "autosingKeepAwake": {
+    "settingName": "autosingKeepAwake",
+    "settingDescription": "Keep the PC awake",
+    "settingHelpText": "While Auto-Sing runs with the game in view, the screen stays on and the PC doesn't sleep.",
+    "settingType": "boolean",
+    "enabled": true,
+    "skipInit": true,
+    "settingAction": "autosingKeepAwakeAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-keep-awake-btn"
+    }
+  },
+  "autosingStepTimings": {
+    "settingName": "autosingStepTimings",
+    "settingDescription": "Record step timings",
+    "settingHelpText": "To tune a strategy: 📋 in the Auto-Sing window shows where the time goes, step by step. Applies at the next start.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-step-timings-btn"
+    }
+  },
+  "autosingStrategy": {
+    "settingName": "autosingStrategy",
+    "settingDescription": "Auto-Sing Strategy",
+    "settingHelpText": "This is the strategy that the autosinger will follow",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "1.TAS_v3.2",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy",
+      "controlType": "select",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing",
+      "selectOptions": []
+    }
+  },
+  "editAutosingStrategy": {
+    "settingName": "editAutosingStrategy",
+    "settingDescription": "\u270F\ufe0f Edit",
+    "settingHelpText": "Opens a new window where you can edit the selected autosing strategy",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "editAutosingStrategy",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy-editor-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing"
+    }
+  },
+  "createAutosingStrategy": {
+    "settingName": "createAutosingStrategy",
+    "settingDescription": "\u2795 Create",
+    "settingHelpText": "Opens a new window where you can create your own autosing strategy",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "createAutosingStrategy",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy-maker-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing"
+    }
+  },
+  "deleteAutosingStrategy": {
+    "settingName": "deleteAutosingStrategy",
+    "settingDescription": "\ud83d\uddd1\ufe0f Delete",
+    "settingHelpText": "deletes the selected strategy",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "deleteAutosingStrategy",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy-deleter-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing"
+    }
+  },
+  "importAutosingStrategy": {
+    "settingName": "importAutosingStrategy",
+    "settingDescription": "\ud83d\udce5 Import",
+    "settingHelpText": "Opens a Modal where you can paste a strategy that you want to import",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "importAutosingStrategy",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy-importer-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing"
+    }
+  },
+  "exportAutosingStrategy": {
+    "settingName": "exportAutosingStrategy",
+    "settingDescription": "\ud83d\udce4 Export",
+    "settingHelpText": "exports the selected strategy to your clipboard",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "exportAutosingStrategy",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-strategy-exporter-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-strategy-controls",
+      "controlPage": "auto-sing"
+    }
+  },
+  "autosingObtLoadout": {
+    "settingName": "autosingObtLoadout",
+    "settingDescription": "Obtainium",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most obtainium.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "pre",
+      "controlId": "hs-setting-auto-sing-obt-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingEarlyCubeLoadout": {
+    "settingName": "autosingEarlyCubeLoadout",
+    "settingDescription": "Hyperflux (H)",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most cubes in the early game",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "pre",
+      "controlId": "hs-setting-auto-sing-early-cube-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingLateCubeLoadout": {
+    "settingName": "autosingLateCubeLoadout",
+    "settingDescription": "3-7D Cubes",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most cubes in the late game",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "post",
+      "controlId": "hs-setting-auto-sing-late-cube-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingQuarkLoadout": {
+    "settingName": "autosingQuarkLoadout",
+    "settingDescription": "Quark",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most quarks. Note: this loadout is automatically selected right before the autosing presses the singularity button, the ascension button is also clicked so you gain the extra quarks.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "post",
+      "controlId": "hs-setting-auto-sing-quark-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingOffLoadout": {
+    "settingName": "autosingOffLoadout",
+    "settingDescription": "Offerings",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most offerings.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "post",
+      "controlId": "hs-setting-auto-sing-off-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingAmbrosiaLoadout": {
+    "settingName": "autosingAmbrosiaLoadout",
+    "settingDescription": "Ambrosia",
+    "settingHelpText": "This is the ambrosia loadout that gives you the most ambrosia.",
+    "settingType": "selectstring",
+    "enabled": true,
+    "settingValue": "",
+    "settingControl": {
+      "controlAoagIcon": "post",
+      "controlId": "hs-setting-auto-sing-ambrosia-loadout-value",
+      "controlType": "select",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "selectOptions": [
+        {
+          "text": "None",
+          "value": ""
+        },
+        {
+          "text": "Loadout 1",
+          "value": "1"
+        },
+        {
+          "text": "Loadout 2",
+          "value": "2"
+        },
+        {
+          "text": "Loadout 3",
+          "value": "3"
+        },
+        {
+          "text": "Loadout 4",
+          "value": "4"
+        },
+        {
+          "text": "Loadout 5",
+          "value": "5"
+        },
+        {
+          "text": "Loadout 6",
+          "value": "6"
+        },
+        {
+          "text": "Loadout 7",
+          "value": "7"
+        },
+        {
+          "text": "Loadout 8",
+          "value": "8"
+        },
+        {
+          "text": "Loadout 9",
+          "value": "9"
+        },
+        {
+          "text": "Loadout 10",
+          "value": "10"
+        },
+        {
+          "text": "Loadout 11",
+          "value": "11"
+        },
+        {
+          "text": "Loadout 12",
+          "value": "12"
+        },
+        {
+          "text": "Loadout 13",
+          "value": "13"
+        },
+        {
+          "text": "Loadout 14",
+          "value": "14"
+        },
+        {
+          "text": "Loadout 15",
+          "value": "15"
+        },
+        {
+          "text": "Loadout 16",
+          "value": "16"
+        }
+      ]
+    }
+  },
+  "autosingNoAmbrosiaSwitch": {
+    "settingName": "autosingNoAmbrosiaSwitch",
+    "settingDescription": "Don't switch ambrosia loadouts",
+    "settingHelpText": "Auto-Sing never loads an ambrosia loadout, so the ambrosia bars keep their progress. The loadouts above are not used.",
+    "settingType": "boolean",
+    "enabled": false,
+    "skipInit": true,
+    "settingAction": "autosingNoAmbrosiaSwitchAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing-ambrosia",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-no-ambrosia-switch-btn"
+    }
+  },
+  "ambrosiaMinibars": {
+    "settingName": "ambrosiaMinibars",
+    "settingDescription": "Ambrosia minibars (S25+)",
+    "settingHelpText": "Small progress bars for ambrosia, red ambrosia and purple honey (the last two once unlocked).",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "usesGameData": ["bookmarklet"],
+    "settingAction": "ambrosiaMinibarAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-ambrosia-minibar-btn"
+    }
+  },
+  "ambrosiaMinibarBorders": {
+    "settingName": "ambrosiaMinibarBorders",
+    "settingDescription": "Ambrosia minibars border",
+    "settingHelpText": "A white frame around the ambrosia minibars.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "ambrosiaMinibarBordersAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-ambrosia-minibar-borders-btn"
+    }
+  },
+  "ambrosiaRateHeader": {
+    "settingName": "ambrosiaRateHeader",
+    "settingDescription": "Ambrosia per hour in the header (S25+)",
+    "settingHelpText": "The expected ambrosia, red ambrosia and purple honey per hour for the active loadout, as in the Ambrosia tab.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "settingAction": "ambrosiaRateHeaderAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-ambrosia-rate-header-btn"
+    }
+  },
+  "enableAutomationQuickBar": {
+    "settingName": "enableAutomationQuickBar",
+    "settingDescription": "Automation quick bar",
+    "settingHelpText": "A compact bar of the automation toggles.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "settingAction": "enableAutomationQuickBarAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-enable-syn-ui-btn"
+    }
+  },
+  "matchOcteractIconSize": {
+    "settingName": "matchOcteractIconSize",
+    "settingDescription": "Match the octeract header icon size",
+    "settingHelpText": "Size the octeract icon like the other cube icons in the header's top row, following the module's Small, Medium or Large size.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "matchOcteractIconSizeAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-match-octeract-icon-size-btn"
+    }
+  },
+  "matchOcteractText": {
+    "settingName": "matchOcteractText",
+    "settingDescription": "Match the octeract header text",
+    "settingHelpText": "Add a white Oct or Oct/s unit label beside the octeract value, like the other cube modules. Clicking the module still switches between the amount and the rate.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "matchOcteractTextAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-match-octeract-text-btn"
+    }
+  },
+  "centerQuickbars": {
+    "settingName": "centerQuickbars",
+    "settingDescription": "Center quick bars",
+    "settingHelpText": "Centers the mod's row under the header instead of aligning it to the right.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "centerQuickbarsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-center-quickbars-btn"
+    }
+  },
+  "removeHeaderGap": {
+    "settingName": "removeHeaderGap",
+    "settingDescription": "Remove the gap below the header",
+    "settingHelpText": "Bring the game's main tabs up to the header by collapsing unused trailing space and margins. Keeps the corruption levels visible and restores the full grid while editing.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "removeHeaderGapAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-remove-header-gap-btn"
+    }
+  },
+  "headerHideLoadoutIcons": {
+    "settingName": "headerHideLoadoutIcons",
+    "settingDescription": "Hide the header's ambrosia bar icon",
+    "settingHelpText": "Hides the icon on the left of the Ambrosia loadouts module.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "headerHideLoadoutIconsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-header-hide-loadout-icons-btn"
+    }
+  },
+  "headerFitLoadoutSlots": {
+    "settingName": "headerFitLoadoutSlots",
+    "settingDescription": "Fit the ambrosia loadout slots to their cell",
+    "settingHelpText": "In a header grid cell, the Ambrosia loadouts slots fill the cell on one line (two even rows above 8), sized like the automation bar's buttons. Off: the game's own layout.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "settingAction": "headerFitLoadoutSlotsAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-header-fit-loadout-slots-btn"
+    }
+  },
+  "headerEditButton": {
+    "settingName": "headerEditButton",
+    "settingDescription": "✎ Header edit button",
+    "settingHelpText": "A small pencil next to the mod icon that opens and closes the header's edit mode.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "settingAction": "headerEditButtonAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-header-edit-button-btn"
+    }
+  },
+  "headerLongPressEditing": {
+    "settingName": "headerLongPressEditing",
+    "settingDescription": "Long press to edit the header",
+    "settingHelpText": "Allow holding down on the header to open its editor. When disabled, use the pencil or the mod panel's header editor button instead. Normal header button clicks and dragging in edit mode still work.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": true,
+    "settingAction": "headerLongPressEditingAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-header-long-press-btn"
+    }
+  },
+  "headerStatsAtBottom": {
+    "settingName": "headerStatsAtBottom",
+    "settingDescription": "Header top row at the bottom",
+    "settingHelpText": "Moves the header's top row under the currencies and reset buttons.",
+    "settingType": "boolean",
+    "hidden": true,
+    "enabled": false,
+    "settingAction": "headerStatsAtBottomAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "quickbar-qol",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-header-stats-at-bottom-btn"
+    }
+  },
+  "enableGQDistributor": {
+    "settingName": "enableGQDistributor",
+    "settingDescription": "GQ Distributor",
+    "settingHelpText": "When enabled, adds a Distributor button to the GQ page. It opens a panel to distribute Golden Quarks among upgrades that are not maxed.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "enableGQDistributorAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
+    }
+  },
+  "perksFind": {
+    "settingName": "perksFind",
+    "settingDescription": "Perks search field",
+    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "perksFindAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-perks-find-btn"
+    }
+  },
+  "hideMaxedGQUpgrades": {
+    "settingName": "hideMaxedGQUpgrades",
+    "settingDescription": "Keep maxed GQ upgrades hidden",
+    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "hideMaxedGQUpgradesAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-hide-maxed-gq-upgrades-btn"
+    }
+  },
+  "hideMaxedOctUpgrades": {
+    "settingName": "hideMaxedOctUpgrades",
+    "settingDescription": "Keep maxed Oct upgrades hidden",
+    "settingHelpText": "The game forgets its hide maxed button at each reload. This restores your choice, and follows that button when you click it.",
+    "settingType": "boolean",
+    "enabled": true,
+    "settingAction": "hideMaxedOctUpgradesAction",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "singularity",
+      "controlPage": "qol",
+      "controlEnabledId": "hs-setting-qol-hide-maxed-oct-upgrades-btn"
+    }
+  },
+  "gqDistributorOpen": {
+    "settingName": "gqDistributorOpen",
+    "settingDescription": "GQ Distributor panel open",
+    "settingType": "boolean",
+    "enabled": false,
+    "hidden": true
+  },
+  "gqDistributorBalanceInvestments": {
+    "settingName": "gqDistributorBalanceInvestments",
+    "settingDescription": "Balance total GQ investments toward distributor ratios",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true
+  },
+  "gqDistributorKeepSkippedShare": {
+    "settingName": "gqDistributorKeepSkippedShare",
+    "settingDescription": "Keep the GQ share of skipped distributor upgrades unspent",
+    "settingType": "boolean",
+    "enabled": true,
+    "hidden": true
+  },
+  "gqDistributorRatios": {
+    "settingName": "gqDistributorRatios",
+    "settingDescription": "GQ Distributor saved ratios",
+    "settingType": "string",
+    "enabled": true,
+    "hidden": true,
+    "settingValue": ""
+  },
+  "showDebugLogs": {
+    "settingName": "showDebugLogs",
+    "settingDescription": "Show debug logs",
+    "settingHelpText": "Controls whether \u0027debug\u0027 type logs are visible or not in the mod\u0027s log view.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "showDebugLogs",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "debug",
+      "controlPage": "debug",
+      "controlEnabledId": "hs-setting-display-debug-logs-btn"
+    }
+  },
+  "logTimestamp": {
+    "settingName": "logTimestamp",
+    "settingDescription": "Display timestamps in log",
+    "settingHelpText": "Controls whether timestamps are visible or not in the mod\u0027s log view",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingAction": "logTimestamp",
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "debug",
+      "controlPage": "debug",
+      "controlEnabledId": "hs-setting-display-timestamp-btn"
+    }
+  },
+  "autosing3to6DCubeOpeningPercent": {
+    "settingName": "autosing3to6DCubeOpeningPercent",
+    "settingDescription": "3-6D Cube opening %",
+    "settingHelpText": "Percentage (1-100) for auto-opening 3-6D cubes.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 80,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-3-6d-cube-percentage-value",
+      "controlType": "number",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    }
+  },
+  "autosingTessBuildingAutoBuyPercent": {
+    "settingName": "autosingTessBuildingAutoBuyPercent",
+    "settingDescription": "Tesseract building auto-buy %",
+    "settingHelpText": "Percentage (1-100) for auto-buying tesseract buildings.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 50,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-tesseract-auto-buy-percentage-value",
+      "controlType": "number",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    }
+  },
+  "autosingAutoChallTimerStart": {
+    "settingName": "autosingAutoChallTimerStart",
+    "settingDescription": "Auto-challenge start timers",
+    "settingHelpText": "Timer (positive decimal) for auto-starting challenges.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.1,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-challenge-start-timer-value",
+      "controlType": "number",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 0.1,
+        "max": 1000000,
+        "step": 0.01
+      }
+    }
+  },
+  "autosingAutoChallTimerExit": {
+    "settingName": "autosingAutoChallTimerExit",
+    "settingDescription": "Auto-challenge exit timers",
+    "settingHelpText": "Timer (positive decimal) for auto-exiting challenges.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.2,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-challenge-exit-timer-value",
+      "controlType": "number",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 0.1,
+        "max": 1000000,
+        "step": 0.01
+      }
+    }
+  },
+  "autosingAutoChallTimerEnter": {
+    "settingName": "autosingAutoChallTimerEnter",
+    "settingDescription": "Auto-challenge enter timers",
+    "settingHelpText": "Timer (positive decimal) for auto-entering challenges.",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 0.1,
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-challenge-enter-timer-value",
+      "controlType": "number",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing",
+      "controlOptions": {
+        "min": 0.1,
+        "max": 1000000,
+        "step": 0.01
+      }
+    }
+  },
+  "resetAutosingAdvanced": {
+    "settingName": "resetAutosingAdvanced",
+    "settingDescription": "Reset to default",
+    "settingHelpText": "Puts the numbers above back to their default values. Click twice.",
+    "settingType": "button",
+    "enabled": true,
+    "settingValue": "",
+    "settingAction": "resetAutosingAdvancedAction",
+    "settingControl": {
+      "controlId": "hs-setting-auto-sing-advanced-reset-button",
+      "controlType": "button",
+      "controlGroup": "auto-sing-timer-modal",
+      "controlPage": "auto-sing"
+    }
+  },
+  "heaterTypeLoadoutSelections": {
+    "hidden": true,
+    "settingName": "heaterTypeLoadoutSelections",
+    "settingDescription": "Heater type loadout selections",
+    "settingHelpText": "Stores the selected heater type for each loadout slot in the heater modal.",
+    "settingType": "selectstrings",
+    "enabled": true,
+    "settingValue": []
+  },
+  "heaterUncheckedBranches": {
+    "hidden": true,
+    "settingName": "heaterUncheckedBranches",
+    "settingDescription": "Heater unticked branches",
+    "settingHelpText": "Stores the branches the player unticked in the heater modal.",
+    "settingType": "selectstrings",
+    "enabled": true,
+    "settingValue": []
+  },
+  "heaterTickedBranches": {
+    "hidden": true,
+    "settingName": "heaterTickedBranches",
+    "settingDescription": "Heater ticked branches",
+    "settingHelpText": "Stores the branches that start unticked and the player ticked in the heater modal.",
+    "settingType": "selectstrings",
+    "enabled": true,
+    "settingValue": []
+  },
+  "heaterWorkers": {
+    "hidden": true,
+    "settingName": "heaterWorkers",
+    "settingDescription": "Heater: workers running at once (select under the heat button)",
+    "settingType": "numeric",
+    "enabled": true,
+    "settingValue": 3
+  }
 }

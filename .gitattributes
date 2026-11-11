@@ -1,9 +1,6 @@
-hypersynergism.js linguist-generated
-build/** linguist-generated
-release/** linguist-generated
-other_scripts/** linguist-generated
-save_utils/** linguist-generated
-snippets/** linguist-generated
+hypersynergism.js linguist-generated -diff
+build/** linguist-generated -diff
+release/** linguist-generated -diff
 * text=auto
 * text eol=lf
 *.png binary

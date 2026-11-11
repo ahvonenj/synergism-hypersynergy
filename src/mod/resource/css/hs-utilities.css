@@ -1,0 +1,18 @@
+/* ===== UTILITY CLASSES ===== */
+
+/* Inline button container for horizontal button layouts */
+.hs-inline-button {
+    display: inline-block;
+    width: auto;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    vertical-align: top;
+}
+
+/* Standard button styling within inline containers */
+.hs-inline-button button {
+    min-width: 120px;
+    padding: 8px 16px;
+}
+
+.hs-hidden { display: none !important; }
