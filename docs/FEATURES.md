@@ -492,6 +492,7 @@ Brings the main tabs up to the last visible header content.
 **Where:** [HS] Header → Layout → Remove header gap
 
 - Collapses unused trailing space and margins while restoring the full grid during editing.
+- Inactive challenge counters keep their space so the tabs stay in place as challenges start or end.
 
 **Related settings:** [`removeHeaderGap`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#removeheadergap)
 
@@ -792,6 +793,7 @@ Removes repeated challenge names from native progress text.
 
 - Keeps current/required values or C15 score, with the full description available on hover.
 - The game's inactive editor previews remain recognizable.
+- On a patched game, tall native challenge modules use one row in this mode. Turning it off restores their saved size.
 
 **Related settings:** [`compactChallengeText`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#compactchallengetext)
 
@@ -1411,6 +1413,7 @@ Keeps custom JSON strategies locally and shares them through import/export.
 - Inspect built-in strategies, then copy or create one for your own tuning.
 - Imports are validated and older strategy formats are normalized. Exports copy shareable strategy JSON.
 - The current bundled strategy names carry -temp: their authors still need to tune them for the changed corruption system.
+- If a strategy cannot be saved, the draft stays open and the existing strategy list stays intact.
 
 **Related settings:** [`autosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#autosingstrategy), [`editAutosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#editautosingstrategy), [`createAutosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#createautosingstrategy), [`deleteAutosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#deleteautosingstrategy), [`importAutosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#importautosingstrategy), [`exportAutosingStrategy`](https://github.com/Ferlieloi/synergism-hypersynergy/wiki/Settings-Reference#exportautosingstrategy)
 

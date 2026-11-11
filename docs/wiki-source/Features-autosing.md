@@ -85,6 +85,7 @@ Keeps custom JSON strategies locally and shares them through import/export.
 - Inspect built-in strategies, then copy or create one for your own tuning.
 - Imports are validated and older strategy formats are normalized. Exports copy shareable strategy JSON.
 - The current bundled strategy names carry -temp: their authors still need to tune them for the changed corruption system.
+- If a strategy cannot be saved, the draft stays open and the existing strategy list stays intact.
 
 **Related settings:** [`autosingStrategy`](Settings-Reference#autosingstrategy), [`editAutosingStrategy`](Settings-Reference#editautosingstrategy), [`createAutosingStrategy`](Settings-Reference#createautosingstrategy), [`deleteAutosingStrategy`](Settings-Reference#deleteautosingstrategy), [`importAutosingStrategy`](Settings-Reference#importautosingstrategy), [`exportAutosingStrategy`](Settings-Reference#exportautosingstrategy)
 

@@ -96,6 +96,7 @@ Removes repeated challenge names from native progress text.
 
 - Keeps current/required values or C15 score, with the full description available on hover.
 - The game's inactive editor previews remain recognizable.
+- On a patched game, tall native challenge modules use one row in this mode. Turning it off restores their saved size.
 
 **Related settings:** [`compactChallengeText`](Settings-Reference#compactchallengetext)
 

@@ -26,6 +26,77 @@
   ],
   "entries": [
     {
+      "id": "live-2.14.8",
+      "version": "2.14.8",
+      "channel": "live",
+      "repository": "Ferlieloi/synergism-hypersynergy",
+      "commit": "c3d707be18f95a0261cea04984ffc75faeeac4d0",
+      "previous_commit": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
+      "date": "2026-11-11",
+      "date_kind": "tag",
+      "status": "tagged",
+      "release_url": "https://github.com/Ferlieloi/synergism-hypersynergy/releases/tag/v2.14.8",
+      "sources": [
+        {
+          "label": "Git tag",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/tree/v2.14.8"
+        },
+        {
+          "label": "Release build",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/c3d707be18f95a0261cea04984ffc75faeeac4d0"
+        }
+      ],
+      "notes": [],
+      "changes": [
+        {
+          "type": "changed",
+          "text": "Compact challenge counters fit in one header row on patched games. Turning compact mode off restores their saved height.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/blob/c3d707be18f95a0261cea04984ffc75faeeac4d0/docs/features/header-challenge-progress.md"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Remove header gap keeps the tabs in place when challenges start or end.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/blob/c3d707be18f95a0261cea04984ffc75faeeac4d0/docs/features/header-edit-mode.md"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Auto-Sing validates strategies more thoroughly. If a strategy fails to save, its draft stays open and the existing strategy list stays intact.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/blob/c3d707be18f95a0261cea04984ffc75faeeac4d0/docs/features/autosing-strategies.md"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "A refactor made the mod download a little smaller and reduced background work in the header and mod interface.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/blob/c3d707be18f95a0261cea04984ffc75faeeac4d0/src/mod/class/hs-core/hs-ui.ts"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "Ferlieloi",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "c3d707be18f95a0261cea04984ffc75faeeac4d0"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "01e8b1d2f37df8f3b6ae1cfa9c6c2434a0a00000",
+        "head": "c3d707be18f95a0261cea04984ffc75faeeac4d0",
+        "scope": "repository"
+      },
+      "merges": []
+    },
+    {
       "id": "live-2.14.7e",
       "version": "2.14.7e",
       "channel": "live",

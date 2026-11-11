@@ -88,6 +88,7 @@ Brings the main tabs up to the last visible header content.
 **Where:** [HS] Header → Layout → Remove header gap
 
 - Collapses unused trailing space and margins while restoring the full grid during editing.
+- Inactive challenge counters keep their space so the tabs stay in place as challenges start or end.
 
 **Related settings:** [`removeHeaderGap`](Settings-Reference#removeheadergap)
 
