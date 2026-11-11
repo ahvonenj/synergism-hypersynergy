@@ -22,8 +22,8 @@ async function main() {
         }`,
     };
     const bundled = await esbuild.build({
-        stdin: { contents: `export { HSAutoExport } from './src/mod/class/hs-modules/hs-auto-export';
-            export { HSAutoExportFolder } from './src/mod/class/hs-modules/hs-auto-export-folder';`,
+        stdin: { contents: `export { HSAutoExport } from './src/mod/class/hs-modules/hs-auto-export/hs-auto-export';
+            export { HSAutoExportFolder } from './src/mod/class/hs-modules/hs-auto-export/hs-auto-export-folder';`,
             resolveDir: root, loader: 'ts' },
         bundle: true, write: false, platform: 'node', format: 'cjs',
         plugins: [{ name: 'export-browser-boundaries', setup(build) {

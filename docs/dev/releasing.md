@@ -21,11 +21,11 @@ one clone to another: check `git remote -v`.
 ## Mod release: `npm run release-and-tag-helper`
 
 - **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
-  - **On Live:** regenerate `docs/changelog.html`, run `python scripts/tools/build-docs.py --changelog-only --check` and `python scripts/tests/test-changelog-validation.py`, and include both data and generated page in the published changes. A Live release is not finished until its changelog is visible on the website.
+  - **On Live:** regenerate the whole site with `python scripts/tools/build-docs.py`, run `python scripts/tools/build-docs.py --check` and `python scripts/tests/test-changelog-validation.py`, and include the data and every regenerated page in the published changes. The whole site, not just the changelog page: it then describes the released build, and a PR of Dev's whole `master` carries no pages. A Live release is not finished until its changelog is visible on the website.
   - **On Dev:** check the entry with `python scripts/tools/build-docs.py --validate`, but never commit `docs/changelog.html`: like the site's other pages ("Porting a change to Live"), it is built from its checkout and the site is served from Live only. Dev entries appear on the website at Live's next regeneration.
 - `package.json` holds the name of the **next** release; the helper only bumps when that tag already exists. Set a name
   by hand in `package.json` and `package-lock.json` (two version lines).
-- `-- --notes-file <path>` puts a Markdown changelog into the tag message (`AGENTS.md`, "Commands").
+- `-- --notes-file <path>` puts a Markdown changelog into the tag message (the same changes as the website entry above).
 - **Purges:** the bundle, and `synergism_modloader/lib/patcher.js`, `src/loader/hypersynergism.user.js` and
   `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). An
   accepted purge can still leave the old file served (once, v2.14.6a-dev1: the new bundle with the old `patcher.js`,

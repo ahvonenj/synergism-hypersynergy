@@ -7,7 +7,7 @@ const esbuild = require('esbuild');
 async function main() {
     const root = path.resolve(__dirname, '../..');
     const bundled = await esbuild.build({
-        entryPoints: [path.join(root, 'src/mod/class/hs-modules/hs-perks-find-match.ts')],
+        entryPoints: [path.join(root, 'src/mod/class/hs-modules/hs-perks-find/hs-perks-find-match.ts')],
         bundle: true, write: false, platform: 'node', format: 'cjs',
     });
     const runtime = new Module(path.join(root, 'perks-find-match-test-runtime.cjs'), module);

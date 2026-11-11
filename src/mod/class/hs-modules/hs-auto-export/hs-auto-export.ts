@@ -1,12 +1,13 @@
-import { HSModuleOptions } from "../../types/hs-types";
-import { HSSetting } from "../hs-core/settings/hs-setting";
-import { HSPlatform } from "../hs-core/hs-platform";
-import { HSGlobal } from "../hs-core/hs-global";
-import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
-import { HSSettings } from "../hs-core/settings/hs-settings";
-
+import { HSModuleOptions } from "../../../types/hs-types";
+import { HSSetting } from "../../hs-core/settings/hs-setting";
+import { HSPlatform } from "../../hs-core/hs-platform";
+import { HSGlobal } from "../../hs-core/hs-global";
+import { HSLogger } from "../../hs-core/hs-logger";
+import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
+import { HSSettings } from "../../hs-core/settings/hs-settings";
+import type { HSAmbrosia } from "../hs-ambrosia/hs-ambrosia";
+import type { HSAutosing } from "../hs-autosing/hs-autosing";
 import { HSAutoExportFolder } from "./hs-auto-export-folder";
 
 const TICK_MS = 10_000;

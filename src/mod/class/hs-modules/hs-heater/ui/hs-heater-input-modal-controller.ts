@@ -3,7 +3,7 @@ import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUIC } from "../../../hs-core/hs-ui-components";
 
-import { HEATER_WORKER_COUNTS, heaterWorkerCount, HSHeatCancelledError, HSHeaterOptimizerRunner } from "../hs-heater-optimizer-runner";
+import { HEATER_WORKER_COUNTS, heaterWorkerCount, HSHeatCancelledError, HSHeaterRowLimitError, HSHeaterOptimizerRunner } from "../hs-heater-optimizer-runner";
 import { HSUtils } from "../../../hs-utils/hs-utils";
 import { HSHeaterUIStyles } from "./hs-heater-ui-styles";
 import { HSHeaterUIInput } from "./hs-heater-ui-input";
@@ -296,9 +296,8 @@ export class HSHeaterInputModalController {
                 await HSHeaterRedAmbrosiaModalController.openRedAmbrosiaUpgradeModal();
             } catch (error) {
                 if (error instanceof HSHeatCancelledError) return;
-                const memoryLimit = error instanceof Error && error.message.includes('memory safety limit');
-                HSUI.Notify(memoryLimit
-                    ? 'Heater stopped before exceeding its memory limit. Try fewer builds at once.'
+                HSUI.Notify(error instanceof HSHeaterRowLimitError
+                    ? error.playerMessage
                     : 'Heater could not finish. Check the Log tab for details.', {
                     position: 'top', notificationType: 'error'
                 });

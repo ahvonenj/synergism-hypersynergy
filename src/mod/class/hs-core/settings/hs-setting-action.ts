@@ -288,6 +288,11 @@ export class HSSettingActions {
             (mod) => mod.hide()
         ),
 
+        statsForNerdsGroupsAction: moduleToggle('HSStatsForNerds',
+            (mod) => mod.show(),
+            (mod) => mod.hide()
+        ),
+
         enableAutomationQuickBarAction: moduleToggle('HSQOLButtons',
             (mod) => mod.enableAutomationQuickbar(),
             (mod) => mod.disableAutomationQuickbar()

@@ -3,6 +3,7 @@ import { createHeaterOptimizerEngine } from './hs-heater-optimizer-engine';
 import type { HeaterCubeExperimentConfig, HeaterCubeExperimentDiagnostics } from './hs-heater-optimizer-engine';
 
 export type { HeaterCubeExperimentUpgrade, HeaterCubeExperimentConfig, HeaterCubeExperimentSpending, HeaterCubeExperimentDiagnostics } from './hs-heater-optimizer-engine';
+export { HEATER_ROW_LIMIT, HEATER_ROW_LIMIT_TEXT } from './hs-heater-optimizer-engine';
 export { takeHeaterOptimizerLogs } from './hs-heater-optimizer-log';
 export type { HeaterOptimizerLog } from './hs-heater-optimizer-log';
 

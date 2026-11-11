@@ -20,6 +20,14 @@ header layout check in Chromium.
 
 `HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element.
 
+## Build
+
+- Every build regenerates the strategy manifest (`scripts/generate-strategy-manifest.js`) and bundles the heater web
+  worker separately (`scripts/heater-worker-plugin.cjs`).
+- `HS_BUILD_VERSION` is an esbuild `define` read from `package.json`: restart `npm run dev` after changing the version.
+- The release build (`release/mod/hypersynergism_release.js`) is the only one without the dev tools
+  (`docs/features/dev-tools.md`).
+
 ## Logging
 
 - `HSLogger` writes to the mod panel's Log tab, and takes a context string. A line is rendered as HTML and also printed

@@ -2,10 +2,24 @@ import { HSLogger } from '../../hs-core/hs-logger';
 import { HSSettings } from '../../hs-core/settings/hs-settings';
 import { HSSettingsDefinition } from '../../../types/module-types/hs-settings-types';
 import { HSModuleRegistry } from '../../hs-core/module/hs-module-registry';
+import type { HSGameData } from '../../hs-core/gds/hs-gamedata';
+import { HSGlobal } from '../../hs-core/hs-global';
+import type { HSStorage } from '../../hs-core/hs-storage';
 import {
-    captureAutosingSettings, getAutosingGameSettings, HS_AUTOSING_BUY_AMOUNTS, planAutosingSettings,
-    type HSAutosingGameSetting, type HSAutosingSettingChange, type HSAutosingSettingsSnapshot,
+    captureAutosingSettings, getAutosingGameSettings, HS_AUTOSING_BUY_AMOUNTS, mergeStoredAutosingSettings,
+    parseStoredAutosingSnapshot, planAutosingSettings,
+    type HSAutosingGameSetting, type HSAutosingSettingChange, type HSAutosingSettingsSnapshot, type HSAutosingStoredSnapshot,
 } from './hs-autosing-settings-plan';
+
+/** Mod settings turned off during a run for speed, restored with the game settings. */
+const PERFORMANCE_SETTING_KEYS = ['enableAutomationQuickBar', 'ambrosiaMinibars', 'ambrosiaRateHeader'] as const;
+const STORAGE_KEY = 'autosingSettingsSnapshot';
+
+/** The save's identity: the date the game was first played, kept by every save of that playthrough. */
+function firstPlayedOf(save: unknown): string | undefined {
+    const value = (save as { firstPlayed?: unknown } | null)?.firstPlayed;
+    return typeof value === 'string' ? value : undefined;
+}
 
 /**
  * Class: HSAutosingSettingsFixer
@@ -17,22 +31,33 @@ export class HSAutosingSettingsFixer {
     static readonly GDS_PAUSE_REASON = 'autosing';
     #original?: HSAutosingSettingsSnapshot;
     #settings?: HSAutosingGameSetting[];
+    #firstPlayed?: string;
     #hsSettingsToRestore = new Map<string, boolean>();
 
     get hasOriginalSettings(): boolean { return this.#original !== undefined; }
 
     public async fixAllSettings(): Promise<void> {
-        const settings = getAutosingGameSettings({
-            cubeOpeningPercent: Number(HSSettings.getSetting('autosing3to6DCubeOpeningPercent').getValue()),
-            tesseractBuyPercent: Number(HSSettings.getSetting('autosingTessBuildingAutoBuyPercent').getValue()),
-            challengeStart: Number(HSSettings.getSetting('autosingAutoChallTimerStart').getValue()),
-            challengeExit: Number(HSSettings.getSetting('autosingAutoChallTimerExit').getValue()),
-            challengeEnter: Number(HSSettings.getSetting('autosingAutoChallTimerEnter').getValue()),
-        });
-        const current = this.#readSettings(settings);
+        const settings = this.#getSettings();
+        const save = this.#readSave();
+        const current = captureAutosingSettings(save, settings);
         // Keep the very first snapshot through Restart, including values already correct at startup:
         // a strategy can change those later. Record it before the first action, also for a failed start.
-        this.#original ??= current;
+        if (!this.#original) {
+            const firstPlayed = firstPlayedOf(save);
+            // A run started before the load-time restore takes over the interrupted run's snapshot
+            const stored = this.#loadStored();
+            if (stored && firstPlayed !== undefined && stored.firstPlayed === firstPlayed) {
+                this.#original = mergeStoredAutosingSettings(settings, stored.game, current);
+                for (const [key, enabled] of this.#performanceEntries(stored)) {
+                    if (!this.#hsSettingsToRestore.has(key)) this.#hsSettingsToRestore.set(key, enabled);
+                }
+                HSLogger.log('Kept the settings saved before an interrupted Auto-Sing run, to restore them at the next stop.', HSAutosingSettingsFixer.#context);
+            } else {
+                this.#original = current;
+            }
+            this.#firstPlayed = firstPlayed;
+            this.#persist();
+        }
         this.#settings = settings;
         this.#applyAndVerify(settings, planAutosingSettings(settings, current));
         await this.#disableUnwantedSettings();
@@ -42,6 +67,71 @@ export class HSAutosingSettingsFixer {
     public discardGameSettings(): void {
         this.#original = undefined;
         this.#settings = undefined;
+        this.#firstPlayed = undefined;
+        HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
+    }
+
+    /**
+     * At load, once the game can save: the game was closed or reloaded during a run, so restore what a
+     * stop would have restored. Game settings only on the save they were taken from; the mod's own
+     * settings in any case (they belong to this browser). Undefined when no run was interrupted.
+     * Throws when the game settings could not all be restored; the snapshot is dropped either way.
+     */
+    public restoreInterruptedRun(): { gameRestored: boolean, insideExalt: boolean } | undefined {
+        if (this.#original) return undefined; // A run already took the snapshot over
+        const stored = this.#loadStored();
+        if (!stored) return undefined;
+        try {
+            const save = this.#readSave();
+            if (firstPlayedOf(save) !== stored.firstPlayed) {
+                HSLogger.log('The settings saved before an interrupted Auto-Sing run belong to another save: game settings left as they are.', HSAutosingSettingsFixer.#context);
+                return { gameRestored: false, insideExalt: false };
+            }
+            const settings = this.#getSettings();
+            const current = captureAutosingSettings(save, settings);
+            const original = mergeStoredAutosingSettings(settings, stored.game, current);
+            this.#applyAndVerify(settings, planAutosingSettings(settings, current, original), original);
+            HSLogger.log('Restored the game settings saved before an interrupted Auto-Sing run.', HSAutosingSettingsFixer.#context);
+            return { gameRestored: true, insideExalt: (save as { insideSingularityChallenge?: unknown }).insideSingularityChallenge === true };
+        } finally {
+            HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
+            this.#applyHsSettings(this.#performanceEntries(stored));
+        }
+    }
+
+    #getSettings(): HSAutosingGameSetting[] {
+        return getAutosingGameSettings({
+            cubeOpeningPercent: Number(HSSettings.getSetting('autosing3to6DCubeOpeningPercent').getValue()),
+            tesseractBuyPercent: Number(HSSettings.getSetting('autosingTessBuildingAutoBuyPercent').getValue()),
+            challengeStart: Number(HSSettings.getSetting('autosingAutoChallTimerStart').getValue()),
+            challengeExit: Number(HSSettings.getSetting('autosingAutoChallTimerExit').getValue()),
+            challengeEnter: Number(HSSettings.getSetting('autosingAutoChallTimerEnter').getValue()),
+        });
+    }
+
+    #performanceEntries(stored: HSAutosingStoredSnapshot): [string, boolean][] {
+        const keys: readonly string[] = PERFORMANCE_SETTING_KEYS;
+        return stored.hs.filter(([key]) => keys.includes(key));
+    }
+
+    #loadStored(): HSAutosingStoredSnapshot | undefined {
+        try {
+            const raw = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`);
+            return raw === null ? undefined : parseStoredAutosingSnapshot(JSON.parse(raw));
+        } catch {
+            return undefined;
+        }
+    }
+
+    /** Written before the first change, so that a closed game never loses the original values. */
+    #persist(): void {
+        const original = this.#original;
+        const firstPlayed = this.#firstPlayed;
+        if (!original || firstPlayed === undefined) return;
+        const snapshot: HSAutosingStoredSnapshot = { firstPlayed, game: [...original], hs: [...this.#hsSettingsToRestore] };
+        if (!HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, snapshot)) {
+            HSLogger.warn('Could not keep the original game settings in localStorage: a reload during Auto-Sing would not restore them.', HSAutosingSettingsFixer.#context);
+        }
     }
 
     public restoreGameSettings(): void {
@@ -58,9 +148,13 @@ export class HSAutosingSettingsFixer {
     }
 
     #readSettings(settings: HSAutosingGameSetting[]): HSAutosingSettingsSnapshot {
+        return captureAutosingSettings(this.#readSave(), settings);
+    }
+
+    #readSave(): unknown {
         const raw = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         if (!raw) throw new Error('Could not read a fresh game save (saving may be blocked by offline progress).');
-        return captureAutosingSettings(JSON.parse(raw), settings);
+        return JSON.parse(raw) as unknown;
     }
 
     #applyAndVerify(settings: HSAutosingGameSetting[], changes: HSAutosingSettingChange[], original?: HSAutosingSettingsSnapshot): void {
@@ -101,14 +195,8 @@ export class HSAutosingSettingsFixer {
         // leave GDS turned off. Released by stopAutosing().
         await HSModuleRegistry.getModule('HSGameData')?.pauseGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
 
-        const performanceSettingKeys = [
-            'enableAutomationQuickBar',
-            'ambrosiaMinibars',
-            'ambrosiaRateHeader',
-        ] as const;
-
         const disabledSettings: string[] = [];
-        for (const settingKey of performanceSettingKeys) {
+        for (const settingKey of PERFORMANCE_SETTING_KEYS) {
             const setting = HSSettings.getSetting(settingKey);
 
             if (!setting) {
@@ -123,6 +211,7 @@ export class HSAutosingSettingsFixer {
                 HSLogger.debug(() => `disableUnwantedSettings: disabled "${settingKey}"`, HSAutosingSettingsFixer.#context);
             }
         }
+        this.#persist();
         if (disabledSettings.length > 0) {
             HSLogger.log(`disableUnwantedSettings: disabled ${disabledSettings.length} performance-impacting setting(s) (${disabledSettings.join(', ')})`, HSAutosingSettingsFixer.#context);
         } else {
@@ -134,7 +223,11 @@ export class HSAutosingSettingsFixer {
         const settingsToRestore = this.#hsSettingsToRestore;
         this.#hsSettingsToRestore = new Map();
         // Reverse order of disabling. GDS is not in the list: stopAutosing() resumes it before this.
-        for (const [settingKey, enabled] of [...settingsToRestore].reverse()) {
+        this.#applyHsSettings([...settingsToRestore].reverse());
+    }
+
+    #applyHsSettings(entries: [string, boolean][]): void {
+        for (const [settingKey, enabled] of entries) {
             const setting = HSSettings.getSetting(settingKey as keyof HSSettingsDefinition);
             if (setting) {
                 if (setting.isEnabled() === enabled) continue;

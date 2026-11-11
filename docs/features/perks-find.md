@@ -1,4 +1,4 @@
-# Perk search (`HSPerksFind`, `hs-modules/hs-perks-find.ts`)
+# Perk search (`HSPerksFind`, `hs-modules/hs-perks-find/hs-perks-find.ts`)
 
 A search field on the Singularity tab's Perks / Penalties subtab. The perk tree is unlabelled icons: without it, finding
 what affects something means hovering them one by one. Setting `perksFind` (Settings → QoL), on by default; off gives the
@@ -15,8 +15,10 @@ game's exact look (element removed, CSS removed, classes cleared).
 - **Compact cards, one column**: not two columns, whose room depends on the window; not a smaller font alone, which gains
   least. Smaller icon and text, level in small grey on the title row, next level dropped: the game's own tooltip, on the
   lit perk in the tree, still has it.
-- **Clearing the field (its cross, or by hand) or Escape** brings the penalties back. The number of results is in grey
-  to the right of the field, out of the flow. The text stays when leaving the subtab, and the search is
+- **Clearing the field (Clear button, by hand) or Escape** brings the penalties back. The Clear button is the game's
+  button at the field's height, to the right of the field and out of the flow (the field stays centred), hidden while
+  the field is empty: not a cross inside the field, too small a target. The number of results is in grey inside the
+  field, at its right end, like the browser's find bar. The text stays when leaving the subtab, and the search is
   read again on return. Results are a snapshot: their values update at the next key or return, not live.
 
 ## Clickable words

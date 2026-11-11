@@ -9,8 +9,9 @@ import type {
   HeaterWorkerResponse,
   SerializedHeaterOptimizerInput,
 } from '../../../types/data-types/hs-heater-worker-types'
+import { HEATER_BRANCH_DEFINITIONS } from './hs-heater-result-config'
 import type { HeaterBranchId } from './hs-heater-result-config'
-import { HSHeaterOptimizer, takeHeaterOptimizerLogs } from './hs-heater-optimizer'
+import { HEATER_ROW_LIMIT, HEATER_ROW_LIMIT_TEXT, HSHeaterOptimizer, takeHeaterOptimizerLogs } from './hs-heater-optimizer'
 import type { HeaterOptimizerLog } from './hs-heater-optimizer'
 import { HSLogger } from '../../hs-core/hs-logger'
 import { escapeLogText } from '../../hs-utils/hs-escape';
@@ -162,10 +163,11 @@ function formatSeconds(ms: number): string {
 }
 
 // One debug line per group with the optimizer's stage times. A stage that
-// holds sub-stages is listed after them, with their total.
-function logStages(branches: string, stages: readonly HeaterOptimizerStage[]): void {
+// holds sub-stages is listed after them, with their total. label: the group,
+// and in a worker its lane and timing.
+function logStages(label: string, stages: readonly HeaterOptimizerStage[]): void {
   if (!stages.length) return
-  HSLogger.debug(() => `Heat stages, ${branches}: ${stages
+  HSLogger.debug(() => `Heat stages, ${label}: ${stages
     .filter(stage => stage.elapsedMs >= 50)
     .map(stage => `${stage.name} ${formatSeconds(stage.elapsedMs)}`)
     .join(', ') || 'none over 0.05 s'}`, LOG_CONTEXT)
@@ -177,6 +179,26 @@ export class HSHeatCancelledError extends Error {
     super('Heat cancelled')
     this.name = 'HSHeatCancelledError'
   }
+}
+
+// A heat stopped by the optimizer's row limit. playerMessage names the
+// branches of the group that hit it, with their labels in the input modal.
+// The optimizer's own message and stack are kept for the log.
+export class HSHeaterRowLimitError extends Error {
+  readonly playerMessage: string
+  constructor(cause: Error, branches: readonly HeaterBranchId[]) {
+    super(cause.message)
+    this.name = 'HSHeaterRowLimitError'
+    this.stack = cause.stack
+    const labels = branches.map(branch => HEATER_BRANCH_DEFINITIONS.find(definition => definition.id === branch)?.label ?? branch)
+    this.playerMessage = `Heater stopped: the ${labels.join(' / ')} search passed its ${HEATER_ROW_LIMIT.toLocaleString('en-US')}-row limit.`
+  }
+}
+
+function asRowLimitError(error: unknown, branches: readonly HeaterBranchId[]): unknown {
+  return error instanceof Error && error.message.includes(HEATER_ROW_LIMIT_TEXT)
+    ? new HSHeaterRowLimitError(error, branches)
+    : error
 }
 
 // Each stops one running worker of the heat in progress
@@ -267,7 +289,7 @@ export class HSHeaterOptimizerRunner {
     heatCancelled = false
     // For the log: the groups a cancel stopped, the group that failed
     const stoppedGroups: string[] = []
-    let failedGroup: string | null = null
+    let failedGroup: BranchGroup | null = null
     try {
       if (typeof Worker === 'undefined' || typeof HS_HEATER_WORKER_SOURCE !== 'string' || !HS_HEATER_WORKER_SOURCE) {
         await new Promise<void>(resolve => setTimeout(resolve, 0))
@@ -292,6 +314,12 @@ export class HSHeaterOptimizerRunner {
       // deterministically.
       const blocker = workers > 1 ? severalWorkersBlocker() : null
       const lanes = buildLanes(activeGroups, blocker === null ? workers : 1)
+      // Which group runs where, when several lanes run or the check above dropped to one
+      if (lanes.length > 1 || blocker !== null) {
+        const plan = lanes.map((lane, number) => `${number + 1}: ${lane.map(index => groupName(activeGroups[index])).join(' → ')}`).join('; ')
+        const count = lanes.length > 1 ? `${lanes.length} workers` : `1 worker (${blocker})`
+        HSLogger.debug(() => `Heat plan, ${count}: ${plan}`, LOG_CONTEXT)
+      }
       const sourceUrl = URL.createObjectURL(new Blob([HS_HEATER_WORKER_SOURCE], { type: 'text/javascript' }))
       try {
         // By group index, so the merge order doesn't depend on which lane ends first
@@ -299,7 +327,8 @@ export class HSHeaterOptimizerRunner {
         const groupTimes: string[] = []
         let started = 0
         let failure: unknown = null
-        const runLane = async (lane: number[]): Promise<void> => {
+        const runLane = async (lane: number[], laneIndex: number): Promise<void> => {
+          const laneLabel = lanes.length > 1 ? `worker ${laneIndex + 1}, ` : ''
           for (const [position, index] of lane.entries()) {
             // Cancelled, or the other lane failed, while no worker of this lane was running
             if (heatCancelled || failure !== null)
@@ -310,15 +339,16 @@ export class HSHeaterOptimizerRunner {
             try {
               const { result: groupResult, stages } = await runWorker(sourceUrl, index, inputForBranches(input, activeGroups[index].branches))
               results[index] = groupResult
-              logStages(name, stages)
-              groupTimes[index] = `${name} ${formatSeconds(performance.now() - groupStartedAt)}`
+              const took = formatSeconds(performance.now() - groupStartedAt)
+              logStages(`${laneLabel}${name} (started +${formatSeconds(groupStartedAt - startedAt)}, took ${took})`, stages)
+              groupTimes[index] = `${name} ${took}`
             } catch (error) {
               // A worker stopped by a cancel, or by the other lane's failure
               if (error instanceof HSHeatCancelledError) {
                 stoppedGroups.push(name)
                 return
               }
-              failedGroup = name
+              failedGroup = activeGroups[index]
               failure = error
               // The other lane's results would be dropped: stop it now
               stopRunningWorkers()
@@ -351,8 +381,11 @@ export class HSHeaterOptimizerRunner {
         throw error
       }
       // The error itself is logged by the caller. The input is what reproduces it.
-      HSLogger.error(`Heat failed after ${formatSeconds(performance.now() - startedAt)}, while heating ${failedGroup ?? branchNames}. Input: ${escapeLogText(cacheKey)}`, LOG_CONTEXT)
-      throw error
+      // Set inside runLane, which TypeScript's narrowing doesn't see
+      const failed = failedGroup as BranchGroup | null
+      HSLogger.error(`Heat failed after ${formatSeconds(performance.now() - startedAt)}, while heating ${failed ? groupName(failed) : branchNames}. Input: ${escapeLogText(cacheKey)}`, LOG_CONTEXT)
+      // Without a worker, every ticked branch ran in one call
+      throw asRowLimitError(error, failed?.branches ?? activeGroups.flatMap(group => group.branches))
     }
   }
 }

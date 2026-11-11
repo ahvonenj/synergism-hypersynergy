@@ -1,7 +1,8 @@
 import { HSCodes } from "../../hs-modules/hs-codes";
 import { HSHepteracts } from "../../hs-modules/hs-hepteracts/hs-hepteracts";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSPerksFind } from "../../hs-modules/hs-perks-find";
+import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
 import { HSPrototypes } from "../hs-prototypes";
@@ -15,7 +16,7 @@ import { HSGameDataAPI } from "../gds/hs-gamedata-api";
 import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
 import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
-import { HSAutoExport } from "../../hs-modules/hs-auto-export";
+import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
 import type { HSModuleDefinition } from "../../../types/hs-types";
 
@@ -63,6 +64,12 @@ export const HS_MODULE_DEFINITIONS = [
         moduleClass: HSHepteracts,
         context: 'HSHepteracts',
         moduleColor: 'slateblue',
+    },
+    {
+        className: 'HSStatsForNerds',
+        moduleClass: HSStatsForNerds,
+        context: 'HSStatsForNerds',
+        moduleColor: 'lightskyblue',
     },
     {
         className: 'HSPerksFind',

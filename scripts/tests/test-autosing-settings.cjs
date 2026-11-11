@@ -105,4 +105,23 @@ assert.equal(delta.size, 5);
 assert.equal(delta.get('openCubes'), 20);
 assert.equal(delta.get('autoChallengeTimer.start'), 2);
 assert.deepEqual(capture(before, changed), original);
+
+// Stored snapshot (a reload during a run): JSON round trip, malformed data, and a changed settings list.
+const { parseStoredAutosingSnapshot: parseStored, mergeStoredAutosingSettings: merge } = runtime.exports;
+const stored = parseStored(JSON.parse(JSON.stringify({ firstPlayed: '2024-01-01T00:00:00.000Z', game: [...original], hs: [['ambrosiaMinibars', true]] })));
+assert.equal(stored.firstPlayed, '2024-01-01T00:00:00.000Z');
+assert.deepEqual(merge(settings, stored.game, capture(fixture(), settings)), original, 'a stored snapshot restores the original values');
+for (const data of [null, 'x', [], {}, { firstPlayed: 1, game: [], hs: [] }, { firstPlayed: 'a', game: {}, hs: [] }, { firstPlayed: 'a', game: [] }]) {
+    assert.equal(parseStored(data), undefined, JSON.stringify(data));
+}
+const partial = parseStored({ firstPlayed: 'a', game: [['toggles.1', false], ['bad'], ['toggles.2', null], [3, true], ['coinbuyamount', 7]], hs: [['ambrosiaMinibars', 'yes'], ['ambrosiaRateHeader', false]] });
+assert.deepEqual(partial.game, [['toggles.1', false], ['coinbuyamount', 7]], 'malformed entries are dropped');
+assert.deepEqual(partial.hs, [['ambrosiaRateHeader', false]]);
+const atTargets = capture(fixture(), settings);
+const merged = merge(settings, [...partial.game, ['unknown.path', true]], atTargets);
+assert.equal(merged.size, settings.length, 'every managed setting has a value');
+assert.equal(merged.get('toggles.1'), false, 'a stored value is restored');
+assert.equal(merged.get('coinbuyamount'), 100000, 'a value the setting no longer accepts keeps the current one');
+assert.equal(merged.get('autoAscend'), atTargets.get('autoAscend'), 'a setting missing from the snapshot keeps its current value');
+assert.deepEqual(values(plan(settings, atTargets, merged)), new Map([['toggles.1', false]]));
 console.log(`Passed AutoSing settings planning and restoration checks (${settings.length} managed settings).`);

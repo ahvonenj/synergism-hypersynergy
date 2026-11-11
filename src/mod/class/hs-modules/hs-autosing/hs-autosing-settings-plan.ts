@@ -86,6 +86,12 @@ export function getAutosingGameSettings(config: HSAutosingSettingsConfig): HSAut
     return settings;
 }
 
+function isValidSettingValue(setting: HSAutosingGameSetting, value: unknown): value is HSAutosingSettingValue {
+    return typeof value === typeof setting.target
+        && !(typeof value === 'number' && (!Number.isFinite(value) || value < 0))
+        && !(setting.values && !setting.values.includes(value as HSAutosingSettingValue));
+}
+
 /** Copy only scalar settings. Never retain the player object or a save's progress. */
 export function captureAutosingSettings(save: unknown, settings: readonly HSAutosingGameSetting[]): HSAutosingSettingsSnapshot {
     const snapshot = new Map<string, HSAutosingSettingValue>();
@@ -96,13 +102,8 @@ export function captureAutosingSettings(save: unknown, settings: readonly HSAuto
             value = value !== null && typeof value === 'object' && Object.hasOwn(value, key)
                 ? (value as Record<string, unknown>)[key] : undefined;
         }
-        if (typeof value !== typeof setting.target
-            || (typeof value === 'number' && (!Number.isFinite(value) || value < 0))
-            || (setting.values && !setting.values.includes(value as HSAutosingSettingValue))) {
-            invalid.push(setting.path);
-        } else {
-            snapshot.set(setting.path, value as HSAutosingSettingValue);
-        }
+        if (isValidSettingValue(setting, value)) snapshot.set(setting.path, value);
+        else invalid.push(setting.path);
     }
     // A missing field is an incompatible save, never a reason to click an unknown toggle.
     if (invalid.length) throw new Error(`Unrecognized saved settings: ${invalid.join(', ')}`);
@@ -118,4 +119,50 @@ export function planAutosingSettings(
         if (value === undefined || !current.has(setting.path)) throw new Error(`Missing setting: ${setting.path}`);
         return current.get(setting.path) === value ? [] : [{ setting, value }];
     });
+}
+
+/**
+ * The snapshot kept in localStorage while AutoSing runs, so that a reload or a closed game still gets the
+ * player's settings back. `firstPlayed` identifies the save it belongs to.
+ */
+export interface HSAutosingStoredSnapshot {
+    firstPlayed: string;
+    game: [string, HSAutosingSettingValue][];
+    hs: [string, boolean][];
+}
+
+const isPair = <T>(entry: unknown, isValue: (value: unknown) => value is T): entry is [string, T] =>
+    Array.isArray(entry) && entry.length === 2 && typeof entry[0] === 'string' && isValue(entry[1]);
+const isScalar = (value: unknown): value is HSAutosingSettingValue =>
+    typeof value === 'boolean' || typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
+const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
+
+/** Undefined for anything that isn't a stored snapshot. Malformed entries are dropped, not the whole snapshot. */
+export function parseStoredAutosingSnapshot(data: unknown): HSAutosingStoredSnapshot | undefined {
+    if (data === null || typeof data !== 'object') return undefined;
+    const { firstPlayed, game, hs } = data as Record<string, unknown>;
+    if (typeof firstPlayed !== 'string' || !Array.isArray(game) || !Array.isArray(hs)) return undefined;
+    return {
+        firstPlayed,
+        game: game.filter(entry => isPair(entry, isScalar)),
+        hs: hs.filter(entry => isPair(entry, isBoolean)),
+    };
+}
+
+/**
+ * The original values to restore from a stored snapshot. A setting missing from it or with a value it no
+ * longer accepts (a mod update changed the list) keeps its current value: never a blind click.
+ */
+export function mergeStoredAutosingSettings(
+    settings: readonly HSAutosingGameSetting[], stored: readonly [string, HSAutosingSettingValue][], current: HSAutosingSettingsSnapshot,
+): HSAutosingSettingsSnapshot {
+    const storedValues = new Map(stored);
+    const merged = new Map<string, HSAutosingSettingValue>();
+    for (const setting of settings) {
+        const value = storedValues.get(setting.path);
+        const fallback = current.get(setting.path);
+        if (isValidSettingValue(setting, value)) merged.set(setting.path, value);
+        else if (fallback !== undefined) merged.set(setting.path, fallback);
+    }
+    return merged;
 }
