@@ -3,8 +3,7 @@ import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGlobal } from "../../hs-core/hs-global";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
-import type { HSGameData } from "../../hs-core/gds/hs-gamedata";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 
 /**
  * Class: HSAmbrosiaHelper
@@ -146,7 +145,7 @@ export class HSAmbrosiaHelper {
         const buttonMode = this.#readLoadoutModeFromButton();
         if (buttonMode) return buttonMode;
 
-        const rawSave = HSModuleManager.getModule<HSGameData>('HSGameData')?.forceCaptureRawSaveSync();
+        const rawSave = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         const savedMode = rawSave?.match(/"blueberryLoadoutMode"\s*:\s*"(loadTree|saveTree)"/)?.[1];
         return savedMode as BlueberryLoadoutMode | undefined;
     }

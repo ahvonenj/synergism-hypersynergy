@@ -1,7 +1,7 @@
 import Decimal from "break_infinity.js";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
-import type { HSGameData } from "../../hs-core/gds/hs-gamedata";
+
 import { HSModule } from "../../hs-core/module/hs-module";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
@@ -9,7 +9,6 @@ import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSStrategyManager } from "./hs-strategy-manager";
 import { HSNumericSetting } from "../../hs-core/settings/hs-setting";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import { HSNumberParser } from "../../hs-utils/hs-number-parser";
 import { HSAutosingStrategy, PhaseOption, phases, AutosingStrategyPhase, Challenge, SPECIAL_ACTION_BY_ID, createDefaultAoagPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, ALLOWED, type HSAutosingPassRecord, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
 import { HSAutosingModal } from "./hs-autosingModal";
 import { HSAutosingRecorder } from "./hs-autosingRecorder";
@@ -22,30 +21,13 @@ import { HSAutosingWakeLock } from './hs-autosingWakeLock';
 import { ELogLevel } from "../../../types/module-types/hs-logger-types";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSSubtabMemory } from "../hs-subtab-memory";
-import { MAIN_VIEW_BUTTON_IDS } from "../../../types/module-types/hs-gamestate-types";
-import { escapeLogText } from "../hs-heater/hs-heater-utils";
+import { escapeLogText } from "../../hs-utils/hs-escape";
+
+import { HSAutosingDom } from "./hs-autosing-dom";
+import { EXALT_STATE_ATTRIBUTE, HSAutosingDomWaits, HSAutosingTextWaitSupersededError } from "./hs-autosing-dom-waits";
 
 const STAGE_REGEX = /Current Game Section:\s*(.+)/;
-const CHALLENGE_COMPLETIONS_REGEX = /\((\d+)\s*\/\s*(\d+)\):/;
-// Everything after the challenge's name: the score is its first number (it can hold no-break spaces, which \S excludes)
-const CHALLENGE_15_SCORE_REGEX = /:\s*(.+)/;
 const ALLOWED_REGEX = new RegExp(ALLOWED.join('|'));
-const EXALT_STATE_ATTRIBUTE = 'data-inside-singularity-challenge';
-
-class InnerTextWaitSupersededError extends Error {
-    constructor() {
-        super("Wait for inner text superseded");
-        this.name = "InnerTextWaitSupersededError";
-    }
-}
-
-type ChallengeAccessor = {
-    button?: HTMLButtonElement;
-    levelElement?: HTMLElement;
-    getLevelText: () => string;
-    getCompletions: () => Decimal;
-    getGoal: () => Decimal;
-};
 
 /**
  * Class: HSAutosing
@@ -54,7 +36,6 @@ type ChallengeAccessor = {
  * Author: XxMolkxX, Shewchou
  */
 export class HSAutosing extends HSModule {
-    static readonly #DECIMAL_INFINITY = new Decimal(Infinity);
     static readonly #DECIMAL_0 = new Decimal(0);
     #gameDataAPI?: HSGameDataAPI;
 
@@ -81,8 +62,6 @@ export class HSAutosing extends HSModule {
     #stopAtSingularitysEnd: boolean = false;
     #hasWarnedMissingStageFunc: boolean = false;
     #storedC15: number = 0;
-    #lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
-    #challengeAccessors: Record<number, ChallengeAccessor> = {};
     #settingsFixer = new HSAutosingSettingsFixer();
     #wakeLock = new HSAutosingWakeLock();
     #settingsWork?: Promise<void>;
@@ -90,56 +69,11 @@ export class HSAutosing extends HSModule {
     #previousQuarkAmount: number = 0;
     #previousGoldenQuarkAmount: number = 0;
 
-    // DOM Elements - Settings & UI
-    #settingsTab!: HTMLButtonElement;
-    #settingsSubTab!: HTMLButtonElement;
-    #misc!: HTMLButtonElement;
-    #stage!: HTMLParagraphElement;
-
-    // DOM Elements - Challenges
-    #challengeButtons: Record<number, HTMLButtonElement> = {};
-    #challengeProgressElements: HTMLElement[] = [];
-
-    // DOM Elements - Challenge Actions
-    #exitTranscBtn!: HTMLButtonElement;
-    #exitReincBtn!: HTMLButtonElement;
-    #exitAscBtn!: HTMLButtonElement;
-    #ascendBtn!: HTMLButtonElement;
-
-    // DOM Elements - Elevator & Navigation
-    #elevatorTeleportButton!: HTMLButtonElement;
-    #elevatorInput!: HTMLInputElement;
-
-    // DOM Elements - Auto Toggles
-    #autoChallengeButton!: HTMLButtonElement;
-    #autoAntSacrificeButton!: HTMLButtonElement;
-    #autoAscendButton!: HTMLButtonElement;
-
-    // DOM Elements - Heptract Auto-Buy
-    #heptractBtns: HTMLButtonElement[] = [];
-
-    // DOM Elements - Ambrosia Loadouts
-    #ambrosia_early_cube!: HTMLButtonElement;
-    #ambrosia_late_cube!: HTMLButtonElement;
-    #ambrosia_quark!: HTMLButtonElement;
-    #ambrosia_obt!: HTMLButtonElement;
-    #ambrosia_off!: HTMLButtonElement;
-    #ambrosia_luck!: HTMLButtonElement;
-    // Read at the start, then kept up to date by setAmbrosiaSwitchesOff(): the slots above aren't looked up while it's on
-    #ambrosiaSwitchesOff = false;
-    // "Record step timings", read at each start
     #recordTimings = false;
-
-    // DOM Elements - Misc
-    #antSacrifice!: HTMLButtonElement;
-    #AOAG!: HTMLButtonElement;
-    #exalt2Btn!: HTMLButtonElement;
-    #addCodeAllBtn!: HTMLButtonElement;
-    #timeCodeBtn!: HTMLButtonElement;
-    #upg81Btn!: HTMLButtonElement;
-
-    // DOM Elements - Antiquities
-    #antiquitiesRuneLockedContainer!: HTMLDivElement;
+    readonly #dom = new HSAutosingDom(this.context, () => {
+        if (this.#autosingEnabled) this.stopAutosing();
+    });
+    readonly #domWaits = new HSAutosingDomWaits(this.context, () => this.#isInExalt());
 
     // State Management
     #endStageDone: boolean = false;
@@ -152,41 +86,10 @@ export class HSAutosing extends HSModule {
     #upg81PromiseResolve?: (value: boolean) => void;
     #upg81ClickLoopActive: boolean = false;
     #upg81ClickLoopGeneration: number = 0;
-    #exaltStateObserver?: MutationObserver;
     // Step of #enterAndLeaveExalt(): a stop while 'entering' leaves the Exalt autosing entered
     #exaltStep: 'none' | 'entering' | 'leaving' = 'none';
     // Exalt waits of the current #enterAndLeaveExalt() that a game tick ended, not the game's Exalt attribute (debug line)
     #exaltWaitsEndedByTick = 0;
-    #waitForExaltStateActive?: {
-        targetState: boolean;
-        resolve: (value: boolean) => void;
-        finished: boolean;
-    };
-    #challengeCompletionObserver?: MutationObserver;
-    #challengeObserverActive?: {
-        predicate: () => boolean;
-        resolve: () => void;
-        finished: boolean;
-    };
-    #waitForClassConditionObserver?: MutationObserver;
-    #waitForClassConditionObservedElement?: Element;
-    #waitForClassConditionActive?: {
-        element: Element;
-        condition: () => boolean;
-        resolve: (value: boolean) => void;
-        finished: boolean;
-    };
-    #waitForInnerTextObserver?: MutationObserver;
-    #waitForInnerTextObservedElement?: HTMLElement;
-    #waitForInnerTextActive?: {
-        el: HTMLElement;
-        predicate: (text: string) => boolean;
-        resolve: () => void;
-        reject: (error: Error) => void;
-        finished: boolean;
-        timeoutId?: number;
-    };
-
     // Game References
     #stageFunc?: ((mode: number) => string) | null;
     #getMaxChallengesFunc?: ((challenge: number) => number) | null;
@@ -210,9 +113,8 @@ export class HSAutosing extends HSModule {
     #phaseConfigByStage = new Map<string, AutosingStrategyPhase>();
     #finalPhaseConfig?: AutosingStrategyPhase;
 
-
     // ============================================================================
-    // INITIALIZATION - CACHIIIING
+    // INITIALIZATION
     // ============================================================================
 
     init(): Promise<void> {
@@ -220,216 +122,13 @@ export class HSAutosing extends HSModule {
         return Promise.resolve();
     }
 
-    #cacheSettingsElements(): boolean {
-        const elements = {
-            settingsTab: document.getElementById('settingstab') as HTMLButtonElement | null,
-            settingsSubTab: document.getElementById('switchSettingSubTab4') as HTMLButtonElement | null,
-            misc: document.getElementById('kMisc') as HTMLButtonElement | null,
-            stage: document.getElementById('gameStageStatistic') as HTMLParagraphElement | null,
-        };
-        if (!this.#ensureElements(elements)) return false;
-
-        this.#settingsTab = elements.settingsTab;
-        this.#settingsSubTab = elements.settingsSubTab;
-        this.#misc = elements.misc;
-        this.#stage = elements.stage;
-        return true;
-    }
-
-    #cacheChallengeElements(): boolean {
-        // The game's text span, not its header module: the mod adds a compact copy inside the module
-        // (HSHeaderChallengeProgress), so the module's text is never empty once the game exits the challenge
-        const progressElements = {
-            transcension: document.getElementById('transcensionChallengeProgressText'),
-            reincarnation: document.getElementById('reincarnationChallengeProgressText'),
-            ascension: document.getElementById('ascensionChallengeProgressText'),
-        };
-        if (!this.#ensureElements(progressElements)) return false;
-        this.#challengeProgressElements = [
-            progressElements.transcension,
-            progressElements.reincarnation,
-            progressElements.ascension,
-        ];
-
-        for (let i = 1; i <= 15; i++) {
-            const elements = {
-                challengeButton: document.getElementById(`challenge${i}`) as HTMLButtonElement | null,
-            };
-            if (!this.#ensureElements(elements)) return false;
-
-            this.#challengeButtons[i] = elements.challengeButton;
-        }
-        this.#buildChallengeAccessors();
-        return true;
-    }
-
-    #cacheButtonElements(): boolean {
-        const elements = {
-            exitTranscBtn: document.getElementById('challengebtn') as HTMLButtonElement | null,
-            exitReincBtn: document.getElementById('reincarnatechallengebtn') as HTMLButtonElement | null,
-            exitAscBtn: document.getElementById('ascendChallengeBtn') as HTMLButtonElement | null,
-            ascendBtn: document.getElementById('ascendbtn') as HTMLButtonElement | null,
-            autoChallengeButton: document.getElementById('toggleAutoChallengeStart') as HTMLButtonElement | null,
-            autoAntSacrificeButton: document.getElementById('toggleAutoSacrificeAnt') as HTMLButtonElement | null,
-            autoAscendButton: document.getElementById('ascensionAutoEnable') as HTMLButtonElement | null,
-            antSacrifice: document.getElementById('antSacrifice') as HTMLButtonElement | null,
-            AOAG: document.getElementById('antiquitiesRuneSacrifice') as HTMLButtonElement | null,
-            exalt2Btn: document.getElementById('oneChallengeCap') as HTMLButtonElement | null,
-            elevatorTeleportButton: document.getElementById('elevatorTeleportButton') as HTMLButtonElement | null,
-            elevatorInput: document.getElementById('elevatorTargetInput') as HTMLInputElement | null,
-            upg81Btn: document.getElementById('upg81') as HTMLButtonElement | null,
-        };
-        if (!this.#ensureElements(elements)) return false;
-
-        this.#exitTranscBtn = elements.exitTranscBtn;
-        this.#exitReincBtn = elements.exitReincBtn;
-        this.#exitAscBtn = elements.exitAscBtn;
-        this.#ascendBtn = elements.ascendBtn;
-        this.#autoChallengeButton = elements.autoChallengeButton;
-        this.#autoAntSacrificeButton = elements.autoAntSacrificeButton;
-        this.#autoAscendButton = elements.autoAscendButton;
-        this.#antSacrifice = elements.antSacrifice;
-        this.#AOAG = elements.AOAG;
-        this.#exalt2Btn = elements.exalt2Btn;
-        this.#elevatorTeleportButton = elements.elevatorTeleportButton;
-        this.#elevatorInput = elements.elevatorInput;
-        this.#upg81Btn = elements.upg81Btn;
-        return true;
-    }
-
-    #cacheHeptractButtons(): boolean {
-        const ids = [
-            'chronosHepteractAuto',
-            'hyperrealismHepteractAuto',
-            'quarkHepteractAuto',
-            'challengeHepteractAuto',
-            'abyssHepteractAuto',
-            'acceleratorHepteractAuto',
-            'acceleratorBoostHepteractAuto',
-            'multiplierHepteractAuto',
-            'hepteractToQuarkTradeAuto',
-        ];
-        const buttonMap = Object.fromEntries(
-            ids.map(id => [id, document.getElementById(id) as HTMLButtonElement | null])
-        ) as Record<string, HTMLButtonElement | null>;
-        if (!this.#ensureElements(buttonMap)) return false;
-
-        this.#heptractBtns = ids.map(id => buttonMap[id]!);
-        return true;
-    }
-
-    #cacheCorruptionElements(): boolean {
-        const elements = {
-            addCodeAllBtn: document.getElementById("addCodeAll") as HTMLButtonElement | null,
-            timeCodeBtn: document.getElementById("timeCode") as HTMLButtonElement | null,
-            corruptionLevelInput: document.getElementById("corruptionLevelInput") as HTMLInputElement | null,
-            corruptionLevelMax: document.getElementById("corruptionLevelMax") as HTMLButtonElement | null,
-        };
-        if (!this.#ensureElements(elements)) return false;
-
-        this.#addCodeAllBtn = elements.addCodeAllBtn;
-        this.#timeCodeBtn = elements.timeCodeBtn;
-        // The level input and Max button are checked above, then used by id (HSCorruptionLevel)
-        this.#corruptionManager = new HSAutosingCorruption();
-        return true;
-    }
-
-    async #cacheAmbrosiaLoadoutButtons(): Promise<boolean> {
-        this.#ambrosiaSwitchesOff = HSSettings.getSetting("autosingNoAmbrosiaSwitch").isEnabled();
-        if (this.#ambrosiaSwitchesOff) {
-            HSLogger.log("Ambrosia loadout switches are off: the ambrosia loadout settings are not used.", this.context);
-            return true;
-        }
-
-        if (!this.#findAmbrosiaLoadoutButtons()) {
-            HSUI.Notify("There is a problem with the Auto-Sing settings. Check the logs for more details.", {
-                notificationType: "warning"
-            });
-            return false;
-        }
-        return true;
-    }
-
-    #findAmbrosiaLoadoutButtons(): boolean {
-        const earlyCubeVal = HSSettings.getSetting("autosingEarlyCubeLoadout").getValue();
-        const lateCubeVal = HSSettings.getSetting("autosingLateCubeLoadout").getValue();
-        const quarkVal = HSSettings.getSetting("autosingQuarkLoadout").getValue();
-        const obtVal = HSSettings.getSetting("autosingObtLoadout").getValue();
-        const offVal = HSSettings.getSetting("autosingOffLoadout").getValue();
-        const ambrosiaVal = HSSettings.getSetting("autosingAmbrosiaLoadout").getValue();
-
-        const elements = {
-            earlyCube: document.getElementById(`blueberryLoadout${earlyCubeVal}`) as HTMLButtonElement | null,
-            lateCube: document.getElementById(`blueberryLoadout${lateCubeVal}`) as HTMLButtonElement | null,
-            quark: document.getElementById(`blueberryLoadout${quarkVal}`) as HTMLButtonElement | null,
-            obt: document.getElementById(`blueberryLoadout${obtVal}`) as HTMLButtonElement | null,
-            off: document.getElementById(`blueberryLoadout${offVal}`) as HTMLButtonElement | null,
-            luck: document.getElementById(`blueberryLoadout${ambrosiaVal}`) as HTMLButtonElement | null,
-        };
-        // Not #ensureElements, which stops a running autosing: a slot at "None" during a run only refuses the change
-        if (!this.#allElementsFound(elements)) return false;
-
-        this.#ambrosia_early_cube = elements.earlyCube;
-        this.#ambrosia_late_cube = elements.lateCube;
-        this.#ambrosia_quark = elements.quark;
-        this.#ambrosia_obt = elements.obt;
-        this.#ambrosia_off = elements.off;
-        this.#ambrosia_luck = elements.luck;
-        return true;
-    }
-
-    /**
-     * "Don't switch ambrosia loadouts" changed. During a run it applies from the next step;
-     * otherwise the next start reads the setting.
-     */
-    public setAmbrosiaSwitchesOff(off: boolean): void {
-        if (!this.#autosingEnabled && !this.#isStarting) return;
-        if (this.#ambrosiaSwitchesOff === off) return;
-
-        // The slots weren't looked up if the setting was on at the start
-        if (!off && !this.#findAmbrosiaLoadoutButtons()) {
-            HSLogger.warn("Ambrosia loadout switches stay off: an ambrosia loadout setting has no slot.", this.context);
-            HSUI.Notify("Auto-Sing still won't switch ambrosia loadouts: pick a slot for each loadout first.", { notificationType: 'warning' });
-            HSSettings.getSetting("autosingNoAmbrosiaSwitch").enable();
-            return;
-        }
-
-        this.#ambrosiaSwitchesOff = off;
-        this.#autosingModal?.refreshLoadouts();
-    }
-
-    /** "Keep the PC awake" changed. During a run it applies at once; otherwise the next start reads the setting. */
-    public setKeepAwake(on: boolean): void {
-        if (!this.#autosingEnabled) return;
-        if (on) this.#wakeLock.start();
-        else this.#wakeLock.stop();
-    }
-
-    #cacheMiscElements(): boolean {
-        const elements = {
-            antiquitiesRuneLockedContainer: document.getElementById('antiquitiesRuneLockedContainer') as HTMLDivElement | null,
-        };
-        if (!this.#ensureElements(elements)) return false;
-
-        this.#antiquitiesRuneLockedContainer = elements.antiquitiesRuneLockedContainer;
-
-        const gamestate = HSModuleManager.getModule<HSGameState>("HSGameState");
-        if (!gamestate) {
-            HSLogger.warn('HSGameState module not found during misc element caching', this.context);
-            return false;
-        }
-        this.#gamestate = gamestate;
-        this.#subtabMemory = HSModuleManager.getModule<HSSubtabMemory>("HSSubtabMemory");
-        return true;
-    }
-
     #cacheObservers(): void {
         // upg81 observer, for the antiBuyCoinBug
-        if (!this.#upg81Observer && this.#upg81Btn) {
+        if (!this.#upg81Observer && this.#dom.upg81Btn) {
             this.#upg81Observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        const isGreen = this.#upg81Btn.classList.contains('green-background');
+                        const isGreen = this.#dom.upg81Btn.classList.contains('green-background');
                         if (isGreen && this.#upg81PromiseResolve) {
                             HSLogger.debug(() => `-------> #upg81 turned green o/`, this.context);
                             this.#stopUpg81Clicking();
@@ -443,7 +142,7 @@ export class HSAutosing extends HSModule {
         }
 
         // Antiquities observer, starting AOAG phase
-        if (!this.#antiquitiesObserver && this.#antiquitiesRuneLockedContainer) {
+        if (!this.#antiquitiesObserver && this.#dom.antiquitiesRuneLockedContainer) {
             this.#antiquitiesObserver = new MutationObserver(mutations => {
                 for (const mutation of mutations) {
                     if ((mutation.target as HTMLElement).style.display === 'none') {
@@ -462,46 +161,7 @@ export class HSAutosing extends HSModule {
             });
         }
 
-        // The game sets its Exalt attribute on <html> within the reset itself. Bookmark mode reads it; exposure-ready
-        // mode reads player.insideSingularityChallenge, and is only woken up by it (see #waitForExaltState).
-        if (!this.#exaltStateObserver) {
-            this.#exaltStateObserver = new MutationObserver(() => {
-                if (!this.#waitForExaltStateActive) return;
-                if (this.#isInExalt() === this.#waitForExaltStateActive.targetState) {
-                    this.#cleanupWaitForExaltState(true);
-                }
-            });
-        }
-
-        // Challenge completion observer, used to check if we're inside a specific challenge or not
-        if (!this.#challengeCompletionObserver) {
-            this.#challengeCompletionObserver = new MutationObserver(() => {
-                if (!this.#challengeObserverActive) return;
-                if (this.#challengeObserverActive.predicate()) {
-                    this.#cleanupChallengeObserver();
-                }
-            });
-        }
-
-        // Class condition observer, 
-        if (!this.#waitForClassConditionObserver) {
-            this.#waitForClassConditionObserver = new MutationObserver(() => {
-                if (!this.#waitForClassConditionActive) return;
-                if (this.#waitForClassConditionActive.condition()) {
-                    this.#cleanupWaitForClassCondition(true);
-                }
-            });
-        }
-
-        // Inner text observer, used for checking the stage
-        if (!this.#waitForInnerTextObserver) {
-            this.#waitForInnerTextObserver = new MutationObserver(() => {
-                if (!this.#waitForInnerTextActive) return;
-                if (this.#waitForInnerTextActive.predicate(this.#waitForInnerTextActive.el.textContent ?? "")) {
-                    this.#cleanupWaitForInnerText(true);
-                }
-            });
-        }
+        this.#domWaits.prepare();
     }
 
     #cacheExposedFunctions(): void {
@@ -543,17 +203,48 @@ export class HSAutosing extends HSModule {
         else HSLogger.warn(exposureMsg, this.context);
     }
 
-    async cacheAlmostEverything(): Promise<boolean> {
-        if (!this.#cacheSettingsElements()) return false;
-        if (!this.#cacheChallengeElements()) return false;
-        if (!this.#cacheButtonElements()) return false;
-        if (!this.#cacheHeptractButtons()) return false;
-        if (!this.#cacheCorruptionElements()) return false;
-        if (!await this.#cacheAmbrosiaLoadoutButtons()) return false;
-        if (!this.#cacheMiscElements()) return false;
-        return true;
+    /**
+     * "Don't switch ambrosia loadouts" changed. During a run it applies from the next step;
+     * otherwise the next start reads the setting.
+     */
+    public setAmbrosiaSwitchesOff(off: boolean): void {
+        if (!this.#autosingEnabled && !this.#isStarting) return;
+        if (this.#dom.ambrosiaSwitchesOff === off) return;
+
+        // The slots weren't looked up if the setting was on at the start
+        if (!off && !this.#dom.findAmbrosiaLoadoutButtons()) {
+            HSLogger.warn("Ambrosia loadout switches stay off: an ambrosia loadout setting has no slot.", this.context);
+            HSUI.Notify("Auto-Sing still won't switch ambrosia loadouts: pick a slot for each loadout first.", { notificationType: 'warning' });
+            HSSettings.getSetting("autosingNoAmbrosiaSwitch").enable();
+            return;
+        }
+
+        this.#dom.ambrosiaSwitchesOff = off;
+        this.#autosingModal?.refreshLoadouts();
     }
 
+    /** "Keep the PC awake" changed. During a run it applies at once; otherwise the next start reads the setting. */
+    public setKeepAwake(on: boolean): void {
+        if (!this.#autosingEnabled) return;
+        if (on) this.#wakeLock.start();
+        else this.#wakeLock.stop();
+    }
+
+    async cacheAlmostEverything(): Promise<boolean> {
+        if (!this.#dom.cacheCoreElements()) return false;
+        this.#corruptionManager = new HSAutosingCorruption();
+        if (!this.#dom.cacheAmbrosiaLoadoutButtons()) return false;
+        if (!this.#dom.cacheAntiquitiesElement()) return false;
+
+        const gamestate = HSModuleRegistry.getModule("HSGameState");
+        if (!gamestate) {
+            HSLogger.warn('HSGameState module not found during misc element caching', this.context);
+            return false;
+        }
+        this.#gamestate = gamestate;
+        this.#subtabMemory = HSModuleRegistry.getModule("HSSubtabMemory");
+        return true;
+    }
 
     // ============================================================================
     // ENABLE / DISABLE AUTOSING
@@ -644,13 +335,14 @@ export class HSAutosing extends HSModule {
 
         this.#autosingEnabled = true;
         if (HSSettings.getSetting("autosingKeepAwake").isEnabled()) this.#wakeLock.start();
+        if (HSSettings.getSetting("autosingKeepAwake").isEnabled()) this.#wakeLock.start();
         this.#stopAtSingularitysEnd = false;
         this.#endStageDone = false;
         this.#antiquitiesObserverActivated = false;
         this.#endStagePromise = undefined;
         this.#hasWarnedMissingStageFunc = false;
         this.#storedC15 = 0;
-        this.#lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
+        this.#dom.resetChallenge15Score();
 
         // The toggle can be OFF here: Restart pressed in review mode, after a stop. Its action
         // calls enableAutoSing(), which returns at once since autosing is now running.
@@ -768,7 +460,7 @@ export class HSAutosing extends HSModule {
                 HSUI.Notify('Auto-Sing could not restore all game settings. See the mod log for details.', { notificationType: 'warning' });
             } finally {
                 try {
-                    await HSModuleManager.getModule<HSGameData>('HSGameData')?.resumeGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
+                    await HSModuleRegistry.getModule('HSGameData')?.resumeGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
                 } finally {
                     this.#settingsFixer.restoreUnwantedSettings();
                 }
@@ -785,6 +477,7 @@ export class HSAutosing extends HSModule {
     async #stopAutosingCore(options: { modalDisposition: 'review' | 'destroy', leaveExalt: boolean }): Promise<void> {
         this.#autosingEnabled = false;
         this.#wakeLock.stop();
+        this.#wakeLock.stop();
 
         // Stopped between entering Exalt 2 and leaving it: leave it, or the player stays inside.
         // Its own session answers its dialogs: the exit Alert is queued after stopAutosing() has stopped
@@ -792,7 +485,7 @@ export class HSAutosing extends HSModule {
         // Not when another save is being loaded: the game would leave the Exalt on that save.
         if (options.leaveExalt && this.#exaltStep === 'entering' && this.#isInExalt()) {
             HSLogger.log('Autosing stopped inside Exalt 2: leaving it.', this.context);
-            HSGameDialogs.act('autosing', { confirm: 'ok', alert: 'dismiss' }, () => this.#exalt2Btn.click());
+            HSGameDialogs.act('autosing', { confirm: 'ok', alert: 'dismiss' }, () => this.#dom.exalt2Btn.click());
         }
         this.#exaltStep = 'none';
 
@@ -807,23 +500,7 @@ export class HSAutosing extends HSModule {
         this.#upg81PromiseResolve = undefined;
         this.#upg81Promise = undefined;
 
-        this.#exaltStateObserver?.disconnect();
-        this.#exaltStateObserver = undefined;
-        this.#cleanupWaitForExaltState(false);
-
-        this.#challengeCompletionObserver?.disconnect();
-        this.#challengeCompletionObserver = undefined;
-        this.#cleanupChallengeObserver();
-
-        this.#waitForClassConditionObserver?.disconnect();
-        this.#waitForClassConditionObserver = undefined;
-        this.#waitForClassConditionObservedElement = undefined;
-        this.#cleanupWaitForClassCondition(false);
-
-        this.#waitForInnerTextObserver?.disconnect();
-        this.#waitForInnerTextObserver = undefined;
-        this.#waitForInnerTextObservedElement = undefined;
-        this.#cleanupWaitForInnerText(false);
+        this.#domWaits.stop();
         this.#playerTab = undefined;
 
         if (this.#endStagePromiseResolve) {
@@ -853,7 +530,7 @@ export class HSAutosing extends HSModule {
         const singularitySetting = HSSettings.getSetting('singularityNumber') as HSNumericSetting;
         this.#targetSingularity = singularitySetting.getValue();
 
-        this.#gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        this.#gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         await this.#gameDataAPI?.prepareForAutosing();
         const gameData = await this.#gameDataAPI?.getForcedGameData();
 
@@ -877,10 +554,10 @@ export class HSAutosing extends HSModule {
             this.#targetSingularity = gameData.highestSingularityCount;
         }
 
-        this.#elevatorInput.value = this.#targetSingularity.toString();
+        this.#dom.elevatorInput.value = this.#targetSingularity.toString();
         // Without the live player, the Teleport goes to the game's saved target: the game only reads its input on 'change'.
         // With it, the singularity is written directly: the player's saved target isn't touched (locked, it decides their next singularity).
-        if (!this.#hasLivePlayer) this.#elevatorInput.dispatchEvent(new Event('change', { bubbles: true }));
+        if (!this.#hasLivePlayer) this.#dom.elevatorInput.dispatchEvent(new Event('change', { bubbles: true }));
         HSLogger.log(`Autosing requirements checked for target singularity: ${this.#targetSingularity}`, this.context);
 
         return true;
@@ -916,11 +593,17 @@ export class HSAutosing extends HSModule {
             return null;
         }
 
-        const runtimeStrategy: HSAutosingStrategy = JSON.parse(JSON.stringify(strategy));
+        let runtimeStrategy: HSAutosingStrategy;
+        try {
+            runtimeStrategy = HSStrategyManager.validateStrategy(strategy, this.context);
+        } catch (error) {
+            void HSUI.Notify(`Invalid Autosing strategy: ${error instanceof Error ? error.message : String(error)}`, { notificationType: 'error' });
+            return null;
+        }
 
         // Insert special steps at the start of the first phase
         this.#insertAntiBuyCoinBugStep(runtimeStrategy);
-        HSLogger.log(`Loaded strategy "${selectedRawName}" (AntiBuyCoinBug step inserted as first step, and potential obt-switch step removed)`, this.context);
+        HSLogger.log(`Loaded strategy "${escapeLogText(selectedRawName)}" (AntiBuyCoinBug step inserted as first step, and potential obt-switch step removed)`, this.context);
 
         return runtimeStrategy;
     }
@@ -964,7 +647,6 @@ export class HSAutosing extends HSModule {
             }
         }
     }
-
 
     // ============================================================================
     // MAIN AUTOSING LOGIC
@@ -1080,7 +762,6 @@ export class HSAutosing extends HSModule {
         await this.#executePhase(phaseConfig);
     }
 
-
     // ============================================================================
     // PHASE EXECUTION
     // ============================================================================
@@ -1187,14 +868,14 @@ export class HSAutosing extends HSModule {
         this.#corruptionManager.setLevel(level);
         const insideAscensionChallenge = this.#hasLivePlayer
             ? this.#exposedPlayer!.currentChallenge.ascension !== 0
-            : (this.#challengeProgressElements[2]?.textContent ?? '').trim() !== '';
+            : (this.#dom.challengeProgressElements[2]?.textContent ?? '').trim() !== '';
         if (insideAscensionChallenge) {
             // Exiting supplies the ascension reset and records C15's score before its coins are cleared.
             // A plain Ascend here would reset the coins while leaving the challenge active, losing that score.
-            if (!this.#hasLivePlayer) this.#getChallengeAccessor(15).getCompletions();
-            this.#clickResetButton(this.#exitAscBtn);
+            if (!this.#hasLivePlayer) this.#dom.getChallengeAccessor(15).getCompletions();
+            this.#clickResetButton(this.#dom.exitAscBtn);
         } else {
-            this.#clickResetButton(this.#ascendBtn);
+            this.#clickResetButton(this.#dom.ascendBtn);
         }
         // Normally synchronous (or the patched dialog resolves in a microtask): no polling or tick delay.
         // Without the dialog hook, let a displayed confirmation finish before another strategy action runs.
@@ -1242,7 +923,7 @@ export class HSAutosing extends HSModule {
                         ? this.#exposedPlayer!.challenge15Exponent
                         : this.#exposedPlayer!.challengecompletions[ifIdx])
                     : (ifIdx >= 1 && ifIdx <= 15
-                        ? this.#getChallengeAccessor(ifIdx).getCompletions().toNumber()
+                        ? this.#dom.getChallengeAccessor(ifIdx).getCompletions().toNumber()
                         : 0);
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && completions > value) ||
@@ -1256,7 +937,7 @@ export class HSAutosing extends HSModule {
                 const exponent = jump!.ifJumpMultiplier ?? 0;
                 const c15Score = this.#hasLivePlayer
                     ? this.#exposedPlayer!.challenge15Exponent
-                    : this.#getChallengeAccessor(15).getCompletions().toNumber();
+                    : this.#dom.getChallengeAccessor(15).getCompletions().toNumber();
                 const threshold = this.#storedC15 * 10 ** exponent;
                 const shouldJump = jumpIndex !== undefined &&
                     ((operator === ">" && threshold > c15Score) ||
@@ -1270,7 +951,6 @@ export class HSAutosing extends HSModule {
         return null;
     }
 
-
     // ============================================================================
     // SPECIAL ACTIONS
     // ============================================================================
@@ -1278,33 +958,33 @@ export class HSAutosing extends HSModule {
     async #performSpecialAction(actionId: number, waitTime: number, maxTime: number): Promise<void> {
         switch (actionId) {
             case 101: // Exit Transcension challenge
-                this.#clickResetButton(this.#exitTranscBtn);
+                this.#clickResetButton(this.#dom.exitTranscBtn);
                 break;
             case 102: // Exit Reincarnation challenge
-                this.#clickResetButton(this.#exitReincBtn);
+                this.#clickResetButton(this.#dom.exitReincBtn);
                 break;
             case 103: // Exit Ascension challenge
-                if (!this.#hasLivePlayer) this.#getChallengeAccessor(15).getCompletions();
-                this.#clickResetButton(this.#exitAscBtn);
+                if (!this.#hasLivePlayer) this.#dom.getChallengeAccessor(15).getCompletions();
+                this.#clickResetButton(this.#dom.exitAscBtn);
                 break;
             case 104: // Ascend
-                this.#clickResetButton(this.#ascendBtn);
+                this.#clickResetButton(this.#dom.ascendBtn);
                 break;
             case 151: // Wait (done in the waitBefore)
                 break;
             case 152: // Ant sac
-                this.#antSacrifice.click();
+                this.#dom.antSacrifice.click();
                 break;
             case 153: // Auto Challenge Toggle
-                this.#autoChallengeButton.click();
-                this.#clickResetButton(this.#exitTranscBtn);
-                this.#clickResetButton(this.#exitReincBtn);
+                this.#dom.autoChallengeButton.click();
+                this.#clickResetButton(this.#dom.exitTranscBtn);
+                this.#clickResetButton(this.#dom.exitReincBtn);
                 break;
             case 154: // Auto Ant-Sac Toggle
-                this.#autoAntSacrificeButton.click();
+                this.#dom.autoAntSacrificeButton.click();
                 break;
             case 155: // Auto Ascend Toggle
-                this.#autoAscendButton.click();
+                this.#dom.autoAscendButton.click();
                 break;
             case 211:
             case 212:
@@ -1315,25 +995,25 @@ export class HSAutosing extends HSModule {
             case 215: // store C15
                 this.#storedC15 = this.#hasLivePlayer
                     ? this.#exposedPlayer!.challenge15Exponent
-                    : this.#getChallengeAccessor(15).getCompletions().toNumber();
+                    : this.#dom.getChallengeAccessor(15).getCompletions().toNumber();
                 break;
             case 301: // Early Cube
-                await this.#setAmbrosiaLoadout(this.#ambrosia_early_cube);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_early_cube);
                 break;
             case 302: // Late Cube
-                await this.#setAmbrosiaLoadout(this.#ambrosia_late_cube);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_late_cube);
                 break;
             case 303: // Quark
-                await this.#setAmbrosiaLoadout(this.#ambrosia_quark);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_quark);
                 break;
             case 304: // Obt loadout
-                await this.#setAmbrosiaLoadout(this.#ambrosia_obt);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_obt);
                 break;
             case 305: // Off loadout
-                await this.#setAmbrosiaLoadout(this.#ambrosia_off);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_off);
                 break;
             case 306: // Ambrosia loadout
-                await this.#setAmbrosiaLoadout(this.#ambrosia_luck);
+                await this.#setAmbrosiaLoadout(this.#dom.ambrosia_luck);
                 break;
             case 601:
             case 602:
@@ -1356,10 +1036,10 @@ export class HSAutosing extends HSModule {
             case 707:
             case 708:
             case 709:
-                this.#heptractBtns[actionId - 701]?.click();
+                this.#dom.heptractBtns[actionId - 701]?.click();
                 break;
             case 901:
-                this.#AOAG.click();
+                this.#dom.AOAG.click();
                 break;
             case 902: // Restart AutoSing
                 this.restartAutosing();
@@ -1375,7 +1055,6 @@ export class HSAutosing extends HSModule {
         }
     }
 
-
     // ============================================================================
     // CHALLENGE RESOLUTION
     // ============================================================================
@@ -1389,7 +1068,7 @@ export class HSAutosing extends HSModule {
         stepTag?: () => string
     ): Promise<void> {
         const sleepInterval = 5;
-        const accessor = this.#getChallengeAccessor(challengeIndex);
+        const accessor = this.#dom.getChallengeAccessor(challengeIndex);
         const challengeBtn = accessor.button;
 
         // Fast path: use exposedPlayer.currentChallenge instead of MutationObserver/class polling.
@@ -1410,7 +1089,7 @@ export class HSAutosing extends HSModule {
                 if (!isChallengeActive()) await HSUtils.waitForNextTack();
             }
         } else {
-            const progressUpdated = this.#waitForInnerText(
+            const progressUpdated = this.#domWaits.waitForInnerText(
                 accessor.levelElement!,
                 text => text.trim().length > 0,
                 true
@@ -1491,7 +1170,7 @@ export class HSAutosing extends HSModule {
         await this.#waitForCompletion(challengeIndex, 0, 0, 0);
         await this.#waitForCompletion(10, 0, 0, 0);
 
-        const accessor = this.#getChallengeAccessor(challengeIndex);
+        const accessor = this.#dom.getChallengeAccessor(challengeIndex);
         const levelElement = accessor.levelElement;
 
         // Fast path: no DOM text parsing, no Decimal
@@ -1517,30 +1196,7 @@ export class HSAutosing extends HSModule {
             const isDone = () => accessor.getLevelText().trim() === '' || getCompletions().gte(maxPossible);
             if (isDone()) return;
 
-            await new Promise<void>((resolve) => {
-                if (this.#challengeObserverActive) {
-                    this.#cleanupChallengeObserver();
-                }
-
-                let timeoutId: number | undefined;
-                const resolveAndClearTimeout = (): void => {
-                    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-                    resolve();
-                };
-
-                this.#challengeObserverActive = {
-                    predicate: isDone,
-                    resolve: resolveAndClearTimeout,
-                    finished: false,
-                };
-
-                this.#challengeCompletionObserver?.disconnect();
-                this.#challengeCompletionObserver?.observe(levelElement!, { childList: true, characterData: true, subtree: true });
-                if (this.#challengeObserverActive.predicate()) this.#cleanupChallengeObserver();
-                if (this.#challengeObserverActive) {
-                    timeoutId = window.setTimeout(() => this.#cleanupChallengeObserver(), maxTime);
-                }
-            });
+            await this.#domWaits.waitForChallengeProgress(levelElement!, isDone, maxTime);
         }
     }
 
@@ -1574,7 +1230,7 @@ export class HSAutosing extends HSModule {
             }
         } else {
             // Fallback: DOM text parsing + Decimal
-            const accessor = this.#getChallengeAccessor(challengeIndex);
+            const accessor = this.#dom.getChallengeAccessor(challengeIndex);
             const getLevelText = accessor.getLevelText;
             const getCompletions = accessor.getCompletions;
             const maxPossible = accessor.getGoal();
@@ -1603,7 +1259,6 @@ export class HSAutosing extends HSModule {
             }
         }
     }
-
 
     // ============================================================================
     // STAGE
@@ -1649,26 +1304,26 @@ export class HSAutosing extends HSModule {
                 // Arm the observer before navigation: a fresh render may happen
                 // immediately, or on a later UI tick. Existing text is not evidence
                 // that the game has updated the stage for this read.
-                const stageUpdate = this.#waitForInnerText(this.#stage, t => extractStage(t) !== null, true);
+                const stageUpdate = this.#domWaits.waitForInnerText(this.#dom.stage, t => extractStage(t) !== null, true);
                 const isOnStageTab =
-                    this.#settingsTab.classList.contains('active-tab') &&
-                    this.#settingsSubTab.classList.contains('active-subtab') &&
+                    this.#dom.settingsTab.classList.contains('active-tab') &&
+                    this.#dom.settingsSubTab.classList.contains('active-subtab') &&
                     document.getElementById('miscStats')?.classList.contains('activeStats');
 
                 try {
                     if (!isOnStageTab) {
                         // A tab the player opened since the last read is the one to bring back
                         this.#notePlayerTab();
-                        this.#settingsTab.click();
-                        this.#settingsSubTab.click();
-                        this.#misc.click();
+                        this.#dom.settingsTab.click();
+                        this.#dom.settingsSubTab.click();
+                        this.#dom.misc.click();
                     }
                 } catch (e) {
-                    this.#cleanupWaitForInnerText(false, e instanceof Error ? e : new Error(String(e)));
+                    this.#domWaits.abortTextWait(e instanceof Error ? e : new Error(String(e)));
                 }
 
                 await stageUpdate;
-                const stageText = extractStage(this.#stage?.textContent ?? "");
+                const stageText = extractStage(this.#dom.stage?.textContent ?? "");
 
                 HSLogger.warn(`Current stage: ${stageText}`, this.context);
                 return stageText || '';
@@ -1685,7 +1340,6 @@ export class HSAutosing extends HSModule {
             return '';
         }
     }
-
 
     // ============================================================================
     // SINGULARITY LOGIC
@@ -1713,15 +1367,15 @@ export class HSAutosing extends HSModule {
             gq = data?.goldenQuarks ?? 0;
             quarksFromAnts = data?.quarksFromAnts ?? 0;
             quarksThisSingularity = data?.quarksThisSingularity ?? 0;
-            c15ScoreBeforeSinging = this.#getChallengeAccessor(15).getCompletions();
-            this.#lastBookmarkC15Score = HSAutosing.#DECIMAL_0;
+            c15ScoreBeforeSinging = this.#dom.getChallengeAccessor(15).getCompletions();
+            this.#dom.resetChallenge15Score();
         }
 
         const happyHourStackAmount = this.#gameDataAPI?.getEventData()?.HAPPY_HOUR_BELL.amount ?? 0;
 
         // antiBuyCoinBug setup (hard-coded inserted first step of the strategy should ensure this promise is resolved)
         this.#upg81Promise = new Promise<boolean>((resolve) => { this.#upg81PromiseResolve = resolve; });
-        this.#upg81Observer?.observe(this.#upg81Btn, { attributes: true, attributeFilter: ['class'] });
+        this.#upg81Observer?.observe(this.#dom.upg81Btn, { attributes: true, attributeFilter: ['class'] });
 
         this.#notePlayerTab();
         if (!await this.#enterAndLeaveExalt()) {
@@ -1747,7 +1401,7 @@ export class HSAutosing extends HSModule {
             // So maybe we can skip everything except singularityCount update...
             this.#exposedPlayer!.singularityCount = this.#targetSingularity;
         } else {
-            this.#elevatorTeleportButton.click();
+            this.#dom.elevatorTeleportButton.click();
         }
 
         if (this.#hasLivePlayer) {
@@ -1778,7 +1432,7 @@ export class HSAutosing extends HSModule {
         this.#startUpg81Clicking();
 
         // Obt switch so we start producing Obt ASAP every sing
-        await this.#setAmbrosiaLoadout(this.#ambrosia_obt);
+        await this.#setAmbrosiaLoadout(this.#dom.ambrosia_obt);
 
         let stage;
         do {
@@ -1801,12 +1455,12 @@ export class HSAutosing extends HSModule {
         this.#exaltWaitsEndedByTick = 0;
         try {
             this.#exaltStep = 'entering';
-            this.#exalt2Btn.click();
+            this.#dom.exalt2Btn.click();
             // Stopped meanwhile: #stopAutosingCore() already left the Exalt. A second click would enter it again.
             if (!await this.#waitForExaltState(true) || !this.#autosingEnabled) return false;
 
             this.#exaltStep = 'leaving';
-            this.#exalt2Btn.click();
+            this.#dom.exalt2Btn.click();
             const left = await this.#waitForExaltState(false);
             if (left) HSLogger.debug(() => `Exalt 2 entered and left in ${(performance.now() - startedAt).toFixed(1)} ms, ${this.#exaltWaitsEndedByTick === 0 ? "without waiting for a game tick" : `${this.#exaltWaitsEndedByTick} wait(s) ended by a game tick`}`, this.context);
             return left;
@@ -1827,7 +1481,7 @@ export class HSAutosing extends HSModule {
             return false;
         }
 
-        const exaltBtn = HSUtils.getActiveExaltElement();
+        const exaltBtn = this.#dom.getActiveExaltElement();
         if (!exaltBtn) {
             HSLogger.warn("Could not find the active Exalt to leave it.", this.context);
             HSUI.Notify("Auto-Sing could not leave the Exalt. Leave it yourself, then start Auto-Sing again.", { notificationType: 'warning' });
@@ -1848,7 +1502,6 @@ export class HSAutosing extends HSModule {
         }
         return true;
     }
-
 
     // ============================================================================
     // FINAL STAGE 
@@ -1878,7 +1531,7 @@ export class HSAutosing extends HSModule {
         if (!this.#autosingEnabled) return; // If the user stopped during the very last step
 
         // Export to gather a few quarks
-        await this.#setAmbrosiaLoadout(this.#ambrosia_quark);
+        await this.#setAmbrosiaLoadout(this.#dom.ambrosia_quark);
         const exportSynergism = window.__HS_exportSynergism;
         if (typeof exportSynergism === 'function' && window.__HS_EXPORT_OUTPUT_PATCHED) {
             window.__HS_SUPPRESS_EXPORT_ONCE = true;
@@ -1892,7 +1545,7 @@ export class HSAutosing extends HSModule {
             HSLogger.warn('Quark-only export unavailable: the game export-output hook was not patched.', this.context);
         }
 
-        this.#clickResetButton(this.#ascendBtn);
+        this.#clickResetButton(this.#dom.ascendBtn);
 
         if (this.#stopAtSingularitysEnd && this.#autosingEnabled) {
             HSUI.Notify("Standard strategy exited: Auto-Sing will now push this sing before stopping.");
@@ -1909,7 +1562,6 @@ export class HSAutosing extends HSModule {
         this.#endStagePromiseResolve = undefined;
     }
 
-
     // ============================================================================
     // MISC - OPTIONAL PUSH AT THE END BEFORE STOPPING
     // ============================================================================
@@ -1917,7 +1569,7 @@ export class HSAutosing extends HSModule {
     /** Runs the push's steps in order, and ends at the first step after a stop. */
     async #pushSingularityBeforeStop(): Promise<void> {
         const steps: Array<() => unknown> = [
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_late_cube),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_late_cube),
             () => this.#corruptionManager.setLevel(0),
 
             () => this.#maxC11to14WithC10(11),
@@ -1927,18 +1579,18 @@ export class HSAutosing extends HSModule {
 
             () => this.#corruptionManager.setMaxLevel(),
 
-            () => this.#autoChallengeButton.click(),
+            () => this.#dom.autoChallengeButton.click(),
 
             ...this.#pushLoopSteps(),
             ...this.#pushLoopSteps(),
 
             ...this.#lastPushLoopSteps(),
-            () => this.#clickResetButton(this.#exitTranscBtn),
+            () => this.#clickResetButton(this.#dom.exitTranscBtn),
             () => HSUtils.sleep(2000),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_late_cube),
-            () => this.#autoChallengeButton.click(),
-            () => this.#clickResetButton(this.#exitAscBtn),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_luck),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_late_cube),
+            () => this.#dom.autoChallengeButton.click(),
+            () => this.#clickResetButton(this.#dom.exitAscBtn),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_luck),
         ];
 
         for (const step of steps) {
@@ -1950,33 +1602,33 @@ export class HSAutosing extends HSModule {
     #pushLoopSteps(): Array<() => unknown> {
         return [
             () => this.#waitForCompletion(15, 0, 0, 0),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_obt),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_obt),
             () => HSUtils.sleep(4500),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_off),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_off),
             () => HSUtils.sleep(100),
-            () => this.#antSacrifice.click(),
+            () => this.#dom.antSacrifice.click(),
             () => HSUtils.sleep(100),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_late_cube),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_late_cube),
 
-            () => this.#clickResetButton(this.#exitAscBtn),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_off),
+            () => this.#clickResetButton(this.#dom.exitAscBtn),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_off),
             () => HSUtils.sleep(4500),
-            () => this.#antSacrifice.click(),
+            () => this.#dom.antSacrifice.click(),
             () => HSUtils.sleep(100),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_late_cube),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_late_cube),
         ];
     }
 
     #lastPushLoopSteps(): Array<() => unknown> {
         return [
             () => this.#waitForCompletion(15, 0, 0, 0),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_obt),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_obt),
             () => HSUtils.sleep(4500),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_off),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_off),
             () => HSUtils.sleep(100),
-            () => this.#antSacrifice.click(),
+            () => this.#dom.antSacrifice.click(),
             () => HSUtils.sleep(100),
-            () => this.#setAmbrosiaLoadout(this.#ambrosia_obt),
+            () => this.#setAmbrosiaLoadout(this.#dom.ambrosia_obt),
 
             () => this.#waitForCompletion(6, 150, 1200, 0),
             () => this.#waitForCompletion(1, 9001, 1200, 0),
@@ -1986,7 +1638,6 @@ export class HSAutosing extends HSModule {
             () => this.#waitForCompletion(5, 9001, 1200, 0),
         ];
     }
-
 
     // ============================================================================
     // MISC - PUBLIC API
@@ -2025,71 +1676,26 @@ export class HSAutosing extends HSModule {
         return this.#stopAtSingularitysEnd;
     }
 
-
     // ============================================================================
     // MISC - UTILITY & HELPERS
     // ============================================================================
 
     async #useAddAndTimeCodes(): Promise<void> {
-        await this.#setAmbrosiaLoadout(this.#ambrosia_luck);
+        await this.#setAmbrosiaLoadout(this.#dom.ambrosia_luck);
         if (!this.#autosingEnabled) return;
-        if (this.#addCodeAllBtn) this.#addCodeAllBtn.click();
-        if (this.#timeCodeBtn) this.#timeCodeBtn.click();
+        if (this.#dom.addCodeAllBtn) this.#dom.addCodeAllBtn.click();
+        if (this.#dom.timeCodeBtn) this.#dom.timeCodeBtn.click();
         await HSUtils.waitForNextTack();
-    }
-
-
-    #getChallengeAccessor(challengeIndex: number): ChallengeAccessor {
-        return this.#challengeAccessors[challengeIndex] ?? this.#makeChallengeAccessor(challengeIndex);
-    }
-
-    #buildChallengeAccessors(): void {
-        for (let i = 1; i <= 15; i++) {
-            this.#challengeAccessors[i] = this.#makeChallengeAccessor(i);
-        }
-    }
-
-    #makeChallengeAccessor(challengeIndex: number): ChallengeAccessor {
-        const challengeBtn = this.#challengeButtons[challengeIndex];
-        const levelElement = this.#challengeProgressElements[Math.floor((challengeIndex - 1) / 5)];
-
-        const getLevelText = () => levelElement?.textContent ?? '';
-        // Completions are written by the game as plain integers, not formatted for the locale
-        const getCompletionMatch = () => getLevelText().match(CHALLENGE_COMPLETIONS_REGEX);
-
-        const getCompletions = challengeIndex === 15
-            ? () => {
-                const text = getLevelText();
-                if (!CHALLENGE_COMPLETIONS_REGEX.test(text)) {
-                    // The score is formatted for the browser locale ("1,234", "1 234", "1.234")
-                    const scoreText = text.match(CHALLENGE_15_SCORE_REGEX)?.[1];
-                    if (scoreText) this.#lastBookmarkC15Score = HSNumberParser.parseDecimal(scoreText) ?? HSAutosing.#DECIMAL_0;
-                }
-                return this.#lastBookmarkC15Score;
-            }
-            : () => new Decimal(getCompletionMatch()?.[1] ?? '0');
-
-        const getGoal = challengeIndex === 15
-            ? () => HSAutosing.#DECIMAL_INFINITY
-            : () => new Decimal(getCompletionMatch()?.[2] ?? '9999');
-
-        return {
-            button: challengeBtn,
-            levelElement,
-            getLevelText,
-            getCompletions,
-            getGoal,
-        };
     }
 
     async #setAmbrosiaLoadout(loadout: HTMLButtonElement): Promise<void> {
         // Every load resets the ambrosia bars, even reloading the tree already in place
-        if (this.#ambrosiaSwitchesOff) return;
+        if (this.#dom.ambrosiaSwitchesOff) return;
         loadout.click();
         // The game marks the slot only if the load succeeded. It doesn't when the tree is rejected
         // (its alert is silent under auto-confirm), so don't wait forever (even though that shouldn't happen...)
         const loaded = await Promise.race([
-            this.#waitForClassCondition(loadout, () => this.#isInAmbLoadout(loadout)),
+            this.#domWaits.waitForClassCondition(loadout, () => this.#isInAmbLoadout(loadout)),
             HSUtils.sleep(2000).then(() => false)
         ]);
         if (!loaded) {
@@ -2155,36 +1761,13 @@ export class HSAutosing extends HSModule {
         const current = this.#gamestate.getCurrentMainViewFromDOM();
         if (current.getId() === view.getId()) return;
 
-        if (!HSAutosing.#isTabVisible(view)) {
+        if (!HSAutosingDom.isTabVisible(view)) {
             this.#playerTab = current;
             return;
         }
 
         if (this.#subtabMemory) this.#subtabMemory.openForPlayer(view);
         else view.goto();
-    }
-
-    /** A locked tab's button is hidden by the game's stylesheet (html[data-chal10="false"] .chal10 and the like). */
-    static #isTabVisible(view: MainView): boolean {
-        const button = document.getElementById(MAIN_VIEW_BUTTON_IDS[view.getId()]);
-        return !!button && getComputedStyle(button).display !== 'none';
-    }
-
-    #ensureElements<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
-        if (this.#allElementsFound(elements))
-            return true;
-
-        if (this.#autosingEnabled) this.stopAutosing();
-        return false;
-    }
-
-    #allElementsFound<T extends Record<string, Element | null>>(elements: T): elements is { [K in keyof T]: NonNullable<T[K]> } {
-        const missing = Object.entries(elements)
-            .filter(([, element]) => !element)
-            .map(([name]) => name);
-
-        for (const name of missing) { HSLogger.warn(`Required element missing: ${name}`, this.context); }
-        return missing.length === 0;
     }
 
     async #waitIfAutosingPaused(): Promise<void> {
@@ -2210,25 +1793,24 @@ export class HSAutosing extends HSModule {
         element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     }
 
-
     // ============================================================================
-    // MISC - OBSERVER STUFF
+    // RUN OBSERVERS AND WAITS
     // ============================================================================
 
     #observeAntiquitiesRune(): void {
-        if (!this.#antiquitiesRuneLockedContainer) {
+        if (!this.#dom.antiquitiesRuneLockedContainer) {
             HSLogger.warn("Performance Warning: MutationObserver for antiquitiesRuneLockedContainer element missing. Aborting.", this.context);
             return;
         }
         this.#antiquitiesObserver?.disconnect();
         this.#antiquitiesObserver?.observe(
-            this.#antiquitiesRuneLockedContainer,
+            this.#dom.antiquitiesRuneLockedContainer,
             { attributes: true, attributeFilter: ['style'] }
         );
     }
 
     #startUpg81Clicking(): void {
-        if (this.#upg81ClickLoopActive || !this.#upg81Btn) return;
+        if (this.#upg81ClickLoopActive || !this.#dom.upg81Btn) return;
 
         const generation = ++this.#upg81ClickLoopGeneration;
         this.#upg81ClickLoopActive = true;
@@ -2240,7 +1822,7 @@ export class HSAutosing extends HSModule {
                     && this.#autosingEnabled
                     && this.#upg81Promise
                 ) {
-                    this.#upg81Btn.click();
+                    this.#dom.upg81Btn.click();
                     await HSUtils.waitForNextTack();
                 }
             } finally {
@@ -2267,85 +1849,8 @@ export class HSAutosing extends HSModule {
         this.#upg81Promise = undefined;
     }
 
-    #waitForClassCondition(element: Element, condition: () => boolean): Promise<boolean> {
-        if (condition()) return Promise.resolve(true);
-
-        if (!this.#waitForClassConditionObserver) {
-            HSLogger.warn("Performance Warning: MutationObserver for class condition changes missing and needs to be recreated.", this.context);
-            this.#waitForClassConditionObserver = new MutationObserver(() => {
-                if (!this.#waitForClassConditionActive) return;
-                if (this.#waitForClassConditionActive.condition()) {
-                    this.#cleanupWaitForClassCondition(true);
-                }
-            });
-        }
-
-        return new Promise<boolean>((resolve) => {
-            if (this.#waitForClassConditionActive)
-                this.#cleanupWaitForClassCondition(false);
-
-            this.#waitForClassConditionActive = {
-                element,
-                condition,
-                resolve,
-                finished: false,
-            };
-
-            if (this.#waitForClassConditionObservedElement !== element) {
-                this.#waitForClassConditionObserver?.disconnect();
-                this.#waitForClassConditionObserver?.observe(element, { attributes: true, attributeFilter: ['class'] });
-                this.#waitForClassConditionObservedElement = element;
-            }
-
-            if (condition()) this.#cleanupWaitForClassCondition(true);
-        });
-    }
-
-    #waitForInnerText(el: HTMLElement, predicate: (text: string) => boolean = t => t.trim().length > 0, waitForNextMutation: boolean = false): Promise<void> {
-        if (!waitForNextMutation && predicate(el.textContent ?? "")) return Promise.resolve();
-
-        if (!this.#waitForInnerTextObserver) {
-            HSLogger.warn("Performance Warning: MutationObserver for inner text changes missing and needs to be recreated.", this.context);
-            this.#waitForInnerTextObserver = new MutationObserver(() => {
-                if (!this.#waitForInnerTextActive) return;
-                if (this.#waitForInnerTextActive.predicate(this.#waitForInnerTextActive.el.textContent ?? "")) {
-                    this.#cleanupWaitForInnerText(true);
-                }
-            });
-        }
-
-        return new Promise<void>((resolve, reject) => {
-            if (this.#waitForInnerTextActive) {
-                this.#cleanupWaitForInnerText(false, new InnerTextWaitSupersededError());
-            }
-
-            this.#waitForInnerTextActive = {
-                el,
-                predicate,
-                resolve,
-                reject,
-                finished: false,
-            };
-            this.#waitForInnerTextActive.timeoutId = window.setTimeout(() => {
-                this.#cleanupWaitForInnerText(false, new Error("Timed out waiting for the game to refresh UI text"));
-            }, 5000);
-
-            if (this.#waitForInnerTextObservedElement !== el) {
-                this.#waitForInnerTextObserver?.disconnect();
-                this.#waitForInnerTextObserver?.observe(el, {
-                    childList: true,
-                    characterData: true,
-                    subtree: true,
-                });
-                this.#waitForInnerTextObservedElement = el;
-            }
-
-            if (!waitForNextMutation && predicate(el.textContent ?? "")) this.#cleanupWaitForInnerText(true);
-        });
-    }
-
     #isExpectedAoagWaitSupersession(error: unknown): boolean {
-        return error instanceof InnerTextWaitSupersededError
+        return error instanceof HSAutosingTextWaitSupersededError
             && this.#autosingEnabled
             && this.#antiquitiesObserverActivated;
     }
@@ -2360,7 +1865,7 @@ export class HSAutosing extends HSModule {
     async #waitForExaltState(targetState: boolean): Promise<boolean> {
         if (this.#isInExalt() === targetState) return true;
 
-        const observed = this.#observeExaltState(targetState);
+        const observed = this.#domWaits.observeExaltState(targetState);
         if (!this.#hasLivePlayer) return await observed;
 
         let done = false;
@@ -2373,80 +1878,7 @@ export class HSAutosing extends HSModule {
         // An observed wait that ends without the state (no observer, autosing stopped) leaves it to the ticks
         await Promise.race([observed.then(matched => matched ? undefined : polled), polled]);
         done = true;
-        this.#cleanupWaitForExaltState(false);
+        this.#domWaits.finishExaltWait(false);
         return this.#exposedPlayer!.insideSingularityChallenge === targetState;
-    }
-
-    /** Resolves true once the game's Exalt attribute changes and the state is the one waited for, false if the wait is ended first. */
-    #observeExaltState(targetState: boolean): Promise<boolean> {
-        return new Promise<boolean>((resolve) => {
-            if (this.#waitForExaltStateActive) {
-                this.#cleanupWaitForExaltState(false);
-            }
-
-            this.#waitForExaltStateActive = {
-                targetState,
-                resolve,
-                finished: false,
-            };
-
-            this.#exaltStateObserver?.disconnect();
-            if (!this.#exaltStateObserver) {
-                HSLogger.warn("Could not observe the game's Exalt state attribute.", this.context);
-                this.#cleanupWaitForExaltState(false);
-                return;
-            }
-            this.#exaltStateObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: [EXALT_STATE_ATTRIBUTE],
-            });
-            if (this.#isInExalt() === targetState) this.#cleanupWaitForExaltState(true);
-        });
-    }
-
-    #cleanupWaitForExaltState(result: boolean): void {
-        if (!this.#waitForExaltStateActive || this.#waitForExaltStateActive.finished) return;
-        this.#waitForExaltStateActive.finished = true;
-        const resolve = this.#waitForExaltStateActive.resolve;
-        this.#waitForExaltStateActive = undefined;
-        this.#exaltStateObserver?.disconnect();
-        resolve(result);
-    }
-
-    #cleanupChallengeObserver(): void {
-        if (!this.#challengeObserverActive || this.#challengeObserverActive.finished) return;
-        this.#challengeObserverActive.finished = true;
-        const resolve = this.#challengeObserverActive.resolve;
-        this.#challengeObserverActive = undefined;
-        this.#challengeCompletionObserver?.disconnect();
-        resolve();
-    }
-
-    #cleanupWaitForClassCondition(success: boolean): void {
-        if (!this.#waitForClassConditionActive || this.#waitForClassConditionActive.finished) return;
-        this.#waitForClassConditionActive.finished = true;
-        const resolve = this.#waitForClassConditionActive.resolve;
-        this.#waitForClassConditionActive = undefined;
-
-        // Should we disconnect them here, since it's often called in burst ? 
-        this.#waitForClassConditionObserver?.disconnect();
-        this.#waitForClassConditionObservedElement = undefined;
-
-        resolve(success);
-    }
-
-    #cleanupWaitForInnerText(success: boolean, error?: Error): void {
-        if (!this.#waitForInnerTextActive || this.#waitForInnerTextActive.finished) return;
-        this.#waitForInnerTextActive.finished = true;
-        const resolve = this.#waitForInnerTextActive.resolve;
-        const reject = this.#waitForInnerTextActive.reject;
-        window.clearTimeout(this.#waitForInnerTextActive.timeoutId);
-        this.#waitForInnerTextActive = undefined;
-
-        // Should we disconnect them here, since it's often called in burst ? 
-        this.#waitForInnerTextObserver?.disconnect();
-        this.#waitForInnerTextObservedElement = undefined;
-
-        if (success) resolve(); else reject(error ?? new Error("Wait for inner text aborted"));
     }
 }

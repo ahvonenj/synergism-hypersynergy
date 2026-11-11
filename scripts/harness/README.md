@@ -40,7 +40,7 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | `loader-https.cjs` | The browser loader on the real game page (pseudo-corp.github.io), run at document-start as Tampermonkey does. `PATCHER=local` (the repo's `patcher.js`) or `live` (jsDelivr). |
 | `node-run.mjs <entry.ts> [args]` | Bundles a TypeScript entry that imports the mod's code (`@repo/...` = `src/mod`) for node, with browser-only modules stubbed, and runs it. The entry names its stubs in a comment: `// harness-stubs: gds`, `heater` or a regex. |
 | `node/gds-on-save.ts <save> [overrides]` | `HSGameDataAPI` on a save: ambrosia per hour, luck. Copy it to check another figure. |
-| `node/heater-bench.ts <backup> <branch[+branch]>` | One heat in node on a backup's heater data, with per-stage times and peak memory. `SWAP=hs-heater-optimizer.ts=<copy>` compares a modified optimizer on the same input. |
+| `node/heater-bench.ts <backup> <branch[+branch]>` | One heat in node on a backup's heater data, with per-stage times and peak memory. `SWAP=hs-heater-optimizer-engine.ts=<copy>` compares a modified engine on the same input. |
 | `hepteract-distributor.cjs <save>` | Presses the real Hepteract Distributor on the real game, on states set through the dev tools: an expansion paid back to the unit, a partial step ending the plan, a normal run. Prints each check, exits 1 if one fails. The save needs Chronos, Hyperrealism, Challenge and Abyss unlocked, outside Exalts 3 and 7. |
 | `gds-player-keys.cjs` | After a game update: vanilla `Player` keys against the mod's `GameDataFields`. |
 | `gds-vs-game.cjs <save> [--write]` | The real game's Stats for nerds at full precision on about 50 states of a save, for `scripts/tests/test-gds-formulas.cjs`. Rewrites the served bundle to report raw values, here only. 3 minutes. How to use it: `docs/game/updating.md`. |
@@ -121,7 +121,7 @@ the arguments are rewritten); measure by having the page write widths into a `da
 **Mod classes on a fake game page** (behaviour with real clicks): a small fake page served over http (not `file://`,
 so `localStorage` and reloads behave), the real classes bundled in, driven with `lib/cdp.cjs`: `click` gives trusted
 events, so code checking `event.isTrusted` or `window.event` can be tested; `evaluate` with a `setTimeout` stands for
-mod code. Stub `hs-logger`, `hs-module-manager` and `settings/hs-settings` (an esbuild `onResolve` plugin);
+mod code. Stub `hs-logger`, `hs-module-registry` and `settings/hs-settings` (an esbuild `onResolve` plugin);
 `hs-gamestate`, `hs-global`, `hs-storage`, `hs-elementhooker` and `hs-utils` bundle as they are. Used for subtab
 memory, the strategy editor windows (fake `Modal`), the timed export (an OPFS folder for the picked one) and the dev
 tools (`--dump-dom` doesn't wait for IndexedDB: use CDP).

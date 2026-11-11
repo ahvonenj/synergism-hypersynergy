@@ -4,6 +4,11 @@ The autosing docs: `autosing.md` (the run), `autosing-strategies.md` (strategy f
 
 Singularity automation driven by JSON "strategies" (`autosing-strategies.md`). The main loop is in `hs-autosing.ts`, the run panel (timer window) in `hs-autosingModal.ts`.
 
+`HSAutosing` owns the run and the game actions. `HSAutosingDom` caches elements at start and reads fallback challenge
+progress. `HSAutosingDomWaits` owns the Exalt, challenge progress, class and text observers. Starting prepares them,
+and stopping disconnects them and settles their pending waits. Autosing itself owns game-tick waits and the observers
+that drive the Antiquities and upgrade 81 actions.
+
 ## Speed comes first where it counts
 Autosing loops singularities for hours, so what runs inside its main loop, and the mod's background work and other features while it runs, must be as light as possible.
 - No extra awaits, listeners or polling in the loop: plain boolean checks. Features may stay off during autosing for simplicity.
@@ -93,7 +98,7 @@ Test: `npm run test:autosing`.
 ## "Don't switch ambrosia loadouts" (`autosingNoAmbrosiaSwitch`)
 - Why: every ambrosia loadout load resets the ambrosia bars (the game's `createBlueberryTree` → `resetBlueberryTree` → `resetAmbrosiaBarProgress`: blueberry, red ambrosia and purple honey progress), even reloading the tree already in place (only the game's Auto Ascension rules skip a loaded tree).
 - With the setting on, `#setAmbrosiaLoadout` does nothing: no switch after the singularity, at the start, before the quark export, in the push, nor for steps 301–306. Every switch must go through `#setAmbrosiaLoadout`.
-- Read at the start in `#cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
+- Read at the start in `HSAutosingDom.cacheAmbrosiaLoadoutButtons`, which then skips looking up the 6 slots (a slot at "None" no longer stops the start). The run panel's footer says "no switch".
 - Changing it during a run applies from the next step, and the footer follows. Turning it off looks up the 6 slots at that moment; a slot at "None" refuses the change: the switch goes back on, a notification says why, and the run goes on without switches. The slot settings themselves are still only read at those two moments.
 - A global switch was chosen over "None = skip that one switch" (an unset slot would silently switch nothing).
 

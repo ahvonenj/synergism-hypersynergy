@@ -1,11 +1,12 @@
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSUIC } from "../../../hs-core/hs-ui-components";
 import { HSGameDataAPI } from "../../../hs-core/gds/hs-gamedata-api";
 import { redAmbrosiaUpgradeCalculationCollection } from "../../../hs-core/gds/hs-gamedata-tables";
 import { HSHeaterResultStore } from "../hs-heater-result-store";
 import type { HeaterOptimizerInput, HeaterRedAmbCommonValues, HeaterRedAmbUpgradeEffects } from "../../../../types/data-types/hs-heater-types";
 import type { RedAmbrosiaUpgradeCalculationConfig, RedAmbrosiaUpgradeKey } from "../../../../types/data-types/hs-gamedata-api-types";
-import { applyHeaterBells, escapeHtml, normalizeHeaterFusion, computeHeaterFusionValue, computeHeaterFusionGain, computeHeaterRedAmbrosiaSheetValue } from "../hs-heater-utils";
+import { applyHeaterBells, normalizeHeaterFusion, computeHeaterFusionValue, computeHeaterFusionGain, computeHeaterRedAmbrosiaSheetValue } from "../hs-heater-utils";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 
 export type RedAmbrosiaUpgradeCategoryEffectValue = number | "N / A" | "-";
 export type RedAmbrosiaUpgradeCefLogValue = number | "-" | "N / A" | "Never";
@@ -99,7 +100,7 @@ function isOcteractEffectKey(upgradeKey: RedAmbrosiaUpgradeKey): upgradeKey is O
 }
 
 function getCurrentHSGameDataAPI(): HSGameDataAPI | undefined {
-    return HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+    return HSModuleRegistry.getModule('HSGameDataAPI');
 }
 
 function getCurrentRedAmbrosiaOptimizerContext(gameDataApi?: HSGameDataAPI): {

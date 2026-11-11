@@ -3,7 +3,7 @@ import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUtils } from "../../../hs-utils/hs-utils";
 import { HSUIXY } from "../../../../types/module-types/hs-ui-types";
-import { escapeHtml } from "../../hs-heater/hs-heater-utils";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 
 type IfJumpMode = NonNullable<IfJumpParams["ifJumpMode"]>;
 

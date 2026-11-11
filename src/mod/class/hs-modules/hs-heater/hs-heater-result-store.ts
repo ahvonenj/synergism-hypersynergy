@@ -1,13 +1,11 @@
 import { buildHeaterTypeSemanticId, getHeaterTypeConfig, getHeaterTypeRowCount, HEATER_BEST_H_SEMANTIC_ID, resolveHeaterTypeLabel } from "./hs-heater-result-config";
 import type { HeaterOptimizationResult, HeaterPurpleRoutedResultKey, HeaterResultArrayKey, HeaterTypeSemanticId, NormalizedHeaterResultEntry } from "../../../types/data-types/hs-heater-types";
 import { HSGlobal } from "../../hs-core/hs-global";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
-import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 
 export type { NormalizedHeaterResultEntry } from "../../../types/data-types/hs-heater-types";
 
 type ResultKey = HeaterResultArrayKey;
-
 
 // ================================================================
 // Result normalization / transformation
@@ -82,7 +80,6 @@ export function pickBestHyperfluxRowIndex(entries: NormalizedHeaterResultEntry[]
 
 export type HeaterBestHPick = { rowIndex: number; semanticId: HeaterTypeSemanticId; p4x4: number };
 
-
 // ================================================================
 // Result store / selected semantic ID helpers
 // ================================================================
@@ -103,7 +100,7 @@ export class HSHeaterResultStore {
     static getLiveP4x4(): number | null {
         const live = HSGlobal.exposedPlayer?.platonicUpgrades?.[19];
         if (typeof live === "number") return live;
-        const saved = HSModuleManager.getModule<HSGameDataAPI>("HSGameDataAPI")?.getGameData()?.platonicUpgrades?.[19];
+        const saved = HSModuleRegistry.getModule("HSGameDataAPI")?.getGameData()?.platonicUpgrades?.[19];
         return typeof saved === "number" ? saved : null;
     }
 

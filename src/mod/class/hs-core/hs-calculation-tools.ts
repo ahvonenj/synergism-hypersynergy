@@ -1,7 +1,7 @@
 import { HSLogger } from "./hs-logger";
 import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
-import { HSModuleManager } from "./module/hs-module-manager";
+import { HSModuleRegistry } from "./module/hs-module-registry";
 import { HSGameDataAPI } from "./gds/hs-gamedata-api";
 import { HSInputType } from "../../types/module-types/hs-ui-types";
 import { HSCalculationDefinition, HSCalculationParamOption, HSCalculationParams } from "../../types/data-types/hs-gamedata-api-types";
@@ -101,7 +101,7 @@ export class HSCalculationTools {
 
     static #paramOptions(param: HSCalculationParams): readonly HSCalculationParamOption[] | undefined {
         if (typeof param.options === 'function') {
-            return param.options(HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.getGameData());
+            return param.options(HSModuleRegistry.getModule('HSGameDataAPI')?.getGameData());
         }
         return param.options ?? (param.paramType === 'boolean' ? BOOLEAN_OPTIONS : undefined);
     }
@@ -126,7 +126,7 @@ export class HSCalculationTools {
         const params = definition ? HSCalculationTools.#shownParams(definition) : [];
 
         // A list read from the save needs one: none yet when GDS has been off since the page load
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
         if (params.some((param) => typeof param.options === 'function') && !dataModule?.getGameData()) {
             await dataModule?.getForcedGameData();
             // Another pick during the save draws its own params
@@ -190,7 +190,7 @@ export class HSCalculationTools {
     // ===============================
 
     static async #run(mode: 'reduced' | 'components'): Promise<void> {
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
         const definition = HSCalculationTools.#selectedDefinition();
         if (!dataModule || !definition) {
             HSCalculationTools.#showError('No calculation to run');
@@ -302,7 +302,7 @@ export class HSCalculationTools {
     }
 
     static #dumpCache(): void {
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!dataModule) return;
 
         HSLogger.log('Calculation cache dump', HSCalculationTools.#context);
@@ -316,7 +316,7 @@ export class HSCalculationTools {
 
     // A misspelled fnName, or a param the Tools tab can't set, would only show when the player picks it
     static #checkDefinitions(definitions: HSCalculationDefinition[]): void {
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
 
         for (const definition of definitions) {
             if (typeof dataModule?.getCalculationFunction(definition.fnName) !== 'function') {

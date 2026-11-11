@@ -9,7 +9,7 @@ one clone to another: check `git remote -v`.
   helper). Ordinary commits leave it as it was, so jsDelivr at a commit (`@<sha>`) serves the last release build of
   that time, not that commit's code: a test on a pinned commit can run an old build and look like a regression. Check
   `git log -- release/mod/hypersynergism_release.js` first; to test current code, use the dev server.
-- **`patcher.js` and the userscripts are served unbuilt from the branch** (`master`), so they reach players at the next
+- **The checked-in `patcher.js` and userscripts are served from the branch** (`master`), so they reach players at the next
   page load once jsDelivr serves them: a commit to them is a release for browser players. jsDelivr caches a branch for
   up to 12 hours unless the file is purged.
 - **`@latest` resolves to the highest plain semver tag**: letter and `-dev` suffixes (`v2.14.4b`) are skipped. A player
@@ -32,10 +32,11 @@ one clone to another: check `git remote -v`.
   cause unknown), so after the purges `purgeAndCheckServedFiles` (shared with `merge-live`) compares each served file
   with the commit, purges a stale one once more, and warns if it is still stale. Purge by hand:
   `curl https://purge.jsdelivr.net/gh/<owner>/synergism-hypersynergy@master/<path>`, then check the served file.
-- **`loaderVersion` in `patcher.js`** (the `[HS-LOADER vX.Y]` console prefix): the helper offers a y/N bump (`--yes`
+- **`loaderVersion` in `src/loader/shared/browser-loader.mjs`** (the `[HS-LOADER vX.Y]` console prefix): the helper offers a y/N bump (`--yes`
   bumps) only when `patcher.js` changed since the previous `v*` tag, last number + 1 (`bumpLastNumber`); a major bump is
-  made by hand (Shewchou's choices, 2026-10-29). Live gets the patcher only by ports from Dev (whole file, number
-  included), so a number never means two files, unless the patcher is fixed and bumped directly on Live.
+  made by hand (Shewchou's choices, 2026-10-29). Port the source and version together, then run `npm run build:loaders`.
+  The helper updates the source and regenerates the published files when it bumps the patcher or the Live bridge.
+  The bridge version lives in `src/loader/shared/userscript-versions.json`.
 - **The GitHub release** (`gh release create` on the origin repo): title = the tag, text = the tag message without its
   "Release vX" line, a normal release marked Latest (a `-devN` suffix only means "built after a Live release", not
   unstable), except that it never takes Latest from a `loader-v*` release (the helper reads the current Latest first).
@@ -108,7 +109,7 @@ commits past its tag are listed, and arrive with the next release or a hand merg
 - **A fix to Dev players without the unreleased Dev commits:** a worktree from the last Dev release tag, cherry-picks,
   a release commit tagged with the next dev number; Dev's `master` then gets a `release:` commit carrying that same
   bundle (its sources run ahead of the bundle until the next normal Dev release). Check that commits since the last
-  release didn't touch `patcher.js` or the userscripts, which are served unbuilt from `master`.
+  release didn't touch `patcher.js` or the userscripts, which are served directly from `master`.
 
 ## Loader release (`synergism_modloader`)
 

@@ -5,7 +5,7 @@ import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSStorage } from "../hs-core/hs-storage";
 import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleManager } from "../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 import { HSSettings } from "../hs-core/settings/hs-settings";
 
 const STORAGE_KEY = 'subtab-memory';
@@ -59,7 +59,7 @@ export class HSSubtabMemory extends HSModule {
     async init() {
         HSLogger.log(`Initializing HSSubtabMemory module`, this.context);
 
-        this.#gameState = HSModuleManager.getModule<HSGameState>('HSGameState');
+        this.#gameState = HSModuleRegistry.getModule('HSGameState');
         if (!this.#gameState) {
             HSLogger.warn('HSGameState not found: subtabs are not remembered', this.context);
             return;
@@ -200,7 +200,7 @@ export class HSSubtabMemory extends HSModule {
         if (this.#notes.size === 0) return;
 
         this.#notes.clear();
-        HSModuleManager.getModule<HSStorage>('HSStorage')?.clearData(STORAGE_KEY);
+        HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
     }
 
     /**
@@ -217,14 +217,14 @@ export class HSSubtabMemory extends HSModule {
         this.#notes.set(name, subtabId);
 
         const data: HSSubtabMemoryData = { version: 1, notes: Object.fromEntries(this.#notes) };
-        const saved = HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, data);
+        const saved = HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, data);
         if (!saved) HSLogger.warn('Could not save the remembered subtabs', this.context);
     }
 
     #load(): void {
         // HSStorage warns when a key is missing: nothing stored is the normal case until a tab is left
         const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY) : null;
+        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY) : null;
         if (!stored || stored.version !== 1 || typeof stored.notes !== 'object' || stored.notes === null) return;
 
         // The stored data is untrusted (backup files are shared): only a known subtab button of its own tab is kept,

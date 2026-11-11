@@ -18,6 +18,7 @@ declare global {
     interface HTMLElement {
         transition(properties: TransitionProperties, duration?: number, timingFunction?: string): Promise<void>;
         textNodes(): string[];
+        clearTransitions(): void
     }
 
     interface Document {
@@ -76,15 +77,6 @@ export class HSPrototypes extends HSModule {
         // This method wraps the string in a color tag for use in the mod's log
         String.prototype.colorTag = function(color: string) {
             return `<${color}>${this}</${color}>`;
-        }
-
-        // Extend HTMLElement prototype with textNodes method
-        // This method returns an array of text nodes in the element
-        HTMLElement.prototype.textNodes = function() {
-            return Array.from(this.childNodes)
-                        .filter(n => n.nodeType === Node.TEXT_NODE)
-                        .map(n => n.textContent ?? null)
-                        .filter(n => n !== null) as string[];
         }
 
         this.isInitialized = true;

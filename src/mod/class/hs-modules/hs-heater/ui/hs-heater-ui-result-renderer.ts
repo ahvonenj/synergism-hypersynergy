@@ -1,5 +1,6 @@
 import { HSTooltip } from "../../../hs-core/hs-tooltip";
-import { escapeHtml, formatNumber, HEATER_EFFECT_PAIR_SEPARATOR } from "../hs-heater-utils";
+import { formatNumber, HEATER_EFFECT_PAIR_SEPARATOR } from "../hs-heater-utils";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 import { getEffectiveHeaterIconSrc } from "../hs-heater-icon-store";
 import { getHeaterResultSectionDefinitions, getHeaterTypeConfig, resolveHeaterTypeDescription, type HeaterResultSectionDef } from "../hs-heater-result-config";
 import { HSHeaterResultStore, pickBestHyperfluxRowIndex, type NormalizedHeaterResultEntry } from "../hs-heater-result-store";

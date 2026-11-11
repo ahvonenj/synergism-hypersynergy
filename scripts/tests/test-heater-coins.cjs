@@ -8,9 +8,10 @@ const esbuild = require('esbuild');
 // Tax.ts, Calculate.ts, Runes.ts, RuneBlessings.ts, RuneSpirits.ts and Statistics.ts.
 async function main() {
   const root = path.resolve(__dirname, '../..');
-  const optimizer = path.join(root, 'src/mod/class/hs-modules/hs-heater/hs-heater-optimizer.ts');
+  const optimizer = path.join(root, 'src/mod/class/hs-modules/hs-heater/hs-heater-optimizer-engine.ts');
   const bundled = await esbuild.build({
-    stdin: { contents: `export * from './src/mod/class/hs-modules/hs-heater/hs-heater-optimizer';
+    stdin: { contents: `export { createHeaterOptimizerEngine } from './src/mod/class/hs-modules/hs-heater/hs-heater-optimizer-engine';
+      export * from './src/mod/class/hs-modules/hs-heater/hs-heater-optimizer';
       export * from './src/mod/class/hs-modules/hs-heater/hs-heater-coins';
       export { buildHeaterCoinsC15Input } from './src/mod/class/hs-core/gds/hs-heater-coins-export';
       export { inputDefinitions } from './src/mod/class/hs-modules/hs-heater/hs-heater-input-config';
@@ -19,8 +20,8 @@ async function main() {
       export { default as Decimal } from 'break_infinity.js';`, resolveDir: root, loader: 'ts' },
     bundle: true, write: false, platform: 'node', format: 'cjs',
     plugins: [{ name: 'heater-coin-test-internals', setup(build) {
-      build.onLoad({ filter: /hs-heater-optimizer\.ts$/ }, () => ({
-        contents: fs.readFileSync(optimizer, 'utf8') + '\nexport { Loadout, upgrades, fillStatsAndOptionsFromInput, findCoinsC15Opt };', loader: 'ts',
+      build.onLoad({ filter: /hs-heater-optimizer-engine\.ts$/ }, () => ({
+        contents: fs.readFileSync(optimizer, 'utf8').replace('return { createResult };', 'return { createResult, Loadout, upgrades, fillStatsAndOptionsFromInput, findCoinsC15Opt };'), loader: 'ts',
       }));
     } }],
   });
@@ -30,8 +31,9 @@ async function main() {
   runtime._compile(bundled.outputFiles[0].text, runtime.filename);
   const { Decimal, createHeaterCoinsC15Evaluator, heaterCoinsC15LogRatio, heaterCoinRunePurchasedLevel,
     formatHeaterCoinsC15Effect, buildHeaterCoinsC15Input, inputDefinitions, HEATER_BRANCH_DEFINITIONS,
-    getHeaterTypeConfig, AntUpgrades, Loadout, upgrades, fillStatsAndOptionsFromInput, findCoinsC15Opt,
+    getHeaterTypeConfig, AntUpgrades, createHeaterOptimizerEngine,
     HSHeaterOptimizer } = runtime.exports;
+  const { Loadout, upgrades, fillStatsAndOptionsFromInput, findCoinsC15Opt } = createHeaterOptimizerEngine();
   const close = (actual, expected, label, tolerance = 2e-11) => assert.ok(
     Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance * Math.max(1, Math.abs(expected)),
     `${label}: ${actual} != ${expected}`);
@@ -179,6 +181,15 @@ async function main() {
   assert.ok(result.coinsC15?.[0][0].startsWith('{'));
   assert.equal(result.input, input);
   assert.equal(HSHeaterOptimizer.createHeaterOptimizerResultFromInput({ ...input, amb: 0 }).coinsC15[0][0], 'Unaffordable');
+  const engine = createHeaterOptimizerEngine();
+  const diagnostics = { stages: [], chainTiers: [], searchPartitions: [], elapsedMs: 0 };
+  assert.deepEqual(engine.createResult(input, {}, diagnostics), result);
+  const diagnosticSnapshot = structuredClone(diagnostics);
+  assert.throws(() => engine.createResult({ ...input, blueBarRequirementBeforeRounding: 0 }, {}, diagnostics),
+    /Blue bar pre-round requirement/);
+  engine.createResult({ ...input, heaterOptions: {} });
+  assert.deepEqual(diagnostics, diagnosticSnapshot, 'a later ordinary heat must not retain prior diagnostics');
+  assert.deepEqual(engine.createResult(input), result, 'failure and branch changes must not affect the next heat');
   assert.ok(HEATER_BRANCH_DEFINITIONS.some(b => b.id === 'coinsC15' && b.resultKeys.includes('coinsC15')));
   assert.equal(getHeaterTypeConfig('coinsC15').label, 'Coins in C15');
   const roundTrip = JSON.parse(JSON.stringify(snapshot));

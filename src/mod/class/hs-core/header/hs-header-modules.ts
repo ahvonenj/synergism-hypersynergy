@@ -1,7 +1,6 @@
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
-import { HSStorage } from "../hs-storage";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 
 const STORAGE_KEY = 'header-modules';
 // The game's grid region (its cells keep their index, empty ones included); its other region is a plain row
@@ -341,7 +340,7 @@ export class HSHeaderModules {
 
         // HSStorage warns when a key is missing: nothing stored is the normal case until a module is placed
         if (localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) === null) return notes;
-        const stored = HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<HSHeaderModuleNotes>>(STORAGE_KEY);
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSHeaderModuleNotes>>(STORAGE_KEY);
         if (!stored || stored.version !== 1 || !stored.layouts || typeof stored.layouts !== 'object') return notes;
 
         // Untrusted (backup files are shared): only well-formed places of mod ids are kept
@@ -373,7 +372,7 @@ export class HSHeaderModules {
     }
 
     static #saveNotes(notes: HSHeaderModuleNotes): void {
-        const saved = HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, notes);
+        const saved = HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, notes);
         if (!saved) HSLogger.warn('Could not save where the mod\'s header modules are', HSHeaderModules.#context);
     }
 }

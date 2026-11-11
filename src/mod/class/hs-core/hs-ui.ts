@@ -13,7 +13,7 @@ import utilitiesCSS from "inline:../../resource/css/hs-utilities.css";
 import panelHTML from "inline:../../resource/html/hs-panel.html";
 import modPanelIconB64 from "inline:../../resource/txt/mod_panel_icon.txt";
 import { HSModuleOptions } from "../../types/hs-types";
-import { escapeLogText } from "../hs-modules/hs-heater/hs-heater-utils";
+import { escapeLogText } from "../hs-utils/hs-escape";
 
 /**
  * Class: HSUI
@@ -50,7 +50,8 @@ export class HSUI extends HSModule {
     static #logTabActive = false;
 
     #activeModals: Set<HTMLDivElement> = new Set();
-    #modalParents: Map<string, string> = new Map();
+    #modalCleanup = new Map<HTMLDivElement, Array<() => void>>();
+    #modalInitialDimensions = new WeakMap<HTMLDivElement, { width: string; height: string }>();
     static #modalZIndexCounter = 7000;
 
     static #injectedStyles = new Map<string, string>();
@@ -148,16 +149,16 @@ export class HSUI extends HSModule {
 
     async #initializePanelElements(): Promise<void> {
         // Find the UI elements in DOM and store the refs
-        this.#uiPanel = await HSElementHooker.HookElement('#hs-panel') as HTMLDivElement;
-        this.#uiPanelTitle = await HSElementHooker.HookElement('#hs-panel-version') as HTMLDivElement;
-        this.#uiPanelCloseBtn = await HSElementHooker.HookElement('#hs-panel-close-btn') as HTMLDivElement;
-        this.#uiPanelMinimizeBtn = await HSElementHooker.HookElement('#hs-panel-minimize-btn') as HTMLDivElement;
-        this.#loggerElement = await HSElementHooker.HookElement('#hs-ui-log') as HTMLElement;
-        this.#logClearBtn = await HSElementHooker.HookElement('#hs-ui-log-clear') as HTMLButtonElement;
-        this.#logCopyBtn = await HSElementHooker.HookElement('#hs-ui-log-copy') as HTMLButtonElement;
+        this.#uiPanel = await HSElementHooker.RequireElement<HTMLDivElement>('#hs-panel');
+        this.#uiPanelTitle = await HSElementHooker.RequireElement<HTMLDivElement>('#hs-panel-version');
+        this.#uiPanelCloseBtn = await HSElementHooker.RequireElement<HTMLDivElement>('#hs-panel-close-btn');
+        this.#uiPanelMinimizeBtn = await HSElementHooker.RequireElement<HTMLDivElement>('#hs-panel-minimize-btn');
+        this.#loggerElement = await HSElementHooker.RequireElement('#hs-ui-log');
+        this.#logClearBtn = await HSElementHooker.RequireElement<HTMLButtonElement>('#hs-ui-log-clear');
+        this.#logCopyBtn = await HSElementHooker.RequireElement<HTMLButtonElement>('#hs-ui-log-copy');
 
-        const panelHandle = await HSElementHooker.HookElement('.hs-panel-header') as HTMLDivElement;
-        const panelResizeHandle = await HSElementHooker.HookElement('.hs-resizer') as HTMLDivElement;
+        const panelHandle = await HSElementHooker.RequireElement<HTMLDivElement>('.hs-panel-header');
+        const panelResizeHandle = await HSElementHooker.RequireElement<HTMLDivElement>('.hs-resizer');
 
         this.#makeDraggable(this.#uiPanel, panelHandle);
         panelHandle.addEventListener('mousedown', () => {
@@ -327,11 +328,10 @@ export class HSUI extends HSModule {
         });
 
         const targetPanel = this.#getTabBody(tabId);
-        if (!targetPanel) return;
-
-        targetPanel.classList.add(tabConfig.panelDisplayType === 'flex'
+        targetPanel?.classList.add(tabConfig.panelDisplayType === 'flex'
             ? 'hs-panel-body-open-flex'
             : 'hs-panel-body-open-block');
+        if (!targetPanel) return;
 
         HSUI.#logTabActive = tabId === 1;
 
@@ -535,6 +535,7 @@ export class HSUI extends HSModule {
         };
 
         dragHandle.addEventListener('mousedown', dragMouseDown);
+        return closeDragElement;
     }
 
     #makeResizable(element: HTMLElement, resizeHandle: HTMLElement, minWidth = 525, minHeight = 400) {
@@ -580,13 +581,14 @@ export class HSUI extends HSModule {
             document.removeEventListener('mousemove', resize);
             document.removeEventListener('mouseup', stopResize);
         }
+        return stopResize;
     }
 
     async getLogElement(): Promise<HTMLElement> {
         if (this.#loggerElement) {
             return this.#loggerElement;
         } else {
-            const logEl = await HSElementHooker.HookElement('#hs-ui-log') as HTMLTextAreaElement;
+            const logEl = await HSElementHooker.RequireElement<HTMLTextAreaElement>('#hs-ui-log');
             this.#loggerElement = logEl;
             return logEl;
         }
@@ -798,16 +800,16 @@ export class HSUI extends HSModule {
         this.#bringElementToFront(modal);
     }
 
-    #attachModalHandlers(modal: HTMLDivElement, modalHead: HTMLDivElement | null): void {
+    #attachModalHandlers(modal: HTMLDivElement, modalHead: HTMLDivElement | null, cleanups: Array<() => void>): void {
         if (modalHead) {
             this.#bringModalToFront(modal);
-            this.#makeDraggable(modal, modalHead);
+            cleanups.push(this.#makeDraggable(modal, modalHead));
             modalHead.addEventListener('mousedown', () => this.#bringModalToFront(modal));
         }
 
         const modalResizer = modal.querySelector('.hs-modal-resizer') as HTMLElement | null;
         if (modalResizer) {
-            this.#makeResizable(modal, modalResizer);
+            cleanups.push(this.#makeResizable(modal, modalResizer));
         }
 
         modal.addEventListener('click', async (e) => {
@@ -898,14 +900,17 @@ export class HSUI extends HSModule {
         const modalHead = modal.querySelector('.hs-modal-head') as HTMLDivElement | null;
 
         this.#activeModals.add(modal);
+        const cleanups: Array<() => void> = [];
+        const { onClose } = modalOptions;
+        if (onClose) cleanups.push(() => onClose(modal));
+        this.#modalCleanup.set(modal, cleanups);
+        this.#modalInitialDimensions.set(modal, { width: modal.style.width, height: modal.style.height });
         this.#bringModalToFront(modal);
-        if (modalOptions.parentModalId) {
-            this.#modalParents.set(uuid, modalOptions.parentModalId);
-        }
 
         if (modalOptions.needsToLoad === true) {
             await this.#waitForModalImages(modal);
         }
+        if (!modal.isConnected) return uuid;
 
         if (modalOptions.onBeforeShow) {
             HSUI.flushInjectedStyles();
@@ -921,40 +926,34 @@ export class HSUI extends HSModule {
         modal.style.top  = `${finalCoords.y}px`;
 
         await modal.transition({ opacity: 1 });
-        this.#attachModalHandlers(modal, modalHead);
+        if (!modal.isConnected) return uuid;
+        this.#attachModalHandlers(modal, modalHead, cleanups);
 
         return uuid;
     }
 
     async CloseModal(modalId?: string): Promise<void> {
         if (modalId) {
-            const modal = document.getElementById(modalId) as HTMLDivElement | null;
-            if (modal) {
-                await modal.transition({
-                    opacity: 0
-                });
-                modal.remove();
-                this.#activeModals.delete(modal);
-            } else {
-                const staleModal = Array.from(this.#activeModals).find((activeModal) => activeModal.id === modalId);
-                if (staleModal) {
-                    this.#activeModals.delete(staleModal);
-                }
-            }
+            const modal = Array.from(this.#activeModals).find(activeModal => activeModal.id === modalId);
+            if (modal) await this.#closeModal(modal);
+            return;
+        }
+        for (const modal of Array.from(this.#activeModals)) {
+            await this.#closeModal(modal);
+        }
+    }
 
-            this.#modalParents.delete(modalId);
-        } else {
-            // Close all modals
-            for (const modal of Array.from(this.#activeModals)) {
-                if (modal.isConnected) {
-                    await modal.transition({
-                        opacity: 0
-                    });
-                    modal.remove();
-                }
-                this.#activeModals.delete(modal);
-            }
-            this.#modalParents.clear();
+    async #closeModal(modal: HTMLDivElement): Promise<void> {
+        if (modal.isConnected) {
+            await modal.transition({ opacity: 0 });
+            modal.remove();
+        }
+        const cleanups = this.#modalCleanup.get(modal);
+        this.#modalCleanup.delete(modal);
+        this.#modalInitialDimensions.delete(modal);
+        this.#activeModals.delete(modal);
+        if (cleanups) {
+            for (const cleanup of cleanups) cleanup();
         }
     }
 
@@ -976,8 +975,9 @@ export class HSUI extends HSModule {
             }
 
             // Restore modal dimensions
-            modal.style.width = '';
-            modal.style.height = '';
+            const initial = this.#modalInitialDimensions.get(modal);
+            modal.style.width = initial?.width ?? '';
+            modal.style.height = initial?.height ?? '';
 
             if (minimizeBtn) {
                 minimizeBtn.textContent = '_';

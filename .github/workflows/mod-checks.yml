@@ -1,0 +1,28 @@
+name: Mod checks
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test mod
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+      - name: Run mod tests
+        run: npm test
+      - name: Build mod
+        run: npm run build

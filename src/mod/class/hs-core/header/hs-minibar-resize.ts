@@ -1,7 +1,6 @@
 import { HSGlobal } from '../hs-global';
 import { HSLogger } from '../hs-logger';
-import { HSStorage } from '../hs-storage';
-import { HSModuleManager } from '../module/hs-module-manager';
+import { HSModuleRegistry } from '../module/hs-module-registry';
 
 type Profile = 'desktop' | 'mobile';
 type Axis = 'width' | 'height' | 'both';
@@ -263,7 +262,7 @@ export class HSMinibarResize {
 
     #load(): void {
         if (localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) === null) return;
-        const stored = HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<StoredDimensions>>(STORAGE_KEY);
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<StoredDimensions>>(STORAGE_KEY);
         if (stored?.version !== 1 || !stored.layouts || typeof stored.layouts !== 'object') return;
         for (const profile of ['desktop', 'mobile'] as const) {
             const value = stored.layouts[profile];
@@ -277,7 +276,7 @@ export class HSMinibarResize {
     }
 
     #save(): void {
-        if (!HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, this.#stored)) {
+        if (!HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, this.#stored)) {
             HSLogger.warn('Could not save the minibar dimensions', 'HSMinibarResize');
         }
     }

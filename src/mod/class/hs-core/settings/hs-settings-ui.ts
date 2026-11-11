@@ -1,6 +1,6 @@
 ﻿import { HSSettingBase, HSSettingControl, HSSettingControlGroup, HSSettingControlPage, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
-import { HSModuleManager } from "../module/hs-module-manager";
-import { HSAmbrosia } from "../../hs-modules/hs-ambrosia/hs-ambrosia";
+import { HSModuleRegistry } from "../module/hs-module-registry";
+
 import { HSUI } from "../hs-ui";
 import { HSGlobal } from "../hs-global";
 import { HSUIC } from "../hs-ui-components";
@@ -13,6 +13,8 @@ import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-mana
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSIcons } from "../../hs-utils/hs-icons";
 import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
+import { escapeLogText } from '../../hs-utils/hs-escape';
+import { initializeSettingActions } from './hs-settings-state';
 
 type HSSettingBaseWithHidden<T extends HSSettingType> = HSSettingBase<T> & { hidden?: boolean };
 
@@ -63,7 +65,7 @@ export class HSSettingsUI {
             return;
         }
 
-        for (const [, settingObj] of Object.typedEntries(deps.settings)) {
+        await initializeSettingActions(Object.values(deps.settings), settingObj => {
             const setting = settingObj.getDefinition();
             const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
 
@@ -109,7 +111,7 @@ export class HSSettingsUI {
                                 selectElement.value = settingValue;
                             } else {
                                 selectElement.value = "";
-                                HSLogger.warn(`Setting value ${settingValue} does not exist in select options for setting ${setting.settingName}`, this.#context);
+                                HSLogger.warn(escapeLogText(`Setting value ${settingValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
                             }
                         }
 
@@ -155,9 +157,8 @@ export class HSSettingsUI {
                     }
                 }
 
-                await settingObj.initialAction("state", setting.enabled);
             }
-        }
+        });
 
         HSLogger.log(`Finished syncing mod settings`, this.#context);
         this.applyHiddenVanillaTabsSetting();
@@ -241,7 +242,7 @@ export class HSSettingsUI {
                             selectElement.value = stringValue;
                         } else {
                             selectElement.value = '';
-                            HSLogger.warn(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`, this.#context);
+                            HSLogger.warn(escapeLogText(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
                         }
                     }
                 }
@@ -384,7 +385,7 @@ export class HSSettingsUI {
 
     static refreshAmbrosiaLoadoutDropdowns(): void {
         const getSettings = HSSettings.getSettings;
-        const ambrosiaMod = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+        const ambrosiaMod = HSModuleRegistry.getModule('HSAmbrosia');
         if (!ambrosiaMod) {
             HSLogger.warn(`HSAmbrosia module not found. Dropdown lists for Ambrosia loadouts defaulted to 16.`, HSSettingsUI.#context);
             return;

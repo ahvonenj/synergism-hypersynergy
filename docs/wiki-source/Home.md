@@ -17,6 +17,10 @@ Player documentation for the maintained [Hypersynergism mod](https://github.com/
 - [AutoSing & strategy editor](Features-autosing)
 - [Calculations, logs & framework](Features-tools)
 
+## Guides
+
+- [Auto-Sing guide](Guide-autosing)
+
 ## Reference
 
 - [All features](Mod-Features)

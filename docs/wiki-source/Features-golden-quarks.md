@@ -19,20 +19,21 @@ Adds a shortcut for spending the available amount through the native purchase fl
 
 - The game still calculates purchasable levels, upgrade caps and final cost.
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
 
 ### GQ Distributor with saved upgrade ratios
 
 Splits Golden Quarks among visible, unlocked, unmaxed upgrades.
 
-**Where:** Singularity → Shop → GQ Distributor
+**Where:** Singularity → Shop → Distributor button
 
+- The Distributor button above the upgrades opens the panel; a minimize button closes it, and the choice is remembered.
 - Set a ratio for each upgrade; Match invested ratios derives weights from current investment and Reset zeros them.
 - Ratios are remembered locally. Distribution goes through the game's purchase dialogs and reports skipped upgrades.
 
-**Related settings:** [`enableGQDistributor`](Settings-Reference#enablegqdistributor), [`gqDistributorRatios`](Settings-Reference#gqdistributorratios)
+**Related settings:** [`enableGQDistributor`](Settings-Reference#enablegqdistributor), [`gqDistributorOpen`](Settings-Reference#gqdistributoropen), [`gqDistributorRatios`](Settings-Reference#gqdistributorratios)
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
 
 ### Balance total investments or split new spending
 
@@ -45,7 +46,7 @@ Chooses whether ratios apply to final investments or only the current budget.
 
 **Related settings:** [`gqDistributorBalanceInvestments`](Settings-Reference#gqdistributorbalanceinvestments)
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
 
 ### Keep skipped upgrade shares unspent
 
@@ -58,28 +59,28 @@ Controls what happens to shares assigned to upgrades skipped before planning.
 
 **Related settings:** [`gqDistributorKeepSkippedShare`](Settings-Reference#gqdistributorkeepskippedshare)
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
 
 ### Remember hidden maxed GQ upgrades
 
 Saves and restores your choice for the game's own hide-maxed toggle between sessions.
 
-**Where:** Settings → QOL → Hide maxed GQ upgrades; native shop toggle
+**Where:** Settings → QoL → Keep maxed GQ upgrades hidden; native shop toggle
 
 - Using the game's own button synchronizes the remembered preference, and the mod reapplies it when revisiting the shop.
 
 **Related settings:** [`hideMaxedGQUpgrades`](Settings-Reference#hidemaxedgqupgrades)
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
 
 ### Remember hidden maxed Octeract upgrades
 
 Saves and restores your choice for the game's own hide-maxed toggle between sessions.
 
-**Where:** Settings → QOL → Hide maxed Octeract upgrades; native shop toggle
+**Where:** Settings → QoL → Keep maxed Oct upgrades hidden; native shop toggle
 
 - The stored choice follows the game's own hide-maxed state and is restored on reload.
 
 **Related settings:** [`hideMaxedOctUpgrades`](Settings-Reference#hidemaxedoctupgrades)
 
-**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/43cf692e14e9263a4fdb99d391fdc635ae726d78/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)
+**Source:** [gq-distributor.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/gq-distributor.md) · [hs-qol-buttons.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-qol-buttons/hs-qol-buttons.ts)

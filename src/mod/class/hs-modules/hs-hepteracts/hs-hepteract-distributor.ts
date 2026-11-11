@@ -1,24 +1,22 @@
 import { HSModuleOptions } from "../../../types/hs-types";
 import { CUBE_VIEW, MAIN_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
-import type { HSGameState } from "../../hs-core/hs-gamestate";
+
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSTooltip } from "../../hs-core/hs-tooltip";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSModule } from "../../hs-core/module/hs-module";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSNumberParser } from "../../hs-utils/hs-number-parser";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
-import type { HSAutosing } from "../hs-autosing/hs-autosing";
-import type { HSAmbrosia } from "../hs-ambrosia/hs-ambrosia";
+
 import type { HSSingReducerSwap } from "../hs-ambrosia/hs-ambrosia-temporary-tree";
 import type { HepteractKeys } from "../../../types/data-types/hs-player-savedata";
 import { hepteractCraftAmount, HepteractPlan, HepteractPlanState, HepteractPlanType, planHepteractDistribution } from "./hs-hepteract-distributor-plan";
 import { HEPTERACT_DATA, HepteractState, readHepteract } from "./hs-hepteract-state";
-import { escapeLogText } from "../hs-heater/hs-heater-utils";
+import { escapeLogText } from "../../hs-utils/hs-escape";
 import distributorCSS from "inline:../../../resource/css/module/hs-hepteract-distributor.css";
 
 type HepteractKey = Exclude<HepteractKeys, 'quark'>;
@@ -138,7 +136,7 @@ export class HSHepteractDistributor extends HSModule {
 
         // On Steam the panel can be built before the game draws its sprites, and the icon set is changed in
         // Settings: the forge coming on screen is when the copies have to be right
-        const gameState = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameState = HSModuleRegistry.getModule('HSGameState');
         if (gameState) {
             const onViewChange = () => {
                 if (gameState.getCurrentUIView('MAIN_VIEW').getId() === MAIN_VIEW.CUBES
@@ -156,9 +154,9 @@ export class HSHepteractDistributor extends HSModule {
 
     async showDistributor(): Promise<void> {
         this.#shown = true;
-        this.#tab ??= await HSElementHooker.HookElement('#cubeTab7') as HTMLElement;
+        this.#tab ??= await HSElementHooker.HookElement('#cubeTab7') ?? undefined;
         // Turned off again while waiting for the forge
-        if (!this.#shown) return;
+        if (!this.#shown || !this.#tab) return;
 
         HSUI.injectStyle(distributorCSS, 'hs-hept-distributor-css');
         this.#openButton ??= this.#buildOpenButton();
@@ -459,7 +457,7 @@ export class HSHepteractDistributor extends HSModule {
         }
         if (player.singularityChallenges?.limitedAscensions?.enabled) return 'Not available inside Exalt 3.';
         if (player.singularityChallenges?.limitedTime?.enabled) return 'Not available inside Exalt 7.';
-        if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) return 'Not available while autosing is running.';
+        if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return 'Not available while autosing is running.';
         return undefined;
     }
 
@@ -616,7 +614,7 @@ export class HSHepteractDistributor extends HSModule {
      * It reads the save data of this read: to call before anything else is awaited.
      */
     async #readCostMultiplier(): Promise<CostMultiplierWith> {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         const gameData = await gameDataAPI?.getForcedGameData();
         if (!gameDataAPI || !gameData) throw new Error('Could not read your current save.');
 
@@ -727,7 +725,7 @@ export class HSHepteractDistributor extends HSModule {
             const talismanHelps = costMultiplierWith(0, Infinity) < plainCostMultiplier;
             const talismanAlone = talismanHelps && HSSettings.getSetting('hepteractDistributorTalismanAlone').getValue() === true;
             if (reducersHelp || talismanAlone) {
-                const reducers = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia')
+                const reducers = HSModuleRegistry.getModule('HSAmbrosia')
                     ?.prepareSingReducerSwap({ reducers: reducersHelp, raiseTalisman: talismanHelps, talismanAlone })
                     ?? { note: 'Singularity reducers not used: the mod\'s ambrosia module is not loaded.' };
                 if (reducers.stop) throw new Error(reducers.stop);

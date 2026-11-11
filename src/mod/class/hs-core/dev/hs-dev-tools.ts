@@ -4,9 +4,9 @@ import { HSStorage } from "../hs-storage";
 import { HSTooltip } from "../hs-tooltip";
 import { HSUI } from "../hs-ui";
 import { HSBackup } from "../hs-backup";
-import { HSGameData } from "../gds/hs-gamedata";
-import { HSModuleManager } from "../module/hs-module-manager";
-import type { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
+
+import { HSModuleRegistry } from "../module/hs-module-registry";
+
 import devToolsCSS from "inline:../../../resource/css/module/hs-dev-tools.css";
 
 type HSDevValueKind = 'number' | 'decimal' | 'quarks' | 'cube' | 'boolean' | 'string';
@@ -464,7 +464,7 @@ export class HSDevTools {
     /** Switches GDS between the live player and the save, so one session can test both paths on a patched game. */
     #buildGDSSourceRow(): HTMLElement {
         const element = this.#el('div', 'hs-dev-tools-buttons');
-        const module = HSModuleManager.getModule<HSGameData>('HSGameData');
+        const module = HSModuleRegistry.getModule('HSGameData');
         const choices: Array<{ text: string, forceSave: boolean }> = [
             { text: 'Live player', forceSave: false },
             { text: 'Save (forced)', forceSave: true },
@@ -575,7 +575,7 @@ export class HSDevTools {
     #loadData(): void {
         // HSStorage.getData logs a warning for a key that was never written
         const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY) : null;
+        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY) : null;
 
         this.#data = {
             pinned: Array.isArray(stored?.pinned) ? stored.pinned : [],
@@ -584,7 +584,7 @@ export class HSDevTools {
     }
 
     #saveData(): void {
-        HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, this.#data);
+        HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, this.#data);
     }
 
     // =================
@@ -648,7 +648,7 @@ export class HSDevTools {
     /** The current state as a snapshot, or null when the game could not save (it refuses during a time warp). */
     #captureSnapshot(kind: HSDevSnapshot['kind'], label: string): HSDevSnapshot | null {
         // Synchronous: clicks the game's save button and takes the save it serializes
-        const save = HSModuleManager.getModule<HSGameData>('HSGameData')?.forceCaptureRawSaveSync();
+        const save = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         if (!save) return null;
 
         let singularity: number | undefined;
@@ -866,7 +866,7 @@ export class HSDevTools {
 
         try {
             // Checked first, so a refused restore leaves no snapshot behind
-            if (HSModuleManager.getModule<HSAutosing>('HSAutosing')?.isAutosingActive()) {
+            if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) {
                 this.#fail('Restore refused while Auto-Sing is active: stop it first');
                 return;
             }

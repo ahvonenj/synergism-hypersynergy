@@ -3,7 +3,7 @@ import { HSGlobal } from "../hs-global";
 import { HSUI } from "../hs-ui";
 import { HSUIC } from "../hs-ui-components";
 import { HSStorage } from "../hs-storage";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSSettings } from "../settings/hs-settings";
 import { HSDialogIdentity } from "./hs-dialog-identity";
 import { HSInputType } from "../../../types/module-types/hs-ui-types";
@@ -194,7 +194,7 @@ export class HSHiddenDialogs {
         // HSStorage warns when a key is missing: nothing stored is the normal case until the feature is used
         const key = HSGlobal.HSHiddenDialogs.storageKey;
         const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${key}`) !== null;
-        const stored = exists ? HSModuleManager.getModule<HSStorage>('HSStorage')?.getData<HSHiddenDialogsData>(key) : null;
+        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<HSHiddenDialogsData>(key) : null;
         const valid = !!stored && stored.version === 1 && Array.isArray(stored.entries) && Array.isArray(stored.presetAdded);
         HSHiddenDialogs.#data = valid
             ? {
@@ -207,7 +207,7 @@ export class HSHiddenDialogs {
     }
 
     static #save(): void {
-        const saved = HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(HSGlobal.HSHiddenDialogs.storageKey, HSHiddenDialogs.#getData());
+        const saved = HSModuleRegistry.getModule('HSStorage')?.setData(HSGlobal.HSHiddenDialogs.storageKey, HSHiddenDialogs.#getData());
         if (!saved) HSLogger.warn('Could not save the hidden dialogs', HSHiddenDialogs.#context);
     }
 

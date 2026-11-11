@@ -1,18 +1,17 @@
 import { CUBE_VIEW, MAIN_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
-import { HSGameState } from "../../hs-core/hs-gamestate";
+
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSModule } from "../../hs-core/module/hs-module";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSetting } from "../../hs-core/settings/hs-setting";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSNumberParser } from "../../hs-utils/hs-number-parser";
 import { HSModuleOptions } from "../../../types/hs-types";
-import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
-import type { HSGameData } from "../../hs-core/gds/hs-gamedata";
+
 import type { HepteractKeys } from "../../../types/data-types/hs-player-savedata";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HEPTERACT_DATA, HepteractState, readHepteract } from "./hs-hepteract-state";
@@ -138,9 +137,9 @@ export class HSHepteracts extends HSModule {
         this.#hasDoubleHepteractCapacity = undefined;
         this.#forgeCapacityRefreshPromise = undefined;
 
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         // Cached data is only current while the GDS engine runs (it can be paused with the setting ON)
-        const isGDSRunning = HSModuleManager.getModule<HSGameData>('HSGameData')?.isGDSRunning() ?? false;
+        const isGDSRunning = HSModuleRegistry.getModule('HSGameData')?.isGDSRunning() ?? false;
 
         if (isGDSRunning) {
             if (gameDataAPI?.getGameData()) {
@@ -323,7 +322,7 @@ export class HSHepteracts extends HSModule {
 
         HSLogger.log("Initialising HSHepteracts module", this.context);
 
-        const gameStateMod = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameStateMod = HSModuleRegistry.getModule('HSGameState');
 
         if (gameStateMod) {
             const syncForgeDataVisit = () => {
@@ -344,8 +343,9 @@ export class HSHepteracts extends HSModule {
             syncForgeDataVisit();
         }
 
-        this.#heptGrid = await HSElementHooker.HookElement('#heptGrid');
-        this.#hepteractCraftTexts = await HSElementHooker.HookElement('#hepteractCraftTexts') as HTMLDivElement;
+        this.#heptGrid = await HSElementHooker.HookElement('#heptGrid') ?? undefined;
+        this.#hepteractCraftTexts = await HSElementHooker.HookElement<HTMLDivElement>('#hepteractCraftTexts') ?? undefined;
+        if (!this.#heptGrid || !this.#hepteractCraftTexts) { this.isInitialized = true; return; }
         HSUI.injectStyle(`
             #hepteractCraftTexts > #hs-costText {
                 min-height: 3.6em;

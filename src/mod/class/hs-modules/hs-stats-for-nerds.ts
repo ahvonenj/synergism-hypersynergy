@@ -5,8 +5,8 @@ import type { HSGameState } from "../hs-core/hs-gamestate";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSModule } from "../hs-core/module/hs-module";
-import { HSModuleManager } from "../hs-core/module/hs-module-manager";
-import { escapeLogText } from "./hs-heater/hs-heater-utils";
+import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
+import { escapeLogText } from "../hs-utils/hs-escape";
 import statsForNerdsCSS from "inline:../../resource/css/module/hs-stats-for-nerds.css";
 
 const STYLE_ID = 'hs-stats-for-nerds-css';
@@ -61,7 +61,7 @@ export class HSStatsForNerds extends HSModule {
         HSLogger.log('Initialising HSStatsForNerds module', this.context);
 
         // Unlocks and the game's language change while the subtab is closed: read again each time it opens
-        const gameState = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameState = HSModuleRegistry.getModule('HSGameState');
         if (gameState) {
             const onViewChange = () => {
                 if (gameState.getCurrentUIView('MAIN_VIEW').getId() === MAIN_VIEW.SETTINGS

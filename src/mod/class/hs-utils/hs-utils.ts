@@ -3,7 +3,7 @@ import { HSSettingType } from "../../types/module-types/hs-settings-types";
 import { CSSValue } from "../../types/module-types/hs-ui-types";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSGlobal } from "../hs-core/hs-global";
-import { escapeLogText } from "../hs-modules/hs-heater/hs-heater-utils";
+import { escapeLogText } from "./hs-escape";
 
 /**
  * Class: HSUtils
@@ -254,21 +254,6 @@ export class HSUtils {
 
     static isBoolean(n: any) {
         return (typeof n == "boolean");
-    }
-
-    static nullProxy<T>(proxyName: string): T {
-        const nullProxy = new Proxy({}, {
-            get: () => {
-                HSLogger.warn(`Get operation intercepted by Null Proxy '${proxyName}', something is not right`, this.#context);
-                return nullProxy;
-            },
-            set: () => {
-                HSLogger.warn(`Set operation intercepted by Null Proxy '${proxyName}', something is not right`, this.#context);
-                return true;
-            }
-        });
-
-        return nullProxy as T;
     }
 
     /**

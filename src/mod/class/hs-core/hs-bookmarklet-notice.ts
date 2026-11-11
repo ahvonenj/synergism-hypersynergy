@@ -1,7 +1,7 @@
 import { HSLogger } from "./hs-logger";
 import { HSUI } from "./hs-ui";
 import { HSUIC } from "./hs-ui-components";
-import { HSModuleManager } from "./module/hs-module-manager";
+import { HSModuleRegistry } from "./module/hs-module-registry";
 import { HSPlatform } from "./hs-platform";
 import noticeCSS from "inline:../../resource/css/module/hs-bookmarklet-notice.css";
 // The userscript itself, as it is in the repo: what the Copy button copies
@@ -72,7 +72,7 @@ export class HSBookmarkletNotice {
         if (HSBookmarkletNotice.#isOpening) return;
         if (HSBookmarkletNotice.#modalId && document.getElementById(HSBookmarkletNotice.#modalId)) return;
 
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
         if (!hsui) return;
 
         HSBookmarkletNotice.#isOpening = true;

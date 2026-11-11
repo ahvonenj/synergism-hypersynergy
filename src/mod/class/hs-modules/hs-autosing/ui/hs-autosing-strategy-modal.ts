@@ -1,12 +1,12 @@
 import { HSUI } from "../../../hs-core/hs-ui"
 import { HSAutosingStrategy, AutosingStrategyPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, phases, PhaseOption } from "../../../../types/module-types/hs-autosing-types"
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSAutosingStrategyControls } from "./hs-autosing-strategy-controls";
 import { HSStrategyManager } from "../hs-strategy-manager";
 import { HSLogger } from '../../../hs-core/hs-logger';
 import { HSUIXY } from "../../../../types/module-types/hs-ui-types";
 import { canonicalJson, HSAutosingChallengeModal, openAutosingChallengesModal } from "./hs-autosing-challenge-modal";
-import { escapeHtml } from "../../hs-heater/hs-heater-utils";
+import { escapeHtml, escapeLogText } from "../../../hs-utils/hs-escape";
 
 type StrategyWindowMode = 'create' | 'edit' | 'copy';
 
@@ -80,7 +80,7 @@ export class HSAutosingStrategyModal {
             parentModalId?: string;
         }
     ): Promise<void> {
-        const uiMod = HSModuleManager.getModule<HSUI>('HSUI');
+        const uiMod = HSModuleRegistry.getModule('HSUI');
         if (!uiMod || !uiMod.uiReady) return;
 
         const mode: StrategyWindowMode = !existingStrategy ? 'create' : options?.duplicateFromDefault ? 'copy' : 'edit';
@@ -440,7 +440,7 @@ export class HSAutosingStrategyModal {
             HSAutosingStrategyControls.updateStrategyDropdownList();
             HSAutosingStrategyControls.selectAutosingStrategyByName(this.#draft.strategyName);
             if (this.#mode === 'edit') {
-                HSLogger.log(`Strategy "${this.#draft.strategyName}" updated.`, context);
+                HSLogger.log(`Strategy "${escapeLogText(this.#draft.strategyName)}" updated.`, context);
                 HSUI.Notify(`Strategy "${this.#draft.strategyName}" updated`, { notificationType: "success" });
             } else {
                 HSUI.Notify(`Strategy "${this.#draft.strategyName}" ${this.#mode === 'copy' ? 'saved as new and selected' : 'created and selected'}.`, { notificationType: "success" });

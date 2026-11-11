@@ -7,11 +7,10 @@ import { HSGameDataAPI } from "./hs-gamedata-api";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSModule } from "../module/hs-module";
-import { HSModuleManager } from "../module/hs-module-manager";
+import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSSettings } from "../settings/hs-settings";
 import { HSUI } from "../hs-ui";
-import { HSAutosing } from "../../hs-modules/hs-autosing/hs-autosing";
-import { HSAmbrosia } from "../../hs-modules/hs-ambrosia/hs-ambrosia";
+
 import { HSHeaderKeepOnImport } from "../header/hs-header-keep-on-import";
 import { HSPlatform } from "../hs-platform";
 import { ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
@@ -125,7 +124,7 @@ export class HSGameData extends HSModule {
         // Set before the reads: the data only reaches the API through this reference.
         // PseudoCoin levels and quark bonuses come from the game (patched) or the browser's cache when they can,
         // and are fetched at most once, at load (asked by the game's dev: too much traffic on these endpoints).
-        this.#gameDataAPI = HSModuleManager.getModule('HSGameDataAPI') as HSGameDataAPI;
+        this.#gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         this.#watchPCoinLevels();
         this.#watchQuarkBonus();
         await this.#refreshFetchedData();
@@ -172,11 +171,11 @@ export class HSGameData extends HSModule {
         HSHeaderKeepOnImport.onSaveImport();
 
         setTimeout(() => {
-            void HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia')?.matchActiveLoadoutToLoadedSave()
+            void HSModuleRegistry.getModule('HSAmbrosia')?.matchActiveLoadoutToLoadedSave()
                 .catch(e => HSLogger.warn(`Ambrosia loadout match after a save load failed: ${e}`, this.context));
         }, 0);
 
-        const autosing = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+        const autosing = HSModuleRegistry.getModule('HSAutosing');
         if (!autosing?.isAutosingActive()) return;
 
         autosing.stopAutosing({ saveReplaced: true });
@@ -184,7 +183,6 @@ export class HSGameData extends HSModule {
         HSLogger.log("Auto-Sing stopped: the game is loading a save", this.context);
         HSUI.Notify("Auto-Sing stopped: a save was loaded", { position: 'top', notificationType: 'warning' });
     }
-
 
     // --- Core Data Fetch/Update ---
 
@@ -220,7 +218,7 @@ export class HSGameData extends HSModule {
             return;
         }
 
-        const saveBtn = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement | null;
+        const saveBtn = await HSElementHooker.HookElement<HTMLButtonElement>('#savegame');
         // Both have an early return if already patched...
         this.#hackJSNativebtoa();
         this.#hackJSNativeAtob();
@@ -421,7 +419,6 @@ export class HSGameData extends HSModule {
         }
     }
 
-
     // --- Consumables (Happy Hour Bells) ---
 
     /**
@@ -478,7 +475,6 @@ export class HSGameData extends HSModule {
         w.__HS_onGlobalEvent = (json: unknown) => this.#gameDataAPI?._updateVanillaGlobalEvent(json);
         if (w.__HS_globalEvent !== undefined) this.#gameDataAPI?._updateVanillaGlobalEvent(w.__HS_globalEvent);
     }
-
 
     // --- GDS (Game Data Sniffing) Control ---
 
@@ -597,12 +593,13 @@ export class HSGameData extends HSModule {
 
         // Every wait happens before anything is installed: the start can be cancelled meanwhile
         if (!live && !this.#manualSaveButton) {
-            this.#manualSaveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
+            this.#manualSaveButton = await HSElementHooker.HookElement<HTMLButtonElement>('#savegame') ?? undefined;
         }
 
         if (!live && !this.#saveinfoElement) {
-            this.#saveinfoElement = await HSElementHooker.HookElement('#saveinfo') as HTMLParagraphElement;
+            this.#saveinfoElement = await HSElementHooker.HookElement<HTMLParagraphElement>('#saveinfo') ?? undefined;
         }
+        if (!live && (!this.#manualSaveButton || !this.#saveinfoElement)) return;
 
         // Cancelled while waiting by disableGDS() or pauseGDS() (e.g. GDS turned off, autosing started)
         if (generation !== this.#engineGeneration || this.#enginePauses.size > 0 || this.#gdsEnabled) {
@@ -787,7 +784,7 @@ export class HSGameData extends HSModule {
         this.#abortPendingImport?.();
 
         // Autosing can't go on with another save
-        const autosing = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+        const autosing = HSModuleRegistry.getModule('HSAutosing');
         // Also a start in progress or a pending restart, which would run on the imported save
         if (autosing?.isAutosingActive()) {
             HSLogger.log("Load from file clicked - Stopping Auto-Sing", this.context);
@@ -796,7 +793,8 @@ export class HSGameData extends HSModule {
         }
 
         // We start watching the offline container to detect when the save is actually loaded
-        const offlineContainer = await HSElementHooker.HookElement('#offlineContainer') as HTMLDivElement;
+        const offlineContainer = await HSElementHooker.HookElement<HTMLDivElement>('#offlineContainer');
+        if (!offlineContainer) return;
         const self = this;
         let watcherStopped = false;
         // Set below, once the dialog listeners exist
@@ -811,7 +809,7 @@ export class HSGameData extends HSModule {
                 try {
                     HSLogger.log("Offline container visible - Save loaded (GDS)", self.context);
 
-                    const ambrosiaModule = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+                    const ambrosiaModule = HSModuleRegistry.getModule('HSAmbrosia');
                     if (ambrosiaModule) {
                         // AWAIT reset to ensure it finishes before we start matching or setting
                         await ambrosiaModule.resetActiveLoadout();

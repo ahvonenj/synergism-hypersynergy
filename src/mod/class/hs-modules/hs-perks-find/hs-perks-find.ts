@@ -5,8 +5,8 @@ import type { HSGameState } from "../../hs-core/hs-gamestate";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSModule } from "../../hs-core/module/hs-module";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
-import { escapeLogText } from "../hs-heater/hs-heater-utils";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
+import { escapeLogText } from "../../hs-utils/hs-escape";
 import { matchesSearch, normalizeSearchText, searchTerms } from "./hs-perks-find-match";
 import perksFindCSS from "inline:../../../resource/css/module/hs-perks-find.css";
 
@@ -53,7 +53,7 @@ export class HSPerksFind extends HSModule {
 
         // A perk's values and whether it is shown change while the subtab is closed. The game updates them when
         // the subtab opens, before this runs (a mutation observer).
-        const gameState = HSModuleManager.getModule<HSGameState>('HSGameState');
+        const gameState = HSModuleRegistry.getModule('HSGameState');
         gameState?.subscribeViewPair(MAIN_VIEW.SINGULARITY, SINGULARITY_VIEW.PERKS, (isActive) => {
             if (isActive) this.#refresh();
         });

@@ -1,12 +1,13 @@
 import { HSSettings } from "../../../hs-core/settings/hs-settings";
-import { HSModuleManager } from "../../../hs-core/module/hs-module-manager";
-import { HSStorage } from "../../../hs-core/hs-storage";
+import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
+
 import { HSGlobal } from "../../../hs-core/hs-global";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSStrategyManager } from "../hs-strategy-manager";
 import { HSAutosingStrategyModal } from "./hs-autosing-strategy-modal";
 import { HSAutosingStrategy } from "../../../../types/module-types/hs-autosing-types";
+import { escapeLogText } from '../../../hs-utils/hs-escape';
 
 /**
  * Class: HSAutosingStrategyControls
@@ -30,7 +31,7 @@ export class HSAutosingStrategyControls {
         control.selectOptions.push(...defaultStrategiesOptions, ...userStrategiesOptions);
 
         let savedStrategy = undefined;
-        const storageMod = HSModuleManager.getModule<HSStorage>("HSStorage");
+        const storageMod = HSModuleRegistry.getModule("HSStorage");
         if (storageMod && typeof storageMod.getData === "function") {
             let settingsData = storageMod.getData(HSGlobal.HSSettings.storageKey);
             if (settingsData) {
@@ -80,7 +81,7 @@ export class HSAutosingStrategyControls {
                 selectEl.value = toSelect;
                 setting.setValue(toSelect);
             }
-            HSLogger.log(`Strategy dropdown rebuilt with ${defaultStrategiesOptions.length} default and ${userStrategiesOptions.length} user strategies. Selected: ${toSelect}`, this.#context);
+            HSLogger.log(`Strategy dropdown rebuilt with ${defaultStrategiesOptions.length} default and ${userStrategiesOptions.length} user strategies. Selected: ${escapeLogText(toSelect)}`, this.#context);
         }
     }
 
@@ -94,7 +95,7 @@ export class HSAutosingStrategyControls {
             }
             setting.setValue(strategyName);
         } else {
-            HSLogger.warn(`Could not select autosing strategy '${strategyName}' because control is unavailable`, this.#context);
+            HSLogger.warn(`Could not select autosing strategy '${escapeLogText(strategyName)}' because control is unavailable`, this.#context);
         }
     }
 
@@ -192,7 +193,7 @@ export class HSAutosingStrategyControls {
     }
 
     static async importStrategy(): Promise<void> {
-        const uiMod = HSModuleManager.getModule<HSUI>('HSUI');
+        const uiMod = HSModuleRegistry.getModule('HSUI');
         if (uiMod) {
             const modalId = await uiMod.Modal({
                 title: 'Import Strategy',
@@ -266,7 +267,7 @@ export class HSAutosingStrategyControls {
 
                 let parsedStrategy: HSAutosingStrategy;
                 try {
-                    parsedStrategy = JSON.parse(strategyJson);
+                    parsedStrategy = { ...JSON.parse(strategyJson), strategyName };
                 } catch (error) {
                     HSUI.Notify("Invalid JSON format", {
                         notificationType: "error"
@@ -282,7 +283,6 @@ export class HSAutosingStrategyControls {
                     });
                     return;
                 }
-                parsedStrategy.strategyName = strategyName;
                 // Migrated by saveStrategyToStorage (levels at 0): told once it's saved
                 const hasLegacyCorruptions = HSStrategyManager.hasLegacyCorruptions(parsedStrategy);
 
@@ -298,7 +298,7 @@ export class HSAutosingStrategyControls {
                     // Refresh the dropdown list after import
                     HSAutosingStrategyControls.updateStrategyDropdownList();
                     HSAutosingStrategyControls.selectAutosingStrategyByName(strategyName);
-                    HSLogger.log(`Strategy "${strategyName}" imported and selected.`, HSAutosingStrategyControls.#context);
+                    HSLogger.log(`Strategy "${escapeLogText(strategyName)}" imported and selected.`, HSAutosingStrategyControls.#context);
                     // One notification: the warning, when there is one
                     if (hasLegacyCorruptions) {
                         HSStrategyManager.warnLegacyCorruptions([strategyName], HSAutosingStrategyControls.#context);
@@ -308,16 +308,12 @@ export class HSAutosingStrategyControls {
                         });
                     }
 
-                    const modal = document.querySelector(`#${modalId}`) as HTMLDivElement;
-                    if (modal) {
-                        await modal.transition({ opacity: 0 });
-                        modal.parentElement?.removeChild(modal);
-                    }
+                    await uiMod.CloseModal(modalId);
                 } catch (error) {
                     HSUI.Notify("Failed to save strategy", {
                         notificationType: "error"
                     });
-                    HSLogger.log(`Strategy import failed: ${error}`, HSAutosingStrategyControls.#context);
+                    HSLogger.log(escapeLogText(`Strategy import failed: ${error}`), HSAutosingStrategyControls.#context);
                 }
             });
         } else {

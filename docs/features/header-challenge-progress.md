@@ -59,6 +59,14 @@ hidden`). The game's three are left alone: the player puts them in the tray (aut
 - Settings: `challengeProgressHeader` (on by default; starts in the tray like every new module) in the block's "Mod
   modules"; the two choices as rows of buttons in its "Challenge progress" section, before the existing setting,
   renamed "Game's modules: numbers only" (kept as is, only renamed).
-- **Settings with an action need a `settingControl`, even hidden**: the panel's sync runs `initialAction` only for
-  settings with one. `compactChallengeText` had none, so it was lost at each reload with its checkbox ticked: given a
-  hidden control like `ambrosiaMinibarBorders`.
+## Game's modules: numbers only
+
+`HSHeaderChallengeProgress` draws a single line of amounts or C15 scores, with the full game text on hover.
+It watches native text only for visible rows, including previews in edit mode. Disabling compact mode or hiding the
+browser tab pauses its observers and pending updates. Layout and text changes are grouped into one frame, and a
+row is fitted again only when its displayed text or available space changes.
+While `compactChallengeText` is on, the patcher's `headerChallengeSize` patch makes the game's size reader treat
+`Tall` as `M` for the three native challenge progress modules only. They occupy one grid row, including coverage
+and drag targets; the saved size stays unchanged and returns when the setting is off. Other sizes and the mod's
+`hsChallengeProgress` module keep their selected size. The native 1x2 button is disabled for a selected native
+challenge module while compact mode is on. An older or missing patch keeps the compact text at its original height.

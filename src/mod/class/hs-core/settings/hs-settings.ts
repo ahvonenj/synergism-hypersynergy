@@ -7,16 +7,16 @@ import settings_control_groups from "inline:../../../resource/json/hs-settings-c
 import settings_control_pages from "inline:../../../resource/json/hs-settings-control-pages.json";
 import { HSSettingActions } from "./hs-setting-action";
 import { HSBooleanSetting, HSNumericSetting, HSSelectNumericSetting, HSSelectStringSetting, HSSelectStringsSetting, HSSetting, HSStateSetting, HSStringSetting, HSButtonSetting } from "./hs-setting";
-import { HSModuleManager } from "../module/hs-module-manager";
-import { HSStorage } from "../hs-storage";
+import { HSModuleRegistry } from "../module/hs-module-registry";
+
 import { HSGlobal } from "../hs-global";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSSettingsUIDependencies } from "./hs-settings-ui";
 import { HSModuleOptions } from "../../../types/hs-types";
 import { HSPlatform } from "../hs-platform";
+import { parseStoredSettingStates, restoreSettingState, serializeSettingStates } from "./hs-settings-state";
 
 type HSSettingBaseWithHidden<T extends HSSettingType> = HSSettingBase<T> & { hidden?: boolean };
-type StringIndexedObject = Record<string, unknown>;
 
 /**
  * Class: HSSettings
@@ -185,7 +185,6 @@ export class HSSettings extends HSModule {
         this.isInitialized = true;
     }
 
-
     // ===============================
     // --- UI dependency plumbing ----
     // ===============================
@@ -206,7 +205,6 @@ export class HSSettings extends HSModule {
             settingToggleDelegate: HSSettings.#settingToggleDelegate,
         };
     }
-
 
     // ===============================
     // ----- Settings accessors ------
@@ -269,7 +267,7 @@ export class HSSettings extends HSModule {
         if (this.#saveTimeout === undefined) return;
         clearTimeout(this.#saveTimeout);
         this.#saveTimeout = undefined;
-        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+        const storageMod = HSModuleRegistry.getModule('HSStorage');
 
         if (storageMod) {
             const serializedSettings = this.#serializeSettings();
@@ -284,24 +282,8 @@ export class HSSettings extends HSModule {
     }
 
     static #serializeSettings(): string {
-        const serializeableSettings: Record<string, Partial<HSSettingBase<HSSettingType>>> = {};
-
-        for (const [key, setting] of Object.typedEntries(this.#settings)) {
-            const definition = { ...setting.getDefinition() } as Partial<HSSettingBase<HSSettingType>> & StringIndexedObject;
-
-            // Remove properties that should not be saved into localStorage
-            const blackList = HSGlobal.HSSettings.serializationBlackList;
-
-            for (const blackListKey of blackList) {
-                if (definition[blackListKey]) delete definition[blackListKey];
-            }
-
-            serializeableSettings[key.toString()] = definition;
-        }
-
-        return JSON.stringify(serializeableSettings);
+        return serializeSettingStates(this.#settings);
     }
-
 
     // ===============================
     // ------- Storage parsing -------
@@ -365,14 +347,14 @@ export class HSSettings extends HSModule {
         return defaultSettings as HSSettingsDefinition;
     }
 
-    #parseStoredSettings(): Partial<HSSettingsDefinition> | null {
-        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+    #parseStoredSettings(): Record<string, unknown> | null {
+        const storageMod = HSModuleRegistry.getModule('HSStorage');
 
         if (storageMod) {
-            const loaded = storageMod.getData<string>(HSGlobal.HSSettings.storageKey);
+            const loaded = storageMod.getData<unknown>(HSGlobal.HSSettings.storageKey);
 
             if (loaded) {
-                return JSON.parse(loaded) as Partial<HSSettingsDefinition>;
+                return parseStoredSettingStates(loaded);
             } else {
                 HSLogger.warn(`Could not load settings from localStorage`, this.context);
                 return null;
@@ -393,65 +375,11 @@ export class HSSettings extends HSModule {
             if (loadedStrategies) {
                 HSStrategyManager.setStrategies(loadedStrategies);
             }
-            const resolved = JSON.parse(JSON.stringify(defaultSettings)) as unknown as Record<string, unknown>;
-
-            if (loadedSettings) {
-                HSLogger.log(`<green>Found settings from localStorage!</green>`, this.context);
-
-                // Process each top-level key that exists in defaultSettings (A)
-                (Object.keys(defaultSettings) as Array<keyof HSSettingsDefinition>).forEach(topLevelKey => {
-                    // Skip if this top-level key doesn't exist in loadedSettings (B)
-                    if (!(topLevelKey in loadedSettings)) return;
-
-                    // For each property in the top-level object in loadedSettings (B)
-                    // If it exists in defaultSettings (A), use B's value
-                    // This preserves new properties in A that don't exist in B
-                    const loadedTopLevel = loadedSettings[topLevelKey] as unknown as Record<string, unknown> | undefined;
-                    const defaultTopLevel = defaultSettings[topLevelKey] as unknown as Record<string, unknown> | undefined;
-                    if (!loadedTopLevel || !defaultTopLevel) return;
-
-                    Object.keys(loadedTopLevel).forEach(nestedKey => {
-                        // Keys only the JSON decides: never saved now, but a copy saved by an older version may hold them
-                        if (HSGlobal.HSSettings.serializationBlackList.includes(nestedKey)) return;
-                        if (nestedKey in defaultTopLevel) {
-                            const bValue = loadedTopLevel[nestedKey];
-                            const defaultValue = defaultTopLevel[nestedKey];
-
-                            // If this is a nested object (but not an array), recursively merge
-                            if (
-                                bValue !== null &&
-                                typeof bValue === 'object' &&
-                                !Array.isArray(bValue) &&
-                                typeof defaultValue === 'object' &&
-                                !Array.isArray(defaultValue)
-                            ) {
-                                const mergedNestedObj = {
-                                    ...(defaultValue as Record<string, unknown>),
-                                };
-
-                                // Override with B's values where they exist
-                                Object.keys(bValue as Record<string, unknown>).forEach(deepKey => {
-                                    if (deepKey in mergedNestedObj) {
-                                        mergedNestedObj[deepKey] = (bValue as Record<string, unknown>)[deepKey];
-                                    }
-                                });
-
-                                // Update the resolved object
-                                const resolvedTopLevel = resolved[topLevelKey] as Record<string, unknown>;
-                                resolvedTopLevel[nestedKey] = mergedNestedObj;
-                            } else {
-                                const resolvedTopLevel = resolved[topLevelKey] as Record<string, unknown>;
-                                resolvedTopLevel[nestedKey] = bValue;
-                            }
-                        }
-                        // If nestedKey doesn't exist in A, we ignore it (doesn't get copied to resolved)
-                    });
-                });
-
-                return resolved as unknown as HSSettingsDefinition;
-            } else {
-                return defaultSettings;
-            }
+            if (!loadedSettings) return defaultSettings;
+            HSLogger.log('<green>Found settings from localStorage!</green>', this.context);
+            return Object.fromEntries(Object.entries(defaultSettings).map(([name, definition]) => [
+                name, restoreSettingState(definition, Object.hasOwn(loadedSettings, name) ? loadedSettings[name] : undefined),
+            ])) as unknown as HSSettingsDefinition;
         } catch (err) {
             HSLogger.error(`Error while resolving settings`, this.context);
             console.log(err);
@@ -530,7 +458,6 @@ export class HSSettings extends HSModule {
         }
     }
 
-
     // ===============================
     // ------- Event delegates -------
     // ===============================
@@ -542,7 +469,6 @@ export class HSSettings extends HSModule {
     static async #settingToggleDelegate(e: MouseEvent, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleToggle(e);
     }
-
 
     // ===============================
     // ------------ Misc. ------------

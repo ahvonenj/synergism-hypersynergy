@@ -1,5 +1,11 @@
 # Loaders: patcher download, Steam re-patch, bookmarklet notice
 
+## Source and generated files
+
+- `src/loader/shared/` holds the implementation. `scanner.mjs` walks delimiters, `patch-finders.mjs` locates anchors, `patch-bundle.mjs` applies the rules, and `browser-loader.mjs` starts the game and mod in the browser. The scanner recognises regex literals in common expression and control-header positions, division, comments and nested template expressions. Function-header finders still target the shapes emitted by the game minifier.
+- `userscript-entry.mjs` holds the shared bridge and bootstrap code for Live and local Dev. The generated scripts keep their own install URLs and metadata, including the editable `repo` and `version` in the bridge. Steam uses the same `patchBundle` through `patcher-entry.cjs` and injects the mod through its preload.
+- Run `npm run build:loaders` after editing source. It writes the four standalone scripts in `src/loader/` and `synergism_modloader/lib/patcher.js`. Keep those files with the source change. Older Steam loaders call the patcher as a function and browsers read its `startBrowserLoader` property from the downloaded file. `npm test` checks that the files match the source. The dev server generates its own copies in `build/`.
+
 ## When each loader picks up patcher.js and the mod
 
 - Browser: at each page load. The userscript takes it from jsDelivr (`master` of `window.__HS_REPO`, `Ferlieloi` by default).
@@ -33,6 +39,8 @@ Sometimes Tampermonkey runs the userscript late (its own content script fetches 
 - **Report.** Each patch sets its entry in `report`; the bundle gets `window.__HS_PATCH_REPORT = { export, exportOutput, stage, player, getMaxChallenges, corruptionFreeLevels, tack, dialogHook, validateBlueberryTree, saveImportHook, consumables, globalEvent, saveSeedCap, steamAutoSync (Steam only) }` (true = applied; the mod leaves the retired `applyCorruptions`, still in the report of installs patched before game 4.4.0, out of its "patch incomplete" warning: `Hypersynergism.#RETIRED_PATCHES`), and the log ends with `Bundle patching complete: N/M applied — missing: …`.
 - **A missing patch only costs what it adds.** The browser loader (`runPostLoadSequence`) reads the report: without the stage patch it doesn't open Misc or wait for the stage; without the export patch it never clicks `#exportgame` (it would run a real export and its rewards). A wait that times out (20 s) is a warning, and the mod loads anyway. The mod's `#ensurePatcherExposure` (Steam) skips the same steps, and `#reportPatchProblems` tells the player once at load when a patch is missing or in doubt (`__HS_PATCH_AMBIGUOUS`): a warning notification (10 s, top) and the detail in the Log tab. A patcher older than the report: both behave as if every patch applied.
 - **Lines for the top of the bundle go through `topLines`**, written after the bundle's `"use strict"` directive. Before it, the directive becomes a plain string and the whole game runs in sloppy mode.
+
+- **Manual ascension** (`manualAscension` in the report) wraps the confirmed reset in `resetConfirmation`. The mod uses this hook for the [Ascension loadout](ascension-loadout.md), including Shift+A. The game still runs its normal reset when the mod is absent.
 
 ## Bookmarklet notice
 

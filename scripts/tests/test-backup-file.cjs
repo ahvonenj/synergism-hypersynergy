@@ -63,7 +63,7 @@ async function main() {
                 contents: `const logErrors = globalThis.__backupTestErrors;
                     export const HSLogger = { log() {}, warn() {}, error(message) { logErrors.push(message); } };
                     const stub = class {};
-                    export { stub as HSUI, stub as HSUIC, stub as HSModuleManager, stub as HSGameData, stub as HSPlatform,
+                    export { stub as HSUI, stub as HSUIC, stub as HSModuleRegistry, stub as HSGameData, stub as HSPlatform,
                         stub as HSGameDialogs, stub as HSAutosing };
                     export default '';`,
                 loader: 'ts',

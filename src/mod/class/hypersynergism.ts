@@ -1,6 +1,7 @@
-import { HSModuleDefinition } from "../types/hs-types";
+import type { HSRegisteredModuleDefinition } from "./hs-core/module/hs-module-definitions";
 import { HSLogger } from "./hs-core/hs-logger";
 import { HSModuleManager } from "./hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "./hs-core/module/hs-module-registry";
 import { HSUI } from "./hs-core/hs-ui";
 import { HSUIC } from "./hs-core/hs-ui-components";
 import { HSSettings } from "./hs-core/settings/hs-settings";
@@ -16,9 +17,7 @@ import overrideCSS from "inline:../resource/css/hs-overrides.css";
 import quickbarsCSS from "inline:../resource/css/module/hs-quickbars.css";
 import strategyEditionCSS from "inline:../resource/css/hs-strategy-edition.css";
 import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
-import { HSGameDataAPI } from "./hs-core/gds/hs-gamedata-api";
-import { HSAmbrosia } from "./hs-modules/hs-ambrosia/hs-ambrosia";
-import type { HSAutosing } from "./hs-modules/hs-autosing/hs-autosing";
+
 import { HSHeaterInputModalController } from "./hs-modules/hs-heater/ui/hs-heater-input-modal-controller";
 import { HSUtils } from "./hs-utils/hs-utils";
 import { HSGithub } from "./hs-core/github/hs-github";
@@ -46,7 +45,7 @@ export class Hypersynergism {
     #moduleManager: HSModuleManager;
     #isInitialized = false;
 
-    constructor(modulesToEnable: HSModuleDefinition[]) {
+    constructor(modulesToEnable: readonly HSRegisteredModuleDefinition[]) {
         // Instantiate the module manager
         this.#moduleManager = new HSModuleManager('HSModuleManager', modulesToEnable);
     }
@@ -89,13 +88,13 @@ export class Hypersynergism {
         // After the sync: its checkboxes show the settings' states
         HSHeaderEditSettings.install();
 
-        const ambrosiaMod = HSModuleManager.getModule<HSAmbrosia>('HSAmbrosia');
+        const ambrosiaMod = HSModuleRegistry.getModule('HSAmbrosia');
         if (ambrosiaMod) {
             await ambrosiaMod.initializeActiveLoadoutFromGameData();
         }
 
         // Mod fully loaded, so we show HS icon, and update the flag
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
         hsui?.setPanelControlVisible(true);
         HSGlobal.General.isModFullyLoaded = true;
 
@@ -125,7 +124,7 @@ export class Hypersynergism {
 
         // The game can't save while the offline popup is open, and the restore reads a fresh save
         await this.#waitForPopupClosed();
-        HSModuleManager.getModule<HSAutosing>('HSAutosing')?.restoreAfterInterruptedRun();
+        HSModuleRegistry.getModule('HSAutosing')?.restoreAfterInterruptedRun();
     }
 
     /** Resolves once the offline popup is closed (exitOffline removes body.loading). */
@@ -314,13 +313,12 @@ export class Hypersynergism {
         return false;
     }
 
-
     // ===============================
     // --- UI panel construction -----
     // ===============================
 
     #buildUIPanelContents() {
-        const hsui = HSModuleManager.getModule<HSUI>('HSUI');
+        const hsui = HSModuleRegistry.getModule('HSUI');
 
         if (hsui) {
             hsui.updateTitle(`Hypersynergism v${HSGlobal.General.currentModVersion}`);
@@ -413,7 +411,7 @@ export class Hypersynergism {
         HSCalculationTools.bindToolsSection();
 
         this.#bindToolsButton('#hs-panel-amb-heater-btn', async () => {
-            const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+            const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
             if (!dataModule) return;
 
             const heaterData = await dataModule.dumpDataForHeater();
@@ -469,7 +467,6 @@ export class Hypersynergism {
         });
     }
 
-
     // ===================================
     // ----- Tools helpers / actions -----
     // ===================================
@@ -518,7 +515,7 @@ export class Hypersynergism {
     }
 
     #dumpGameData() {
-        const dataModule = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!dataModule) return;
 
         console.log('----- GAME DATA -----');
@@ -533,7 +530,6 @@ export class Hypersynergism {
         console.log('----- EVENT DATA -----');
         console.log(dataModule.getEventData());
     }
-
 
     // ===================================
     // --- Settings tab implementation ---
@@ -601,7 +597,6 @@ export class Hypersynergism {
             activeTab.style.backgroundColor = color;
         }
     }
-
 
     // ================================
     // --- Debug tab implementation ---

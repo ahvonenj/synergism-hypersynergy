@@ -1,6 +1,6 @@
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
-import { escapeLogText } from "../hs-heater/hs-heater-utils";
+import { escapeLogText } from "../../hs-utils/hs-escape";
 
 /**
  * Class: HSAutosingWakeLock

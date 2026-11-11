@@ -1,6 +1,6 @@
 import { HSSettings } from "../../hs-core/settings/hs-settings";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
-import { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
+
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSAutosingStrategy, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
 import { HSAutosing } from "./hs-autosing";
@@ -22,7 +22,7 @@ import { HSAutosingStepTimingsWindow } from "./ui/hs-autosing-step-timings-windo
  * IsExplicitHSModule: No
  * Description: Modal for autosing timer and quark/golden quark gain tracking.
  *   - Handles UI orchestration, DOM caching, batching updates, and chart/stat rendering.
- *   - Integrates modular helpers for phase stats and charting.
+ *   - Integrates helpers for phase stats and charts.
  *   - Maintains unified metrics with running averages for time, quarks, and golden quarks.
  *
  * Author: XxmolkxX, Shewchou
@@ -178,7 +178,6 @@ export class HSAutosingModal {
     #computedMaxWidth: number | null = null; // px
     #computedGraphWidth: number | null = null; // px
 
-
     // =============================
     // Constructor and Initialization
     // =============================
@@ -226,7 +225,7 @@ export class HSAutosingModal {
         this.#restartButton.title       = "Restart Singularity from the beginning";
         this.#restartButton.className   = 'hs-timer-ctrl-btn';
         this.#restartButton.onclick = async () => {
-            const autosingMod = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+            const autosingMod = HSModuleRegistry.getModule('HSAutosing');
             await autosingMod?.restartAutosing();
         };
         // Stop BUTTON
@@ -236,7 +235,7 @@ export class HSAutosingModal {
         this.#stopButton.title       = "Stop Autosing NOW";
         this.#stopButton.className   = 'hs-timer-ctrl-btn';
         this.#stopButton.onclick = () => {
-            const autosingMod = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+            const autosingMod = HSModuleRegistry.getModule('HSAutosing');
             if (this.#modalMode === 'review') {
                 autosingMod?.closeAutosingModalAfterReview();
             }
@@ -251,7 +250,7 @@ export class HSAutosingModal {
         this.#finishStopBtn.title       = "Stop Autosing at the end of current Singularity";
         this.#finishStopBtn.className   = 'hs-timer-ctrl-btn';
         this.#finishStopBtn.onclick = () => {
-            const autosingMod = HSModuleManager.getModule<HSAutosing>('HSAutosing');
+            const autosingMod = HSModuleRegistry.getModule('HSAutosing');
             if (autosingMod) {
                 const newState = !autosingMod.getStopAtSingularitysEnd();
                 autosingMod.setStopAtSingularitysEnd(newState);
@@ -520,7 +519,6 @@ export class HSAutosingModal {
         return parts;
     }
 
-
     // =============================
     // Modal Controls (Visibility/Drag/Resize/Minimize)
     // =============================
@@ -744,7 +742,6 @@ export class HSAutosingModal {
         this.#sparklineTimes        = null;
     }
 
-
     // =============================
     // Session/Timer Management
     // =============================
@@ -927,7 +924,6 @@ export class HSAutosingModal {
         this.#requestRender({ summaryStats: true, detailedStats: true, sparklines: true });
     }
 
-
     // =============================
     // Data/Stat Management
     // =============================
@@ -969,7 +965,6 @@ export class HSAutosingModal {
         });
     }
 
-
     // =============================
     // State Accessors
     // =============================
@@ -995,7 +990,7 @@ export class HSAutosingModal {
 
     /** Return the highest singularity count from game data. */
     #getSingularityHighest(): number {
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         const gameData = gameDataAPI?.getGameData();
         return gameData?.highestSingularityCount ?? 0;
     }
@@ -1042,7 +1037,6 @@ export class HSAutosingModal {
     #getAllTimeStdDuration(): number | null {
         return this.#allTimeStats.singCompleted > 1 ? Math.sqrt(this.#allTimeStats.sumSqDuration / this.#allTimeStats.singCompleted)     : null;
     }
-
 
     // =============================
     // Render Methods
@@ -1301,7 +1295,6 @@ export class HSAutosingModal {
             updateSparkline(this.#sparklineGoldenQuarks, this.#singularityMetrics, this.#computedGraphWidth, formatNumberWithSign, this.#sparklineMaxPoints);
         }
     }
-
 
     // =============================
     // Misc Modal Stuff

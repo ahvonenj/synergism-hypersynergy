@@ -4,6 +4,7 @@ import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "./hs-settings";
+import { escapeLogText } from '../../hs-utils/hs-escape';
 
 /**
  * Class: HSSetting
@@ -38,6 +39,8 @@ export abstract class HSSetting<T extends HSSettingType> {
         this.#settingDisabledString = disabledString;
 
         this.definition.defaultValue = this.definition.settingValue;
+        this.definition.calculatedSettingValue = this.definition.settingType === 'boolean'
+            ? this.definition.enabled as T : this.definition.settingValue;
     }
 
     getDefinition(): HSSettingBase<T> {
@@ -308,7 +311,7 @@ export class HSNumericSetting extends HSSetting<number> {
         // A value saved before its min or max changed (the challenge timers were allowed 0, which the game refuses)
         this.definition.settingValue = this.#clamp(this.definition.settingValue);
 
-        if (this.definition.settingValueMultiplier)
+        if (this.definition.settingValueMultiplier !== undefined)
             this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
     }
 
@@ -416,7 +419,7 @@ export class HSSelectNumericSetting extends HSSetting<number> {
         disabledString: string) {
         super(settingDefinition, settingAction, enabledString, disabledString);
 
-        if (this.definition.settingValueMultiplier)
+        if (this.definition.settingValueMultiplier !== undefined)
             this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
     }
 
@@ -467,7 +470,7 @@ export class HSSelectStringSetting extends HSSetting<string> {
     async handleChange(e: Event) {
         const newValue = (e.target as HTMLSelectElement).value;
 
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
+        HSLogger.log(escapeLogText(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`), this.context);
 
         this.definition.settingValue = newValue;
         this.definition.calculatedSettingValue = newValue;

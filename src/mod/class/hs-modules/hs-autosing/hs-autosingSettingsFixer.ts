@@ -1,7 +1,7 @@
 import { HSLogger } from '../../hs-core/hs-logger';
 import { HSSettings } from '../../hs-core/settings/hs-settings';
 import { HSSettingsDefinition } from '../../../types/module-types/hs-settings-types';
-import { HSModuleManager } from '../../hs-core/module/hs-module-manager';
+import { HSModuleRegistry } from '../../hs-core/module/hs-module-registry';
 import type { HSGameData } from '../../hs-core/gds/hs-gamedata';
 import { HSGlobal } from '../../hs-core/hs-global';
 import type { HSStorage } from '../../hs-core/hs-storage';
@@ -68,7 +68,7 @@ export class HSAutosingSettingsFixer {
         this.#original = undefined;
         this.#settings = undefined;
         this.#firstPlayed = undefined;
-        HSModuleManager.getModule<HSStorage>('HSStorage')?.clearData(STORAGE_KEY);
+        HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
     }
 
     /**
@@ -94,7 +94,7 @@ export class HSAutosingSettingsFixer {
             HSLogger.log('Restored the game settings saved before an interrupted Auto-Sing run.', HSAutosingSettingsFixer.#context);
             return { gameRestored: true, insideExalt: (save as { insideSingularityChallenge?: unknown }).insideSingularityChallenge === true };
         } finally {
-            HSModuleManager.getModule<HSStorage>('HSStorage')?.clearData(STORAGE_KEY);
+            HSModuleRegistry.getModule('HSStorage')?.clearData(STORAGE_KEY);
             this.#applyHsSettings(this.#performanceEntries(stored));
         }
     }
@@ -129,7 +129,7 @@ export class HSAutosingSettingsFixer {
         const firstPlayed = this.#firstPlayed;
         if (!original || firstPlayed === undefined) return;
         const snapshot: HSAutosingStoredSnapshot = { firstPlayed, game: [...original], hs: [...this.#hsSettingsToRestore] };
-        if (!HSModuleManager.getModule<HSStorage>('HSStorage')?.setData(STORAGE_KEY, snapshot)) {
+        if (!HSModuleRegistry.getModule('HSStorage')?.setData(STORAGE_KEY, snapshot)) {
             HSLogger.warn('Could not keep the original game settings in localStorage: a reload during Auto-Sing would not restore them.', HSAutosingSettingsFixer.#context);
         }
     }
@@ -152,7 +152,7 @@ export class HSAutosingSettingsFixer {
     }
 
     #readSave(): unknown {
-        const raw = HSModuleManager.getModule<HSGameData>('HSGameData')?.forceCaptureRawSaveSync();
+        const raw = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
         if (!raw) throw new Error('Could not read a fresh game save (saving may be blocked by offline progress).');
         return JSON.parse(raw) as unknown;
     }
@@ -193,7 +193,7 @@ export class HSAutosingSettingsFixer {
     async #disableUnwantedSettings(): Promise<void> {
         // GDS: only its engine is paused, the setting is kept, so a reload during autosing can't
         // leave GDS turned off. Released by stopAutosing().
-        await HSModuleManager.getModule<HSGameData>('HSGameData')?.pauseGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
+        await HSModuleRegistry.getModule('HSGameData')?.pauseGDS(HSAutosingSettingsFixer.GDS_PAUSE_REASON);
 
         const disabledSettings: string[] = [];
         for (const settingKey of PERFORMANCE_SETTING_KEYS) {

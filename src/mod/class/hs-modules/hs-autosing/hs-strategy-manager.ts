@@ -1,10 +1,11 @@
-import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, isCorruptionLevelStep, isIfJumpMaxJumps } from "../../../types/module-types/hs-autosing-types";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
-import { HSStorage } from "../../hs-core/hs-storage";
+import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, SPECIAL_ACTION_BY_ID, isCorruptionLevelStep, isIfJumpMaxJumps } from "../../../types/module-types/hs-autosing-types";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
+
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
 import manifest from '../../../resource/json/strategies/manifest.json';
+import { escapeLogText } from '../../hs-utils/hs-escape';
 
 // Fields of older strategy formats: 8 corruption values before the game's 4.4.0 (corruptions, loadout), named
 // corruption loadouts, that phases (corruptionLoadoutName) and "Load Corruption Loadout" steps (loadoutName) referred to,
@@ -26,6 +27,16 @@ const REMOVED_PHASE_LEVEL_ACTION = 401;
 const REMOVED_MINUS_FREE_LEVELS_ACTION = 404;
 
 const isCorruptionLevel = (level: unknown): level is number => Number.isInteger(level) && (level as number) >= 0;
+const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+
+function storedStrategyList(value: unknown): unknown[] {
+    if (Array.isArray(value)) return value;
+    return value == null ? [] : [value];
+}
+
+function storedStrategyName(value: unknown): string | undefined {
+    return isRecord(value) && typeof value.strategyName === 'string' ? value.strategyName : undefined;
+}
 
 /**
  * Class: HSStrategyManager
@@ -64,7 +75,7 @@ export class HSStrategyManager {
             const data = await import(`../../../resource/json/strategies/${name}.json`);
             return data.default || data;
         } catch (e) {
-            HSLogger.error(`Failed to load strategy '${name}': ${e}`, context);
+            HSLogger.error(escapeLogText(`Failed to load strategy '${name}': ${e}`), context);
             return null;
         }
     }
@@ -201,16 +212,73 @@ export class HSStrategyManager {
         return cloned;
     }
 
-    static validateStrategy(strategy: HSAutosingStrategy, context = '') {
-        let normalized = HSStrategyManager.ensureAoagPhase(strategy);
-        normalized = HSStrategyManager.normalizeCorruptions(normalized);
-        strategy = normalized;
+    /** Check untrusted shapes before the migrations traverse or JSON-clone them. */
+    static #validateStructure(input: unknown): asserts input is HSAutosingStrategy {
+        if (!isRecord(input)) throw new Error('Strategy must be an object');
+        if (typeof input.strategyName !== 'string' || !input.strategyName.trim()) throw new Error('Strategy must have a nonempty strategyName');
+        if (!Array.isArray(input.strategy)) throw new Error('Strategy.strategy must be an array');
+        if (input.corruptionLoadouts !== undefined && (!Array.isArray(input.corruptionLoadouts)
+            || input.corruptionLoadouts.some(loadout => !isRecord(loadout) || typeof loadout.name !== 'string'))) {
+            throw new Error('Strategy corruptionLoadouts must be an array of named loadouts');
+        }
+        const entries = [...input.strategy, ...(input.aoagPhase !== undefined ? [input.aoagPhase] : [])];
+        for (const [phaseIndex, phase] of entries.entries()) {
+            const label = `Phase ${phaseIndex + 1}`;
+            if (!isRecord(phase)) throw new Error(`${label} must be an object`);
+            if (phase.phaseId !== undefined && typeof phase.phaseId !== 'string') throw new Error(`${label}: phaseId must be text`);
+            if (!phases.includes(phase.startPhase as typeof phases[number]) || !phases.includes(phase.endPhase as typeof phases[number])) {
+                throw new Error(`${label} must have valid startPhase and endPhase values`);
+            }
+            if (!Array.isArray(phase.strat)) throw new Error(`${label} actions must be an array`);
+            for (const [index, step] of phase.strat.entries()) {
+                const tag = `${label}, step ${index + 1}`;
+                if (!isRecord(step)) throw new Error(`${tag} must be an object`);
+                if (!Number.isInteger(step.challengeNumber)) throw new Error(`${tag} must have an integer challengeNumber`);
+                for (const field of ['challengeCompletions', 'challengeWaitBefore', 'challengeWaitTime', 'challengeMaxTime'] as const) {
+                    const value = step[field];
+                    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+                        throw new Error(`${tag}: ${field} must be a finite nonnegative number`);
+                    }
+                }
+                if (step.comment !== undefined && typeof step.comment !== 'string') throw new Error(`${tag}: comment must be text`);
+                if (step.ifJump !== undefined && !isRecord(step.ifJump)) throw new Error(`${tag}: ifJump must be an object`);
+            }
+        }
+    }
 
-        if (!strategy) throw new Error('Strategy is undefined');
-        if (!('strategyName' in strategy)) throw new Error('Strategy is missing strategyName property');
-        if (!('strategy' in strategy)) throw new Error('Strategy is missing strategy property');
-        if (!Array.isArray(strategy.strategy)) throw new Error('Strategy.strategy must be an array');
-        const components = strategy.strategy as AutosingStrategyPhase[];
+    static #validateSteps(phase: AutosingStrategyPhase): void {
+        const ids = new Set<string>();
+        for (const [index, step] of phase.strat.entries()) {
+            const tag = `Phase ${phase.startPhase} → ${phase.endPhase}, step ${index + 1}`;
+            if (!(step.challengeNumber >= 1 && step.challengeNumber <= 15) && !SPECIAL_ACTION_BY_ID.has(step.challengeNumber)) {
+                throw new Error(`${tag}: unknown action ${step.challengeNumber}`);
+            }
+            if (step.challengeNumber !== IF_JUMP_VALUE) continue;
+            const jump = step.ifJump;
+            if (!jump) throw new Error(`${tag}: IF action needs ifJump`);
+            if (typeof jump.id !== 'string' || !jump.id.trim() || ids.has(jump.id)) throw new Error(`${tag}: IF id must be nonempty and unique within its phase`);
+            ids.add(jump.id);
+            // Older strategies omit the mode; the editor already treats these as challenge comparisons.
+            if (jump.ifJumpMode === undefined) jump.ifJumpMode = 'challenges';
+            if (jump.ifJumpMode !== 'challenges' && jump.ifJumpMode !== 'stored_c15') throw new Error(`${tag}: invalid IF mode`);
+            if (jump.ifJumpOperator !== '>' && jump.ifJumpOperator !== '<') throw new Error(`${tag}: IF operator must be > or <`);
+            if (!Number.isInteger(jump.ifJumpIndex) || jump.ifJumpIndex < 0 || jump.ifJumpIndex > phase.strat.length) {
+                throw new Error(`${tag}: IF destination must be a step index from 0 to ${phase.strat.length} (end of phase)`);
+            }
+            if (jump.ifJumpMode === 'challenges') {
+                if (!Number.isInteger(jump.ifJumpChallenge) || jump.ifJumpChallenge < 1 || jump.ifJumpChallenge > 15) throw new Error(`${tag}: IF challenge must be 1 to 15`);
+                if (typeof jump.ifJumpValue !== 'number' || !Number.isFinite(jump.ifJumpValue)) throw new Error(`${tag}: IF value must be a finite number`);
+            } else if (jump.ifJumpMultiplier !== undefined && (typeof jump.ifJumpMultiplier !== 'number' || !Number.isFinite(jump.ifJumpMultiplier))) {
+                throw new Error(`${tag}: IF multiplier must be a finite number`);
+            }
+        }
+    }
+
+    static validateStrategy(input: unknown, context = ''): HSAutosingStrategy {
+        HSStrategyManager.#validateStructure(input);
+        const strategy = HSStrategyManager.normalizeCorruptions(HSStrategyManager.ensureAoagPhase(input));
+
+        const components = strategy.strategy;
         if (components.length === 0) {
             throw new Error('Strategy has no components');
         }
@@ -223,6 +291,7 @@ export class HSStrategyManager {
         }
 
         for (const phase of HSStrategyManager.#getPhases(strategy)) {
+            HSStrategyManager.#validateSteps(phase);
             const index = phase.strat?.findIndex(step => isCorruptionLevelStep(step.challengeNumber)
                 && !isCorruptionLevel(step.corruptionLevel)) ?? -1;
             if (index !== -1) {
@@ -272,6 +341,7 @@ export class HSStrategyManager {
                 `Uncovered phases: ${remainingPhases.join(', ')}`,
             );
         }
+        return strategy;
     }
 
     static getMergedStrategyOptions() {
@@ -288,25 +358,18 @@ export class HSStrategyManager {
         strategyName?: string,
         context = ''
     ): { strategy: HSAutosingStrategy; isUpdate: boolean; saved: boolean } {
-        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+        const storageMod = HSModuleRegistry.getModule('HSStorage');
         if (!storageMod) {
             throw new Error("Could not find Storage Module");
         }
 
-        let strategies: HSAutosingStrategy[] | null = storageMod.getData<HSAutosingStrategy[]>(HSGlobal.HSSettings.strategiesKey);
-        if (!Array.isArray(strategies)) {
-            strategies = [];
-        }
+        const strategies = storedStrategyList(storageMod.getData<unknown>(HSGlobal.HSSettings.strategiesKey));
 
-        let normalizedStrategy = HSStrategyManager.ensureAoagPhase(strategy);
-        normalizedStrategy = HSStrategyManager.normalizeCorruptions(normalizedStrategy);
-
-        HSStrategyManager.validateStrategy(normalizedStrategy, context);
+        const normalizedStrategy = HSStrategyManager.validateStrategy(strategy, context);
         const isUpdate = !!strategyName;
-        const nameExists = strategies.some(s => {
-            if (s.strategyName !== normalizedStrategy.strategyName) return false;
-            if (!isUpdate) return true;
-            return s.strategyName !== strategyName;
+        const nameExists = strategies.some(entry => {
+            const name = storedStrategyName(entry);
+            return name === normalizedStrategy.strategyName && (!isUpdate || name !== strategyName);
         });
 
         if (nameExists) {
@@ -316,24 +379,24 @@ export class HSStrategyManager {
         let updatedStrategies = strategies;
 
         if (isUpdate) {
-            updatedStrategies = strategies.filter(
-                s => s.strategyName !== strategyName
-            );
-
-            HSStrategyManager.removeStrategyByName(strategyName!);
+            updatedStrategies = strategies.filter(entry => storedStrategyName(entry) !== strategyName);
         }
 
         updatedStrategies = updatedStrategies.concat(normalizedStrategy);
-        HSStrategyManager.addStrategy(normalizedStrategy);
 
         const defaultNames = HSStrategyManager.getDefaultStrategyNames();
         const saved = storageMod.setData(
             HSGlobal.HSSettings.strategiesKey,
-            updatedStrategies.filter(s => !defaultNames.includes(s.strategyName))
+            updatedStrategies.filter(entry => {
+                const name = storedStrategyName(entry);
+                return name === undefined || !defaultNames.includes(name);
+            })
         );
         if (!saved) {
             HSLogger.warn(`Could not save Strategy to localStorage`, context);
         } else {
+            if (isUpdate) HSStrategyManager.removeStrategyByName(strategyName!);
+            HSStrategyManager.addStrategy(normalizedStrategy);
             HSLogger.debug(() => `<green>Strategy ${isUpdate ? "updated" : "saved"} to localStorage</green>`, context);
         }
 
@@ -343,7 +406,7 @@ export class HSStrategyManager {
     /** Tells the player their strategies from before the game's 4.4.0 lost their corruption levels (see #migrateLegacyCorruptions). */
     static warnLegacyCorruptions(strategyNames: string[], context = ''): void {
         const names = strategyNames.map(name => `"${name}"`).join(', ');
-        HSLogger.warn(`Autosing strategies from before the game's 4.4.0: ${names}. Their corruption levels are now 0 and their `
+        HSLogger.warn(`Autosing strategies from before the game's 4.4.0: ${escapeLogText(names)}. Their corruption levels are now 0 and their `
             + `"Corrup Ants" steps were removed.`, context);
         void HSUI.Notify(`Autosing: ${names} now use corruption level 0 everywhere. Set the levels in the strategy editor.`, {
             notificationType: 'warning',
@@ -352,47 +415,59 @@ export class HSStrategyManager {
     }
 
     static deleteStrategyFromStorage(strategyName: string, context = ''): boolean {
-        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+        const storageMod = HSModuleRegistry.getModule('HSStorage');
         if (!storageMod) {
             throw new Error("Could not find Storage Module");
         }
 
-        let strategies: HSAutosingStrategy[] | null = storageMod.getData<HSAutosingStrategy[]>(HSGlobal.HSSettings.strategiesKey);
-        if (!Array.isArray(strategies)) {
-            strategies = [];
-        }
-
-        const updatedStrategies = strategies.filter(s => s.strategyName !== strategyName);
-        HSStrategyManager.removeStrategyByName(strategyName);
+        const strategies = storedStrategyList(storageMod.getData<unknown>(HSGlobal.HSSettings.strategiesKey));
+        const updatedStrategies = strategies.filter(entry => storedStrategyName(entry) !== strategyName);
         const saved = storageMod.setData(HSGlobal.HSSettings.strategiesKey, updatedStrategies);
         if (!saved) {
             HSLogger.warn(`Could not delete Strategy from localStorage`, context);
+        } else {
+            HSStrategyManager.removeStrategyByName(strategyName);
+            HSLogger.log(`Strategy "${escapeLogText(strategyName)}" deleted.`, context);
         }
-        HSLogger.log(`Strategy "${strategyName}" deleted.`, context);
         return saved;
     }
 
     static parseStoredStrategies(context = ''): HSAutosingStrategy[] | null {
-        const storageMod = HSModuleManager.getModule<HSStorage>('HSStorage');
+        const storageMod = HSModuleRegistry.getModule('HSStorage');
         if (!storageMod) { HSLogger.warn(`Could not find HSStorage module`, context); return null; }
 
-        const loaded = storageMod.getData<HSAutosingStrategy[]>(HSGlobal.HSSettings.strategiesKey);
-        if (!loaded) return null;
+        const loaded = storageMod.getData<unknown>(HSGlobal.HSSettings.strategiesKey);
+        if (loaded === null) return null;
 
-        const list = Array.isArray(loaded) ? loaded : [loaded];
+        const list = storedStrategyList(loaded);
         const defaultStrategyNames = new Set(HSStrategyManager.getDefaultStrategyNames());
-        const userStrategies = list.filter(strategy => !defaultStrategyNames.has(strategy.strategyName));
-        const didDropDefaults = userStrategies.length !== list.length;
-
-        const legacyNames = userStrategies.filter(s => HSStrategyManager.hasLegacyCorruptions(s)).map(s => s.strategyName);
-        const normalized = userStrategies.map(s => HSStrategyManager.normalizeCorruptions(HSStrategyManager.ensureAoagPhase(s)));
+        const normalized: HSAutosingStrategy[] = [];
+        const legacyNames: string[] = [];
+        let didDropDefaults = false;
+        let rejected = false;
+        for (const strategy of list) {
+            const name = storedStrategyName(strategy);
+            if (name !== undefined && defaultStrategyNames.has(name)) {
+                didDropDefaults = true;
+                continue;
+            }
+            try {
+                const checked = HSStrategyManager.validateStrategy(strategy, context);
+                normalized.push(checked);
+                // Validation checked the original structure before normalizing the copy.
+                if (HSStrategyManager.hasLegacyCorruptions(strategy as HSAutosingStrategy)) legacyNames.push(checked.strategyName);
+            } catch (error) {
+                rejected = true;
+                HSLogger.warn(escapeLogText(`Stored Autosing strategy skipped: ${error}`), context);
+            }
+        }
 
         if (legacyNames.length > 0) {
-            // Saved in the current format, so the warning is shown once
-            storageMod.setData(HSGlobal.HSSettings.strategiesKey, normalized);
+            // Keep malformed entries on disk for repair; a load must not silently delete them.
+            if (!rejected) storageMod.setData(HSGlobal.HSSettings.strategiesKey, normalized);
             HSStrategyManager.warnLegacyCorruptions(legacyNames, context);
-        } else if (didDropDefaults) {
-            storageMod.setData(HSGlobal.HSSettings.strategiesKey, userStrategies);
+        } else if (didDropDefaults && !rejected) {
+            storageMod.setData(HSGlobal.HSSettings.strategiesKey, normalized);
         }
 
         return normalized;

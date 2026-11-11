@@ -1,8 +1,8 @@
 import type { AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import type { AmbrosiaUpgradeData } from "../../../types/data-types/hs-player-savedata";
-import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+
 import { HSGlobal } from "../../hs-core/hs-global";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
@@ -50,7 +50,7 @@ export interface HSSingReducerPlan {
  * Description:
  *     Created by HSAmbrosia. Another tree for the time of an action, then the player's own tree loaded back: the
  *     singularity reducers for the Hepteract Distributor's crafts (prepareSingReducerSwap), and a saved loadout for
- *     the timed save export (runWithLoadout). The game only loads a tree from a slot: a tree in no slot is written
+ *     timed save export and manual ascension (runWithLoadout). The game only loads a tree from a slot: a tree in no slot is written
  *     into one for the time of the click.
  * Author: Shewchou
  */
@@ -172,7 +172,7 @@ export class HSAmbrosiaTemporaryTree {
     }
 
     #ambrosiaUpgradeConfigs(): Record<string, AmbrosiaUpgradeCalculationConfig<any> | undefined> | undefined {
-        return HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI')?.ambrosia.ambrosiaUpgradeCalculationCollection as
+        return HSModuleRegistry.getModule('HSGameDataAPI')?.ambrosia.ambrosiaUpgradeCalculationCollection as
             Record<string, AmbrosiaUpgradeCalculationConfig<any> | undefined> | undefined;
     }
 
@@ -238,7 +238,7 @@ export class HSAmbrosiaTemporaryTree {
      * dismissed. The player's loadout mode is put back.
      * @returns false when nothing was clicked.
      */
-    #loadTreeThroughSlot(slot: HTMLButtonElement, tree: HSAmbrosiaTree): boolean {
+    #loadTreeThroughSlot(slot: HTMLButtonElement, tree: HSAmbrosiaTree, owner = 'temporaryTree'): boolean {
         const player = HSGlobal.exposedPlayer;
         const slotNumber = HSAmbrosiaHelper.getSlotNumber(slot);
         if (!player?.blueberryLoadouts || slotNumber === undefined) return false;
@@ -251,7 +251,7 @@ export class HSAmbrosiaTemporaryTree {
         const saved = player.blueberryLoadouts[slotNumber];
         player.blueberryLoadouts[slotNumber] = { ...tree };
         try {
-            HSGameDialogs.act('temporaryTree', { alert: 'dismiss' }, () => slot.click());
+            HSGameDialogs.act(owner, { alert: 'dismiss' }, () => slot.click());
         } finally {
             player.blueberryLoadouts[slotNumber] = saved;
             if (playerMode === 'saveTree') HSAmbrosiaHelper.ensureLoadoutMode('saveTree');
@@ -265,16 +265,18 @@ export class HSAmbrosiaTemporaryTree {
     // ==============================================
 
     /**
-     * Runs a synchronous action with a loadout loaded, then puts the player's tree back (the timed save export).
+     * Runs a synchronous action with a loadout loaded, then puts the player's tree back.
      * The tree comes back through a slot: the one the game marks, else the one the mod remembers when it
      * holds exactly the live tree (the game marks none after a save load, so after every singularity). With no
      * such slot the loadout is loaded all the same and stays loaded (the user's choice).
      * Unsaved changes to the tree are kept when it can be read from the live player and the game accepts it;
      * otherwise (bookmark load, older patch) the marked slot's own loadout is loaded back.
+     * Manual ascension requires a validated snapshot and a slot to restore it through before it swaps.
      * The action always runs, and the player's loadout mode is put back.
      * @returns undefined when the loadout was used and the tree put back, else what happened.
      */
-    runWithLoadout(loadoutSetting: string, owner: string, action: () => void): string | undefined {
+    runWithLoadout(loadoutSetting: string, owner: string, action: () => void,
+        { requireRestore = false }: { requireRestore?: boolean } = {}): string | undefined {
         const skip = (reason: string): string => {
             action();
             return reason;
@@ -291,8 +293,9 @@ export class HSAmbrosiaTemporaryTree {
 
         const liveTree = this.#readLiveTree();
         const backSlot = this.#slots.gameActive() ?? (liveTree ? this.#rememberedSlotHolding(liveTree) : undefined);
-        // Already the loaded one
-        if (backSlot === target) {
+        // Manual ascension also checks the tree itself, in case the active slot has unsaved edits.
+        const alreadyLoaded = requireRestore ? liveTree && saved && this.#isSameTree(saved, liveTree) : backSlot === target;
+        if (alreadyLoaded) {
             action();
             return undefined;
         }
@@ -303,12 +306,20 @@ export class HSAmbrosiaTemporaryTree {
         if (liveTree && typeof gameValidate === 'function') {
             try { if (gameValidate(liveTree) === true) treeToRestore = liveTree; } catch { treeToRestore = undefined; }
         }
+        if (requireRestore) {
+            if (!backSlot || backSlot.disabled || backSlot.style.display === 'none' || !treeToRestore) {
+                return skip('your current tree could not be prepared for restoration');
+            }
+            if (target.disabled || !saved || gameValidate?.(saved) !== true) return skip(`the game would refuse loadout ${loadoutSetting}`);
+        }
 
         const wasSaveMode = HSAmbrosiaHelper.isLoadoutMode('saveTree');
         let result: string | undefined;
         try {
-            this.#slots.load(target, owner);
-            if (this.#slots.gameActive() !== target) {
+            let clicked = true;
+            if (requireRestore && saved) clicked = this.#loadTreeThroughSlot(target, saved, owner);
+            else this.#slots.load(target, owner);
+            if (!clicked || this.#slots.gameActive() !== target) {
                 // Refused by the game: the tree and the mark are as they were
                 result = skip(`the game refused to load loadout ${loadoutSetting}`);
             } else {
@@ -318,9 +329,14 @@ export class HSAmbrosiaTemporaryTree {
                     if (!backSlot) {
                         result = `loadout ${loadoutSetting} stays loaded (the game marked no loadout to come back to)`;
                     } else {
-                        if (treeToRestore) this.#loadTreeThroughSlot(backSlot, treeToRestore);
-                        else this.#slots.load(backSlot, owner);
-                        if (this.#slots.gameActive() !== backSlot) result = `loadout ${loadoutSetting} stays loaded (your previous loadout could not be loaded back)`;
+                        const restored = treeToRestore ? this.#loadTreeThroughSlot(backSlot, treeToRestore) : true;
+                        if (!treeToRestore) this.#slots.load(backSlot, owner);
+                        const restoredTree = requireRestore ? this.#readLiveTree() : undefined;
+                        if (requireRestore && (!restored || !treeToRestore || !restoredTree || !this.#isSameTree(treeToRestore, restoredTree))) {
+                            result = 'your previous tree could not be restored after ascending';
+                        } else if (this.#slots.gameActive() !== backSlot) {
+                            result = `loadout ${loadoutSetting} stays loaded (your previous loadout could not be loaded back)`;
+                        }
                     }
                 }
             }

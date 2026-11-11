@@ -3,7 +3,7 @@ import { HSUIC } from "../../../hs-core/hs-ui-components";
 import { HSSettings } from "../../../hs-core/settings/hs-settings";
 import { HSIcons } from "../../../hs-utils/hs-icons";
 import { HSUtils } from "../../../hs-utils/hs-utils";
-import { escapeHtml } from "../hs-heater-utils";
+import { escapeHtml } from "../../../hs-utils/hs-escape";
 import { getEffectiveHeaterIconSrc, subscribeHeaterIconOverrideChanges, unsubscribeHeaterIconOverrideChanges, HeaterIconOverrideChangeListener } from "../hs-heater-icon-store";
 import { HSHeaterResultStore } from "../hs-heater-result-store";
 import type { HeaterOptimizerInput } from "../../../../types/data-types/hs-heater-types";

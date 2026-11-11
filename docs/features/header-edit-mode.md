@@ -149,10 +149,14 @@ None of them writes `player.headerLayouts` (checked at the merge). All per brows
   `--hs-minibar-height`). The half slot's limit (16 px for the group) uses the same rule (`barGap` in
   `hs-minibar-resize.ts`, keep the two in step): 3 bars now fit at 5 px there, 4 px before.
 - **Toggles in the "[HS] Header" block**: Remove header gap (`removeHeaderGap`, `HSHeaderGap`: pulls the tabs up to the
-  last visible module, observers on the regions), Compact challenge text (`compactChallengeText`,
-  `HSHeaderChallengeProgress`: only the numbers, full text on hover), Match Oct icon size
-  (`matchOcteractIconSize`, CSS) and Match Oct text (`matchOcteractText`, `HSOcteractHeader`: a white Oct/s
+  last occupied module, observers on the regions), Compact challenge text (`compactChallengeText`,
+  `HSHeaderChallengeProgress`: only the numbers, full text on hover; see `header-challenge-progress.md` for sizing), Match octeract icon size
+  (`matchOcteractIconSize`, CSS) and Match octeract text (`matchOcteractText`, `HSOcteractHeader`: a white Oct/s
   unit). All hidden settings, off by default.
+- **Remove header gap** measures all rows before applying changes to their spacing. Inactive challenge counters
+  keep their space so the tabs stay in place as challenges start and end. Ordinary resize checks write only changed
+  values. A structural change can temporarily suspend the gap styles during measurement so a collapsed row can
+  reappear or a different row can become the last one.
 - **"Edit game header" button** (Settings > UI, `editGameHeader`): `HSHeaderEditSettings.openEditor()` closes the panel
   and sends the game's long-press to `#headerGrid` (no module target, so no drag; without the hold wait since the
   ✎ button, see "Edit button").

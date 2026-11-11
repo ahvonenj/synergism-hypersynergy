@@ -1,9 +1,9 @@
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModuleManager } from "../../hs-core/module/hs-module-manager";
+import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSNumberParser } from "../../hs-utils/hs-number-parser";
-import type { HSGameDataAPI } from "../../hs-core/gds/hs-gamedata-api";
+
 import { parseGameDataNumber } from "../../hs-core/gds/hs-gamedata-utils";
 import { HEPTERACT_DATA, hepteractCapacities, hepteractUnitsToReach } from "./hs-hepteract-state";
 import { AscensionIncomeSnapshot, formatDuration, HSAscensionIncome } from "./hs-ascension-income";
@@ -47,7 +47,8 @@ export class HSPlatonicUpgradeTime {
     }
 
     async init(): Promise<void> {
-        this.#platonicUpgradeDescriptions = await HSElementHooker.HookElement('#platonicUpgradeDescriptions') as HTMLElement;
+        this.#platonicUpgradeDescriptions = await HSElementHooker.HookElement('#platonicUpgradeDescriptions') ?? undefined;
+        if (!this.#platonicUpgradeDescriptions) return;
         document.querySelectorAll<HTMLImageElement>('.platonicUpgradeImage').forEach((upgradeImage, index) => {
             const upgradeId = index + 1;
 
@@ -134,7 +135,7 @@ export class HSPlatonicUpgradeTime {
     async #updatePlatonicUpgradeEstimate(upgradeId: number) {
         if (this.#hoveredPlatonicUpgradeId !== upgradeId) return;
 
-        const gameDataAPI = HSModuleManager.getModule<HSGameDataAPI>('HSGameDataAPI');
+        const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI || !gameDataAPI.getGameData()) {
             this.#showPlatonicUpgradeEstimate('Upgrade time unavailable: game data has not loaded yet.');
             return;

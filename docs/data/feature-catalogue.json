@@ -424,6 +424,27 @@
           ]
         },
         {
+          "id": "ascension-loadout",
+          "title": "Ascension loadout auto-switch",
+          "where": "Settings → QoL → Ascension loadout auto-switch",
+          "summary": "Uses a chosen Ambrosia loadout for a manual ascension and restores the previous tree afterward.",
+          "details": [
+            "Enable the switch and choose a saved slot. The game confirms the ascension as usual.",
+            "The Ascend button works with or without the patch. Shift+A uses the configured loadout when the game is patched."
+          ],
+          "limits": [
+            "Switching loadouts resets Ambrosia bar progress. Without the patch, the mod restores the saved contents of the previously marked slot, so save tree edits before ascending."
+          ],
+          "settings": [
+            "ascensionAutoLoadout",
+            "autoLoadoutAscension"
+          ],
+          "sources": [
+            "docs/features/ascension-loadout.md",
+            "src/mod/class/hs-modules/hs-ambrosia/hs-ambrosia-auto-loadout.ts"
+          ]
+        },
+        {
           "id": "ambrosia-minibars",
           "title": "Blue, red and purple progress minibars",
           "where": "Header editor → [HS] Header → Mod modules",
@@ -526,7 +547,8 @@
           "where": "[HS] Header → Layout → Remove header gap",
           "summary": "Brings the main tabs up to the last visible header content.",
           "details": [
-            "Collapses unused trailing space and margins while restoring the full grid during editing."
+            "Collapses unused trailing space and margins while restoring the full grid during editing.",
+            "Inactive challenge counters keep their space so the tabs stay in place as challenges start or end."
           ],
           "settings": [
             "removeHeaderGap"
@@ -825,7 +847,8 @@
           "summary": "Removes repeated challenge names from native progress text.",
           "details": [
             "Keeps current/required values or C15 score, with the full description available on hover.",
-            "The game's inactive editor previews remain recognizable."
+            "The game's inactive editor previews remain recognizable.",
+            "On a patched game, tall native challenge modules use one row in this mode. Turning it off restores their saved size."
           ],
           "settings": [
             "compactChallengeText"
@@ -1465,7 +1488,8 @@
           "details": [
             "Inspect built-in strategies, then copy or create one for your own tuning.",
             "Imports are validated and older strategy formats are normalized. Exports copy shareable strategy JSON.",
-            "The current bundled strategy names carry -temp: their authors still need to tune them for the changed corruption system."
+            "The current bundled strategy names carry -temp: their authors still need to tune them for the changed corruption system.",
+            "If a strategy cannot be saved, the draft stays open and the existing strategy list stays intact."
           ],
           "settings": [
             "autosingStrategy",

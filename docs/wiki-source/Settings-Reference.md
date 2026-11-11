@@ -4,21 +4,21 @@ Every setting in the audited source is listed below. Hidden means it is not a no
 
 These are source-defined initial values, not a promise that an existing player's stored or migrated preferences match them. An enabled numeric/select setting does not necessarily mean its dependent feature is switched on.
 
-## expandCostProtection
-
-Hept. quick expand cost protection
-
-- Source default: `0.5`; enabled flag: `true`.
-- Location: Panel control / hepteract.
-- Guide: [Configurable quick-expand cost protection](Features-hepteracts#configurable-quick-expand-cost-protection).
-
 ## enableHepteractDistributor
 
-Enable Hepteract Distributor
+Hepteract Distributor
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Panel control / hepteract.
+- Location: Panel control / qol.
 - Guide: [Hepteract Distributor with saved ratios](Features-hepteracts#hepteract-distributor-with-saved-ratios).
+
+## expandCostProtection
+
+Quick expand cost protection
+
+- Source default: `0.5`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Configurable quick-expand cost protection](Features-hepteracts#configurable-quick-expand-cost-protection).
 
 ## hepteractDistributorOpen
 
@@ -92,6 +92,14 @@ Hepteract Distributor: hepteracts never spent, as how many powers of ten below t
 - Location: Hidden / inline or internal.
 - Guide: [Keep a scaling Hepteract reserve](Features-hepteracts#keep-a-scaling-hepteract-reserve).
 
+## editGameHeader
+
+Edit game header
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / ui.
+- Guide: [Header pencil and editor shortcut](Features-header#header-pencil-and-editor-shortcut).
+
 ## hideGameDialogs
 
 Hide game dialogs
@@ -102,7 +110,7 @@ Hide game dialogs
 
 ## hideGameDialogsNotify
 
-Show hidden dialogs as notifications
+Show as notifications
 
 - Source default: `false`; enabled flag: `false`.
 - Location: Panel control / ui.
@@ -113,7 +121,7 @@ Show hidden dialogs as notifications
 Compact progress text in the game's challenge modules
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Compact the game's own challenge modules](Features-challenges#compact-the-games-own-challenge-modules).
 
 ## challengeProgressHeader
@@ -121,7 +129,7 @@ Compact progress text in the game's challenge modules
 Challenge progress module in the header
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [One module for all active challenges](Features-challenges#one-module-for-all-active-challenges).
 
 ## challengeProgressLayout
@@ -153,32 +161,32 @@ Challenge progress module: CØ outside challenges
 Corruption module: next level and controls
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Current and next corruption level](Features-challenges#current-and-next-corruption-level).
+
+## corruptionHeaderInline
+
+Corruption module: level controls in the module
+
+- Source default: `true`; enabled flag: `true`.
+- Location: Hidden / inline or internal / qol.
+- Guide: [Corruption level controls in the module](Features-challenges#corruption-level-controls-in-the-module).
 
 ## corruptionHeaderAlwaysShown
 
 Keep the corruption module visible
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Keep corruption visible before C11](Features-challenges#keep-corruption-visible-before-c11).
 
-## editGameHeader
+## singularityHeaderElevator
 
-Edit game header
+Singularity module: Elevator popover
 
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / ui.
-- Guide: [Header pencil and editor shortcut](Features-header#header-pencil-and-editor-shortcut).
-
-## hiddenVanillaTabs
-
-Hide vanilla tabs
-
-- Source default: `[]`; enabled flag: `true`.
-- Location: Panel control / ui.
-- Guide: [Hide tabs and remember hidden tabs](Features-interface#hide-tabs-and-remember-hidden-tabs).
+- Source default: `true`; enabled flag: `true`.
+- Location: Hidden / inline or internal / qol.
+- Guide: [Singularity Elevator from the header](Features-header#singularity-elevator-from-the-header).
 
 ## rememberSubtabs
 
@@ -187,6 +195,14 @@ Remember last used subtab
 - Source default: `true`; enabled flag: `true`.
 - Location: Panel control / ui.
 - Guide: [Remember each tab's last subtab](Features-interface#remember-each-tabs-last-subtab).
+
+## hiddenVanillaTabs
+
+Hide vanilla tabs
+
+- Source default: `[]`; enabled flag: `true`.
+- Location: Panel control / ui.
+- Guide: [Hide tabs and remember hidden tabs](Features-interface#hide-tabs-and-remember-hidden-tabs).
 
 ## autoDismissOfflinePopup
 
@@ -214,15 +230,15 @@ Notification opacity
 
 ## reactiveMouseHover
 
-Reactive mouse hover (when SHIFT is held)
+Repeat hover (hold left Shift)
 
 - Source default: `0.2`; enabled flag: `false`.
 - Location: Panel control / input.
-- Guide: [Reactive hover while holding left Shift](Features-input#reactive-hover-while-holding-left-shift).
+- Guide: [Repeat hover while holding left Shift](Features-input#repeat-hover-while-holding-left-shift).
 
 ## autoClick
 
-Auto click (when CTRL is held)
+Auto click (hold left Ctrl)
 
 - Source default: `0.15`; enabled flag: `false`.
 - Location: Panel control / input.
@@ -230,9 +246,9 @@ Auto click (when CTRL is held)
 
 ## autoClickIgnoreElements
 
-Auto click ignores certain elements
+Skip risky buttons
 
-- Source default: `false`; enabled flag: `false`.
+- Source default: `true`; enabled flag: `true`.
 - Location: Panel control / input.
 - Guide: [Auto-click while holding left Ctrl](Features-input#auto-click-while-holding-left-ctrl).
 
@@ -241,7 +257,7 @@ Auto click ignores certain elements
 Game Data Sniffing (GDS)
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Game Data Sniffing and live-game access](Features-tools#game-data-sniffing-and-live-game-access).
 
 ## autoExportSave
@@ -249,7 +265,7 @@ Game Data Sniffing (GDS)
 Export the save every X minutes
 
 - Source default: `30`; enabled flag: `false`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Export every X minutes](Features-saves#export-every-x-minutes).
 
 ## autoExportSaveFolder
@@ -257,15 +273,15 @@ Export the save every X minutes
 Choose folder
 
 - Source default: `""`; enabled flag: `true`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Choose and remember an export folder](Features-saves#choose-and-remember-an-export-folder).
 
 ## autoExportSaveForgetFolder
 
-Forget folder
+✕
 
 - Source default: `""`; enabled flag: `true`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Choose and remember an export folder](Features-saves#choose-and-remember-an-export-folder).
 
 ## autoExportSaveKeep
@@ -273,7 +289,7 @@ Forget folder
 Keep only the last X files
 
 - Source default: `20`; enabled flag: `true`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Keep only the last X timed-export files](Features-saves#keep-only-the-last-x-timed-export-files).
 
 ## autoExportSaveLoadout
@@ -281,31 +297,31 @@ Keep only the last X files
 Export loadout
 
 - Source default: `""`; enabled flag: `true`.
-- Location: Panel control / gamedata.
+- Location: Panel control / qol.
 - Guide: [Dedicated Ambrosia export loadout](Features-saves#dedicated-ambrosia-export-loadout).
 
 ## persistentAmbrosiaLevels
 
-Keep upgrade levels shown on the tree
+Keep tree levels shown
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Panel control / ambrosia.
+- Location: Panel control / qol.
 - Guide: [Keep Ambrosia upgrade levels visible](Features-ambrosia#keep-ambrosia-upgrade-levels-visible).
 
 ## addTimeAutoLoadouts
 
-Add+Time Amb loadouts auto-switch
+Add+Time loadouts auto-switch
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Panel control / ambrosia.
+- Location: Panel control / qol.
 - Guide: [Separate ADD and TIME Auto-Loadouts](Features-ambrosia#separate-add-and-time-auto-loadouts).
 
 ## autoLoadoutAdd
 
-ADD Loadout
+ADD loadout
 
 - Source default: `""`; enabled flag: `true`.
-- Location: Panel control / ambrosia.
+- Location: Panel control / qol.
 - Guide: [Separate ADD and TIME Auto-Loadouts](Features-ambrosia#separate-add-and-time-auto-loadouts).
 
 ## autoLoadoutTime
@@ -313,8 +329,24 @@ ADD Loadout
 TIME loadout
 
 - Source default: `""`; enabled flag: `true`.
-- Location: Panel control / ambrosia.
+- Location: Panel control / qol.
 - Guide: [Separate ADD and TIME Auto-Loadouts](Features-ambrosia#separate-add-and-time-auto-loadouts).
+
+## ascensionAutoLoadout
+
+Ascension loadout auto-switch
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / qol.
+- Guide: [Ascension loadout auto-switch](Features-ambrosia#ascension-loadout-auto-switch).
+
+## autoLoadoutAscension
+
+Ascension loadout
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Ascension loadout auto-switch](Features-ambrosia#ascension-loadout-auto-switch).
 
 ## startAutosing
 
@@ -331,6 +363,22 @@ Singularity to farm
 - Source default: `200`; enabled flag: `true`.
 - Location: Panel control / auto-sing.
 - Guide: [Strategy-driven singularity farming](Features-autosing#strategy-driven-singularity-farming).
+
+## autosingKeepAwake
+
+Keep the PC awake
+
+- Source default: `true`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Keep the PC awake](Features-autosing#keep-the-pc-awake).
+
+## autosingStepTimings
+
+Record step timings
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / auto-sing.
+- Guide: [Step timings](Features-autosing#step-timings).
 
 ## autosingStrategy
 
@@ -380,6 +428,54 @@ Auto-Sing Strategy
 - Location: Panel control / auto-sing.
 - Guide: [Create, copy, edit, import, export and delete strategies](Features-autosing#create-copy-edit-import-export-and-delete-strategies).
 
+## autosingObtLoadout
+
+Obtainium
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
+## autosingEarlyCubeLoadout
+
+Hyperflux (H)
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
+## autosingLateCubeLoadout
+
+3-7D Cubes
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
+## autosingQuarkLoadout
+
+Quark
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
+## autosingOffLoadout
+
+Offerings
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
+## autosingAmbrosiaLoadout
+
+Ambrosia
+
+- Source default: `""`; enabled flag: `true`.
+- Location: Panel control / auto-sing.
+- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
+
 ## autosingNoAmbrosiaSwitch
 
 Don't switch ambrosia loadouts
@@ -388,68 +484,12 @@ Don't switch ambrosia loadouts
 - Location: Panel control / auto-sing.
 - Guide: [Don't switch Ambrosia loadouts](Features-autosing#dont-switch-ambrosia-loadouts).
 
-## autosingEarlyCubeLoadout
-
-Pre-AOAG Cube Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## autosingLateCubeLoadout
-
-Post-AOAG Cube Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## autosingQuarkLoadout
-
-Quark Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## autosingObtLoadout
-
-Obtainium Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## autosingOffLoadout
-
-Offerings Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## autosingAmbrosiaLoadout
-
-Luck Loadout
-
-- Source default: `""`; enabled flag: `true`.
-- Location: Panel control / auto-sing.
-- Guide: [Six configurable Ambrosia roles](Features-autosing#six-configurable-ambrosia-roles).
-
-## advancedDataCollection
-
-Advanced Data Collection
-
-- Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / auto-sing.
-- Guide: [Live run statistics, charts and review](Features-autosing#live-run-statistics-charts-and-review).
-
 ## ambrosiaMinibars
 
 Ambrosia minibars (S25+)
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Blue, red and purple progress minibars](Features-ambrosia#blue-red-and-purple-progress-minibars).
 
 ## ambrosiaMinibarBorders
@@ -457,7 +497,7 @@ Ambrosia minibars (S25+)
 Ambrosia minibars border
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Optional minibar frame](Features-header#optional-minibar-frame).
 
 ## ambrosiaRateHeader
@@ -465,7 +505,7 @@ Ambrosia minibars border
 Ambrosia per hour in the header (S25+)
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Expected Ambrosia income per hour](Features-ambrosia#expected-ambrosia-income-per-hour).
 
 ## enableAutomationQuickBar
@@ -473,7 +513,7 @@ Ambrosia per hour in the header (S25+)
 Automation quick bar
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Automation quickbar with mixed-state indicators](Features-header#automation-quickbar-with-mixed-state-indicators).
 
 ## matchOcteractIconSize
@@ -481,7 +521,7 @@ Automation quick bar
 Match the octeract header icon size
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Match Octeract icon size](Features-header#match-octeract-icon-size).
 
 ## matchOcteractText
@@ -489,7 +529,7 @@ Match the octeract header icon size
 Match the octeract header text
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Match Octeract unit text](Features-header#match-octeract-unit-text).
 
 ## centerQuickbars
@@ -497,7 +537,7 @@ Match the octeract header text
 Center quick bars
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Automation quickbar with mixed-state indicators](Features-header#automation-quickbar-with-mixed-state-indicators).
 
 ## removeHeaderGap
@@ -505,7 +545,7 @@ Center quick bars
 Remove the gap below the header
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Remove unused space below the header](Features-header#remove-unused-space-below-the-header).
 
 ## headerHideLoadoutIcons
@@ -513,7 +553,7 @@ Remove the gap below the header
 Hide the header's ambrosia bar icon
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Hide the leading Ambrosia bar icon](Features-header#hide-the-leading-ambrosia-bar-icon).
 
 ## headerFitLoadoutSlots
@@ -521,7 +561,7 @@ Hide the header's ambrosia bar icon
 Fit the ambrosia loadout slots to their cell
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Fit loadout slots to their cell](Features-header#fit-loadout-slots-to-their-cell).
 
 ## headerEditButton
@@ -529,7 +569,7 @@ Fit the ambrosia loadout slots to their cell
 ✎ Header edit button
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Header pencil and editor shortcut](Features-header#header-pencil-and-editor-shortcut).
 
 ## headerLongPressEditing
@@ -537,7 +577,7 @@ Fit the ambrosia loadout slots to their cell
 Long press to edit the header
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Optional long-press editing](Features-header#optional-long-press-editing).
 
 ## headerStatsAtBottom
@@ -545,23 +585,47 @@ Long press to edit the header
 Header top row at the bottom
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Hidden / inline or internal / qol-buttons.
+- Location: Hidden / inline or internal / qol.
 - Guide: [Move the top row to the bottom](Features-header#move-the-top-row-to-the-bottom).
-
-## hideMaxedGQUpgrades
-
-Hide maxed GQ upgrades
-
-- Source default: `true`; enabled flag: `true`.
-- Location: Panel control / qol-buttons.
-- Guide: [Remember hidden maxed GQ upgrades](Features-golden-quarks#remember-hidden-maxed-gq-upgrades).
 
 ## enableGQDistributor
 
-Enable GQ Distributor
+GQ Distributor
 
 - Source default: `true`; enabled flag: `true`.
-- Location: Panel control / qol-buttons.
+- Location: Panel control / qol.
+- Guide: [GQ Distributor with saved upgrade ratios](Features-golden-quarks#gq-distributor-with-saved-upgrade-ratios).
+
+## perksFind
+
+Perks search field
+
+- Source default: `true`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Search the singularity perks](Features-interface#search-the-singularity-perks).
+
+## hideMaxedGQUpgrades
+
+Keep maxed GQ upgrades hidden
+
+- Source default: `true`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Remember hidden maxed GQ upgrades](Features-golden-quarks#remember-hidden-maxed-gq-upgrades).
+
+## hideMaxedOctUpgrades
+
+Keep maxed Oct upgrades hidden
+
+- Source default: `true`; enabled flag: `true`.
+- Location: Panel control / qol.
+- Guide: [Remember hidden maxed Octeract upgrades](Features-golden-quarks#remember-hidden-maxed-octeract-upgrades).
+
+## gqDistributorOpen
+
+GQ Distributor panel open
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Hidden / inline or internal.
 - Guide: [GQ Distributor with saved upgrade ratios](Features-golden-quarks#gq-distributor-with-saved-upgrade-ratios).
 
 ## gqDistributorBalanceInvestments
@@ -588,13 +652,13 @@ GQ Distributor saved ratios
 - Location: Hidden / inline or internal.
 - Guide: [GQ Distributor with saved upgrade ratios](Features-golden-quarks#gq-distributor-with-saved-upgrade-ratios).
 
-## hideMaxedOctUpgrades
+## showDebugLogs
 
-Hide maxed Octeract upgrades
+Show debug logs
 
-- Source default: `true`; enabled flag: `true`.
-- Location: Panel control / qol-buttons.
-- Guide: [Remember hidden maxed Octeract upgrades](Features-golden-quarks#remember-hidden-maxed-octeract-upgrades).
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / debug.
+- Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
 
 ## logTimestamp
 
@@ -604,25 +668,9 @@ Display timestamps in log
 - Location: Panel control / debug.
 - Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
 
-## showDebugLogs
-
-Show debug logs
-
-- Source default: `false`; enabled flag: `false`.
-- Location: Panel control / debug.
-- Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
-
-## enableTalismansModule
-
-Enable the "Cycle BUY" button ("Enhanced BUY ALL")
-
-- Source default: `true`; enabled flag: `true`.
-- Location: Panel control / input.
-- Guide: [Talisman fragment Cycle BUY](Features-input#talisman-fragment-cycle-buy).
-
 ## autosing3to6DCubeOpeningPercent
 
-3-6D Cube opening percentage
+3-6D Cube opening %
 
 - Source default: `80`; enabled flag: `true`.
 - Location: Panel control / auto-sing.
@@ -630,7 +678,7 @@ Enable the "Cycle BUY" button ("Enhanced BUY ALL")
 
 ## autosingTessBuildingAutoBuyPercent
 
-Tesseract building auto-buy percentage
+Tesseract building auto-buy %
 
 - Source default: `50`; enabled flag: `true`.
 - Location: Panel control / auto-sing.
@@ -692,10 +740,10 @@ Heater ticked branches
 - Location: Hidden / inline or internal.
 - Guide: [Choose and remember active optimization branches](Features-heater#choose-and-remember-active-optimization-branches).
 
-## heaterTwoWorkers
+## heaterWorkers
 
-Heater: heat in two workers at once (checkbox under the heat button)
+Heater: workers running at once (select under the heat button)
 
-- Source default: `true`; enabled flag: `true`.
+- Source default: `3`; enabled flag: `true`.
 - Location: Hidden / inline or internal.
 - Guide: [Background heating, progress and cancel](Features-heater#background-heating-progress-and-cancel).

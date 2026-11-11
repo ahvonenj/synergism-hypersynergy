@@ -23,7 +23,7 @@ async function main() {
         plugins: [{ name: 'header-game-boundary', setup(build) {
             const stubs = {
                 'hs-global': `export const HSGlobal = {HSStorage:{storagePrefix:'hs-'},get exposedPlayer(){return window.testPlayer}};`,
-                'hs-module-manager': `export const HSModuleManager = {getModule(){return window.testStorage}};`,
+                'hs-module-registry': `export const HSModuleRegistry = {getModule(){return window.testStorage}};`,
                 'hs-logger': 'export const HSLogger = {log(){},warn(){}};',
             };
             build.onResolve({ filter: /hs-[\w-]+$/ }, args => {
