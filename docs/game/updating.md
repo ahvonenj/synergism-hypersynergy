@@ -96,3 +96,11 @@ What changed for the mod, one GDS commit each, checked by the replay (`test-gds-
 - Patcher: the `pcoinLevels` anchor.
 - 2026-11-09 (game commit `a1fa5707`): new cube rates per corruption level, copied into GDS. The new Campaign token
   cube multiplier (`campaignTokenBonuses.cube`) isn't modelled: GDS stops at the corruption lines.
+
+## Save format rework (2026-11-10, game commit `075dfeaa`)
+The player became plain data: `worlds` and the wow cubes are numbers (their handlers are module objects now),
+`codes` an array, sing challenges `{completions, highestSingularityCompleted, enabled}`, `autoAscendRules` a string,
+`dayCheck` an ISO string, `skillCode` gone; `player.talismans` is the live store of the fragments (no
+`fragmentsInvested` in the talismans object any more). No formula change. For the mod: three patcher anchors (talismans
+by `baseMult`, saveSynergy by `offlinetick`), the talisman fragments read from the player. Readers of the counters
+already went through `Number()`.

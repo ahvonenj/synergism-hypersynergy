@@ -3,10 +3,12 @@ const assert = require('node:assert/strict')
 const { patchBundle } = require('../lib/patcher.js')
 
 // The four places, in the shape of the minified bundle
-// saveSynergy: the talismans it writes, its one schema parse of the player, its "testing.gameSaved" message
-const saveSynergy = (name = 'bo', schema = 'Yp', player = 'n') =>
-    `${name}=e=>{if(b.timeWarp)return!1;${player}.talismans=Object.fromEntries(Object.keys(${player}.talismans)` +
-    `.map(o=>[o,{...Me[o].fragmentsInvested}]));let t=${schema}.parse(${player}),r=JSON.stringify(t);` +
+// saveSynergy: the offlinetick it writes, its one schema parse of the player, its "testing.gameSaved" message. Before
+// game commit 075dfeaa it also copied the talismans' fragments into the player (old = true).
+const saveSynergy = (name = 'bo', schema = 'Yp', player = 'n', old = false) =>
+    `${name}=e=>{if(b.timeWarp)return!1;${player}.offlinetick=Math.max(${player}.offlinetick,Date.now());` +
+    (old ? `${player}.talismans=Object.fromEntries(Object.keys(${player}.talismans).map(o=>[o,{...Me[o].fragmentsInvested}]));` : '') +
+    `let t=${schema}.parse(${player}),r=JSON.stringify(t);` +
     `return saved.push(r),e&&D(s.t("testing.gameSaved")),!0}`
 // loadSynergy: parses the save, then refuses a test save with "testing.saveInLive2"
 const loadSynergy = (name = 'PY') =>
@@ -24,7 +26,7 @@ const run = (declarations, window = {}, names = {}) => {
     const logs = []
     const code = patchBundle(
         '"use strict";const saved=[],loaded=[],renders=[],alerts=[],b={timeWarp:!1},Me={},s={t:k=>k},D=k=>alerts.push(k),c=()=>({style:{setProperty(){}}});' +
-        `const n={talismans:{},headerLayouts:null},layouts={desktop:null};${declarations}` +
+        `const n={talismans:{},offlinetick:0,headerLayouts:null},layouts={desktop:null};${declarations}` +
         `return {save:${names.save ?? 'bo'},load:${names.load ?? 'PY'},unlocks:${names.unlocks ?? 'Pg'},render:${names.render ?? 'ss'},` +
         'player:n,layouts,saved,loaded,renders};',
         { log: (...a) => logs.push(a.join(' ')), warn: (...a) => warnings.push(a.join(' ')) })
@@ -53,6 +55,12 @@ test('header modules: every place patched, the flag and the report set', () => {
     assert.equal(window.__HS_HEADER_MODULES_PATCHED, true)
     assert.equal(window.__HS_PATCH_REPORT.headerModules, true)
     assert.ok(logs.some(l => l === 'Patched the header modules (save=bo, load=PY, unlocks=Pg, render=ss)'))
+})
+
+test('header modules: the bundle before 075dfeaa (saveSynergy copies the talismans)', () => {
+    const { window, warnings } = run(`${passThrough}let ${saveSynergy('bo', 'Yp', 'n', true)},${loadSynergy()},${unlocks()},${render()};`)
+    assert.deepEqual(warnings, [])
+    assert.equal(window.__HS_PATCH_REPORT.headerModules, true)
 })
 
 test('header modules: a save holds none of the mod\'s ids, and the live player keeps them', () => {
@@ -147,7 +155,7 @@ test('header modules: saveSynergy with a second parse is refused', () => {
 
 test('header modules: names starting with "$" and function declarations', () => {
     const declarations = 'const $p={parse:p=>p};' +
-        `function $s(e){if(b.timeWarp)return!1;n.talismans=Object.fromEntries([].map(o=>[o,Me[o].fragmentsInvested]));` +
+        `function $s(e){if(b.timeWarp)return!1;n.offlinetick=Math.max(n.offlinetick,Date.now());` +
         'let t=$p.parse(n),r=JSON.stringify(t);' +
         'return saved.push(r),e&&D(s.t("testing.gameSaved")),!0}' +
         `let ${loadSynergy('$l')},${unlocks('$u')};` +

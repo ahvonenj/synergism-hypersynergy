@@ -2,7 +2,7 @@
 
 ## Sources: live player or save capture
 - **Two sources, no adapter between them.** `HSGameData` reads the live player (`exposedPlayer`) when the patcher exposes it, else captures the save by hooking `btoa`/`atob` and the patched export functions (an "MITM" approach: bookmarklet, failed patch); a dev-only Debug tab switch forces the save. Reads stay shape-neutral (`GameDecimal` / `GameCount` and their helpers).
-- **The live player is one object for the whole session**: caches can't be keyed by its identity (`clearCache()` bumps a generation the helpers follow). Its `talismans` are a copy refreshed at each game save (the fragments come from `window.__HS_talismans`, `getTalismanFragments`).
+- **The live player is one object for the whole session**: caches can't be keyed by its identity (`clearCache()` bumps a generation the helpers follow). Its `talismans` hold the live fragments; before game commit 075dfeaa they were a copy refreshed at each game save, and the live fragments were in `window.__HS_talismans` (`getTalismanFragments` reads them there when present).
 - **Talisman levels**: the live player's are the game's own (`window.__HS_talismans[t].level`). Elsewhere (no patch, a save) they are replayed from the fragments, tens of ms for all talismans, so the result outlives `clearCache()`, kept until the talisman's fragments or cap change.
 - **GDS reads every 500 ms** (`gdsSpeedMs`): the live player, or a save it takes. Nothing needs it faster: the Ambrosia tab's rates refresh at that pace.
 - `HSGameData` also manages "me", pseudo, campaign and event data (bells and the global event come from the game itself: "Requests to synergism.cc").

@@ -2,10 +2,12 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const { patchBundle } = require('../lib/patcher.js')
 
-// saveSynergy: the talismans it writes, its one schema parse of the player, its "testing.gameSaved" message
-const saveSynergy = (name = 'bo', schema = 'Yp', player = 'n') =>
-    `${name}=e=>{if(b.timeWarp)return!1;${player}.talismans=Object.fromEntries(Object.keys(${player}.talismans)` +
-    `.map(o=>[o,{...Me[o].fragmentsInvested}]));let t=${schema}.parse(${player}),r=JSON.stringify(t);` +
+// saveSynergy: the offlinetick it writes, its one schema parse of the player, its "testing.gameSaved" message. Before
+// game commit 075dfeaa it also copied the talismans' fragments into the player (old = true).
+const saveSynergy = (name = 'bo', schema = 'Yp', player = 'n', old = false) =>
+    `${name}=e=>{if(b.timeWarp)return!1;${player}.offlinetick=Math.max(${player}.offlinetick,Date.now());` +
+    (old ? `${player}.talismans=Object.fromEntries(Object.keys(${player}.talismans).map(o=>[o,{...Me[o].fragmentsInvested}]));` : '') +
+    `let t=${schema}.parse(${player}),r=JSON.stringify(t);` +
     `return saved.push(r),e&&D(s.t("testing.gameSaved")),!0}`
 // The rest of the header modules patch: without them, its edit of the parse isn't applied
 const headerParts =
@@ -22,7 +24,7 @@ const run = (declarations, names = {}) => {
     const window = {}
     const code = patchBundle(
         '"use strict";const saved=[],b={timeWarp:!1},Me={},s={t:k=>k},D=()=>{},c=()=>({style:{setProperty(){}}});' +
-        `const n={talismans:{},worlds:7,seed:[]};${declarations}return {save:${names.save ?? 'bo'},player:n,saved};`,
+        `const n={talismans:{},offlinetick:0,worlds:7,seed:[]};${declarations}return {save:${names.save ?? 'bo'},player:n,saved};`,
         { log: (...a) => logs.push(a.join(' ')), warn: (...a) => warnings.push(a.join(' ')) })
     return { game: new Function('window', code)(window), window, code, logs, warnings: warnings.filter(w => w.includes('save seed cap')) }
 }
@@ -44,6 +46,12 @@ test('save seed cap: a seed past the clock saves capped, and the live player kee
     assert.ok(saved.seed[1] >= start && saved.seed[1] <= Date.now())
     assert.equal(saved.worlds, 7)
     assert.deepEqual(game.player.seed, [past, ahead, past, past])
+})
+
+test('save seed cap: the bundle before 075dfeaa (saveSynergy copies the talismans)', () => {
+    const { window, warnings } = run(`${schema()}let ${saveSynergy('bo', 'Yp', 'n', true)};`)
+    assert.deepEqual(warnings, [])
+    assert.equal(window.__HS_PATCH_REPORT.saveSeedCap, true)
 })
 
 test('save seed cap: seeds behind the clock are the player itself, and no seeds change nothing', () => {
