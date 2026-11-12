@@ -32,11 +32,13 @@ header layout check in Chromium.
 
 - `HSLogger` writes to the mod panel's Log tab, and takes a context string. A line is rendered as HTML and also printed
   to the console: escape it with `escapeLogText` (`&` and `<` only), not `escapeHtml`. Both helpers live in `hs-utils/hs-escape.ts`.
-- Every line is recorded from the first one, before the Log tab exists. Debug lines reach the console only while the
-  Log tab shows them. `warnOnce` / `errorOnce(msg, context, id)`: once per id, again if it comes back 15 minutes later.
+- `HSLogger.debug` takes a function, called only when debug lines are recorded; around costly text, also check
+  `HSLogger.isDebugRecorded`. `warnOnce` / `errorOnce(msg, context, id)`: once per id, again if it comes back 15 minutes
+  later.
 - A context's colour in the Log tab: a module's `moduleColor`, else its entry in `HSGlobal.HSLogger.contextColors` (a
   module's name, to share that module's colour, or a CSS colour), else white. A new class that logs under its own
   context needs an entry there.
+- How the Log tab records, caps, draws and copies lines: `docs/features/log.md`.
 
 ## Injected CSS lands late
 
