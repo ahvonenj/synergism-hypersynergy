@@ -54,8 +54,6 @@ The mod is loaded by a userscript, which starts it together with the game.
 
 **If the install link displays code instead:** copy all the code, click the Tampermonkey extension icon → **Create a new script**, replace all the example code with what you copied, and press **Ctrl+S** (or **Cmd+S**) to save. Then reload the game.
 
-The path `src/loader/tampermonkey-bridge.user.js` is just the script's location in the repository, not a folder you need to install. The install link above uses **Live**, the normal release maintained under `Ferlieloi`.
-
 While the game is running, a rainbow border around the mod's icon means a newer version is out: reload the page to get it.
 
 #### Live or Dev
