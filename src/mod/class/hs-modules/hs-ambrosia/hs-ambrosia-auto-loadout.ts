@@ -2,7 +2,7 @@ import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
-import { HSSelectStringSetting } from "../../hs-core/settings/hs-setting";
+import { HSSetting } from "../../hs-core/settings/hs-setting";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
@@ -223,7 +223,7 @@ export class HSAmbrosiaAutoLoadout {
 
     async #addCodeButtonHandler(e: Event) {
         if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
-        const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSelectStringSetting;
+        const addLoadoutSetting = HSSettings.getSetting('autoLoadoutAdd') as HSSetting<string>;
 
         if (addLoadoutSetting) {
             const addLoadout = HSAmbrosiaHelper.convertSettingLoadoutToSlot(addLoadoutSetting.getValue());
@@ -236,7 +236,7 @@ export class HSAmbrosiaAutoLoadout {
 
     async #timeCodeButtonHandler(e: Event) {
         if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
-        const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSelectStringSetting;
+        const timeLoadoutSetting = HSSettings.getSetting('autoLoadoutTime') as HSSetting<string>;
 
         if (timeLoadoutSetting) {
             const timeLoadout = HSAmbrosiaHelper.convertSettingLoadoutToSlot(timeLoadoutSetting.getValue());

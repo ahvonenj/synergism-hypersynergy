@@ -774,11 +774,8 @@ export class HSSettingsUI {
                 HSLogger.warn(`No default value for ${name}, left as it is`, this.#context);
                 continue;
             }
-            const definition = HSSettings.getSetting(name).getDefinition() as HSSettingBase<number>;
-            definition.settingValue = value;
-            definition.calculatedSettingValue = value * (definition.settingValueMultiplier ?? 1);
+            HSSettings.getSetting(name).setValue(value);
         }
-        HSSettings.saveSettingsToStorage();
         HSSettingsUI.refreshSettingControls([...names]);
         HSLogger.log('Auto-Sing Advanced settings reset to default', this.#context);
     }

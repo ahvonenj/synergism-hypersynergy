@@ -62,6 +62,8 @@ the mod's own small elements (a settings block, a table cell) is fine.
   added to `HSSettingsDefinition` in `src/mod/types/module-types/hs-settings-types.ts`.
 - A setting with a `settingAction` needs a handler in `hs-core/settings/hs-setting-action.ts`. The handler can't tell
   the player's toggle from the page load or an `enable()`/`disable()` by autosing or GDS.
+- `setValue` stores a value without running the action: a numeric value is clamped to its control's min/max and the
+  value passed to actions (`calculatedSettingValue`, with the multiplier) follows. `enable()`/`disable()` run it.
 - `settingControl` is only needed for a control. `initializeSettingActions` runs each setting's initial action after its optional control preparation, preserving definition order; `skipInit` still prevents actions such as opening an editor at load.
 - Settings persist through `HSStorage` in the existing JSON-string envelope, with only `enabled` and `settingValue` per key. Older full definitions and object-valued storage are read too, but only those player-owned fields are restored. Configuration and derived values come from the current definition and constructors; invalid values keep the current default. The pure helpers are in `hs-core/settings/hs-settings-state.ts`.
 - `"platforms": ["steam" | "userscript" | "bookmarklet"]` shows a setting in the panel only for players who loaded the

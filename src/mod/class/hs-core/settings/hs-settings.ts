@@ -6,7 +6,7 @@ import settings from "inline:../../../resource/json/hs-settings.json";
 import settings_control_groups from "inline:../../../resource/json/hs-settings-control-groups.json";
 import settings_control_pages from "inline:../../../resource/json/hs-settings-control-pages.json";
 import { HSSettingActions } from "./hs-setting-action";
-import { HSBooleanSetting, HSNumericSetting, HSSelectStringSetting, HSSelectStringsSetting, HSSetting, HSStringSetting, HSButtonSetting } from "./hs-setting";
+import { HSBooleanSetting, HSNumericSetting, HSMultiSelectSetting, HSSetting, HSTextSetting, HSButtonSetting } from "./hs-setting";
 import { HSUI } from "../hs-ui";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 
@@ -102,16 +102,14 @@ export class HSSettings extends HSModule {
                         HSSettings.#settings[key] = new HSNumericSetting(settingDef as HSSettingBase<number>, settingAction);
                         break;
                     case 'string':
-                        HSSettings.#settings[key] = new HSStringSetting(settingDef as HSSettingBase<string>, settingAction);
+                    case 'selectstring':
+                        HSSettings.#settings[key] = new HSTextSetting(settingDef as HSSettingBase<string>, settingAction);
                         break;
                     case 'boolean':
                         HSSettings.#settings[key] = new HSBooleanSetting(settingDef as HSSettingBase<boolean>, settingAction);
                         break;
-                    case 'selectstring':
-                        HSSettings.#settings[key] = new HSSelectStringSetting(settingDef as HSSettingBase<string>, settingAction);
-                        break;
                     case 'selectstrings':
-                        HSSettings.#settings[key] = new HSSelectStringsSetting(settingDef as HSSettingBase<string[]>, settingAction);
+                        HSSettings.#settings[key] = new HSMultiSelectSetting(settingDef as HSSettingBase<string[]>, settingAction);
                         break;
                     case 'button':
                         HSSettings.#settings[key] = new HSButtonSetting(settingDef as HSSettingBase<null>, settingAction);
