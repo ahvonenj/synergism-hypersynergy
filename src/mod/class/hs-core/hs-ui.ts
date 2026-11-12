@@ -348,7 +348,6 @@ export class HSUI extends HSModule {
 
         if (HSUI.#logTabActive) {
             HSLogger.flushPendingLogs();
-            HSLogger.scrollToBottom();
         }
     }
 
@@ -388,7 +387,6 @@ export class HSUI extends HSModule {
                 if (HSUI.#logTabActive) {
                     HSLogger.flushPendingLogs();
                 }
-                HSLogger.scrollToBottom();
                 await this.#uiPanel.transition({ opacity: 0.97 });
             }
         });

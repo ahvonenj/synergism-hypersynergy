@@ -116,7 +116,7 @@ export class HSElevatorHeader {
         const slowClimb = document.getElementById('elevatorSlowClimbToggle') as HTMLInputElement | null;
         const status = document.getElementById('elevatorLockStatus');
         if (!input || !teleport || !lock || !slowClimb || !status) {
-            HSLogger.warnOnce('The game\'s Elevator controls were not found: no elevator popover', 'hs-elevator-header');
+            HSLogger.warnOnce('The game\'s Elevator controls were not found: no elevator popover', HSElevatorHeader.#context, 'hs-elevator-header');
             return undefined;
         }
         return { input, teleport, lock, slowClimb, status };

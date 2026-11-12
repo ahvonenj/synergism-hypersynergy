@@ -14,7 +14,6 @@ import { escapeLogText } from "./hs-escape";
  *         - wait() method to wait for an arbitrary amount of time
  *         - uuidv4() for generating UUIDs
  *         - domid() method for generating DOM-compliant unique ids
- *         - hashCode() for calculating a unique hash for arbitrary string
  *         - N() for pretty printing numbers
  * Author: Swiffy, Shewchou
  */
@@ -162,22 +161,6 @@ export class HSUtils {
         );
     }
 
-    static hashCode(str: string): number {
-        let hash = 0;
-        let i;
-        let chr;
-
-        if (str.length === 0) return hash;
-
-        for (i = 0; i < str.length; i++) {
-            chr = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + chr;
-            hash |= 0;
-        }
-
-        return hash;
-    }
-
     static N(num: string | number, precision: number = 2, expDecimals: number = 2) {
         let tempNum = 0;
         let numString = '';
@@ -201,8 +184,9 @@ export class HSUtils {
         return numString;
     }
 
-    static getTime(): string {
-        const now = new Date();
+    // HH:MM:SS.mmm, local time
+    static getTime(time: number = Date.now()): string {
+        const now = new Date(time);
         const hours = now.getHours();
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
@@ -334,28 +318,17 @@ export class HSUtils {
         return resolve(await this.#loadTranslationFile('en'));
     }
 
+    // A colour tag: <red>text</red> or <#ff8800>text</#ff8800>
+    static #colorTagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,8})>(.*?)<\/\1>/g;
+
     // Replace color tags for panel logging
     static parseColorTags(msg: string): string {
-        const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,8})>(.*?)<\/\1>/g;
-
-        // Replace all matched patterns with span elements
-        return msg.replace(tagPattern, (match, colorName, content) => {
-            return `<span style="color: ${colorName}">${content}</span>`;
-        });
+        return msg.replace(HSUtils.#colorTagPattern, '<span style="color: $1">$2</span>');
     }
 
     // Remove color tags for console logging
     static removeColorTags(msg: string): string {
-        try {
-            const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
-
-            return msg.replace(tagPattern, (match, colorName, content) => {
-                return `${content}`;
-            });
-        } catch (e) {
-            console.warn("Error removing color tags from log message", e);
-            return `${msg}`;
-        }
+        return msg.replace(HSUtils.#colorTagPattern, '$2');
     }
 
     static eventBuffNumToName(buff: EventBuffType) {

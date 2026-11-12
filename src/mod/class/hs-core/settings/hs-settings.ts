@@ -174,7 +174,6 @@ export class HSSettings extends HSModule {
             }
             HSSettings.saveSettingsToStorage();
             HSSettings.#settingsParsed = true;
-            HSLogger.onSettingsParsed();
         } catch (e) {
             HSLogger.error(`Error parsing mod settings ${e}`, this.context);
             HSSettings.#settingsParsed = false;

@@ -1047,7 +1047,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
     calculateChallenge15Reward(rewardName: keyof typeof challenge15Rewards) {
         if (!this.gameData) {
-            HSLogger.errorOnce(`<red>calculateChallenge15Reward() GAMEDATA WAS NULL</red>`, this.context);
+            HSLogger.errorOnce(`<red>calculateChallenge15Reward() GAMEDATA WAS NULL</red>`, this.context, "gds-c15-reward-no-data");
             return 0;
         }
 

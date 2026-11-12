@@ -352,7 +352,10 @@ export class HSAutosing extends HSModule {
         if (!this.#autosingEnabled) return;
 
         // Speed mode unless "Full log during Auto-Sing": warnings and errors only, no debug line
-        HSLogger.setQuietMode(!(HSSettings.getSetting("autosingFullLog")?.isEnabled() ?? false));
+        const fullLog = HSSettings.getSetting("autosingFullLog")?.isEnabled() ?? false;
+        // Written before speed mode, which would drop it
+        if (!fullLog) HSLogger.log('"Full log during Auto-Sing" is off: only warnings and errors are logged during this run, for speed. To report or analyze a problem, turn it on (Auto-Sing settings) and restart.', this.context);
+        HSLogger.setQuietMode(!fullLog);
 
         this.#trackChain(this.#performAutosingLogic());
     }

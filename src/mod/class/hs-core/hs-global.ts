@@ -4,7 +4,6 @@ import {
     CUBE_VIEW_BUTTON_IDS, TRAITS_VIEW_BUTTON_IDS, SINGULARITY_VIEW_BUTTON_IDS, SETTINGS_VIEW_BUTTON_IDS, PSEUDOCOIN_VIEW_BUTTON_IDS,
 } from "../../types/module-types/hs-gamestate-types";
 import { IHSGlobal } from "../../types/module-types/hs-global-types";
-import { ELogLevel } from "../../types/module-types/hs-logger-types";
 
 // Build-time injected by esbuild via `define`.
 declare const HS_BUILD_VERSION: string;
@@ -92,7 +91,6 @@ export const HSGlobal: IHSGlobal = class {
 
     // --- HSLogger ---
     static HSLogger = {
-        logLevel: ELogLevel.NONE,
         logSize: 5000,
         // Debug lines have their own cap, so they never push the other lines out
         debugLogSize: 5000,
@@ -142,7 +140,6 @@ export const HSGlobal: IHSGlobal = class {
             HSModuleManager: 'plum',
             HSElementHooker: 'plum',
             HSUtils: 'plum',
-            Once: 'plum',
             HSBackup: 'plum',
             HSCalculationTools: 'plum',
             HSGithub: 'plum',

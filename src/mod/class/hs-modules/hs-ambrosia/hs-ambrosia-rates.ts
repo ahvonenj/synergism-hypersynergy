@@ -157,7 +157,7 @@ export class HSAmbrosiaRates {
             this.#renderRateHeader(rates);
         } catch (error) {
             this.#lastRateHeaderRefresh = performance.now();
-            HSLogger.warnOnce(`Could not calculate the ambrosia rates of the header: ${error}`, 'hs-ambrosia-rate-header');
+            HSLogger.warnOnce(`Could not calculate the ambrosia rates of the header: ${error}`, this.#context, 'hs-ambrosia-rate-header');
             this.#renderRateHeader(null);
         }
     }

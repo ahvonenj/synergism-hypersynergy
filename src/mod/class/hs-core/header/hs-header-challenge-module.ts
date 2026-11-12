@@ -138,7 +138,7 @@ export class HSHeaderChallengeModule {
             }
             HSHeaderChallengeModule.#fit(element, text, room, multiLine);
         } catch (error) {
-            HSLogger.warnOnce(`Could not draw the challenge progress module: ${error}`, 'hs-header-challenge-module');
+            HSLogger.warnOnce(`Could not draw the challenge progress module: ${error}`, HSHeaderChallengeModule.#context, 'hs-header-challenge-module');
         }
     }
 

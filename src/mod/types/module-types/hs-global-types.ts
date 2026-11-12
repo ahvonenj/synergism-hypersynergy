@@ -1,6 +1,5 @@
 import { HSWatcherOptions } from "./hs-elementhooker-types";
 import { HSViewProperties, MAIN_VIEW } from "./hs-gamestate-types";
-import { ELogLevel } from "./hs-logger-types";
 import { PlayerData } from "../data-types/hs-player-savedata";
 
 interface IStoreable {
@@ -47,7 +46,6 @@ export interface HSGlobalElementHooker {
 }
 
 export interface HSGlobalLogger {
-    logLevel: ELogLevel,
     logSize: number;
     debugLogSize: number;
     contextColors: Record<string, string>;

@@ -223,7 +223,7 @@ export class HSAmbrosiaMinibars {
         void this.#refreshMinibarSizes(signature)
             .catch(error => {
                 this.#minibarSizesRetryAt = performance.now() + HSAmbrosiaMinibars.#MINIBAR_SIZES_RETRY_MS;
-                HSLogger.warnOnce(`Could not calculate the minibars' sizes: ${error}`, 'hs-minibar-sizes');
+                HSLogger.warnOnce(`Could not calculate the minibars' sizes: ${error}`, this.#context, 'hs-minibar-sizes');
             })
             .finally(() => { this.#minibarSizesRefreshing = false; });
     }
