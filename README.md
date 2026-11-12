@@ -42,7 +42,7 @@ The mod is downloaded at each launch, always in its latest version. The loader u
 
 ### 🌐 In a browser: Tampermonkey (recommended)
 
-The mod is loaded by a userscript, which starts it together with the game. You don't need to download the repository, install developer tools, or create a bookmark.
+The mod is loaded by a userscript, which starts it together with the game.
 
 1. **Install [Tampermonkey](https://www.tampermonkey.net/)** for your browser: [Chrome](https://chromewebstore.google.com/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo), [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/), [Edge](https://microsoftedge.microsoft.com/addons/detail/iikmkjmpaadaobahmlepeloendndfphd), or [Opera](https://addons.opera.com/extensions/details/tampermonkey-beta/).
 2. **Allow userscripts in Chrome-based browsers** (Chrome, Edge, Brave, etc.):
