@@ -420,6 +420,14 @@ export class HSDevTools {
         return button;
     }
 
+    /** A square button showing one symbol, its action in the tooltip. */
+    #iconButton(symbol: string, title: string, onClick: () => void): HTMLElement {
+        const button = this.#button(symbol, onClick);
+        button.classList.add('hs-dev-tools-btn-icon');
+        button.title = title;
+        return button;
+    }
+
     /** A circled "?" for a group title, showing a list of rules while the mouse is over it. */
     #help(rules: string[]): HTMLElement {
         const help = this.#el('span', 'hs-dev-tools-help', '?');
@@ -821,12 +829,19 @@ export class HSDevTools {
             const label = this.#el('span', `hs-dev-tools-label hs-dev-tools-snapshot-${snapshot.kind}`, `${snapshot.label}${singularity}`);
             label.title = label.textContent ?? '';
 
+            const taken = new Date(snapshot.date);
+            const date = this.#el('span', 'hs-dev-tools-snapshot-date');
+            date.append(
+                this.#el('span', '', taken.toLocaleDateString()),
+                this.#el('span', '', taken.toLocaleTimeString()),
+            );
+
             line.append(
-                this.#el('span', 'hs-dev-tools-snapshot-date', new Date(snapshot.date).toLocaleString()),
+                date,
                 label,
                 this.#button('Restore', () => { void this.#restore(id); }),
-                this.#button('Download', () => { void this.#downloadStored(id); }),
-                this.#button('Delete', () => { void this.#deleteSnapshot(snapshot); }),
+                this.#iconButton('⬇', 'Download', () => { void this.#downloadStored(id); }),
+                this.#iconButton('×', 'Delete', () => { void this.#deleteSnapshot(snapshot); }),
             );
             return line;
         }));
