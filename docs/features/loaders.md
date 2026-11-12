@@ -66,7 +66,7 @@ Some patcher globals are also set late. The stage patch sets `__HS_i18next`, `__
 1. `synergism_modloader/node_modules/7zip-bin/win/x64/7za.exe x "<Steam>/steamapps/common/Synergism/Synergism-win-x64.exe" -o<scratch>/steam/exe -y`. This `7za` unpacks straight to `resources/app.asar` (no `app-64.7z` step, unlike a full 7-Zip).
 2. From `synergism_modloader/`: `require('@electron/asar').extractFile(asarPath, path.join('dist','dist','out.js'))`. Archive paths use backslashes: a `'dist/dist/out.js'` string is "not found".
 3. Delete the ~400 MB extraction, keep only `out.js`.
-4. Run the patcher with `patchBundle(code, { steam: true, … })`, as the loader does. Without `steam: true` the summary still looks complete, one patch short of the real count, and auto-sync is never checked. `steamapps/appmanifest_*.acf` says whether Steam has installed the latest build (`buildid` against `TargetBuildID`).
+4. Run the patcher with `steam: true`, as the loader does: `node scripts/tools/patcher-targets.cjs <out.js> steam`. Without `steam: true` the summary still looks complete, one patch short of the real count, and auto-sync is never checked. `steamapps/appmanifest_*.acf` says whether Steam has installed the latest build (`buildid` against `TargetBuildID`).
 
 `__hs_work_current` in the game folder holds the last patched game, so it is stale after a game update: compare its date with the exe's.
 

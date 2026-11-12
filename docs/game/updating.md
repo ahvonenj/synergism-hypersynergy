@@ -8,12 +8,15 @@ check, in order, and how the 4.4.0 update went as a worked example.
 1. **Get the new game.** `node scripts/tools/update-game.cjs` pulls the source and fetches the live bundle (the
    replaced one is kept as `local/game/out.prev.js`). `git log` / `git diff <old-commit> HEAD -- src/` in
    `local/game/SynergismOfficial-master` says what changed; GitHub's `master` can be ahead of the deployed game, and a
-   live bundle can change with no source commit (compare `out.prev.js` and `out.js`). The game's changelog:
-   https://changelog.synergism.cc. The game's `package.json` version is not kept up to date (4.4.0 still said 4.1.1).
-2. **Patcher.** Run it on the browser bundle and the Steam one: the summary must say "N/N applied" with no "to check",
-   and each patch must log the function it was meant for (`docs/features/loaders.md`, the patcher anchor rule in
-   `AGENTS.md`). A patch the game made pointless is retired, not left failing: a failed patch shows every player the
-   "patch missing" warning and can turn a fast path off.
+   live bundle can change with no source commit (compare `out.prev.js` and `out.js`). When an update reworks the
+   colours, `node scripts/tools/game-diff-noncolour.cjs <old-commit> HEAD [paths]` leaves out the lines that only swap a
+   colour. The game's changelog: https://changelog.synergism.cc. The game's `package.json` version is not kept up to
+   date (4.4.0 still said 4.1.1).
+2. **Patcher.** Run it on the browser bundle and the Steam one (`docs/features/loaders.md`, "Checking the Steam
+   bundle"): `node scripts/tools/patcher-targets.cjs local/game/out.js`, then `<steam out.js> steam`. The summary must
+   say "N/N applied" with no "to check", and the start of each function a patch names must be the one it was meant for
+   (the patcher anchor rule in `AGENTS.md`). A patch the game made pointless is retired, not left failing: a failed
+   patch shows every player the "patch missing" warning and can turn a fast path off.
 3. **Player shape.** `node scripts/harness/gds-player-keys.cjs` compares vanilla `Player` keys with the mod's
    `GameDataFields`, then check the runtime shapes on the live game (`docs/features/gds.md`).
 4. **DOM ids and names.** Tab and subtab ids are written once, in `MAIN_VIEW_TAB_IDS` and the `*_VIEW_BUTTON_IDS`
