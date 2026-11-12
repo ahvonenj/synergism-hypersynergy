@@ -66,79 +66,33 @@ export class HSSettingsUI {
             const setting = settingObj.getDefinition();
             const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
 
-            if (controlSettings) {
-                const controlType = controlSettings.controlType;
-                const controlOptions = controlSettings.controlOptions;
+            if (!controlSettings) return;
 
-                if (controlType === "text" || controlType === "number") {
-                    const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement;
+            this.#fillControl(settingObj, controlSettings);
 
-                    if (valueElement) {
-                        if (controlType === "number" && controlOptions) {
-                            if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
-                            if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
-                            if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
-                        } else if (controlType === "text" && controlOptions) {
-                            if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
-                        }
+            const controlType = controlSettings.controlType;
+            const controlElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLElement | null;
 
-                        valueElement.value = HSUtils.asString(setting.settingValue);
-                        valueElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                    }
-                } else if (controlType === "select") {
-                    const settingValue = HSUtils.asString(setting.settingValue);
-                    const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement;
-
-                    if (selectElement) {
-                        if (selectElement.multiple) {
-                            const values = setting.settingValue;
-                            if (Array.isArray(values)) {
-                                for (const option of Array.from(selectElement.options)) {
-                                    option.selected = values.includes(option.value);
-                                }
-                            } else {
-                                for (const option of Array.from(selectElement.options)) {
-                                    option.selected = false;
-                                }
-                            }
-                        } else {
-                            const optionExists = Array.from(selectElement.options).some(option => option.value === settingValue);
-
-                            if (optionExists) {
-                                selectElement.value = settingValue;
-                            } else {
-                                selectElement.value = "";
-                                HSLogger.warn(escapeLogText(`Setting value ${settingValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
-                            }
-                        }
-
-                        selectElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                        if (controlSettings.controlId === 'hs-setting-hidden-vanilla-tabs') {
-                            this.#enableClickToggleSelection(selectElement);
-                        }
+            if (controlElement) {
+                if (controlType === "text" || controlType === "number" || controlType === "select") {
+                    controlElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
+                    if (controlSettings.controlId === 'hs-setting-hidden-vanilla-tabs') {
+                        this.#enableClickToggleSelection(controlElement as HTMLSelectElement);
                     }
                 } else if (controlType === "button") {
-                    const buttonElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLButtonElement;
-
-                    if (buttonElement) {
-                        buttonElement.onclick = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                    }
+                    controlElement.onclick = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
                 }
+            }
 
-                if (controlSettings.controlEnabledId) {
-                    const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
-
-                    if (toggleElement) {
-                        paintSettingSwitch(toggleElement, setting.enabled);
-
-                        toggleElement.onclick = (e) => {
-                            e.preventDefault();
-                            e.stopImmediatePropagation();
-                            settingObj.handleToggle();
-                        };
-                    }
+            if (controlSettings.controlEnabledId) {
+                const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
+                if (toggleElement) {
+                    toggleElement.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        settingObj.handleToggle();
+                    };
                 }
-
             }
         });
 
@@ -185,55 +139,58 @@ export class HSSettingsUI {
             const settingObj = deps.settings[settingName as keyof HSSettingsDefinition] as HSSetting<HSSettingType> | undefined;
             if (!settingObj) continue;
 
-            const setting = settingObj.getDefinition();
-            const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
-            if (!controlSettings) continue;
+            const controlSettings = settingObj.hasControls() ? settingObj.getDefinition().settingControl : undefined;
+            if (controlSettings) this.#fillControl(settingObj, controlSettings);
+        }
+    }
 
-            const controlType = controlSettings.controlType;
-            const controlOptions = controlSettings.controlOptions;
-            const targetValue = settingObj.getValue();
-            const stringValue = HSUtils.asString(targetValue);
+    /** Writes a setting's value, input attributes and ✓/✗ into its panel controls; binds no handler. */
+    static #fillControl(settingObj: HSSetting<HSSettingType>, controlSettings: HSSettingControl): void {
+        const setting = settingObj.getDefinition();
+        const controlType = controlSettings.controlType;
+        const controlOptions = controlSettings.controlOptions;
+        const targetValue = settingObj.getValue();
+        const stringValue = HSUtils.asString(targetValue);
 
-            if (controlType === 'text' || controlType === 'number') {
-                const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement | null;
-                if (valueElement) {
-                    if (controlType === 'number' && controlOptions) {
-                        if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
-                        if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
-                        if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
-                    } else if (controlType === 'text' && controlOptions) {
-                        if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
-                    }
-                    valueElement.value = stringValue;
+        if (controlType === 'text' || controlType === 'number') {
+            const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement | null;
+            if (valueElement) {
+                if (controlType === 'number' && controlOptions) {
+                    if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
+                    if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
+                    if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
+                } else if (controlType === 'text' && controlOptions) {
+                    if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
                 }
-            } else if (controlType === 'select') {
-                const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement | null;
-                if (selectElement) {
-                    if (selectElement.multiple) {
-                        const previousScrollTop = selectElement.scrollTop;
-                        const values = Array.isArray(targetValue) ? targetValue.map((v) => HSUtils.asString(v)) : [];
-                        for (const option of Array.from(selectElement.options)) {
-                            option.selected = values.includes(option.value);
-                        }
-                        selectElement.scrollTop = previousScrollTop;
-                        queueMicrotask(() => { selectElement.scrollTop = previousScrollTop; });
-                        window.requestAnimationFrame(() => { selectElement.scrollTop = previousScrollTop; });
+                valueElement.value = stringValue;
+            }
+        } else if (controlType === 'select') {
+            const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement | null;
+            if (selectElement) {
+                if (selectElement.multiple) {
+                    const previousScrollTop = selectElement.scrollTop;
+                    const values = Array.isArray(targetValue) ? targetValue.map((v) => HSUtils.asString(v)) : [];
+                    for (const option of Array.from(selectElement.options)) {
+                        option.selected = values.includes(option.value);
+                    }
+                    selectElement.scrollTop = previousScrollTop;
+                    queueMicrotask(() => { selectElement.scrollTop = previousScrollTop; });
+                    window.requestAnimationFrame(() => { selectElement.scrollTop = previousScrollTop; });
+                } else {
+                    const optionExists = Array.from(selectElement.options).some((option) => option.value === stringValue);
+                    if (optionExists) {
+                        selectElement.value = stringValue;
                     } else {
-                        const optionExists = Array.from(selectElement.options).some((option) => option.value === stringValue);
-                        if (optionExists) {
-                            selectElement.value = stringValue;
-                        } else {
-                            selectElement.value = '';
-                            HSLogger.warn(escapeLogText(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
-                        }
+                        selectElement.value = '';
+                        HSLogger.warn(escapeLogText(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
                     }
                 }
             }
+        }
 
-            if (controlSettings.controlEnabledId) {
-                const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
-                if (toggleElement) paintSettingSwitch(toggleElement, setting.enabled);
-            }
+        if (controlSettings.controlEnabledId) {
+            const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
+            if (toggleElement) paintSettingSwitch(toggleElement, setting.enabled);
         }
     }
 
