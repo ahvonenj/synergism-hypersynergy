@@ -7,7 +7,7 @@ The strategy window (`ui/hs-autosing-strategy-modal.ts`) edits a strategy's name
 Tested headless: the real windows on a fake page, with stubbed HSUI and storage and a fake `Modal` that honours `position` (`scripts/harness/README.md`, "Mod classes on a fake game page").
 
 ## Strategy window
-- **"How to make or edit a strategy ↗"**: a light grey link, always underlined, at the right of the "Strategy Name" label, to the players' guide's "Making your own strategy" section on the mod's website (new tab).
+- **"How to make or edit a strategy ↗"**: a light grey link, always underlined, at the right of the "Strategy Name" label, to the players' guide's "Making or editing a strategy" section on the mod's website (new tab).
 - **Phase rows**: "Phase N:" (left) … "start →" (right, next to the dropdown) [end ▾] [✎ k steps] [×]. ✎ opens the phase's actions window; "0 steps" in red (saving refuses an empty phase).
 - **AOAG row**: right before the phase that ends at "end", where autosing runs it (`autosing.md`); none yet: below the last phase. Display only: `aoagPhase` stays apart in the JSON. Antiquities rune icon, name, a "?" (title: when it runs), [✎ k steps] and an empty space for the × it doesn't have (its ✎ lines up with the phases'); dashed border, darker background: not a numbered link of the chain. The final phase's "+" is drawn on the AOAG row (inserting before that phase is inserting before AOAG).
 - **Phases chain**: the first phase always starts at "start", each other at the previous end (`#fixPhaseChain`). An end dropdown offers only ends before the next phase's end (the last one: up to "end"), so a change never breaks later phases; a plain list in game order (a "Common"/"Other" grouping was tried and dropped: messier).

@@ -11,7 +11,7 @@ import { HSIcons } from "../../../hs-utils/hs-icons";
 import { HSGlobal } from "../../../hs-core/hs-global";
 
 // The players' guide section on strategies (docs/data/guides/autosing.md, published on the mod's website)
-const STRATEGY_GUIDE_PATH = "docs/wiki/autosing-guide.html#making-your-own-strategy";
+const STRATEGY_GUIDE_PATH = "docs/wiki/autosing-guide.html#making-or-editing-a-strategy";
 
 const AOAG_HELP = "Runs when the AOAG rune unlocks (P4x5): stops the current phase, sets corruptions to 0, "
     + "runs these steps, then goes on with the phase that ends at 'end'.";

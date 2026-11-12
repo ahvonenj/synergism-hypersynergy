@@ -5,7 +5,7 @@ Auto-Sing plays singularities for you, following a strategy. It's for the end ga
 ## Getting started
 
 1. Open the mod panel (the mod's icon, top left), then Settings → **Auto-Sing**.
-2. **Strategy:** pick one. The default strategies are a place to start; some of them are meant for the very end of the game. To make your own, see [Making your own strategy](#making-your-own-strategy).
+2. **Strategy:** pick one. The default strategies are a place to start; some of them are meant for the very end of the game. To adapt one or make your own, see [Making or editing a strategy](#making-or-editing-a-strategy).
 3. **Ambrosia loadouts:** for each role (pre-AOAG cubes, post-AOAG cubes, quarks, obtainium, offerings, luck), pick the game slot that holds that loadout. The Ambrosia Heater (Tools tab) finds the best ones for your save. Each loadout switch resets the ambrosia bars' progress. If you don't want that, tick **Don't switch ambrosia loadouts**: Auto-Sing then never switches.
 4. Turn on **Start/Stop Auto-Sing**, or click ▶ in the menu by the mod's icon.
 
@@ -25,7 +25,19 @@ Auto-Sing keeps its speed when the game is in another tab. Two things can still 
 
 ---
 
-## Making your own strategy
+## Making or editing a strategy
+
+### Start from a default strategy
+
+Editing a default strategy is easier than starting from a blank one:
+1. Select the default strategy closest to your account, then click **✏️ Edit**: it opens a copy that you save under a new name.
+2. Change one thing at a time, then compare the two versions (see [Testing a strategy](#testing-a-strategy)).
+
+The edits players make most often:
+- **Corruption levels:** the default strategies set 20 before leaving the first C15, then 50 at the start of the last phase. Corruptions were reworked in the game's 4.4.0, so these levels are only a starting point: try your own.
+- **The last C15 loop:** its IF step jumps back while C15 is below 1exxx. Lower the value if your account never reaches it, raise it if it gets there easily.
+- **Waits:** shorten a step's Wait before or Wait inside when your account doesn't need it, lengthen it when the next step starts too early.
+- **Max Time:** lower it on a challenge step that keeps running without getting its completions.
 
 ### How Auto-Sing follows a strategy
 
@@ -40,7 +52,7 @@ A strategy is a list of **phases**. Each phase covers a part of the singularity,
 ### The strategy window
 
 In Settings → Auto-Sing:
-- **➕ Create** opens a blank strategy.
+- **➕ Create** opens a blank strategy (starting from a default is usually easier).
 - **✏️ Edit** opens the selected one. Default strategies can't be changed: Edit opens a copy that you save under a new name.
 - **📤 Export** copies the strategy to share it; **📥 Import** adds one from a copy.
 
