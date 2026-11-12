@@ -23,7 +23,7 @@ header layout check in Chromium.
 - Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML, JSON and base64
   `.txt` files from `src/mod/resource/`).
 
-`HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element.
+`HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element. `HSElementHooker.watchElement` calls back on each change of the element's parsed value, with no throttle (a dropped change leaves a stale value), and returns a stop function.
 
 ## Build
 

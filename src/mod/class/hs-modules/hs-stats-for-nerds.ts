@@ -6,7 +6,6 @@ import { HSLogger } from "../hs-core/hs-logger";
 import { HSUI } from "../hs-core/hs-ui";
 import { HSModule } from "../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
-import { escapeLogText } from "../hs-utils/hs-escape";
 import statsForNerdsCSS from "inline:../../resource/css/module/hs-stats-for-nerds.css";
 
 const STYLE_ID = 'hs-stats-for-nerds-css';
@@ -78,10 +77,9 @@ export class HSStatsForNerds extends HSModule {
             return;
         }
 
-        try {
-            this.#gameList ??= await HSElementHooker.HookElement('#statsForNerds') as HTMLElement;
-        } catch (error) {
-            HSLogger.warn(`Stats for Nerds groups not added, game list not found: ${escapeLogText(String(error))}`, this.context);
+        this.#gameList ??= await HSElementHooker.HookElement('#statsForNerds') ?? undefined;
+        if (!this.#gameList) {
+            HSLogger.warn('Stats for Nerds groups not added: game list not found', this.context);
             return;
         }
         // Turned off again while waiting for the game

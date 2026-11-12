@@ -34,10 +34,7 @@ export interface HSGlobalCommon {
 
 export interface HSGlobalElementHooker {
     elementHookUpdateMS: number;
-    elementsHookUpdateMS: number;
-    enableHelementHookTimeout: boolean,
     elementHookTimeout: number;
-    watcherThrottlingMS: number;
     defaultWatcherOptions: HSWatcherOptions;
 }
 

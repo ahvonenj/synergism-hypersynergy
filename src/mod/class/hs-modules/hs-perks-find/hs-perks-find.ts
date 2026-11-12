@@ -6,7 +6,6 @@ import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSModule } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
-import { escapeLogText } from "../../hs-utils/hs-escape";
 import { matchesSearch, normalizeSearchText, searchTerms } from "./hs-perks-find-match";
 import perksFindCSS from "inline:../../../resource/css/module/hs-perks-find.css";
 
@@ -65,12 +64,10 @@ export class HSPerksFind extends HSModule {
     async show(): Promise<void> {
         this.#shown = true;
 
-        let firstPerk: HTMLElement;
-        try {
-            this.#info ??= await HSElementHooker.HookElement('#singularityInfo') as HTMLElement;
-            firstPerk = await HSElementHooker.HookElement(PERK_SELECTOR) as HTMLElement;
-        } catch (error) {
-            HSLogger.warn(`Perk search not added, game elements not found: ${escapeLogText(String(error))}`, this.context);
+        this.#info ??= await HSElementHooker.HookElement('#singularityInfo') ?? undefined;
+        const firstPerk = await HSElementHooker.HookElement(PERK_SELECTOR);
+        if (!this.#info || !firstPerk) {
+            HSLogger.warn('Perk search not added: game elements not found', this.context);
             return;
         }
         // Turned off again while waiting for the game

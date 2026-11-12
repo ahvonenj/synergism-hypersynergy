@@ -84,12 +84,7 @@ export class HSGameState extends HSModule {
                 childList: false,
                 subtree: false,
                 attributes: true,
-                attributeOldValue: false,
                 attributeFilter: ['style', 'class'],
-                // Main-view transitions are state, not high-frequency display data.
-                // Dropping a transition here leaves currentView stale until the same
-                // tab is clicked again, which breaks consumers such as AutoSing.
-                overrideThrottle: true,
                 valueParser: (element) => {
                     const el = element as HTMLElement;
 
@@ -121,11 +116,7 @@ export class HSGameState extends HSModule {
                     childList: false,
                     subtree: false,
                     attributes: true,
-                    attributeOldValue: false,
                     attributeFilter: ['class'],
-                    // A dropped change would leave the watcher's last value wrong, and the button's next real
-                    // change would then be seen as no change (the subtab state stays stale)
-                    overrideThrottle: true,
                     valueParser: (element) => (element as HTMLElement).className
                 });
             }

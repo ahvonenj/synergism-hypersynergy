@@ -56,26 +56,17 @@ export const HSGlobal: IHSGlobal = class {
     }
 
     // --- HSElementHooker ---
-    // watchElement's MutationObserver can fire max 20 times / second
     static HSElementHooker = {
         // HookElement / HookElements
         elementHookUpdateMS: 10,
-        elementsHookUpdateMS: 100,
-        enableHelementHookTimeout: true,
         elementHookTimeout: 500,
 
-        // Watchers
-        watcherThrottlingMS: 50,
-
+        // watchElement: the element's text, anywhere below it
         defaultWatcherOptions: {
-            greedy: false,
-            overrideThrottle: false,
             characterData: true,
             childList: true,
             subtree: true,
             attributes: false,
-            attributeOldValue: false,
-            attributeFilter: []
         }
     }
 

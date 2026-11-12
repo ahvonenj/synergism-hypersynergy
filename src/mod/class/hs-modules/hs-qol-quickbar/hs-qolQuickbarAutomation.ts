@@ -1,6 +1,7 @@
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
+import { HSWatcherOptions } from "../../../types/module-types/hs-elementhooker-types";
 
 import { HSQOLQuickbarBase } from "./hs-qolQuickbarBase";
 import { HSIcons } from "../../hs-utils/hs-icons";
@@ -74,7 +75,7 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
 
     #automationQuickBarContainer: HTMLDivElement | null = null;
     #automationSlotsWrapper: HTMLDivElement | null = null;
-    #automationQuickBarWatcherBySelector = new Map<string, { watcherId: string; element: HTMLElement }>();
+    #automationQuickBarWatcherBySelector = new Map<string, { stop: () => void; element: HTMLElement }>();
     #automationQuickbarBootstrapTimeoutIds: number[] = [];
     #selectorElementCache = new Map<string, HTMLElement | null>();
     #selectorMatcherCache = new Map<string, (el: HTMLElement | null) => boolean>();
@@ -87,17 +88,9 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
     #requestGameTextsUpdate?: () => void;
     static readonly #PLACEHOLDER = '@@HS_PLACEHOLDER@@';
 
-    static readonly #AUTOMATION_QUICKBAR_WATCH_OPTS: {
-        childList: boolean;
-        subtree: boolean;
-        overrideThrottle: boolean;
-        characterData: boolean;
-        attributes: boolean;
-        attributeFilter: string[];
-    } = {
+    static readonly #AUTOMATION_QUICKBAR_WATCH_OPTS: HSWatcherOptions = {
         childList: true,
         subtree: false,
-        overrideThrottle: true,
         characterData: false,
         attributes: true,
         attributeFilter: ['style', 'class', 'aria-pressed', 'aria-checked']
@@ -767,7 +760,7 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
     /** Stop and clear all element watchers registered for the automation quickbar. */
     #clearAutomationQuickBarWatchers(): void {
         for (const watcher of this.#automationQuickBarWatcherBySelector.values()) {
-            HSElementHooker.stopWatching(watcher.watcherId);
+            watcher.stop();
         }
         this.#automationQuickBarWatcherBySelector.clear();
     }
@@ -929,13 +922,13 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
                     continue;
                 }
                 if (existing) {
-                    HSElementHooker.stopWatching(existing.watcherId);
+                    existing.stop();
                     this.#automationQuickBarWatcherBySelector.delete(sel);
                 }
 
-                const id = HSElementHooker.watchElement(el, () => updateUI(), watchOpts);
-                if (id) {
-                    this.#automationQuickBarWatcherBySelector.set(sel, { watcherId: id as string, element: el });
+                const stop = HSElementHooker.watchElement(el, () => updateUI(), watchOpts);
+                if (stop) {
+                    this.#automationQuickBarWatcherBySelector.set(sel, { stop, element: el });
                 }
             } catch (e) {
                 HSLogger.log(`Error setting watcher for ${sel}: ${e}`, this.context);
