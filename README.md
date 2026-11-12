@@ -42,14 +42,19 @@ The mod is downloaded at each launch, always in its latest version. The loader u
 
 ### 🌐 In a browser: Tampermonkey (recommended)
 
-The mod is loaded by a userscript, which starts it together with the game.
+The mod is loaded by a userscript, which starts it together with the game. You don't need to download the repository, install developer tools, or create a bookmark.
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/), a browser extension that runs userscripts: [Chrome](https://chromewebstore.google.com/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo), [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/), [Edge](https://microsoftedge.microsoft.com/addons/detail/iikmkjmpaadaobahmlepeloendndfphd), [Opera](https://addons.opera.com/extensions/details/tampermonkey-beta/). Other userscript managers may work too.
-2. Chrome, Edge and other Chrome-based browsers only: allow Tampermonkey to run scripts. Right-click its icon, choose "Manage extension" and turn on "Allow User Scripts" (or "Developer mode" if that switch isn't there). See [Tampermonkey's guide](https://www.tampermonkey.net/faq.php?q=Q209).
-3. Open the [loader script](https://cdn.jsdelivr.net/gh/Ferlieloi/synergism-hypersynergy@master/src/loader/tampermonkey-bridge.user.js) and click "Install" on the page Tampermonkey shows.
-4. Load the game at https://synergism.cc/ (or reload it). The mod loads by itself, always in its latest version. It also works on the game's other address, https://pseudo-corp.github.io/SynergismOfficial/ (no login or cloud saves there).
+1. **Install [Tampermonkey](https://www.tampermonkey.net/)** for your browser: [Chrome](https://chromewebstore.google.com/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo), [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/), [Edge](https://microsoftedge.microsoft.com/addons/detail/iikmkjmpaadaobahmlepeloendndfphd), or [Opera](https://addons.opera.com/extensions/details/tampermonkey-beta/).
+2. **Allow userscripts in Chrome-based browsers** (Chrome, Edge, Brave, etc.):
+   - Open your browser's **Extensions** page, find **Tampermonkey**, and open **Details** or **Manage extension**.
+   - Turn on **Allow User Scripts**. If that option isn't available, follow [Tampermonkey's instructions for enabling Developer mode](https://www.tampermonkey.net/faq.php?q=Q209).
+   - Firefox users can skip this step.
+3. **[Click here to install the Hypersynergism loader](https://cdn.jsdelivr.net/gh/Ferlieloi/synergism-hypersynergy@master/src/loader/tampermonkey-bridge.user.js).** Tampermonkey should open an installation page. Click **Install**.
+4. **Open or reload [Synergism](https://synergism.cc/).** Hypersynergism will load automatically whenever you open the game, always in its latest version. It also works at https://pseudo-corp.github.io/SynergismOfficial/ (no login or cloud saves there).
 
-If step 3 shows code instead of an install page, copy that code, choose "Create a new script" in Tampermonkey, replace everything with the copy and save.
+**If the install link displays code instead:** copy all the code, click the Tampermonkey extension icon → **Create a new script**, replace all the example code with what you copied, and press **Ctrl+S** (or **Cmd+S**) to save. Then reload the game.
+
+The path `src/loader/tampermonkey-bridge.user.js` is just the script's location in the repository, not a folder you need to install. The install link above uses **Live**, the normal release maintained under `Ferlieloi`.
 
 While the game is running, a rainbow border around the mod's icon means a newer version is out: reload the page to get it.
 
