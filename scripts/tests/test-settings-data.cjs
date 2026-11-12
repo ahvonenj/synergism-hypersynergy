@@ -40,9 +40,6 @@ function findProblems(settings, pages, actionNames) {
             if (!actionNames.has(setting.settingAction)) {
                 problems.push(`${key}: no handler for settingAction "${setting.settingAction}", the setting would do nothing`);
             }
-            if (!control) {
-                problems.push(`${key}: has a settingAction but no settingControl, the action wouldn't run at page load`);
-            }
         }
 
         if (setting.settingHelpText?.includes('"')) {
@@ -94,7 +91,6 @@ const withSwitch = entries.find(([, setting]) => setting.settingControl?.control
 const shown = entries.find(([, setting]) => setting.settingControl && setting.hidden !== true)[0];
 
 expectOneProblem(broken => { broken[withAction].settingAction += 'Typo'; }, /no handler/);
-expectOneProblem(broken => { delete broken[withAction].settingControl; }, /no settingControl/);
 expectOneProblem(broken => { broken[shown].settingHelpText = 'A "quoted" word'; }, /double quote/);
 expectOneProblem(broken => { broken[shown].settingControl.controlPage = 'noSuchPage'; }, /controlPage/);
 expectOneProblem(broken => { broken[withId[1]].settingControl.controlId = settings[withId[0]].settingControl.controlId; }, /also used by/);

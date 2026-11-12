@@ -4,6 +4,7 @@ import { HSIcons } from "../hs-utils/hs-icons";
 import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
+import { HSSettings } from "./settings/hs-settings";
 import { HSModule } from "./module/hs-module";
 import { HSUIC } from "./hs-ui-components";
 import panelCoreCSS from "inline:../../resource/css/hs-panel-core.css";
@@ -213,11 +214,21 @@ export class HSUI extends HSModule {
             this.#logClearBtn.addEventListener('click', () => HSLogger.clear());
         }
 
+        // Turn the settings on or off; their actions show or hide the lines and keep the boxes in step
+        for (const [checkboxId, settingName] of [['hs-ui-log-show-ts', 'logTimestamp'], ['hs-ui-log-show-debug', 'showDebugLogs']] as const) {
+            const checkbox = document.getElementById(checkboxId) as HTMLInputElement | null;
+            checkbox?.addEventListener('change', () => {
+                const setting = HSSettings.getSetting(settingName);
+                if (checkbox.checked) setting.enable();
+                else setting.disable();
+            });
+        }
+
+        // The whole log, hidden lines included: it's mostly copied for a bug report
         if (this.#logCopyBtn) {
             this.#logCopyBtn.addEventListener('click', async () => {
-                if (!this.#loggerElement) return;
                 try {
-                    await navigator.clipboard.writeText(this.#loggerElement.textContent || '');
+                    await navigator.clipboard.writeText(HSLogger.getLogLines().join('\n'));
                     HSUI.Notify('Log copied to clipboard!', { notificationType: 'success' });
                 } catch (err) {
                     HSLogger.error('Failed to copy log to clipboard', this.context);

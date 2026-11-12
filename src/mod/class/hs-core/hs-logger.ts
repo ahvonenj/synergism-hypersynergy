@@ -3,14 +3,24 @@ import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSModuleRegistry } from "./module/hs-module-registry";
 import { ELogType, ELogLevel } from "../../types/module-types/hs-logger-types";
-import { HSSetting } from "./settings/hs-setting";
-import { HSSettings } from "./settings/hs-settings";
+
+type LogRecord = {
+    seq: number;
+    level: string;
+    className: string | null;
+    contextString: string;
+    formattedMessage: string;
+    timeString: string;
+    hash: number;
+    repeatCount: number;
+    isDebug: boolean;
+};
 
 /**
  * Class: HSLogger
  * IsExplicitHSModule: No
- * Description: 
- *     Logging module for Hypersynergism. 
+ * Description:
+ *     Logging module for Hypersynergism.
  *     Contains methods to log things in both the devtools console and the mod's panel's log
  * Author: Swiffy, Shewchou
 */
@@ -19,24 +29,30 @@ export class HSLogger {
     static #integratedToUI = false;
     static #logElement: HTMLElement;
 
-    static #lastLogHash = -1;
-    static #displayTimestamp: boolean = false;
-    static #logLineCount = 0;
-    static #pendingLogRecords: Array<{
-        level: string;
-        className: string | null;
-        contextString: string;
-        formattedMessage: string;
-        timeString: string;
-        hash: number;
-        repeatCount: number;
-    }> = [];
-    static #pendingLogicalCount = 0;
+    // The time and the debug lines are always recorded: these only show or hide them
+    static #displayTimestamp = false;
+    static #displayDebug = false;
+    // Autosing's speed mode: only warnings and errors, no debug line
+    static #quiet = false;
+
+    // Lines on the Log tab. Debug lines have their own cap, so they never push the other lines out
+    static #normalLineCount = 0;
+    static #debugLineCount = 0;
+
+    // Lines not drawn yet: until the next batch, or until the Log tab is shown. One list per kind, oldest first
+    static #pendingNormal: LogRecord[] = [];
+    static #pendingDebug: LogRecord[] = [];
+    // The latest line recorded, while it is still pending: a repeat of it only raises its count
+    static #lastPending: LogRecord | null = null;
+    static #seq = 0;
+    static #flushScheduled = false;
+    static #flushDelayMs = 250;
+
     static #oneShotLogHistory: Map<string, { logged: boolean, timestamp: number, level: ELogType, count: number }> = new Map();
     static #oneShotHistoryMaxAge = 15 * 60 * 1000; // 15 minutes
 
-    static #cachedDebugEnabled: boolean = false;
-    static get isDebugEnabled(): boolean { return HSLogger.#cachedDebugEnabled; }
+    // Whether debug lines are recorded at all: callers can skip building costly debug text
+    static get isDebugRecorded(): boolean { return !HSLogger.#quiet; }
 
 
     // =======================================
@@ -50,41 +66,61 @@ export class HSLogger {
         if (logElement) {
             this.#logElement = logElement;
             this.#integratedToUI = true;
-            this.#logLineCount = this.#logElement.querySelectorAll('.hs-ui-log-line').length;
+            this.#normalLineCount = logElement.querySelectorAll('.hs-ui-log-line:not(.hs-ui-log-line-debug)').length;
+            this.#debugLineCount = logElement.querySelectorAll('.hs-ui-log-line-debug').length;
+            this.#applyDisplay();
 
             this.log("HSLogger integrated to UI", "HSLogger");
             this.flushPendingLogs();
         }
     }
 
-    static flushPendingLogs(): void {
-        if (!this.#shouldRenderToUi() || this.#pendingLogRecords.length === 0) return;
-
-        const pendingRecords = this.#pendingLogRecords.splice(0);
-        this.#pendingLogicalCount = 0;
-        const fragment = document.createDocumentFragment();
-
-        for (const record of pendingRecords) {
-            this.#renderLogLineToUi(
-                record.level,
-                record.className,
-                record.contextString,
-                record.formattedMessage,
-                record.timeString,
-                record.hash,
-                record.repeatCount,
-                false,
-                fragment
-            );
-        }
-
-        this.#logElement.appendChild(fragment);
-        HSLogger.scrollToBottom(true);
+    // The log stays off until the settings are read (HSGlobal.HSLogger.logLevel starts at NONE)
+    static onSettingsParsed(): void {
+        if (!this.#quiet) HSGlobal.HSLogger.logLevel = ELogLevel.ALL;
     }
 
     /**
-     * Every log line kept, oldest first, as plain text with its time: the Log tab's lines,
-     * then the ones still waiting for that tab to be shown.
+     * Draws the pending lines, if the Log tab is shown. forceScroll: scrolls to the bottom even if the player
+     * had scrolled up (the tab was just opened).
+     */
+    static flushPendingLogs(forceScroll = true): void {
+        if (!this.#shouldRenderToUi()) return;
+
+        const records = this.#mergedPending();
+        this.#pendingNormal = [];
+        this.#pendingDebug = [];
+        this.#lastPending = null;
+        if (records.length === 0) return;
+
+        const log = this.#logElement;
+        // Read before the new lines go in: one layout per batch, not one per line
+        const wasNearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 50;
+        const fragment = document.createDocumentFragment();
+        let last = log.lastElementChild as HTMLDivElement | null;
+
+        for (const record of records) {
+            if (last && last.dataset.hash === String(record.hash)) {
+                this.#setRepeatCount(last, Number(last.dataset.count ?? 1) + record.repeatCount);
+                continue;
+            }
+            last = this.#buildLine(record);
+            fragment.appendChild(last);
+            if (record.isDebug) this.#debugLineCount += 1;
+            else this.#normalLineCount += 1;
+        }
+
+        log.appendChild(fragment);
+        this.#trimLines();
+
+        if (forceScroll || wasNearBottom) {
+            log.scrollTop = log.scrollHeight;
+        }
+    }
+
+    /**
+     * Every log line kept, oldest first, as plain text with its time, the hidden ones included:
+     * the Log tab's lines, then the ones not drawn yet.
      */
     static getLogLines(): string[] {
         const lines: string[] = [];
@@ -94,23 +130,15 @@ export class HSLogger {
             lines.push((line.textContent ?? '').trimEnd());
         }
 
-        // Same text as #renderLogLineToUi gives them, without rendering them
+        // Same text as #buildLine gives them, without drawing them
         const plainText = document.createElement('div');
-        for (const record of this.#pendingLogRecords) {
+        for (const record of this.#mergedPending()) {
             plainText.innerHTML = `${record.timeString} ${record.level}[${record.contextString}]: ${record.formattedMessage}`;
             const repeat = record.repeatCount > 1 ? ` (x${record.repeatCount})` : '';
             lines.push(`${plainText.textContent ?? ''}${repeat}`);
         }
 
         return lines;
-    }
-
-    static updateDebugEnabled(): void {
-        const debugLog = HSSettings.getSetting('showDebugLogs') as HSSetting<boolean>;
-        HSLogger.#cachedDebugEnabled = !!(debugLog && debugLog.getValue());
-        if (debugLog) {
-            HSGlobal.HSLogger.logLevel = ELogLevel.ALL;
-        }
     }
 
 
@@ -121,41 +149,43 @@ export class HSLogger {
     static log(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if (!this.#shouldLog(ELogType.LOG, isImportant)) return;
         console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
-        this.#logToUi(msg, context, ELogType.LOG);
+        this.#record(msg, context, ELogType.LOG);
     }
 
     static info(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if (!this.#shouldLog(ELogType.INFO, isImportant)) return;
         console.log(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
-        this.#logToUi(msg, context, ELogType.INFO);
+        this.#record(msg, context, ELogType.INFO);
     }
 
     static warn(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if (!this.#shouldLog(ELogType.WARN, isImportant)) return;
         console.warn(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
-        this.#logToUi(msg, context, ELogType.WARN);
+        this.#record(msg, context, ELogType.WARN);
     }
 
     static error(msg: string, context: string = "HSMain", isImportant: boolean = false) {
         if (!this.#shouldLog(ELogType.ERROR, isImportant)) return;
         console.error(`[${context}]: ${HSUtils.removeColorTags(msg)}`);
-        this.#logToUi(msg, context, ELogType.ERROR);
+        this.#record(msg, context, ELogType.ERROR);
     }
 
+    // Always recorded, except in autosing's speed mode. In the console only while they are shown
     static debug(msg: () => string, context: string = "HSMain", isImportant: boolean = false) {
-        if (!HSLogger.#cachedDebugEnabled) return;
+        if (HSLogger.#quiet) return;
         const resolved = msg();
-        console.log(`DBG [${context}]: ${HSUtils.removeColorTags(resolved)}`);
-        this.#logToUi(resolved, context, ELogType.DEBUG);
+        if (HSLogger.#displayDebug) console.log(`DBG [${context}]: ${HSUtils.removeColorTags(resolved)}`);
+        this.#record(resolved, context, ELogType.DEBUG);
     }
 
     static clear() {
         if (this.#integratedToUI) {
             this.#logElement.innerHTML = '';
-            this.#logLineCount = 0;
-            this.#lastLogHash = -1;
-            this.#pendingLogRecords = [];
-            this.#pendingLogicalCount = 0;
+            this.#normalLineCount = 0;
+            this.#debugLineCount = 0;
+            this.#pendingNormal = [];
+            this.#pendingDebug = [];
+            this.#lastPending = null;
         }
     }
 
@@ -194,138 +224,142 @@ export class HSLogger {
 
 
     // =======================================
+    // ----------- Display / modes -----------
+    // =======================================
+
+    // "Show timestamps" setting
+    static setTimestampDisplay(display: boolean) {
+        this.#displayTimestamp = display;
+        this.#applyDisplay();
+    }
+
+    // "Show debug logs" setting
+    static setDebugDisplay(display: boolean) {
+        this.#displayDebug = display;
+        this.#applyDisplay();
+    }
+
+    // Autosing's speed mode, during a run without "Full log during Auto-Sing": warnings and errors only, no debug line
+    static setQuietMode(quiet: boolean) {
+        this.#quiet = quiet;
+        HSGlobal.HSLogger.logLevel = quiet ? ELogLevel.WARN_AND_ERROR : ELogLevel.ALL;
+    }
+
+    // One class on the log for each, and the Log tab's checkboxes kept in step with the settings
+    static #applyDisplay() {
+        const checkbox = (id: string, checked: boolean) => {
+            const input = document.getElementById(id) as HTMLInputElement | null;
+            if (input) input.checked = checked;
+        };
+        checkbox('hs-ui-log-show-ts', this.#displayTimestamp);
+        checkbox('hs-ui-log-show-debug', this.#displayDebug);
+
+        if (!this.#integratedToUI) return;
+        const log = this.#logElement;
+        const wasNearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 50;
+        log.classList.toggle('hs-log-hide-ts', !this.#displayTimestamp);
+        log.classList.toggle('hs-log-hide-debug', !this.#displayDebug);
+        if (wasNearBottom) log.scrollTop = log.scrollHeight;
+    }
+
+
+    // =======================================
     // ------- Buffer/render pipeline --------
     // =======================================
 
-    static #logToUi(msg: string, context: string = "HSMain", logType: ELogType = ELogType.LOG) {
+    static #record(msg: string, context: string, logType: ELogType) {
         if (!this.#integratedToUI) return;
 
         const { level, className } = this.#getLogLevelMeta(logType);
         const contextString = this.#colorContext(context);
-        const formattedMessage = HSUtils.parseColorTags(msg);
-        const timeString = HSUtils.getTime();
-        const logHash = HSUtils.hashCode(`${level}${contextString}${msg}`);
+        const hash = HSUtils.hashCode(`${level}${contextString}${msg}`);
 
-        if (this.#shouldRenderToUi()) {
-            this.#renderLogLineToUi(level, className, contextString, formattedMessage, timeString, logHash);
-        } else {
-            this.#bufferPendingLog(level, className, contextString, formattedMessage, timeString, logHash);
+        const last = this.#lastPending;
+        if (last && last.hash === hash) {
+            last.repeatCount += 1;
+            return;
         }
+
+        const record: LogRecord = {
+            seq: this.#seq++,
+            level,
+            className,
+            contextString,
+            formattedMessage: HSUtils.parseColorTags(msg),
+            timeString: HSUtils.getTime(),
+            hash,
+            repeatCount: 1,
+            isDebug: logType === ELogType.DEBUG,
+        };
+
+        const list = record.isDebug ? this.#pendingDebug : this.#pendingNormal;
+        list.push(record);
+        this.#lastPending = record;
+        if (list.length > this.#capFor(record.isDebug)) list.shift();
+
+        this.#scheduleFlush();
     }
 
-    static #bufferPendingLog(
-        level: string,
-        className: string | null,
-        contextString: string,
-        formattedMessage: string,
-        timeString: string,
-        logHash: number
-    ): void {
-        const lastRecord = this.#pendingLogRecords[this.#pendingLogRecords.length - 1];
-
-        if (lastRecord?.hash === logHash) {
-            lastRecord.repeatCount += 1;
-        } else {
-            this.#pendingLogRecords.push({
-                level,
-                className,
-                contextString,
-                formattedMessage,
-                timeString,
-                hash: logHash,
-                repeatCount: 1
-            });
-        }
-
-        this.#pendingLogicalCount += 1;
-        this.#trimPendingBuffer();
-        this.#lastLogHash = logHash;
+    // Lines are drawn in batches, at most every #flushDelayMs: each drawing lays out the whole log again,
+    // and autosing's full log writes about one line per frame
+    static #scheduleFlush() {
+        if (this.#flushScheduled || !this.#shouldRenderToUi()) return;
+        this.#flushScheduled = true;
+        window.setTimeout(() => {
+            this.#flushScheduled = false;
+            this.flushPendingLogs(false);
+        }, this.#flushDelayMs);
     }
 
-    static #trimPendingBuffer(): void {
-        const maxPending = HSGlobal.HSLogger.logSize;
-
-        while (this.#pendingLogicalCount > maxPending && this.#pendingLogRecords.length > 0) {
-            const oldestRecord = this.#pendingLogRecords[0];
-            const excess = this.#pendingLogicalCount - maxPending;
-
-            if (oldestRecord.repeatCount > excess) {
-                oldestRecord.repeatCount -= excess;
-                this.#pendingLogicalCount -= excess;
-                break;
-            }
-
-            this.#pendingLogicalCount -= oldestRecord.repeatCount;
-            this.#pendingLogRecords.shift();
-        }
+    static #capFor(isDebug: boolean): number {
+        return isDebug ? HSGlobal.HSLogger.debugLogSize : HSGlobal.HSLogger.logSize;
     }
 
-    static #renderLogLineToUi(
-        level: string,
-        className: string | null,
-        contextString: string,
-        formattedMessage: string,
-        timeString: string,
-        logHash: number,
-        repeatCount = 1,
-        shouldScroll = true,
-        parentElement: HTMLElement | DocumentFragment = this.#logElement
-    ) {
-        if (!this.#integratedToUI) return;
+    // Both pending lists, in the order the lines were logged
+    static #mergedPending(): LogRecord[] {
+        const a = this.#pendingNormal, b = this.#pendingDebug;
+        if (b.length === 0) return a.slice();
+        if (a.length === 0) return b.slice();
 
-        const logLine = document.createElement('div');
-        logLine.classList.add('hs-ui-log-line');
-
-        if (className) {
-            logLine.classList.add(className);
-        }
-
-        const hiddenTS = this.#displayTimestamp ? "" : "hs-log-ts-hidden";
-        logLine.innerHTML = `<span class="hs-log-ts ${hiddenTS}">${timeString} </span><span class="hs-log-level">${level}</span>[<span class="hs-log-ctx">${contextString}</span>]: ${formattedMessage}\n`;
-
-        if (this.#lastLogHash !== logHash) {
-            parentElement.appendChild(logLine);
-            this.#logLineCount += 1;
-            if (repeatCount > 1) {
-                logLine.innerHTML += ` (x${repeatCount})`;
-            }
-        } else {
-            const lastLogLine = parentElement.lastElementChild as HTMLDivElement | null;
-            if (lastLogLine) {
-                this.#applyRepeatCountToLastLine(lastLogLine, repeatCount);
-            }
-        }
-
-        if (this.#logLineCount > HSGlobal.HSLogger.logSize) {
-            const oldestLog = this.#logElement.firstElementChild as HTMLDivElement | null;
-            if (oldestLog) {
-                oldestLog.remove();
-                this.#logLineCount -= 1;
-            }
-        }
-
-        if (shouldScroll) {
-            HSLogger.scrollToBottom();
-        }
-
-        this.#lastLogHash = logHash;
+        const merged: LogRecord[] = [];
+        let i = 0, j = 0;
+        while (i < a.length && j < b.length) merged.push(a[i].seq < b[j].seq ? a[i++] : b[j++]);
+        while (i < a.length) merged.push(a[i++]);
+        while (j < b.length) merged.push(b[j++]);
+        return merged;
     }
 
-    static #applyRepeatCountToLastLine(lastLogLine: HTMLDivElement, repeatCount: number): void {
-        if (repeatCount <= 0) return;
+    static #buildLine(record: LogRecord): HTMLDivElement {
+        const line = document.createElement('div');
+        line.className = record.className ? `hs-ui-log-line ${record.className}` : 'hs-ui-log-line';
+        line.dataset.hash = String(record.hash);
+        line.innerHTML = `<span class="hs-log-ts">${record.timeString} </span><span class="hs-log-level">${record.level}</span>[<span class="hs-log-ctx">${record.contextString}</span>]: ${record.formattedMessage}<span class="hs-log-repeat"></span>\n`;
+        if (record.repeatCount > 1) this.#setRepeatCount(line, record.repeatCount);
+        return line;
+    }
 
-        try {
-            const match = lastLogLine.innerHTML.match(/\(x(\d+)\)/);
+    static #setRepeatCount(line: HTMLDivElement, count: number) {
+        line.dataset.count = String(count);
+        const repeat = line.querySelector<HTMLSpanElement>(':scope > .hs-log-repeat');
+        if (repeat) repeat.textContent = count > 1 ? ` (x${count})` : '';
+    }
 
-            if (match) {
-                const full = match[0];
-                const n = parseInt(match[1], 10);
-                lastLogLine.innerHTML = lastLogLine.innerHTML.replace(full, `(x${n + repeatCount})`);
-            } else {
-                lastLogLine.innerHTML += ` (x${repeatCount + 1})`;
-            }
-        } catch (e) {
-            console.log(e);
+    // Removes the oldest lines of a kind over its cap
+    static #trimLines() {
+        const log = this.#logElement;
+
+        while (this.#normalLineCount > HSGlobal.HSLogger.logSize) {
+            const oldest = log.querySelector(':scope > .hs-ui-log-line:not(.hs-ui-log-line-debug)');
+            if (!oldest) break;
+            oldest.remove();
+            this.#normalLineCount -= 1;
+        }
+
+        while (this.#debugLineCount > HSGlobal.HSLogger.debugLogSize) {
+            const oldest = log.querySelector(':scope > .hs-ui-log-line-debug');
+            if (!oldest) break;
+            oldest.remove();
+            this.#debugLineCount -= 1;
         }
     }
 
@@ -420,37 +454,6 @@ export class HSLogger {
         for (const [key, entry] of this.#oneShotLogHistory.entries()) {
             if (entry.timestamp < threshold) {
                 this.#oneShotLogHistory.delete(key);
-            }
-        }
-    }
-
-
-    // =======================================
-    // ------------ Misc helpers -------------
-    // =======================================
-
-    // This gets called when the display timestamp setting is changed
-    // It will add or remove the hs-log-ts-hidden class to all log lines
-    static setTimestampDisplay(display: boolean) {
-        if (display) {
-            this.#displayTimestamp = true;
-        } else {
-            this.#displayTimestamp = false;
-        }
-
-        const logLines = this.#logElement.querySelectorAll('.hs-ui-log-line') as NodeListOf<HTMLDivElement>;
-
-        if (logLines) {
-            for (const logLine of Array.from(logLines)) {
-                const tsSpan = logLine.querySelector('.hs-log-ts') as HTMLSpanElement;
-
-                if (tsSpan) {
-                    if (display) {
-                        tsSpan.classList.remove('hs-log-ts-hidden');
-                    } else {
-                        tsSpan.classList.add('hs-log-ts-hidden');
-                    }
-                }
             }
         }
     }

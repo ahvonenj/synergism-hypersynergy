@@ -278,7 +278,9 @@ select::-webkit-scrollbar-corner {
     color: #8a8a99;
 }
 
-.hs-log-ts-hidden {
+/* The time and the debug lines are always recorded: the settings only hide them */
+#hs-ui-log.hs-log-hide-ts .hs-log-ts,
+#hs-ui-log.hs-log-hide-debug .hs-ui-log-line-debug {
     display: none;
 }
 
@@ -377,8 +379,38 @@ select::-webkit-scrollbar-corner {
     background-color: #005;
 }
 
+#hs-ui-log-controls .hs-panel-btn {
+    width: 100px;
+}
+
 #hs-ui-log-controls .hs-panel-btn + .hs-panel-btn {
     margin-left: 10px;
+}
+
+/* One above the other, right after the buttons */
+.hs-ui-log-toggles {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    margin-left: 12px;
+}
+
+.hs-ui-log-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ddd;
+    font-size: 0.85em;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.hs-ui-log-toggle input {
+    margin: 0;
+    cursor: pointer;
 }
 
 /* ===== MODAL BASE STYLES ===== */

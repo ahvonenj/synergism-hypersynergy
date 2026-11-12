@@ -17,7 +17,11 @@
         <div id="hs-ui-log" class="hs-scrollbar-themed"></div>
         <div id="hs-ui-log-controls">
             <button class="hs-panel-btn" id="hs-ui-log-clear">Clear Log</button>
-            <button class="hs-panel-btn" id="hs-ui-log-copy">Copy Log</button>
+            <button class="hs-panel-btn" id="hs-ui-log-copy" title="Copies the whole log, hidden lines included">Copy Log</button>
+            <div class="hs-ui-log-toggles">
+                <label class="hs-ui-log-toggle"><input type="checkbox" id="hs-ui-log-show-ts">Timestamps</label>
+                <label class="hs-ui-log-toggle"><input type="checkbox" id="hs-ui-log-show-debug">Debug logs</label>
+            </div>
         </div>
     </div>
     <div class="hs-panel-body hs-panel-body-2 hs-scrollbar-themed" id="hs-tools-panel">Tools</div>

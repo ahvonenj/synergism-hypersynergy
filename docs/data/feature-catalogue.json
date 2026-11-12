@@ -1670,16 +1670,18 @@
         {
           "id": "mod-log",
           "title": "Color-coded mod log and diagnostics",
-          "where": "Log tab; Settings → Debug",
+          "where": "Log tab; Settings → Auto-Sing → Full log during Auto-Sing",
           "summary": "Records initialization, tool actions, run messages, warnings and errors.",
           "details": [
-            "Optional timestamps and debug-level lines can be shown independently.",
+            "Each line's time and the debug lines are always recorded; the Timestamps and Debug logs boxes below the log only show or hide them.",
+            "During an Auto-Sing run, only warnings and errors are recorded, for speed, unless Full log during Auto-Sing is on.",
             "Distributors, Heater runs and answered/refused actions write useful context. Backups include the accumulated logs for troubleshooting.",
-            "COPY LOG copies log text to the clipboard; CLEAR LOG clears the visible accumulated log."
+            "COPY LOG copies the whole log, hidden lines included; CLEAR LOG clears it."
           ],
           "settings": [
             "logTimestamp",
-            "showDebugLogs"
+            "showDebugLogs",
+            "autosingFullLog"
           ]
         },
         {

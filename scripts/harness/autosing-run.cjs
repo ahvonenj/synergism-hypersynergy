@@ -2,7 +2,7 @@
 // The backup's modData (settings, strategies, slots) goes into localStorage, its save is imported, the mod injected,
 // autosing started, then the run is sampled every second until it has done N singularities.
 // Usage: node scripts/harness/autosing-run.cjs <backup.json> [singularities=1] [maxMinutes=15]
-// Env: TAG=<name> output folder (local/harness-out/autosing/<TAG>), DEBUG=0 mod debug logs off (they cost a little time),
+// Env: TAG=<name> output folder (local/harness-out/autosing/<TAG>), DEBUG=0 autosing logs only warnings and errors (its default; the full log costs a little time),
 //      SETTINGS='{"key":value}' setting overrides, STRATEGIES=<hs-strategies file>, SETTLE=<ms> after the mod loads,
 //      STALL_MS=<ms> stop after that long without a singularity (default 90000),
 //      HEAT=1 the heat routine below before the timed run, LOADOUTS=<heated.json of an earlier HEAT run>,

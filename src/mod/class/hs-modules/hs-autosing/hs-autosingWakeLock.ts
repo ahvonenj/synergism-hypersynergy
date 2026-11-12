@@ -73,7 +73,7 @@ export class HSAutosingWakeLock {
         }
     }
 
-    // A log alone would go unseen: logs are off during a run, unless debug logs are on
+    // A log alone would go unseen: the mod panel is usually closed during a run
     #notifyRefusal(reason: string): void {
         if (this.#refusalNotified) return;
         this.#refusalNotified = true;

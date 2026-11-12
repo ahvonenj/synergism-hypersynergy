@@ -18,7 +18,6 @@ import { HSGameState, MainView } from "../../hs-core/hs-gamestate";
 import { HSAutosingSettingsFixer } from './hs-autosingSettingsFixer';
 import { HSAutosingCorruption } from './hs-autosingCorruption';
 import { HSAutosingWakeLock } from './hs-autosingWakeLock';
-import { ELogLevel } from "../../../types/module-types/hs-logger-types";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSSubtabMemory } from "../hs-subtab-memory";
 import { escapeLogText } from "../../hs-utils/hs-escape";
@@ -352,9 +351,8 @@ export class HSAutosing extends HSModule {
         // Stopped during validation: the normal stop already ran
         if (!this.#autosingEnabled) return;
 
-        if (!(HSSettings.getSetting("showDebugLogs")?.isEnabled() ?? false)) {
-            HSGlobal.HSLogger.logLevel = ELogLevel.NONE;
-        }
+        // Speed mode unless "Full log during Auto-Sing": warnings and errors only, no debug line
+        HSLogger.setQuietMode(!(HSSettings.getSetting("autosingFullLog")?.isEnabled() ?? false));
 
         this.#trackChain(this.#performAutosingLogic());
     }
@@ -400,7 +398,7 @@ export class HSAutosing extends HSModule {
      * as the answer to a click would come once the new save is in place.
      */
     public stopAutosing(options?: { showReviewModal?: boolean, restarting?: boolean, saveReplaced?: boolean }): void {
-        HSGlobal.HSLogger.logLevel = ELogLevel.ALL;
+        HSLogger.setQuietMode(false);
 
         window.clearTimeout(this.#restartTimer);
         this.#restartTimer = undefined;
@@ -1222,7 +1220,7 @@ export class HSAutosing extends HSModule {
                 }
 
                 if (now >= deadline || currentCompletions >= maxPossible) {
-                    if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
+                    if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
                     return;
                 }
 
@@ -1251,7 +1249,7 @@ export class HSAutosing extends HSModule {
                 }
 
                 if (now >= timeSinceNoMoreCompletion + maxTime || c1to10CurrentCompletions.gte(maxPossible)) {
-                    if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
+                    if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
                     return;
                 }
 

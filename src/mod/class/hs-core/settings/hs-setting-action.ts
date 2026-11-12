@@ -71,16 +71,13 @@ export class HSSettingActions {
             HSHiddenDialogs.setEnabled(!params.disable);
         },
 
+        // Both only show or hide what the log always records
         logTimestamp: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSLogger.setTimestampDisplay(false);
-            } else {
-                HSLogger.setTimestampDisplay(true);
-            }
+            HSLogger.setTimestampDisplay(!params.disable);
         },
 
         showDebugLogs: async (params: HSSettingActionParams) => {
-            HSLogger.updateDebugEnabled();
+            HSLogger.setDebugDisplay(!params.disable);
         },
 
         reactiveMouseHover: async (params: HSSettingActionParams) => {

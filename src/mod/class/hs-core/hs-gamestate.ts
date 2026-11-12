@@ -336,10 +336,8 @@ export class HSGameState extends HSModule {
         const self = this;
         const viewProperties = HSGlobal.HSGameState.viewProperties.get(mainViewId);
 
-        if (!viewProperties) {
-            HSLogger.debug(() => `No view properties found for main view ID ${mainViewId}`, this.context);
-            return;
-        }
+        // Upgrades, Research, Shop and Event have no subtabs in the game
+        if (!viewProperties) return;
 
         const tabs = await HSElementHooker.HookElements(viewProperties.subViewIds.map(id => `#${id}`));
 

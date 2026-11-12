@@ -39,7 +39,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - The game sets `data-inside-singularity-challenge` on `<html>` inside the reset (`revealStuff()`, run by the reset's first tab change), so a `MutationObserver` on it fires right after the reset.
 - With the dialogs answered at once (patcher hook), the entry, the exit and the tab restore happen in the task of the first click: no game tick runs inside the Exalt and Buildings is never painted.
 - Patched players still read `player.insideSingularityChallenge` and still poll it at each game tick: the attribute only wakes them earlier, and without it (a game update) the tick ends the wait. Bookmarklet players read the attribute.
-- With debug logs on, a line gives the time taken and how many waits a tick ended (0 when the attribute did).
+- With the full log on, a debug line gives the time taken and how many waits a tick ended (0 when the attribute did).
 
 ## A hidden browser tab
 `HSUtils.sleep`.
@@ -57,7 +57,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - On Steam the lock stays while the window is minimized or fully covered and while the PC is locked (measured for 1 minute locked), likely because the game's window sets `backgroundThrottling: false`.
 - To check it on Windows: `powercfg /requests` in an administrator shell lists the browser or `Synergism.exe` with "Blink Wake Lock" under `DISPLAY` and `SYSTEM`.
 - The web has no "PC awake, screen off" lock: the screen stays on, and the idle auto-lock can be blocked.
-- A refusal gives one notification per start, and a log line: logs are off during a run unless debug logs are on. A tab hidden during the request isn't a refusal.
+- A refusal gives one notification per start, and a warning in the log: a log line alone would go unseen. A tab hidden during the request isn't a refusal.
 
 ## The player's tab comes back
 `#notePlayerTab` / `#showPlayerTab`.
@@ -106,6 +106,7 @@ Test: `npm run test:autosing`.
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).
 - A `===== Executing phase: X =====` debug line at every phase run, kept at debug level (even though timeout warnings show without debug and then have no phase).
 - Debug lines for every step, 403 and IF jumps included, with their outcome (a capped IF's jump with its count, "(2/5)"); the step is named on C1–C10 timeout warnings. An IF that reached its max jumps writes a normal log line instead (`autosing-strategies.md`, "IF steps").
+- **The log during a run** ("Full log during Auto-Sing", `autosingFullLog`, off by default, read at the start): only warnings and errors, no debug line (`HSLogger.setQuietMode`), lifted at every stop. On: every line, debug lines included; the Log tab's box decides whether debug lines show. Measured on S260 with debug lines: about +5% per singularity with the Log tab closed; with it open, +35% and growing with the log while each line was drawn on its own (now drawn in batches every 250 ms: about +17%).
 - The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
 

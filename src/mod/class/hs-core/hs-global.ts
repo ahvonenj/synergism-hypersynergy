@@ -94,6 +94,8 @@ export const HSGlobal: IHSGlobal = class {
     static HSLogger = {
         logLevel: ELogLevel.NONE,
         logSize: 5000,
+        // Debug lines have their own cap, so they never push the other lines out
+        debugLogSize: 5000,
 
         // Log tab colors of the contexts that aren't modules (modules have their moduleColor, in index.ts).
         // A module's name gives that module's color, anything else is a CSS color.

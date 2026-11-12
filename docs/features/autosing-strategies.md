@@ -10,7 +10,7 @@ Saving or deleting changes the in-memory strategy list only after localStorage a
 
 ## IF steps
 - **Max jumps** (`ifJump.ifJumpMaxJumps`, optional): after that many jumps in one phase pass the IF goes on to the next step even when its condition holds; absent or 0 = no limit. Counted per IF (its index in the running list) from the start of each pass (`#executePhase`), not per singularity. A false condition doesn't count. Validation refuses anything but a whole number ≥ 0. The editor writes it only when > 0, so an old IF updated with ✎ stays unchanged.
-- Reaching it writes a normal log line (`Step N - IF … : max jumps (5) reached, no jump`), not a debug line; no notification (a low-stat account hits it at every singularity). Logs are off during a run unless debug logs are on (`autosing.md`), so in practice it shows with debug logs on; not let through the run's log cut-off (not wanted). Test: `test-autosing-corruption.cjs`.
+- Reaching it writes a normal log line (`Step N - IF … : max jumps (5) reached, no jump`), not a debug line; no notification (a low-stat account hits it at every singularity). During a run the log keeps only warnings and errors unless the full log is on (`autosing.md`), so it shows only then; not let through that cut-off (not wanted). Test: `test-autosing-corruption.cjs`.
 
 ## Corruption steps
 - **A level is set only by "Set corruption level" (403)**, the level in the step's `corruptionLevel` (an actual level: the game adds the free levels, `autosing.md`). Phases have no level.

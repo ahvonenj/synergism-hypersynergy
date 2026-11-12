@@ -143,10 +143,10 @@ export class HSUtils {
         const remaining = delayMs - elapsed;
 
         if (remaining > 0) {
-            if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> Sleeping for ${remaining.toFixed(2)} ms to enforce delay of ${delayMs} ms`, context ?? HSUtils.#context);
+            if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> Sleeping for ${remaining.toFixed(2)} ms to enforce delay of ${delayMs} ms`, context ?? HSUtils.#context);
             await HSUtils.sleep(remaining);
         } else {
-            if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> No need to sleep, elapsed time ${elapsed.toFixed(2)} ms already exceeds delay of ${delayMs} ms`, context ?? HSUtils.#context);
+            if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> No need to sleep, elapsed time ${elapsed.toFixed(2)} ms already exceeds delay of ${delayMs} ms`, context ?? HSUtils.#context);
         }
     }
 

@@ -87,6 +87,7 @@ export interface HSSettingsDefinition {
     singularityNumber: SingularityNumber;
     autosingKeepAwake: HSSettingBase<boolean>;
     autosingStepTimings: HSSettingBase<boolean>;
+    autosingFullLog: HSSettingBase<boolean>;
     autosingNoAmbrosiaSwitch: HSSettingBase<boolean>;
     autosingEarlyCubeLoadout: AutosingEarlyCubeLoadout;
     autosingLateCubeLoadout: AutosingLateCubeLoadout;

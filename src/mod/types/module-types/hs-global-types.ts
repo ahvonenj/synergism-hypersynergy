@@ -49,6 +49,7 @@ export interface HSGlobalElementHooker {
 export interface HSGlobalLogger {
     logLevel: ELogLevel,
     logSize: number;
+    debugLogSize: number;
     contextColors: Record<string, string>;
 }
 
