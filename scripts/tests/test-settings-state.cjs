@@ -71,16 +71,16 @@ async function main() {
     const events = [];
     const numeric = new HSNumericSetting(def, params => {
         events.push(['action', 'numeric', params.value, params.disable]);
-    }, 'yes', 'no');
+    });
     assert.equal(numeric.getCalculatedValue(), 400, 'recompute from the current 1000 multiplier');
     const hiddenDef = {...defaults.matchOcteractText, settingValue: false, calculatedSettingValue: 'stale'};
     delete hiddenDef.settingControl;
     const hidden = new HSBooleanSetting(hiddenDef, params => {
         events.push(['action', 'hidden', params.value, params.disable]);
-    }, 'yes', 'no');
+    });
     const button = new HSButtonSetting({...defaults.editGameHeader}, () => {
         throw new Error('skipInit must prevent opening the header editor on load');
-    }, 'yes', 'no');
+    });
     await initialize([numeric, hidden, button], setting => {
         events.push(['prepare', setting === numeric ? 'numeric' : setting === hidden ? 'hidden' : 'button']);
     });
@@ -89,9 +89,9 @@ async function main() {
         ['prepare', 'hidden'], ['action', 'hidden', hiddenDef.enabled, !hiddenDef.enabled],
         ['prepare', 'button'],
     ]);
-    const string = new HSSelectStringSetting({...defaults.autosingStrategy, calculatedSettingValue: 'stale'}, null, 'yes', 'no');
+    const string = new HSSelectStringSetting({...defaults.autosingStrategy, calculatedSettingValue: 'stale'}, null);
     assert.equal(string.getCalculatedValue(), defaults.autosingStrategy.settingValue);
-    const zeroMultiplier = new HSNumericSetting({...def, settingValueMultiplier: 0}, null, 'yes', 'no');
+    const zeroMultiplier = new HSNumericSetting({...def, settingValueMultiplier: 0}, null);
     assert.equal(zeroMultiplier.getCalculatedValue(), 0);
     events.length = 0;
     await initialize([hidden]);

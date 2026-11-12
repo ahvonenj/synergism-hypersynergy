@@ -711,10 +711,6 @@ select::-webkit-scrollbar-corner {
     cursor: pointer;
 }
 
-.hs-panel-setting-block-state {
-    margin: 0;
-}
-
 /* Also an .hs-panel-btn: its min-height and line-height would keep it 30px high */
 .hs-panel-setting-block-btn {
     width: var(--hs-setting-switch-size);

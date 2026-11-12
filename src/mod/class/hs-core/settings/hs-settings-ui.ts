@@ -7,7 +7,7 @@ import { HSUIC } from "../hs-ui-components";
 import { HSInputType, HSUICSelectOption } from "../../../types/module-types/hs-ui-types";
 import { HSLogger } from "../hs-logger";
 import { HSPlatform } from "../hs-platform";
-import { HSSetting } from "./hs-setting";
+import { HSSetting, paintSettingSwitch } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSUtils } from "../../hs-utils/hs-utils";
@@ -36,10 +36,7 @@ export interface HSSettingsUIDependencies {
     settings: HSSettingRecord;
     settingsControlGroups: Record<string, HSSettingControlGroup>;
     settingsControlPages: Record<string, HSSettingControlPage>;
-    settingEnabledString: string;
-    settingDisabledString: string;
     settingChangeDelegate: (e: Event, settingObj: HSSetting<HSSettingType>) => Promise<void>;
-    settingToggleDelegate: (e: MouseEvent, settingObj: HSSetting<HSSettingType>) => Promise<void>;
 }
 
 export class HSSettingsUI {
@@ -120,13 +117,6 @@ export class HSSettingsUI {
                             this.#enableClickToggleSelection(selectElement);
                         }
                     }
-                } else if (controlType === "state") {
-                    const settingValue = HSUtils.parseColorTags(HSUtils.asString(setting.settingValue));
-                    const stateElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement;
-
-                    if (stateElement) {
-                        stateElement.innerHTML = settingValue;
-                    }
                 } else if (controlType === "button") {
                     const buttonElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLButtonElement;
 
@@ -139,20 +129,12 @@ export class HSSettingsUI {
                     const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
 
                     if (toggleElement) {
-                        if (setting.enabled) {
-                            toggleElement.innerText = deps.settingEnabledString;
-                            toggleElement.classList.remove('hs-disabled');
-                        } else {
-                            toggleElement.innerText = deps.settingDisabledString;
-                            toggleElement.classList.add('hs-disabled');
-                        }
+                        paintSettingSwitch(toggleElement, setting.enabled);
 
-                        toggleElement.onclick = async (e) => {
-                            const mouseEvent = e as MouseEvent;
-                            mouseEvent.preventDefault();
-                            mouseEvent.stopImmediatePropagation();
-                            mouseEvent.stopPropagation();
-                            await deps.settingToggleDelegate(mouseEvent, settingObj);
+                        toggleElement.onclick = (e) => {
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            settingObj.handleToggle();
                         };
                     }
                 }
@@ -246,24 +228,11 @@ export class HSSettingsUI {
                         }
                     }
                 }
-            } else if (controlType === 'state') {
-                const stateElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLElement | null;
-                if (stateElement) {
-                    stateElement.innerHTML = HSUtils.parseColorTags(stringValue);
-                }
             }
 
             if (controlSettings.controlEnabledId) {
                 const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
-                if (toggleElement) {
-                    if (setting.enabled) {
-                        toggleElement.innerText = deps.settingEnabledString;
-                        toggleElement.classList.remove('hs-disabled');
-                    } else {
-                        toggleElement.innerText = deps.settingDisabledString;
-                        toggleElement.classList.add('hs-disabled');
-                    }
-                }
+                if (toggleElement) paintSettingSwitch(toggleElement, setting.enabled);
             }
         }
     }
@@ -700,8 +669,6 @@ export class HSSettingsUI {
                 return HSInputType.NUMBER;
             case 'select':
                 return HSInputType.SELECT;
-            case 'state':
-                return HSInputType.STATE;
             default:
                 return null;
         }
@@ -783,12 +750,6 @@ export class HSSettingsUI {
                 type: convertedType,
                 props: controls.props
             }, controls.selectOptions));
-        } else if (convertedType === HSInputType.STATE) {
-            valueRowChildren.push(HSUIC.P({
-                class: 'hs-panel-setting-block-state',
-                id: controls.controlId,
-                text: ''
-            }));
         }
 
         return valueRowChildren;

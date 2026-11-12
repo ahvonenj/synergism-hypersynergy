@@ -50,8 +50,6 @@ export class HSUIC {
                 return "text";
             case HSInputType.SELECT:
                 return "select";
-            case HSInputType.STATE:
-                return "state";
         }
     }
 
@@ -67,8 +65,6 @@ export class HSUIC {
                 return "hs-panel-input-text";
             case HSInputType.SELECT:
                 return "hs-panel-input-select";
-            case HSInputType.STATE:
-                return "hs-panel-input-state";
         }
     }
 

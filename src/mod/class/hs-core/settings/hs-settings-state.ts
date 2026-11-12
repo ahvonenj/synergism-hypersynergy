@@ -22,12 +22,10 @@ export function restoreSettingState<T extends HSSettingType>(definition: HSSetti
             if (typeof value === 'string' && value.trim() !== '') normalized = Number(value);
             valid = typeof normalized === 'number' && Number.isFinite(normalized);
             break;
-        case 'selectnumeric':
         case 'selectstring':
             valid = typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
             break;
         case 'string':
-        case 'state':
             valid = typeof value === 'string';
             break;
         case 'selectstrings':

@@ -462,21 +462,10 @@ export class HSHeaderEditSettings {
 
     static #toggle(name: keyof HSSettingsDefinition, enabled: boolean): void {
         const setting = HSSettings.getSetting(name);
-        const definition = setting.getDefinition();
 
-        // As the panel: no setting that needs GDS while GDS is off (except those that turn it on themselves)
-        if (enabled && HSSettings.usesGameData(definition)
-            && !HSGlobal.HSSettings.gameDataCheckBlacklist.includes(definition.settingName)
-            && !HSSettings.getSetting('useGameData')?.isEnabled()) {
-            HSLogger.warn(`Enable GDS before enabling ${definition.settingDescription}!`, HSHeaderEditSettings.#context);
-            void HSUI.Notify(`Turn on Game Data Sniffing (mod panel) before "${definition.settingDescription}".`, { notificationType: 'warning' });
-            HSHeaderEditSettings.#refresh();
-            return;
-        }
-
-        HSLogger.log(`${definition.settingName}: ${!enabled} -> ${enabled}`, HSHeaderEditSettings.#context);
-        if (enabled) setting.enable();
-        else setting.disable();
+        // As the panel: no setting that needs GDS while GDS is off. The setting logs its own change
+        if (!enabled) setting.disable();
+        else if (!HSSettings.refuseWithoutGameData(setting.getDefinition())) setting.enable();
         HSHeaderEditSettings.#refresh();
     }
 

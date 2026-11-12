@@ -143,8 +143,8 @@ export interface HSSettingControlOptions {
     placeholder?: string;
 }
 
-export type HSSettingsControlType = "text" | "number" | "switch" | "select" | "state" | "button";
-export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectnumeric" | "selectstring" | "selectstrings" | "state" | "button";
+export type HSSettingsControlType = "text" | "number" | "switch" | "select" | "button";
+export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectstring" | "selectstrings" | "button";
 
 export interface HSSettingActionParams {
     contextName?: string,

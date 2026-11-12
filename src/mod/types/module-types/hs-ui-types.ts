@@ -28,8 +28,7 @@ export enum HSInputType {
     COLOR = 2,
     NUMBER = 3,
     TEXT = 4,
-    SELECT = 5,
-    STATE = 6
+    SELECT = 5
 }
 
 /** Inline style properties by their name on `element.style` (camelCase). A number without a unit is written as is. */
