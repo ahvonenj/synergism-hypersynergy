@@ -6,7 +6,7 @@ import { HSUI } from "../../../hs-core/hs-ui";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSStrategyManager } from "../hs-strategy-manager";
 import { HSAutosingStrategyModal } from "./hs-autosing-strategy-modal";
-import { HSAutosingStrategy } from "../../../../types/module-types/hs-autosing-types";
+import { HSAutosingStrategy } from "../hs-autosing-types";
 import { escapeLogText } from '../../../hs-utils/hs-escape';
 
 /**

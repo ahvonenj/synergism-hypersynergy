@@ -2,7 +2,7 @@ import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 
 import { HSGlobal } from "../../hs-core/hs-global";
-import { HSAutosingStrategy, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
+import { HSAutosingStrategy, type HSAutosingExposureParts } from "./hs-autosing-types";
 import { HSAutosing } from "./hs-autosing";
 import { createPhaseRowDom, updatePhaseRowDom, getPhaseStats, PhaseHistoryEntry, PhaseRowDom } from "./hs-autosingPhaseStats";
 import { SparklineDom, SparklineMetric, buildSparklineDom, updateSparkline } from './hs-autosingSparkline';

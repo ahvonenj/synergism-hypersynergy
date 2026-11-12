@@ -1,7 +1,7 @@
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
-import { HSWatcherOptions } from "../../../types/module-types/hs-elementhooker-types";
+import type { HSWatcherOptions } from "../../hs-core/hs-elementhooker";
 
 import { HSQOLQuickbarBase } from "./hs-qolQuickbarBase";
 import { HSIcons } from "../../hs-utils/hs-icons";

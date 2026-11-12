@@ -33,7 +33,7 @@ async function main() {
     const bundled = await esbuild.build({
         stdin: { contents: `export { HSAutosing } from './src/mod/class/hs-modules/hs-autosing/hs-autosing';
             export { HSStrategyManager } from './src/mod/class/hs-modules/hs-autosing/hs-strategy-manager';
-            export { SPECIAL_ACTION_BY_ID } from './src/mod/types/module-types/hs-autosing-types';`, resolveDir: root, loader: 'ts' },
+            export { SPECIAL_ACTION_BY_ID } from './src/mod/class/hs-modules/hs-autosing/hs-autosing-types';`, resolveDir: root, loader: 'ts' },
         bundle: true, write: false, platform: 'node', format: 'cjs', define: { HS_DEV_BUILD: 'false' },
         plugins: [{ name: 'autosing-game-boundary', setup(build) {
             build.onResolve({ filter: /hs-[\w-]+$/ }, args => {

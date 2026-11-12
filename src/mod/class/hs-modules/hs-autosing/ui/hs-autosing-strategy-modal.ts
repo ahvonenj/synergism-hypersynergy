@@ -1,5 +1,5 @@
 import { HSUI } from "../../../hs-core/hs-ui"
-import { HSAutosingStrategy, AutosingStrategyPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, phases, PhaseOption } from "../../../../types/module-types/hs-autosing-types"
+import { HSAutosingStrategy, AutosingStrategyPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, phases, PhaseOption } from "../hs-autosing-types"
 import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSAutosingStrategyControls } from "./hs-autosing-strategy-controls";
 import { HSStrategyManager } from "../hs-strategy-manager";

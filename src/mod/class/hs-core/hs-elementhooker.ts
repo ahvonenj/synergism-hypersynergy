@@ -1,7 +1,15 @@
-import { HSWatcherOptions } from "../../types/module-types/hs-elementhooker-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { escapeLogText } from "../hs-utils/hs-escape";
+
+export interface HSWatcherOptions {
+    valueParser?: (watchedElement: HTMLElement, mutations: MutationRecord[]) => any
+    characterData?: boolean;
+    childList?: boolean;
+    subtree?: boolean;
+    attributes?: boolean;
+    attributeFilter?: string[];
+}
 
 /**
  * Class: HSElementHooker

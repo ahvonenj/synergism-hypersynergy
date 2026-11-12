@@ -1,4 +1,4 @@
-import type { HSAutosingTimings } from "../../../types/module-types/hs-autosing-types";
+import type { HSAutosingTimings } from "./hs-autosing-types";
 import { formatNumber } from "./hs-autosingFormatUtils";
 
 // 'step': a strategy step. 'between': from one singularity to the next. 'other': the time in no step.

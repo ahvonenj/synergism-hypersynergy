@@ -1,5 +1,5 @@
 import { HSViewProperties, MAIN_VIEW, SUBTAB_KEY, SUBTAB_BUTTON_IDS, orderedIds } from "../../types/module-types/hs-gamestate-types";
-import type { HSWatcherOptions } from "../../types/module-types/hs-elementhooker-types";
+import type { HSWatcherOptions } from "./hs-elementhooker";
 import type { PlayerData } from "../../types/data-types/hs-player-savedata";
 
 interface IStoreable {
