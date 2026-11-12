@@ -16,8 +16,8 @@ check, in order, and how the 4.4.0 update went as a worked example.
    "patch missing" warning and can turn a fast path off.
 3. **Player shape.** `node scripts/harness/gds-player-keys.cjs` compares vanilla `Player` keys with the mod's
    `GameDataFields`, then check the runtime shapes on the live game (`docs/features/gds.md`).
-4. **DOM ids and names.** Subtab button ids are written once, in the `*_VIEW_BUTTON_IDS` records
-   (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
+4. **DOM ids and names.** Tab and subtab ids are written once, in `MAIN_VIEW_TAB_IDS` and the `*_VIEW_BUTTON_IDS`
+   records (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
    has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it. If the diff
    touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
    one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).

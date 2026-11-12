@@ -1,8 +1,4 @@
-import {
-    HSViewProperties, MAIN_VIEW, subtabButtonIds,
-    BUILDING_VIEW_BUTTON_IDS, ACHIEVEMENT_VIEW_BUTTON_IDS, RUNE_VIEW_BUTTON_IDS, CHALLENGE_VIEW_BUTTON_IDS, ANT_VIEW_BUTTON_IDS,
-    CUBE_VIEW_BUTTON_IDS, TRAITS_VIEW_BUTTON_IDS, SINGULARITY_VIEW_BUTTON_IDS, SETTINGS_VIEW_BUTTON_IDS, PSEUDOCOIN_VIEW_BUTTON_IDS,
-} from "../../types/module-types/hs-gamestate-types";
+import { HSViewProperties, MAIN_VIEW, SUBTAB_KEY, SUBTAB_BUTTON_IDS, orderedIds } from "../../types/module-types/hs-gamestate-types";
 import { IHSGlobal } from "../../types/module-types/hs-global-types";
 
 // Build-time injected by esbuild via `define`.
@@ -301,48 +297,21 @@ export const HSGlobal: IHSGlobal = class {
 
     // HSGameState
     static HSGameState = {
-        viewProperties: new Map<MAIN_VIEW, HSViewProperties>([
-            [MAIN_VIEW.BUILDINGS, {
-                subViewIds: subtabButtonIds(BUILDING_VIEW_BUTTON_IDS),
-                viewClassName: 'BuildingView'
-            }],
-            [MAIN_VIEW.ACHIEVEMENTS, {
-                subViewIds: subtabButtonIds(ACHIEVEMENT_VIEW_BUTTON_IDS),
-                viewClassName: 'AchievementView'
-            }],
-            [MAIN_VIEW.RUNES, {
-                subViewIds: subtabButtonIds(RUNE_VIEW_BUTTON_IDS),
-                viewClassName: 'RuneView'
-            }],
-            [MAIN_VIEW.CHALLENGES, {
-                subViewIds: subtabButtonIds(CHALLENGE_VIEW_BUTTON_IDS),
-                viewClassName: 'ChallengeView'
-            }],
-            [MAIN_VIEW.ANTS, {
-                subViewIds: subtabButtonIds(ANT_VIEW_BUTTON_IDS),
-                viewClassName: 'AntView'
-            }],
-            [MAIN_VIEW.CUBES, {
-                subViewIds: subtabButtonIds(CUBE_VIEW_BUTTON_IDS),
-                viewClassName: 'CubeView'
-            }],
-            [MAIN_VIEW.TRAITS, {
-                subViewIds: subtabButtonIds(TRAITS_VIEW_BUTTON_IDS),
-                viewClassName: 'TraitsView'
-            }],
-            [MAIN_VIEW.SINGULARITY, {
-                subViewIds: subtabButtonIds(SINGULARITY_VIEW_BUTTON_IDS),
-                viewClassName: 'SingularityView'
-            }],
-            [MAIN_VIEW.SETTINGS, {
-                subViewIds: subtabButtonIds(SETTINGS_VIEW_BUTTON_IDS),
-                viewClassName: 'SettingsView'
-            }],
-            [MAIN_VIEW.PSEUDOCOINS, {
-                subViewIds: subtabButtonIds(PSEUDOCOIN_VIEW_BUTTON_IDS),
-                viewClassName: 'PseudoCoinView'
-            }]
-        ])
+        // The main tabs with subtabs (Upgrades, Research, Shop and Event have none) and their subtab view key
+        viewProperties: new Map<MAIN_VIEW, HSViewProperties>(([
+            [MAIN_VIEW.BUILDINGS, 'BUILDING_VIEW'],
+            [MAIN_VIEW.ACHIEVEMENTS, 'ACHIEVEMENT_VIEW'],
+            [MAIN_VIEW.RUNES, 'RUNE_VIEW'],
+            [MAIN_VIEW.CHALLENGES, 'CHALLENGE_VIEW'],
+            [MAIN_VIEW.ANTS, 'ANT_VIEW'],
+            [MAIN_VIEW.CUBES, 'CUBE_VIEW'],
+            [MAIN_VIEW.TRAITS, 'TRAITS_VIEW'],
+            [MAIN_VIEW.SINGULARITY, 'SINGULARITY_VIEW'],
+            [MAIN_VIEW.SETTINGS, 'SETTINGS_VIEW'],
+            [MAIN_VIEW.PSEUDOCOINS, 'PSEUDOCOIN_VIEW'],
+        ] as [MAIN_VIEW, SUBTAB_KEY][]).map(([mainView, viewKey]): [MAIN_VIEW, HSViewProperties] =>
+            [mainView, { subViewIds: orderedIds(SUBTAB_BUTTON_IDS[viewKey]), viewKey }]
+        ))
     }
 
     // HSGameData

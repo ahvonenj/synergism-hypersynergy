@@ -1,6 +1,5 @@
 import { HSModuleOptions } from "../../../types/hs-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
-import { SingularityView } from "../../hs-core/hs-gamestate";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSModule } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
@@ -302,7 +301,7 @@ export class HSQOLButtons extends HSModule {
             }
         }
 
-        const subId = gameState.subscribeGameStateChange<SingularityView>(
+        const subId = gameState.subscribeGameStateChange(
             'SINGULARITY_VIEW',
             (prev, curr) => {
                 if (curr.getId() === tabId) {

@@ -79,7 +79,7 @@ export class HSSubtabMemory extends HSModule {
             };
         }
 
-        this.#gameState.subscribeGameStateChange<MainView>('MAIN_VIEW', (previous, current) => {
+        this.#gameState.subscribeGameStateChange('MAIN_VIEW', (previous, current) => {
             if (!HSSettings.getSetting('rememberSubtabs')?.isEnabled()) {
                 this.#forget();
                 return;
