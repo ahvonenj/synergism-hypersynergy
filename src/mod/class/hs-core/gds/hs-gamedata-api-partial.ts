@@ -4,9 +4,8 @@ import { HSCalculationDefinition } from "../../../types/data-types/hs-gamedata-a
 import { MeData } from "../../../types/data-types/hs-me-data";
 import { GameData } from "../../../types/data-types/hs-player-savedata";
 import { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
-import { HSModuleOptions } from "../../../types/hs-types";
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
+import { HSModule, type HSModuleOptions } from "../module/hs-module";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSCalculationDefinitions } from "./hs-calculation-definition";
 import { HSGameData } from "./hs-gamedata";

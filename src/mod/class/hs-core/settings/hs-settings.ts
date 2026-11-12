@@ -1,7 +1,7 @@
 import { HSSettingBase, HSSettingControlGroup, HSSettingControlPage, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
+import { HSModule, type HSModuleOptions } from "../module/hs-module";
 import settings from "inline:../../../resource/json/hs-settings.json";
 import settings_control_groups from "inline:../../../resource/json/hs-settings-control-groups.json";
 import settings_control_pages from "inline:../../../resource/json/hs-settings-control-pages.json";
@@ -13,7 +13,6 @@ import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSGlobal } from "../hs-global";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSSettingsUIDependencies } from "./hs-settings-ui";
-import { HSModuleOptions } from "../../../types/hs-types";
 import { HSPlatform } from "../hs-platform";
 import { parseStoredSettingStates, restoreSettingState, serializeSettingStates } from "./hs-settings-state";
 

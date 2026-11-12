@@ -4,11 +4,10 @@ import {
     orderedIds, viewFromId,
     VIEW_KEY, VIEW_TYPE, ViewOf, HSViewState, HSViewStateRecord,
 } from "../../types/module-types/hs-gamestate-types";
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./module/hs-module";
+import { HSModule, type HSModuleOptions } from "./module/hs-module";
 
 /**
  * Class: HSGameState

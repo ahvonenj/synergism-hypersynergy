@@ -1,7 +1,6 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./module/hs-module";
+import { HSModule, type HSModuleOptions } from "./module/hs-module";
 
 /**
  *   Class: HSStorage

@@ -1,8 +1,7 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSGameDialogs } from "../hs-core/dialogs/hs-game-dialogs";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 
 /**

@@ -1,6 +1,5 @@
 import { HSLogger } from "../hs-logger";
-import type { HSModule } from "./hs-module";
-import type { HSModuleDefinition } from "../../../types/hs-types";
+import type { HSModule, HSModuleDefinition } from "./hs-module";
 import type { HSRegisteredModuleDefinition } from "./hs-module-definitions";
 import { HSModuleRegistry } from "./hs-module-registry";
 

@@ -17,7 +17,7 @@ import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
-import type { HSModuleDefinition } from "../../../types/hs-types";
+import type { HSModuleDefinition } from "./hs-module";
 
 /** Constructors and startup options for every enabled module. Initialization follows this list and loadOrder. */
 export const HS_MODULE_DEFINITIONS = [

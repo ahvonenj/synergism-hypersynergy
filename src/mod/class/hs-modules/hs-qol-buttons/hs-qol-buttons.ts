@@ -1,7 +1,6 @@
-import { HSModuleOptions } from "../../../types/hs-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";

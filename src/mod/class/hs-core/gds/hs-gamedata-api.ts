@@ -4,7 +4,7 @@ import type { GameData, SingularityChallengeRewards, SingularityChallengeStatus 
 import type { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import type { MeData } from "../../../types/data-types/hs-me-data";
 import type { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
-import { HSModuleOptions } from "../../../types/hs-types";
+import type { HSModuleOptions } from "../module/hs-module";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";

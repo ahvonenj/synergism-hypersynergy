@@ -5,7 +5,7 @@ import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSSettings } from "./settings/hs-settings";
-import { HSModule } from "./module/hs-module";
+import { HSModule, type HSModuleOptions } from "./module/hs-module";
 import { HSUIC } from "./hs-ui-components";
 import panelCoreCSS from "inline:../../resource/css/hs-panel-core.css";
 import autosingModalCSS from "inline:../../resource/css/module/hs-autosing-modal.css";
@@ -13,7 +13,6 @@ import animationsCSS from "inline:../../resource/css/hs-animations.css";
 import utilitiesCSS from "inline:../../resource/css/hs-utilities.css";
 import panelHTML from "inline:../../resource/html/hs-panel.html";
 import modPanelIconB64 from "inline:../../resource/txt/mod_panel_icon.txt";
-import { HSModuleOptions } from "../../types/hs-types";
 import { escapeLogText } from "../hs-utils/hs-escape";
 
 /**

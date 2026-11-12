@@ -1,4 +1,3 @@
-import { HSModuleOptions } from "../../../types/hs-types";
 import { CUBE_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 
@@ -6,7 +5,7 @@ import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSTooltip } from "../../hs-core/hs-tooltip";
 import { HSUI } from "../../hs-core/hs-ui";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSNumberParser } from "../../hs-utils/hs-number-parser";

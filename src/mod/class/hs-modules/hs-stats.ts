@@ -1,6 +1,5 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSLogger } from "../hs-core/hs-logger";
-import { HSModule } from "../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../hs-core/module/hs-module";
 
 /**
  * Class: HSStats

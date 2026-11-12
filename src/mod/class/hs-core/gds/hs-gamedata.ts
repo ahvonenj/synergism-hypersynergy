@@ -6,7 +6,7 @@ import { HSElementHooker } from "../hs-elementhooker";
 import { HSGameDataAPI } from "./hs-gamedata-api";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
+import { HSModule, type HSModuleOptions } from "../module/hs-module";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSSettings } from "../settings/hs-settings";
 import { HSUI } from "../hs-ui";
@@ -14,7 +14,6 @@ import { HSUI } from "../hs-ui";
 import { HSHeaderKeepOnImport } from "../header/hs-header-keep-on-import";
 import { HSPlatform } from "../hs-platform";
 import { ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
-import { HSModuleOptions } from "../../../types/hs-types";
 
 /**
  * Class: HSGameData

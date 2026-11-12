@@ -1,4 +1,3 @@
-import { HSGameDataSubscriber, HSModuleOptions } from "../../../types/hs-types";
 import { AmbrosiaUpgradeCalculationCollection, AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import { AmbrosiaUpgradeData, AmbrosiaUpgrades, GameData } from "../../../types/data-types/hs-player-savedata";
 import { AMBROSIA_LOADOUT_SLOT } from "./hs-ambrosia-types";
@@ -10,7 +9,7 @@ import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLoadoutIconStore } from "../hs-loadout-icons/hs-loadout-icon-store";
 import { getEffectiveHeaterIconSrc } from "../hs-heater/hs-heater-icon-store";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
@@ -25,6 +24,14 @@ import { HSAmbrosiaLevelsDisplay } from "./hs-ambrosia-levels-display";
 import { HSAmbrosiaAutoLoadout } from "./hs-ambrosia-auto-loadout";
 import { HSAmbrosiaQuickImport } from "./hs-ambrosia-quick-import";
 import { HSAmbrosiaTemporaryTree, HSSingReducerPlan, HSSingReducerSwapOptions } from "./hs-ambrosia-temporary-tree";
+
+// The module's one GDS subscription
+interface HSGameDataSubscriber {
+    gameDataSubscriptionId?: string;
+    gameDataCallback: (data: GameData) => Promise<void>;
+    subscribeGameDataChanges: () => void;
+    unsubscribeGameDataChanges: () => void;
+}
 
 /** What the heater's "Sync icons" did (HSAmbrosia.applyHeaterSlotIconSemanticsBulk). */
 export interface HeaterSlotIconApplyResult {

@@ -1,10 +1,9 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSBookmarkletNotice } from "../hs-core/hs-bookmarklet-notice";
 import { HSGameState, MainView } from "../hs-core/hs-gamestate";
 import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSStorage } from "../hs-core/hs-storage";
-import { HSModule } from "../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 import { HSSettings } from "../hs-core/settings/hs-settings";
 

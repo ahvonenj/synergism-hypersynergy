@@ -1,10 +1,9 @@
-import { HSModuleOptions } from "../../../types/hs-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import type { HSGameState } from "../../hs-core/hs-gamestate";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { matchesSearch, normalizeSearchText, searchTerms } from "./hs-perks-find-match";
 import perksFindCSS from "inline:../../../resource/css/module/hs-perks-find.css";
