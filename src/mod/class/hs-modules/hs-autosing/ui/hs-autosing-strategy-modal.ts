@@ -7,6 +7,14 @@ import { HSLogger } from '../../../hs-core/hs-logger';
 import { HSUIXY } from "../../../../types/module-types/hs-ui-types";
 import { canonicalJson, HSAutosingChallengeModal, openAutosingChallengesModal } from "./hs-autosing-challenge-modal";
 import { escapeHtml, escapeLogText } from "../../../hs-utils/hs-escape";
+import { HSIcons } from "../../../hs-utils/hs-icons";
+import { HSGlobal } from "../../../hs-core/hs-global";
+
+// The players' guide section on strategies (docs/data/guides/autosing.md, published on the mod's website)
+const STRATEGY_GUIDE_PATH = "docs/wiki/autosing-guide.html#making-your-own-strategy";
+
+const AOAG_HELP = "Runs when the AOAG rune unlocks (P4x5): stops the current phase, sets corruptions to 0, "
+    + "runs these steps, then goes on with the phase that ends at 'end'.";
 
 type StrategyWindowMode = 'create' | 'edit' | 'copy';
 
@@ -146,7 +154,10 @@ export class HSAutosingStrategyModal {
             htmlContent: `
                 <div class="hs-strategy-modal-container">
                     <div class="hs-strategy-input-section">
-                        <div class="hs-strategy-input-label">Strategy Name</div>
+                        <div class="hs-strategy-input-label hs-strategy-name-label">
+                            <span>Strategy Name</span>
+                            <a class="hs-strategy-guide-link" href="${HSGlobal.General.modWebsiteUrl}${STRATEGY_GUIDE_PATH}" target="_blank" rel="noopener" title="How phases and steps work, in the Auto-Sing guide">How to make or edit a strategy ↗</a>
+                        </div>
                         <input type="text" class="hs-strategy-name-input" placeholder="Enter strategy name..."
                             value="${escapeHtml(this.#draft.strategyName)}"${isEdit ? " disabled" : ""} />
                         ${this.#mode === 'copy' ? '<div class="hs-strategy-note">Default strategies are read-only; saving creates a user copy.</div>' : ''}
@@ -243,7 +254,7 @@ export class HSAutosingStrategyModal {
     #insertSelect(index: number): string {
         const phase = this.#draft.strategy[index];
         const points = phases.slice(phases.indexOf(phase.startPhase) + 1, phases.indexOf(phase.endPhase));
-        return points.length === 0 ? "" : `<span class="hs-strategy-insert" title="Insert a phase before this one">`
+        return points.length === 0 ? "" : `<span class="hs-strategy-insert" data-index="${index}" title="Insert a phase before this one">`
             + `<select class="hs-strategy-insert-select"><option value="" selected hidden></option>`
             + `<optgroup label="Insert a phase from ${phase.startPhase} to:">${renderEndOptions(points)}</optgroup></select></span>`;
     }
@@ -309,21 +320,40 @@ export class HSAutosingStrategyModal {
 
     // ----- Window -----
 
+    // The game's Antiquities rune image; its path when the runes tab isn't built yet
+    #aoagIcon(): string {
+        const source = document.getElementById('antiquitiesRune');
+        const icon = (source ? HSIcons.fromElement(source) : null) ?? { url: 'Pictures/Runes/Antiquities.png' };
+        const element = document.createElement('span');
+        element.className = 'hs-strategy-aoag-icon';
+        HSIcons.applyBackground(element, icon, 18);
+        return element.outerHTML;
+    }
+
     #redraw(): void {
         const stepsButton = (phase: AutosingStrategyPhase) => {
             const count = phase.strat.length;
             return `<div class="hs-strategy-btn hs-strategy-btn-icon hs-strategy-btn-steps${count === 0 ? " hs-strategy-btn-steps-empty" : ""}" data-action="edit" title="Edit this phase's steps">✎ ${count} step${count === 1 ? "" : "s"}</div>`;
         };
+        // Autosing runs it right before the phase that ends at "end" (the last one, if any); none yet: at the bottom
+        const finalIndex = this.#draft.strategy.findIndex(phase => phase.endPhase === "end");
+        // The final phase's "+" goes on the AOAG row, in the gap above it: inserting before that phase is inserting before AOAG
         const aoagRow = `
-            <div class="hs-strategy-phase-item" data-aoag>
-                <div class="hs-strategy-phase-text"><strong>${AOAG_PHASE_NAME}</strong></div>
+            <div class="hs-strategy-phase-item hs-strategy-aoag-item" data-aoag>
+                ${finalIndex === -1 ? "" : this.#insertSelect(finalIndex)}
+                <div class="hs-strategy-phase-text hs-strategy-aoag-label">
+                    ${this.#aoagIcon()}<strong>${AOAG_PHASE_NAME}</strong>
+                    <span class="hs-strategy-aoag-help" title="${escapeHtml(AOAG_HELP)}">?</span>
+                </div>
                 ${stepsButton(this.#draft.aoagPhase)}
+                <span class="hs-strategy-btn-spacer"></span>
             </div>`;
         const phaseRows = this.#draft.strategy.length === 0
             ? '<div class="hs-strategy-empty-state">No strategy phases added yet.</div>'
             : this.#draft.strategy.map((phase, i) => `
+                ${i === finalIndex ? aoagRow : ""}
                 <div class="hs-strategy-phase-item" data-index="${i}">
-                    ${this.#insertSelect(i)}
+                    ${i === finalIndex ? "" : this.#insertSelect(i)}
                     <div class="hs-strategy-phase-text hs-strategy-phase-start"><span>Phase ${i + 1}:</span> <span>${phase.startPhase} <span class="hs-strategy-phase-arrow">→</span></span></div>
                     <select class="hs-strategy-end-select" title="Where this phase ends">${renderEndOptions(this.#endsOf(i), phase.endPhase)}</select>
                     ${stepsButton(phase)}
@@ -333,7 +363,7 @@ export class HSAutosingStrategyModal {
         const lastEnd = this.#lastEnd();
         const addSelect = lastEnd === "end" ? "" : `<select class="hs-strategy-add-select" title="Add a phase after the last one">`
             + `<option value="" selected hidden>Add phase until…</option>${renderEndOptions(phases.slice(phases.indexOf(lastEnd) + 1))}</select>`;
-        this.#list.innerHTML = aoagRow + phaseRows + addSelect;
+        this.#list.innerHTML = phaseRows + (finalIndex === -1 ? aoagRow : "") + addSelect;
 
         for (const [phase, actionsWindow] of this.#openActions()) actionsWindow.setTitle(this.#actionsTitle(phase));
         // The last refused save's reason may no longer hold
@@ -375,7 +405,8 @@ export class HSAutosingStrategyModal {
 
     #onChange(e: Event): void {
         const target = e.target as HTMLSelectElement;
-        const index = Number(target.closest<HTMLElement>(".hs-strategy-phase-item")?.dataset.index);
+        // The "+" holds its phase's index itself: the final phase's one is on the AOAG row
+        const index = Number(target.closest<HTMLElement>("[data-index]")?.dataset.index);
         if (target.classList.contains("hs-strategy-add-select")) {
             if (target.value) this.#addPhase(target.value as PhaseOption);
         } else if (target.classList.contains("hs-strategy-end-select")) {

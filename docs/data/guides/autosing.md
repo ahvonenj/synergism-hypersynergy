@@ -47,6 +47,7 @@ In Settings → Auto-Sing:
 In the window:
 - **Strategy Name** at the top.
 - Each row is a phase: **Phase N: start → [end ▾] [✎ k steps] [×]**. Change a phase's end with its dropdown, open its steps with ✎, delete it with ×.
+- The dashed **AOAG Unlocked Phase** row sits right before the phase that ends at "end", which is where it runs. Hover its **?** to see when it starts.
 - **Add phase until… ▾** adds the next phase. The round **+** on a phase's left border inserts a phase inside it.
 - "0 steps" in red: a phase needs at least one step.
 - **Create Strategy** / **Update Strategy** saves. A strategy must go all the way to "end".

@@ -23,6 +23,25 @@
     margin-bottom: 4px;
 }
 
+/* "Strategy Name" on the left, the guide link on the right */
+.hs-strategy-name-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+/* Always underlined: it is a link */
+.hs-strategy-guide-link {
+    font-size: 12px;
+    font-weight: normal;
+    color: #c8c8c8;
+    text-decoration: underline;
+}
+
+.hs-strategy-guide-link:hover {
+    color: cyan;
+}
+
 .hs-strategy-name-input {
     padding: 5px 8px;
     background-color: #101828;
@@ -173,6 +192,51 @@
     display: flex;
     justify-content: space-between;
     gap: 6px;
+}
+
+/* The AOAG phase: not a link of the chain (autosing jumps to it), so set apart from the numbered phases */
+.hs-strategy-phase-item.hs-strategy-aoag-item {
+    background-color: #26252c;
+    border-style: dashed;
+    border-color: #a0a0a0;
+}
+
+.hs-strategy-phase-item.hs-strategy-aoag-item:hover {
+    background-color: #005;
+    border-color: cyan;
+}
+
+.hs-strategy-aoag-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hs-strategy-aoag-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+
+/* "?": when the AOAG phase runs */
+.hs-strategy-aoag-help {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    border: 1px solid #888;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #c8c8c8;
+    cursor: help;
+}
+
+/* In place of the × the AOAG row doesn't have, so that its ✎ lines up with the phases' */
+.hs-strategy-btn-spacer {
+    flex: none;
+    width: 28px;
 }
 
 .hs-strategy-end-select {
