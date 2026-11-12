@@ -1,5 +1,5 @@
 import { HSUI } from "../../../hs-core/hs-ui"
-import { HSAutosingStrategy, AutosingStrategyPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, phases, PhaseOption } from "../hs-autosing-types"
+import { HSAutosingStrategy, AutosingStrategyPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, phases, PhaseOption, STRATEGY_FORMAT_VERSION } from "../hs-autosing-types"
 import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSAutosingStrategyControls } from "./hs-autosing-strategy-controls";
 import { HSStrategyManager } from "../hs-strategy-manager";
@@ -13,8 +13,8 @@ import { HSGlobal } from "../../../hs-core/hs-global";
 // The players' guide section on strategies (docs/data/guides/autosing.md, published on the mod's website)
 const STRATEGY_GUIDE_PATH = "docs/wiki/autosing-guide.html#making-or-editing-a-strategy";
 
-const AOAG_HELP = "Runs when the AOAG rune unlocks (P4x5): stops the current phase, sets corruptions to 0, "
-    + "runs these steps, then goes on with the phase that ends at 'end'.";
+const AOAG_HELP = "Runs when the AOAG rune unlocks (P4x5): stops the current phase, runs these steps, then goes on "
+    + "with the phase that ends at 'end'.";
 
 type StrategyWindowMode = 'create' | 'edit' | 'copy';
 
@@ -141,6 +141,8 @@ export class HSAutosingStrategyModal {
             strategyName: this.#mode === 'copy'
                 ? (suggestedName ?? `${existingStrategy!.strategyName}_copy`)
                 : existingStrategy?.strategyName ?? "",
+            // Kept: a strategy not brought to the current format yet gets its AOAG level step when saved
+            formatVersion: existingStrategy ? existingStrategy.formatVersion : STRATEGY_FORMAT_VERSION,
             strategy,
             aoagPhase
         };

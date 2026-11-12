@@ -1,5 +1,6 @@
 {
   "strategyName": "TAS v3.3-temp",
+  "formatVersion": 2,
   "strategy": [
     {
       "startPhase": "start",
@@ -1066,11 +1067,14 @@
     "endPhase": "ascension",
     "strat": [
       {
-        "challengeNumber": 103,
+        "challengeNumber": 403,
+        "corruptionLevel": 0,
+        "ascendAfterCorruption": true,
         "challengeCompletions": 0,
         "challengeWaitTime": 0,
         "challengeWaitBefore": 0,
-        "challengeMaxTime": 0
+        "challengeMaxTime": 0,
+        "comment": "No offering penalty to buy the AoAG rune"
       },
       {
         "challengeNumber": 151,

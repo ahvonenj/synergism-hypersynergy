@@ -1,6 +1,10 @@
 export const IF_JUMP_VALUE = 200;
 // Sets Challenge.corruptionLevel; ascendAfterCorruption controls whether to ascend now or on a later action.
 export const SET_CORRUPTION_LEVEL_VALUE = 403;
+export const EXIT_ASCENSION_CHALLENGE_VALUE = 103;
+// HSAutosingStrategy.formatVersion of the strategies written now. Absent (1): from before the AOAG phase's level 0
+// became its first step (autosing set it itself); HSStrategyManager adds that step once.
+export const STRATEGY_FORMAT_VERSION = 2;
 // The steps holding a level in Challenge.corruptionLevel
 export const isCorruptionLevelStep = (challengeNumber: number): boolean =>
     challengeNumber === SET_CORRUPTION_LEVEL_VALUE;
@@ -49,7 +53,7 @@ export type ModalInput = "challengeNum" | "completions" | "waitTime" | "maxTime"
 export const SPECIAL_ACTIONS = [
     { label: "Exit Transcension challenge",     value: 101, inputs: [] as const },
     { label: "Exit Reincarnation challenge",    value: 102, inputs: [] as const },
-    { label: "Exit Ascension challenge",        value: 103, inputs: [] as const },
+    { label: "Exit Ascension challenge",        value: EXIT_ASCENSION_CHALLENGE_VALUE, inputs: [] as const },
     { label: "Ascend",                          value: 104, inputs: [] as const },
     
     { label: "Wait",                            value: 151, inputs: [] as const },
@@ -107,16 +111,22 @@ export const SPECIAL_ACTIONS = [
 export type SpecialAction = (typeof SPECIAL_ACTIONS)[number];
 export const SPECIAL_ACTION_BY_ID: ReadonlyMap<number, SpecialAction> = new Map(SPECIAL_ACTIONS.map(a => [a.value, a] as const));
 
+// On the AOAG phase's first step (corruption level 0)
+export const AOAG_LEVEL_STEP_COMMENT = "No offering penalty to buy the AoAG rune";
+
 export const createDefaultAoagPhase = (): AutosingStrategyPhase => ({
     phaseId: AOAG_PHASE_ID,
     startPhase: "ascension",
     endPhase: "ascension",
     strat: [
         {
-            challengeNumber: 103,
+            challengeNumber: SET_CORRUPTION_LEVEL_VALUE,
+            corruptionLevel: 0,
+            ascendAfterCorruption: true,
             challengeCompletions: 0,
             challengeWaitTime: 0,
-            challengeMaxTime: 0
+            challengeMaxTime: 0,
+            comment: AOAG_LEVEL_STEP_COMMENT
         },
         {
             challengeNumber: 104,
@@ -157,6 +167,8 @@ export type PhaseOption = (typeof phases)[number];
 
 export interface HSAutosingStrategy {
     strategyName: string;
+    // STRATEGY_FORMAT_VERSION
+    formatVersion?: number;
     strategy: AutosingStrategyPhase[];
     aoagPhase?: AutosingStrategyPhase;
 }

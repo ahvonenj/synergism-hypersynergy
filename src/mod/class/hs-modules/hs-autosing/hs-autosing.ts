@@ -1516,10 +1516,7 @@ export class HSAutosing extends HSModule {
         const aoagPhase = this.#strategy?.aoagPhase ?? createDefaultAoagPhase();
         aoagPhase.phaseId = AOAG_PHASE_ID;
 
-        // AOAG needs level 0 applied before its steps; ordinary phase entry performs no reset.
-        await this.#setCorruptionLevelAndAscend(0);
-        if (!this.#autosingEnabled) return;
-
+        // Its level and reset are its own steps: the strategies' AOAG phase starts with level 0 (HSStrategyManager.ensureAoagPhase)
         await this.#executePhase(aoagPhase, {
             phaseLabelOverride: AOAG_PHASE_NAME,
             ignoreObserverActivated: true

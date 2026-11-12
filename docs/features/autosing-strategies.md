@@ -18,9 +18,10 @@ Saving or deleting changes the in-memory strategy list only after localStorage a
 - **No named corruption loadouts** (a level is one number, nothing to name).
 - **Removed actions**: 400 "Corrup 0*" (one corruption action less), 401 "Corruption level from phase (reapply)" (with the phase levels), 402 "Corrup Ants", 404 "Set corruption level minus free levels" (set the lowest level that reached the target once free levels were added; removed for 403's actual level). The `corruptionFreeLevels` patch went with 404 (`#RETIRED_PATCHES`, older installs still report it); GDS's `calculateFreeCorruptionLevels()` stays (Tools tab, effective level).
 
-## Conversions (`normalizeCorruptions`)
+## Conversions (`ensureAoagPhase`, `normalizeCorruptions`)
 Older formats are brought to the current one at load of the player's saved strategies, at import and at save, silently unless noted:
-- A phase's level → a 403 step at the phase's start (later if-jumps +1), except in the first and AOAG phases (dropped).
+- A phase's level → a 403 step at the phase's start (later if-jumps +1), except in the first and AOAG phases (dropped: they ran at 0).
+- No `formatVersion` (before 2, autosing set level 0 and reset before the AOAG phase) → the AOAG phase gets that as its first step, a 403 at 0 that ascends at once, commented with why (`AOAG_LEVEL_STEP_COMMENT`: no offering penalty at 0; a replaced 103's own comment wins) (`ensureAoagPhase`). It replaces a leading 103 (which did nothing after that reset) unless an IF jumps to it, else is inserted (if-jumps +1). Once only: `formatVersion` 2 records it, so a removed or changed step stays so. A strategy with no AOAG phase gets the default one, which already starts with it. The editor keeps the strategy's `formatVersion`.
 - 401 → a 403 at its phase's level (removed when the phase had none).
 - 404 → a 403 with the same number (now an actual level: a higher effective level than before).
 - 400 → a 403 at level 0.
@@ -29,7 +30,7 @@ Older formats are brought to the current one at load of the player's saved strat
 - Strategies from before the game's 4.4.0 (8-value `corruptions` / `loadout` objects, 402 steps): levels at 0 (no conversion of 8 values into a level), 402 steps removed with later if-jumps moved up one step, saved back, one warning.
 
 ## Default strategies
-- **Corruption levels** (a simple base for their authors to tune): the first and AOAG phases start at 0 (`autosing.md`). Only two level steps: 20 right before the "Exit Ascension challenge" (103) that leaves the first C15 (so the next ascension gives hepteracts), and 50 as the first step of singularity → end.
+- **Corruption levels** (a simple base for their authors to tune): the first phase starts at 0 (`autosing.md`), the AOAG phase with a 403 at 0 (its leading 103 became it; same comment as the conversion's). Only two level steps: 20 right before the "Exit Ascension challenge" (103) that leaves the first C15 (so the next ascension gives hepteracts), and 50 as the first step of singularity → end.
 - **The C15 loop of the last phase** (`IF C15 < 1e110` jumping back) has max jumps 5 in Demon King (BTMco), Demon King (rus), Quark Factory and Quark Molker: low-stat accounts stayed in it forever. Not TAS (its `C15 < 1e15` loop is in phase 2).
 - **"-temp" suffix** on their names, file names included (players shouldn't expect them to run well yet). A default strategy is known by its file name, so renaming one makes a player who had it selected fall back to the first in the list.
 - **Every phase resets somewhere** (checked when phase passes stopped ascending, `autosing.md`). Demon King (rus) "ascension → challenge13" ends inside C13, as it did with the old phase-start Ascend (`reset('ascension')` keeps `currentChallenge.ascension`; the game credits C11–C14 itself each tick once C10's completions reach the requirement). Its old behaviour is still kept exactly: an Ascend (104) as its step 1, IF targets +1. The other default phases have none.
