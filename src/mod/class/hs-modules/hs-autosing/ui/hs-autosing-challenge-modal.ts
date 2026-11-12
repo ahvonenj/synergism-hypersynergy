@@ -378,7 +378,7 @@ export class HSAutosingChallengeModal {
         this.#redoButton = root.querySelector<HTMLElement>('[data-action="redo"]')!;
         this.#fixedTime = root.querySelector<HTMLElement>(".hs-challenges-fixed-time")!;
         this.#discardOverlay = root.querySelector<HTMLElement>(".hs-editor-overlay")!;
-        HSTooltip.set(root.querySelector<HTMLElement>(".hs-challenges-help-btn")!, { html: HSTooltip.list(HELP_LINES), delay: 0, placement: 'above' });
+        HSTooltip.set(root.querySelector<HTMLElement>(".hs-challenges-help-btn")!, { html: HSTooltip.list(HELP_LINES), delay: 0, placement: 'above', maxWidth: 560 });
         for (const element of root.querySelectorAll<HTMLElement>("[data-row]")) {
             this.#rows.push({ row: FIELD_ROWS[Number(element.dataset.row)], element });
         }
