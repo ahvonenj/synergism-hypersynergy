@@ -9,8 +9,9 @@ header layout check in Chromium.
 ## Entry and modules
 
 - `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour, `loadOrder` and `initImmediate`. `src/mod/index.ts` passes that list to `Hypersynergism`
-  (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, builds the mod panel tabs
-  and syncs the settings UI.
+  (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, assembles the mod panel tabs
+  (Tools tab: `HSToolsTab`, `hs-core/hs-tools-tab.ts`; Settings tab: `HSSettingsUI.buildTab`) and syncs the settings
+  UI.
 - Every feature is an `HSModule` subclass (`hs-core/module/hs-module.ts`) with an `async init()`. Register a new module once in `HS_MODULE_DEFINITIONS`; the module-name and instance types derive from that list. `HSModuleManager` constructs modules and preserves startup order. `HSModuleRegistry` stores instances with no runtime imports of feature classes.
 - Modules reach each other through `HSModuleRegistry.getModule('ClassName')`; the name determines the return type. Unknown names and independently supplied instance types are rejected by TypeScript. Log contexts use `getModuleColor(string)` for a colour only. Many core classes (`HSSettings`,
   `HSUI.Notify`, `HSLogger`, `HSGlobal`) are used statically. `HSGlobal` (`hs-core/hs-global.ts`) holds global

@@ -1633,7 +1633,7 @@
         "docs/features/tools-tab.md",
         "docs/features/gds.md",
         "docs/features/dev-tools.md",
-        "src/mod/class/hypersynergism.ts",
+        "src/mod/class/hs-core/hs-tools-tab.ts",
         "src/mod/class/hs-core/hs-logger.ts"
       ],
       "features": [

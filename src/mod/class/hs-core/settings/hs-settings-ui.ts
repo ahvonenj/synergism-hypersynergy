@@ -392,6 +392,68 @@ export class HSSettingsUI {
         }
     }
 
+    /** Fills the mod panel's Settings tab (tab 3) and binds its subtabs. */
+    static buildTab(hsui: HSUI, deps: HSSettingsUIDependencies): void {
+        const settingsTabContents = this.autoBuildSettingsUI(deps);
+
+        if (!settingsTabContents.didBuild) return;
+
+        hsui.replaceTabContents(3,
+            [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
+        );
+
+        this.#bindTabEvents();
+    }
+
+    static #bindTabEvents() {
+        document.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
+            if (e.target.closest('.hs-panel-setting-block-gamedata-icon')) this.#handleGameDataIconClick();
+            if (e.target.closest('.hs-panel-subtab')) this.#handleSubtabClick(e);
+        });
+    }
+
+    static #handleGameDataIconClick() {
+        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
+        const color = subtab?.dataset.color;
+
+        this.#activateSubtab('qol', subtab, color);
+
+        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
+        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    static #handleSubtabClick(e: Event) {
+        const target = (e.target as HTMLElement).closest('.hs-panel-subtab') as HTMLDivElement | null;
+        const subtab = target?.dataset.subtab;
+        const color = target?.dataset.color;
+
+        if (!subtab) return;
+        this.#activateSubtab(subtab, target, color);
+    }
+
+    static #activateSubtab(subtab: string, activeTab: HTMLDivElement | null, color?: string) {
+        const subSettingsContainer = document.querySelector(`#settings-grid-${subtab}`) as HTMLDivElement | null;
+        const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
+        const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+
+        if (!subSettingsContainer) return;
+
+        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
+        if (!subSettingsContainer.classList.contains('open')) {
+            const settingsPanel = document.querySelector('#hs-settings-panel');
+            if (settingsPanel) settingsPanel.scrollTop = 0;
+        }
+
+        allSubSettingContainers.forEach(container => container.classList.remove('open'));
+        allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
+
+        subSettingsContainer.classList.add('open');
+        if (activeTab && color) {
+            activeTab.style.backgroundColor = color;
+        }
+    }
+
     static autoBuildSettingsUI(deps: HSSettingsUIDependencies): { didBuild: boolean; navHTML: string; pagesHTML: string } {
         if (!deps.settingsParsed) {
             HSLogger.error(`Could not build settings UI - settings not parsed yet`, this.#context);
