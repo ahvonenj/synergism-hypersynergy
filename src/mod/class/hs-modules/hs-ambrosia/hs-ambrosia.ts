@@ -179,7 +179,8 @@ export class HSAmbrosia extends HSModule
 
         this.#loadoutContainerClickHandler ??= this.#onLoadoutClick.bind(this);
         const handler = this.#loadoutContainerClickHandler;
-        this.#loadoutContainer.delegateEventListener('click', '.blueberryLoadoutSlot', handler);
+        // The handler finds the slot itself (clicks outside a slot are ignored there)
+        this.#loadoutContainer.addEventListener('click', handler);
         this.#isLoadoutClickHandlerAttached = true;
     }
 
@@ -195,8 +196,8 @@ export class HSAmbrosia extends HSModule
         this.#levels.queueRefresh();
 
         // Only a successful load changes the active modules. The game's own
-        // slot handler has already run (this listener is delegated, bubble
-        // phase), so the active class reflects the result of this click.
+        // slot handler has already run (this listener is on the container,
+        // bubble phase), so the active class reflects the result of this click.
         if (this.#isAmbrosiaTabActive
             && HSAmbrosiaHelper.isLoadoutMode('loadTree')
             && slotElement.classList.contains('activeBlueberryLoadout')) {

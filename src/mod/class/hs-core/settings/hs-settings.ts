@@ -79,7 +79,8 @@ export class HSSettings extends HSModule {
                 gameDataSettingState = gameDataSetting.enabled;
             }
             // Set default values for each setting
-            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(resolvedSettings)) {
+            type SettingEntry = [keyof HSSettingsDefinition, HSSettingsDefinition[keyof HSSettingsDefinition]];
+            for (const [key, setting] of Object.entries(resolvedSettings) as SettingEntry[]) {
                 const settingDef = setting as HSSettingBaseWithHidden<HSSettingType>;
                 if (settingDef.settingType === 'boolean' || HSUtils.isBoolean(settingDef.settingValue)) {
                     settingDef.settingValue = false;

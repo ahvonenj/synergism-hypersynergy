@@ -111,8 +111,11 @@ export class HSCodes extends HSModule {
                     <span style="${this.#codeSpanStyle}" data-code=":antismith:">:antismith:</span>
                 </div>`;
 
-                document.delegateEventListener('click', '#hs-hijack-codes-wrapper > span', function(e) {
-                    const code = this.dataset.code;
+                // On the wrapper itself: the listener goes with it when the label is rewritten
+                this.#codeBoxLabel.querySelector('#hs-hijack-codes-wrapper')?.addEventListener('click', (e) => {
+                    const span = (e.target as HTMLElement).closest<HTMLElement>('#hs-hijack-codes-wrapper > span');
+                    if (!span) return;
+                    const code = span.dataset.code;
                     const textInput = document.querySelector('#prompt_text') as HTMLInputElement;
 
                     if(code && textInput) {
@@ -120,7 +123,7 @@ export class HSCodes extends HSModule {
                     } else {
                         HSLogger.warn(`Could not inject code to code input`, self.context);
                     }
-                }, true);
+                });
 
                 HSLogger.debug(() => "Hijacked code redeem panel", this.context);
             }

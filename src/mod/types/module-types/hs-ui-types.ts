@@ -4,7 +4,6 @@
     Author: Swiffy
 */
 
-import { TransitionableCSSProperty, HSUICCSSProperties } from "../dom-types/hs-css-types";
 import { HSOptional } from "../hs-typescript-functions";
 
 export enum EPredefinedPosition {
@@ -33,8 +32,9 @@ export enum HSInputType {
     STATE = 6
 }
 
-export type TransitionProperties = {
-    [K in TransitionableCSSProperty]?: string | number;
+/** Inline style properties by their name on `element.style` (camelCase). A number without a unit is written as is. */
+export type HSCSSProperties = {
+    [K in keyof CSSStyleDeclaration as K extends string ? (CSSStyleDeclaration[K] extends string ? K : never) : never]?: string | number;
 }
 
 export type CSSValue = string | number | undefined | null;
@@ -45,7 +45,7 @@ interface HSUICOptions {
     id: string;
     class?: string;
     data?: Map<string, string>;
-    styles?: HSUICCSSProperties;
+    styles?: HSCSSProperties;
     props?: HTMLProps;
 }
 

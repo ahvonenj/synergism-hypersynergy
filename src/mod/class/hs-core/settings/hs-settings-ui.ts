@@ -394,8 +394,7 @@ export class HSSettingsUI {
         const count = ambrosiaMod.getAmbrosiaLoadoutsAmount();
         const maxLoadouts = count > 0 ? count : 16;
 
-        const settingsEntries = Object.typedEntries(getSettings());
-        for (const [, setting] of settingsEntries) {
+        for (const setting of Object.values(getSettings())) {
             const control = setting.getDefinition().settingControl;
             if (!control || !control.selectOptions) continue;
             if (!control.selectOptions.some((option) => /loadout\s*\d+/i.test(option.text))) continue;

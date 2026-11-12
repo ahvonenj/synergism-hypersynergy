@@ -386,7 +386,7 @@ export class HSLogger {
             ?? listed;
         if (!color) return context;
 
-        const label = HSUtils.parseColorTags(context.colorTag(color));
+        const label = HSUtils.parseColorTags(`<${color}>${context}</${color}>`);
         HSLogger.#contextLabels.set(context, label);
         return label;
     }

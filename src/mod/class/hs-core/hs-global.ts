@@ -59,12 +59,6 @@ export const HSGlobal: IHSGlobal = class {
         get modRequestHeaders(): Record<string, string> { return { 'X-HyperSynergism-Version': HSGlobal.General.currentModVersion }; },
     }
 
-    // --- HSPrototypes ---
-    static HSPrototypes = {
-        // Default CSS transition timing 100ms
-        defaultTransitionTiming: 100
-    }
-
     // --- HSElementHooker ---
     // watchElement's MutationObserver can fire max 20 times / second
     static HSElementHooker = {

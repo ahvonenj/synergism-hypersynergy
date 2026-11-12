@@ -5,7 +5,6 @@ import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
 import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
-import { HSPrototypes } from "../hs-prototypes";
 import { HSMouse } from "../hs-mouse";
 import { HSStorage } from "../hs-storage";
 import { HSAmbrosia } from "../../hs-modules/hs-ambrosia/hs-ambrosia";
@@ -22,14 +21,6 @@ import type { HSModuleDefinition } from "../../../types/hs-types";
 
 /** Constructors and startup options for every enabled module. Initialization follows this list and loadOrder. */
 export const HS_MODULE_DEFINITIONS = [
-    {
-        className: 'HSPrototypes',
-        moduleClass: HSPrototypes,
-        context: 'HSPrototypes',
-        moduleColor: 'crimson',
-        loadOrder: 1,
-        initImmediate: true
-    },
     {
         className: 'HSUI',
         moduleClass: HSUI,

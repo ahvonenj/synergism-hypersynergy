@@ -32,10 +32,6 @@ export interface HSGlobalCommon {
     readonly modRequestHeaders: Record<string, string>;
 }
 
-export interface HSGlobalPrototypes {
-    defaultTransitionTiming: number;
-}
-
 export interface HSGlobalElementHooker {
     elementHookUpdateMS: number;
     elementsHookUpdateMS: number;
@@ -116,7 +112,6 @@ export interface IHSGlobal {
     Release: HSGlobalRelease;
     General: HSGlobalGeneral;
     Common: HSGlobalCommon;
-    HSPrototypes: HSGlobalPrototypes;
     HSElementHooker: HSGlobalElementHooker;
     HSLogger: HSGlobalLogger;
     HSStorage: HSGlobalStorage;

@@ -1,4 +1,4 @@
-import { EPredefinedPosition, HSNotification, HSNotifyColumn, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY } from "../../types/module-types/hs-ui-types";
+import { EPredefinedPosition, HSNotification, HSNotifyColumn, HSNotifyOptions, HSPanelTabDefinition, HSUIDOMCoordinates, HSUIModalOptions, HSUIXY, HSCSSProperties } from "../../types/module-types/hs-ui-types";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSIcons } from "../hs-utils/hs-icons";
 import { HSElementHooker } from "./hs-elementhooker";
@@ -197,6 +197,56 @@ export class HSUI extends HSModule {
         return maxZ;
     }
 
+    // Sets inline styles through a CSS transition. Resolves when every property that changes has finished,
+    // or after the duration + 50 ms, whichever comes first; the element's own transition is then put back.
+    static #transition(element: HTMLElement, properties: HSCSSProperties, duration = 100, timingFunction = 'linear'): Promise<void> {
+        const entries = Object.entries(properties) as [string, string | number][];
+        if (entries.length === 0) return Promise.resolve();
+
+        const style = element.style;
+        const originalTransition = style.transition;
+        style.transition = entries.map(([prop]) => `${HSUtils.camelToKebab(prop)} ${duration}ms ${timingFunction}`).join(', ');
+
+        return new Promise<void>((resolve) => {
+            const pending = new Set<string>();
+            let done = false;
+
+            const finish = () => {
+                if (done) return;
+                done = true;
+                clearTimeout(timeout);
+                element.removeEventListener('transitionend', onEnd);
+                style.transition = originalTransition;
+                resolve();
+            };
+
+            // A child's transition bubbles here too
+            const onEnd = (e: TransitionEvent) => {
+                if (e.target !== element) return;
+                pending.delete(e.propertyName);
+                if (pending.size === 0) finish();
+            };
+
+            element.addEventListener('transitionend', onEnd);
+            const timeout = setTimeout(finish, duration + 50);
+
+            // Reflow, so the transition starts from the current values
+            void element.offsetHeight;
+            const computed = getComputedStyle(element);
+
+            for (const [prop, value] of entries) {
+                const cssProp = HSUtils.camelToKebab(prop);
+                const current = computed.getPropertyValue(cssProp);
+                const next = typeof value === 'number' && prop !== 'zIndex' && prop !== 'opacity' ? `${value}px` : String(value);
+                // No transitionend comes for a value that doesn't change, nor from 'none' or 'auto'
+                if (current && current !== 'none' && current !== 'auto' && current !== next) pending.add(cssProp);
+                (style as unknown as Record<string, string | number>)[prop] = value;
+            }
+
+            if (pending.size === 0) finish();
+        });
+    }
+
     #setupPanelInteractions(): void {
         if (!this.#uiPanel) return;
 
@@ -249,7 +299,7 @@ export class HSUI extends HSModule {
 
     async #closePanel(): Promise<void> {
         if (!HSUI.#modPanelOpen || !this.#uiPanel) return;
-        await this.#uiPanel.transition({ opacity: 0 });
+        await HSUI.#transition(this.#uiPanel, { opacity: 0 });
         HSUI.#modPanelOpen = false;
         HSUI.#logTabActive = false;
         this.#uiPanel.classList.add('hs-panel-closed');
@@ -387,7 +437,7 @@ export class HSUI extends HSModule {
                 if (HSUI.#logTabActive) {
                     HSLogger.flushPendingLogs();
                 }
-                await this.#uiPanel.transition({ opacity: 0.97 });
+                await HSUI.#transition(this.#uiPanel, { opacity: 0.97 });
             }
         });
 
@@ -934,7 +984,7 @@ export class HSUI extends HSModule {
         modal.style.left = `${finalCoords.x}px`;
         modal.style.top  = `${finalCoords.y}px`;
 
-        await modal.transition({ opacity: 1 });
+        await HSUI.#transition(modal, { opacity: 1 });
         if (!modal.isConnected) return uuid;
         this.#attachModalHandlers(modal, modalHead, cleanups);
 
@@ -954,7 +1004,7 @@ export class HSUI extends HSModule {
 
     async #closeModal(modal: HTMLDivElement): Promise<void> {
         if (modal.isConnected) {
-            await modal.transition({ opacity: 0 });
+            await HSUI.#transition(modal, { opacity: 0 });
             modal.remove();
         }
         const cleanups = this.#modalCleanup.get(modal);
@@ -1093,7 +1143,7 @@ export class HSUI extends HSModule {
         columnElement.style.zIndex = String(HSUI.getHighestActiveModalZIndex() + 1);
         columnElement.appendChild(element);
 
-        void element.transition({
+        void HSUI.#transition(element, {
             transform: 'none'
         }, popDuration, `linear(0, 0.408 26.7%, 0.882 50.9%, 0.999 57.7%, 0.913 65.3%, 0.893 68.8%, 0.886 72.4%, 0.903 78.5%, 0.986 92.3%, 1)`);
 

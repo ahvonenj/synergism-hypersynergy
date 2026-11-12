@@ -53,8 +53,8 @@ export class HSModuleManager {
             });
             HSModuleRegistry.register(definition.className, module);
             this.#instances.push(module);
-            const label = metadata.moduleColor && typeof String.prototype.colorTag === 'function'
-                ? modName.colorTag(metadata.moduleColor) : modName;
+            const color = metadata.moduleColor;
+            const label = color ? `<${color}>${modName}</${color}>` : modName;
             HSLogger.log("Enabled module '" + label + "'", metadata.context);
             return module;
         } catch (error) {

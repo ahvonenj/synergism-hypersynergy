@@ -548,16 +548,14 @@ export class Hypersynergism {
     }
 
     #bindSettingsTabEvents() {
-        document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
-            this.#handleGameDataIconClick(e);
-        });
-
-        document.delegateEventListener('click', '.hs-panel-subtab', (e) => {
-            this.#handleSettingsSubtabClick(e);
+        document.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
+            if (e.target.closest('.hs-panel-setting-block-gamedata-icon')) this.#handleGameDataIconClick();
+            if (e.target.closest('.hs-panel-subtab')) this.#handleSettingsSubtabClick(e);
         });
     }
 
-    #handleGameDataIconClick(_e: Event) {
+    #handleGameDataIconClick() {
         const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
         const color = subtab?.dataset.color;
 
