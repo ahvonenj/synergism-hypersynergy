@@ -250,10 +250,6 @@ export const HSGlobal: IHSGlobal = class {
             // Research hover buy button
             '#toggle38',
 
-            // Ant buy amount button
-            '#toggleAntMax',
-
-
             // Auto challenge toggle button
             '#toggleAutoChallengeStart',
 

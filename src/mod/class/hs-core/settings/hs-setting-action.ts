@@ -83,15 +83,11 @@ export class HSSettingActions {
         },
 
         reactiveMouseHover: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSMouse.clearInterval('hover');
-            }
+            if (params.disable) HSMouse.clearInterval('hover');
         },
 
         autoClick: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSMouse.clearInterval('click');
-            }
+            if (params.disable) HSMouse.clearInterval('click');
         },
 
         ambrosiaMinibarAction: moduleToggle('HSAmbrosia',
