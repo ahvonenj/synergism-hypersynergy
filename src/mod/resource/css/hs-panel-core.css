@@ -553,6 +553,11 @@ select::-webkit-scrollbar-corner {
     row-gap: 10px;
 }
 
+/* The Tools tab keeps the width it has in a panel of the default size; it still shrinks with a narrower panel */
+.hs-panel-tools-grid {
+    max-width: 400px;
+}
+
 .hs-panel-grid-full-span {
     grid-column: span 2;
 }

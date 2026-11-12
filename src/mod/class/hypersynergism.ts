@@ -363,7 +363,7 @@ export class Hypersynergism {
 
         hsui.replaceTabContents(2,
             HSUIC.Grid({
-                class: 'hs-panel-grid-2col',
+                class: 'hs-panel-grid-2col hs-panel-tools-grid',
                 html: [
                     ...(bookmarkletSection.length > 0 ? [this.#buildGridSectionHeader('Recommended: Tampermonkey loader'), ...bookmarkletSection] : []),
                     this.#buildGridSectionHeader('Backup & Restore'),
