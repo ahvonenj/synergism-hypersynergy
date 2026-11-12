@@ -1,7 +1,7 @@
 import { HSGameDataSubscriber, HSModuleOptions } from "../../../types/hs-types";
 import { AmbrosiaUpgradeCalculationCollection, AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import { AmbrosiaUpgradeData, AmbrosiaUpgrades, GameData } from "../../../types/data-types/hs-player-savedata";
-import { AMBROSIA_LOADOUT_SLOT } from "../../../types/module-types/hs-ambrosia-types";
+import { AMBROSIA_LOADOUT_SLOT } from "./hs-ambrosia-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGameData } from "../../hs-core/gds/hs-gamedata";

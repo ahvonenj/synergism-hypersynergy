@@ -1,4 +1,4 @@
-import type { HSExportDirectoryHandle, HSExportFileHandle } from "../../../types/module-types/hs-auto-export-types";
+import type { HSExportDirectoryHandle, HSExportFileHandle } from "./hs-auto-export-types";
 import { HSSetting } from "../../hs-core/settings/hs-setting";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";

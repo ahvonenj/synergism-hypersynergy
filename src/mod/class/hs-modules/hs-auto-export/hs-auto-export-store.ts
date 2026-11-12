@@ -1,4 +1,4 @@
-import type { HSExportDirectoryHandle } from '../../../types/module-types/hs-auto-export-types';
+import type { HSExportDirectoryHandle } from './hs-auto-export-types';
 
 const DB_NAME = 'hs-auto-export';
 const DB_STORE = 'state';

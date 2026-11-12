@@ -4,7 +4,8 @@
     Author: Swiffy
 */
 
-import { HSOptional } from "../hs-typescript-functions";
+// A type with some keys made optional: HSOptional<SomeBaseType, 'id'>
+type HSOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export enum EPredefinedPosition {
     CENTER = 1,

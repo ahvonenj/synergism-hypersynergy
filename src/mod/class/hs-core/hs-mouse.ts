@@ -1,9 +1,21 @@
-import { EKeyBoardKeys, HSMousePosition } from "../../types/hs-input-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
 import { HSModule } from "./module/hs-module";
 import { HSSetting } from "./settings/hs-setting";
 import { HSSettings } from "./settings/hs-settings";
+
+type HSMousePosition = {
+    x: number;
+    y: number;
+}
+
+enum EKeyBoardKeys {
+    LEFT_CTRL = 'ControlLeft',
+    RIGHT_CTRL = 'ControlRight',
+
+    LEFT_SHIFT = 'ShiftLeft',
+    RIGHT_SHIFT = 'ShiftRight'
+}
 
 /**
  *  Class: HSMouse

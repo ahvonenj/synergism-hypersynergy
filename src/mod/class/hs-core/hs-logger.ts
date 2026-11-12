@@ -2,7 +2,15 @@ import { HSUI } from "./hs-ui";
 import { HSUtils } from "../hs-utils/hs-utils";
 import { HSGlobal } from "./hs-global";
 import { HSModuleRegistry } from "./module/hs-module-registry";
-import { ELogType } from "../../types/module-types/hs-logger-types";
+
+// The kind of a log line
+enum ELogType {
+    LOG = 1,
+    WARN = 2,
+    ERROR = 3,
+    INFO = 4,
+    DEBUG = 5,
+}
 
 // A line as logged. It is formatted only when drawn or copied: most debug lines of a long run never are
 type LogRecord = {

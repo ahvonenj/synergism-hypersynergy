@@ -1,5 +1,5 @@
-import type { HeaterOptimizationResult, HeaterOptimizerInput } from './hs-heater-types'
-import type { HeaterCubeExperimentDiagnostics, HeaterOptimizerLog } from '../../class/hs-modules/hs-heater/hs-heater-optimizer'
+import type { HeaterOptimizationResult, HeaterOptimizerInput } from '../../../types/data-types/hs-heater-types'
+import type { HeaterCubeExperimentDiagnostics, HeaterOptimizerLog } from './hs-heater-optimizer'
 
 /** One timed step of a heat (the optimizer's stage records) */
 export type HeaterOptimizerStage = HeaterCubeExperimentDiagnostics['stages'][number]

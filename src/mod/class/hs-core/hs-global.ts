@@ -1,5 +1,121 @@
 import { HSViewProperties, MAIN_VIEW, SUBTAB_KEY, SUBTAB_BUTTON_IDS, orderedIds } from "../../types/module-types/hs-gamestate-types";
-import { IHSGlobal } from "../../types/module-types/hs-global-types";
+import type { HSWatcherOptions } from "../../types/module-types/hs-elementhooker-types";
+import type { PlayerData } from "../../types/data-types/hs-player-savedata";
+
+interface IStoreable {
+    storageKey: string;
+}
+
+interface HSGlobalDebug {
+    debugMode: boolean;
+    performanceDebugMode: boolean;
+    gameDataDebugMode: boolean;
+    calculationCacheDebugMode: boolean;
+}
+
+interface HSGlobalRelease {
+    githubOwner: string;
+    checkIntervalMs: number;
+}
+
+interface HSGlobalGeneral {
+    currentModVersion: string;
+    isModFullyLoaded: boolean;
+    modGithubUrl: string;
+    modWebsiteUrl: string;
+    modDiscordThreadUrl: string;
+}
+
+interface HSGlobalCommon {
+    pseudoAPIurl: string;
+    meAPIurl: string;
+    readonly modRequestHeaders: Record<string, string>;
+}
+
+interface HSGlobalElementHooker {
+    elementHookUpdateMS: number;
+    elementHookTimeout: number;
+    defaultWatcherOptions: HSWatcherOptions;
+}
+
+interface HSGlobalLogger {
+    logSize: number;
+    debugLogSize: number;
+    contextColors: Record<string, string>;
+}
+
+interface HSGlobalStorage {
+    storagePrefix: string;
+}
+
+interface HSGlobalSettings extends IStoreable {
+    strategiesKey: string;
+    gameDataRequiredTooltip: string;
+    gameDataCheckBlacklist: string[];
+}
+
+interface HSGlobalMouse {
+    autoClickIgnoredElements: string[];
+}
+
+interface HSGlobalHiddenDialogs extends IStoreable { }
+
+interface HSGlobalAmbrosia {
+    TIME_PER_AMBROSIA: number;
+    TIME_PER_RED_AMBROSIA: number;
+    digitReduction: number;
+
+    blueBarId: string;
+    blueBarProgressId: string;
+    blueBarProgressTextId: string;
+    redBarId: string;
+    redBarProgressId: string;
+    redBarProgressTextId: string;
+    purpleBarId: string;
+    purpleBarProgressId: string;
+    barWrapperId: string;
+}
+
+interface HSGlobalGameState {
+    viewProperties: Map<MAIN_VIEW, HSViewProperties>;
+}
+
+interface HSGlobalGameData {
+    consumablesPollInterval: number;
+    gdsSpeedMs: number;
+    gdsCSSId: string;
+}
+
+interface HSGlobalHSUI {
+    injectedStylesDomId: string;
+    notifyColumnClassName: string;
+    notifyClassName: string;
+    notifyTextClassName: string;
+}
+
+interface HSGlobalHSUIC {
+    defaultImageWidth: number;
+    defaultImageHeight: number;
+}
+
+interface IHSGlobal {
+    exposedPlayer: PlayerData | null;
+    Debug: HSGlobalDebug;
+    Release: HSGlobalRelease;
+    General: HSGlobalGeneral;
+    Common: HSGlobalCommon;
+    HSElementHooker: HSGlobalElementHooker;
+    HSLogger: HSGlobalLogger;
+    HSStorage: HSGlobalStorage;
+    HSSettings: HSGlobalSettings;
+    HSMouse: HSGlobalMouse;
+    HSHiddenDialogs: HSGlobalHiddenDialogs;
+    HSAmbrosia: HSGlobalAmbrosia;
+    HSGameData: HSGlobalGameData;
+    HSUI: HSGlobalHSUI;
+    HSUIC: HSGlobalHSUIC;
+    HSGameState: HSGlobalGameState;
+}
 
 // Build-time injected by esbuild via `define`.
 declare const HS_BUILD_VERSION: string;
