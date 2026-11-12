@@ -1703,7 +1703,7 @@
           "where": "Tools → Fix Exalt Bug",
           "summary": "Attempts the recovery path for an inconsistent active-Exalt display.",
           "details": [
-            "First looks for the active Exalt in the game and clicks it. If that is not possible, patched-player state is checked and the attempt is logged."
+            "With an Exalt active, clicks its icon as the Exalts tab does. When the game still thinks you are in an Exalt with none active, clears that state. Each outcome shows a notification; the fix needs the Tampermonkey loader."
           ],
           "limits": [
             "A targeted recovery tool, not a general-purpose save repair or guaranteed fix for every Exalt problem."

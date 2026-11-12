@@ -164,29 +164,44 @@ export class HSToolsTab {
         });
     }
 
+    /**
+     * An active exalt: click its icon, as in the Exalts tab (the game exits it or asks to confirm).
+     * The bug: the game's "inside an exalt" flag stays on with no exalt enabled (the exalt timer stays shown);
+     * clear it as the game does when leaving an exalt. Loading a save rebuilds the flag too.
+     */
     static #fixExaltBug() {
-        HSLogger.log('Attempting to exit an exalt by clicking the active challenge (if any).');
-
         const img = HSUtils.getActiveExaltElement();
         if (img) {
-            console.log('Found active challenge img, clicking:', img);
+            HSLogger.log(`Fix Exalt Bug: clicked the active exalt (${img.id})`, this.#context);
             img.click();
             return;
         }
 
         const exposedPlayer = HSGlobal.exposedPlayer;
         if (!exposedPlayer) {
-            HSLogger.log('If you are using the bookmark loader, please try again with the TAMPERMONKEY loader instead.', this.#context);
+            HSLogger.warn('Fix Exalt Bug: refused, it needs the Tampermonkey loader', this.#context);
+            void HSUI.Notify('Fix Exalt Bug needs the Tampermonkey loader.', {
+                position: 'top',
+                notificationType: 'warning'
+            });
             return;
         }
 
-        if (exposedPlayer.insideSingularityChallenge === false) {
-            HSLogger.info('No active Exalt found in DOM or exposed stuff... Are you sure you have a bug?', this.#context);
+        if (!exposedPlayer.insideSingularityChallenge) {
+            HSLogger.log('Fix Exalt Bug: no exalt bug, not in an exalt', this.#context);
+            void HSUI.Notify('No exalt bug: you are not in an exalt.', {
+                position: 'top',
+                notificationType: 'default'
+            });
             return;
         }
 
-        exposedPlayer.insideSingularityChallenge = true;
-        HSLogger.info('Exalt bug fixed.', this.#context);
+        exposedPlayer.insideSingularityChallenge = false;
+        HSLogger.log('Fix Exalt Bug: "inside an exalt" flag cleared, no exalt was active', this.#context);
+        void HSUI.Notify('Exalt bug fixed: the game no longer thinks you are in an exalt.', {
+            position: 'top',
+            notificationType: 'success'
+        });
     }
 
     static #dumpGameData() {
