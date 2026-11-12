@@ -12,7 +12,9 @@ import { isTesseractAutoBuyPercentageMode } from "../../hs-core/gds/hs-gamedata-
 
 type AutomationSelectorExpectation = 'ON' | 'OFF' | string;
 // expectedTranslationKey: the game's translation key for a literal `expected` text (the game writes it in the player's language)
-// isOnForPlayer: reads the state from the live player object instead, when the patcher exposed it (for elements whose text can be wrong)
+// isOnForPlayer: whether the spec holds, read from the live player object when the patcher exposed it. Buttons with a
+// `toggleid` attribute need none (player.toggles[toggleid], the game's own rule). The text and border checks are
+// the fallback for bookmarklet players: the text is in the player's language, and wrong for a while after a language switch.
 type AutomationSelectorSpec = string | {
     selector: string;
     expected?: AutomationSelectorExpectation;
@@ -93,7 +95,10 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
         subtree: false,
         characterData: false,
         attributes: true,
-        attributeFilter: ['style', 'class', 'aria-pressed', 'aria-checked']
+        attributeFilter: ['style', 'class', 'aria-pressed', 'aria-checked'],
+        // Text, style (border by state, display when the game shows or hides the toggle), class and aria state.
+        // Not innerText: a hidden element's innerText is its text, so a show or hide alone would be missed.
+        valueParser: (el) => `${el.textContent}|${el.getAttribute('style')}|${el.className}|${el.getAttribute('aria-pressed')}|${el.getAttribute('aria-checked')}`
     };
 
     static readonly #AUTOMATION_QUICKBAR_BOOTSTRAP_RETRY_MS = [50, 150, 500, 1000, 2000] as const;
@@ -122,66 +127,81 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
         { selector: '#toggle24.auto.autobuyerToggleButton' },
         { selector: '#toggle25.auto.autobuyerToggleButton' },
         { selector: '#toggle26.auto.autobuyerToggleButton' },
-        { selector: '#tesseractAutoToggle1.auto.autobuyerToggleButton' },
-        { selector: '#tesseractAutoToggle2.auto.autobuyerToggleButton' },
-        { selector: '#tesseractAutoToggle3.auto.autobuyerToggleButton' },
-        { selector: '#tesseractAutoToggle4.auto.autobuyerToggleButton' },
-        { selector: '#tesseractAutoToggle5.auto.autobuyerToggleButton' },
+        { selector: '#tesseractAutoToggle1.auto.autobuyerToggleButton', isOnForPlayer: (player) => !!player.autoTesseracts?.[1] },
+        { selector: '#tesseractAutoToggle2.auto.autobuyerToggleButton', isOnForPlayer: (player) => !!player.autoTesseracts?.[2] },
+        { selector: '#tesseractAutoToggle3.auto.autobuyerToggleButton', isOnForPlayer: (player) => !!player.autoTesseracts?.[3] },
+        { selector: '#tesseractAutoToggle4.auto.autobuyerToggleButton', isOnForPlayer: (player) => !!player.autoTesseracts?.[4] },
+        { selector: '#tesseractAutoToggle5.auto.autobuyerToggleButton', isOnForPlayer: (player) => !!player.autoTesseracts?.[5] },
         // These two have a static i18n attribute: on a language switch the game rewrites their text from it
-        // ("Auto Buy: OFF", "Mode: AMOUNT") whatever their state, until they are redrawn. So don't trust their text:
-        // the auto-buy toggle is judged by its border (kept correct), the mode by the player state when available.
-        '#tesseractautobuytoggle',
+        // ("Auto Buy: OFF", "Mode: AMOUNT") whatever their state, until they are redrawn. Without the player
+        // state, the auto-buy toggle is judged by its border, the mode by its text.
+        { selector: '#tesseractautobuytoggle', isOnForPlayer: (player) => !!player.tesseractAutoBuyerToggle },
         {
             selector: '#tesseractautobuymode', expected: 'Mode: PERCENTAGE', expectedTranslationKey: 'toggles.modePercentage',
             isOnForPlayer: (player) => isTesseractAutoBuyPercentageMode(player.resetToggleModes)
         },
-        { selector: '#coinAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon' },
-        { selector: '#prestigeAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon' },
-        { selector: '#transcendAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon' },
-        { selector: '#reincarnateAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon' },
-        { selector: '#generatorsAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon' },
+        { selector: '#coinAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon', isOnForPlayer: (player) => !!player.shoptoggles?.coin },
+        { selector: '#prestigeAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon', isOnForPlayer: (player) => !!player.shoptoggles?.prestige },
+        { selector: '#transcendAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon', isOnForPlayer: (player) => !!player.shoptoggles?.transcend },
+        { selector: '#reincarnateAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon', isOnForPlayer: (player) => !!player.shoptoggles?.reincarnate },
+        { selector: '#generatorsAutoUpgrade.autobuyerToggleButton', expected: 'Auto: ON', expectedTranslationKey: 'general.autoOnColon', isOnForPlayer: (player) => !!player.shoptoggles?.generators },
     ] as const satisfies readonly AutomationSelectorSpec[];
 
     static readonly #automationRuneSelectors = [
-        '#toggleautosacrifice',
+        { selector: '#toggleautosacrifice', isOnForPlayer: (player) => !!player.autoSacrificeToggle },
         // Its border is white when ON and orange when OFF, so match its text instead
-        { selector: '#toggleautoBuyFragments', expected: 'Auto Buy: ON', expectedTranslationKey: 'runes.talismans.autoBuyOn' },
-        '#toggleautofortify',
+        {
+            selector: '#toggleautoBuyFragments', expected: 'Auto Buy: ON', expectedTranslationKey: 'runes.talismans.autoBuyOn',
+            isOnForPlayer: (player) => !!player.autoBuyFragment
+        },
+        { selector: '#toggleautofortify', isOnForPlayer: (player) => !!player.autoFortifyToggle },
         '#toggle36',
         '#toggle37'
     ] as const satisfies readonly AutomationSelectorSpec[];
 
     static readonly #automationResearchSelectors = [
-        { selector: '#toggleresearchbuy', expected: 'Upgrade: MAX [if possible]', expectedTranslationKey: 'researches.upgradeMax' },
-        { selector: '#toggleautoresearch', expected: 'Automatic: ON', expectedTranslationKey: 'researches.automaticOn' },
-        { selector: '#toggleautoresearchmode', expected: 'Automatic mode: Cheapest', expectedTranslationKey: 'researches.autoModeCheapest' },
+        {
+            selector: '#toggleresearchbuy', expected: 'Upgrade: MAX [if possible]', expectedTranslationKey: 'researches.upgradeMax',
+            isOnForPlayer: (player) => !!player.researchBuyMaxToggle
+        },
+        {
+            selector: '#toggleautoresearch', expected: 'Automatic: ON', expectedTranslationKey: 'researches.automaticOn',
+            isOnForPlayer: (player) => !!player.autoResearchToggle
+        },
+        {
+            selector: '#toggleautoresearchmode', expected: 'Automatic mode: Cheapest', expectedTranslationKey: 'researches.autoModeCheapest',
+            isOnForPlayer: (player) => player.autoResearchMode === 'cheapest'
+        },
     ] as const satisfies readonly AutomationSelectorSpec[];
 
     static readonly #automationCubeSelectors = [
-        '#openCubes',
-        '#openTesseracts',
-        '#openHypercubes',
-        '#openPlatonicCube',
-        '#toggleAutoCubeUpgrades',
-        '#toggleAutoPlatonicUpgrades'
-    ];
+        { selector: '#openCubes', isOnForPlayer: (player) => !!player.autoOpenCubes },
+        { selector: '#openTesseracts', isOnForPlayer: (player) => !!player.autoOpenTesseracts },
+        { selector: '#openHypercubes', isOnForPlayer: (player) => !!player.autoOpenHypercubes },
+        { selector: '#openPlatonicCube', isOnForPlayer: (player) => !!player.autoOpenPlatonicsCubes },
+        { selector: '#toggleAutoCubeUpgrades', isOnForPlayer: (player) => !!player.autoCubeUpgradesToggle },
+        { selector: '#toggleAutoPlatonicUpgrades', isOnForPlayer: (player) => !!player.autoPlatonicUpgradesToggle }
+    ] as const satisfies readonly AutomationSelectorSpec[];
 
     static readonly #automationHepteractSelectors = [
-        '#chronosHepteractAuto',
-        '#hyperrealismHepteractAuto',
-        '#challengeHepteractAuto',
-        '#abyssHepteractAuto',
-        '#acceleratorHepteractAuto',
-        '#acceleratorBoostHepteractAuto',
-        '#multiplierHepteractAuto',
-        '#hepteractToQuarkTradeAuto'
-    ];
+        { selector: '#chronosHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.chronos?.AUTO },
+        { selector: '#hyperrealismHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.hyperrealism?.AUTO },
+        { selector: '#challengeHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.challenge?.AUTO },
+        { selector: '#abyssHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.abyss?.AUTO },
+        { selector: '#acceleratorHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.accelerator?.AUTO },
+        { selector: '#acceleratorBoostHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.acceleratorBoost?.AUTO },
+        { selector: '#multiplierHepteractAuto', isOnForPlayer: (player) => !!player.hepteracts?.multiplier?.AUTO },
+        { selector: '#hepteractToQuarkTradeAuto', isOnForPlayer: (player) => !!player.overfluxOrbsAutoBuy }
+    ] as const satisfies readonly AutomationSelectorSpec[];
 
     private static readonly AUTOMATION_QUICKBAR_CONFIG = {
         AutoChallenge: {
             kind: 'solo',
             actionDOM: '#toggleAutoChallengeStart',
-            checks: [{ selector: '#toggleAutoChallengeStart', expected: 'Auto Challenge Sweep [ON]', expectedTranslationKey: 'challenges.autoChallengeSweepOn' }],
+            checks: [{
+                selector: '#toggleAutoChallengeStart', expected: 'Auto Challenge Sweep [ON]', expectedTranslationKey: 'challenges.autoChallengeSweepOn',
+                isOnForPlayer: (player) => !!player.autoChallengeRunning
+            }],
             gameDataFallback: (gameData: GameData) => !!gameData.autoChallengeRunning,
             buttonId: 'automationQuickBar-autochallenge',
             label: 'Auto-Challenge',
@@ -214,7 +234,10 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
         AutoAntSacrifice: {
             kind: 'solo',
             actionDOM: '#toggleAutoSacrificeAnt',
-            checks: [{ selector: '#toggleAutoSacrificeAnt', expected: 'Auto Sacrifice: ON', expectedTranslationKey: 'ants.autoSacrificeOn' }],
+            checks: [{
+                selector: '#toggleAutoSacrificeAnt', expected: 'Auto Sacrifice: ON', expectedTranslationKey: 'ants.autoSacrificeOn',
+                isOnForPlayer: (player) => !!player.ants?.toggles?.autoSacrificeEnabled
+            }],
             selectorVisibility: 'parent',
             buttonId: 'automationQuickBar-autoantsacrifice',
             label: 'Auto-Sacrifice',
@@ -238,7 +261,10 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
         AutoAscend: {
             kind: 'solo',
             actionDOM: '#ascensionAutoEnable',
-            checks: [{ selector: '#ascensionAutoEnable', expected: 'Auto Ascend [ON]', expectedTranslationKey: 'corruptions.autoAscend.on' }],
+            checks: [{
+                selector: '#ascensionAutoEnable', expected: 'Auto Ascend [ON]', expectedTranslationKey: 'corruptions.autoAscend.on',
+                isOnForPlayer: (player) => !!player.autoAscend
+            }],
             buttonId: 'automationQuickBar-autoascend',
             label: 'Auto Ascend',
             iconSrc: './Pictures/Simplified/AscensionNoBorder.png',
@@ -287,9 +313,11 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
 
             // The game colours most toggles' border by state (green/gold: on, red: off), whatever the language.
             // Other colours (e.g. white/orange for auto-buy fragments) mean something else: fall through.
-            const borderColor = el.style.borderColor.trim().toLowerCase();
-            if (borderColor === 'green' || borderColor === 'limegreen' || borderColor === 'gold') return true;
-            if (borderColor === 'red') return false;
+            // It writes `border: 2px solid var(--green-color)` (or borderColor alone): with a var(), only the property
+            // written reads back (borderColor reads '' after the shorthand), so both are read. \b matches in `--red-color`.
+            const border = `${el.style.border} ${el.style.borderColor}`.toLowerCase();
+            if (/\b(green|limegreen|gold)\b/.test(border)) return true;
+            if (/\bred\b/.test(border)) return false;
 
             // Text-based heuristics: look for common status markers
             const text = (el.textContent || '').trim();
@@ -373,28 +401,39 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
             return existing;
         }
 
-        let matcher: (el: HTMLElement | null) => boolean;
+        let domMatcher: (el: HTMLElement) => boolean;
 
-        // Build matcher according to expected contract
+        // Without the player state: build the DOM check according to the expected contract
         if (expected === undefined || expected === 'ON') {
-            matcher = (el: HTMLElement | null) => this.#isElementOn(el);
+            domMatcher = (el) => this.#isElementOn(el);
         } else if (expected === 'OFF') {
-            matcher = (el: HTMLElement | null) => !!el && !this.#isElementOn(el);
+            domMatcher = (el) => !this.#isElementOn(el);
         } else {
             // expected contains a literal text to compare against element text: the English one,
             // or the game's text in the player's language once loaded (looked up on each call)
             const expectedText = this.#normalizeToggleText(expected);
             const expectedTranslationKey = typeof selectorSpec === 'string' ? undefined : selectorSpec.expectedTranslationKey;
-            const isOnForPlayer = typeof selectorSpec === 'string' ? undefined : selectorSpec.isOnForPlayer;
-            matcher = (el: HTMLElement | null) => {
-                if (!el) return false;
-                const player = HSGlobal.exposedPlayer;
-                if (isOnForPlayer && player) return isOnForPlayer(player);
+            domMatcher = (el) => {
                 const currentText = this.#normalizeToggleText(el.textContent || '');
                 return currentText === expectedText
                     || (!!expectedTranslationKey && this.#isGameText(expectedTranslationKey, currentText));
             };
         }
+
+        const isOnForPlayer = typeof selectorSpec === 'string' ? undefined : selectorSpec.isOnForPlayer;
+        const matcher = (el: HTMLElement | null): boolean => {
+            if (!el) return false;
+            const player = HSGlobal.exposedPlayer as PlayerData | null;
+            if (player) {
+                if (isOnForPlayer) return isOnForPlayer(player);
+                const toggleId = el.getAttribute('toggleid');
+                if (toggleId !== null && player.toggles && (expected === undefined || expected === 'ON' || expected === 'OFF')) {
+                    const isOn = !!player.toggles[toggleId];
+                    return expected === 'OFF' ? !isOn : isOn;
+                }
+            }
+            return domMatcher(el);
+        };
 
         this.#selectorMatcherCache.set(matcherKey, matcher);
         return matcher;
