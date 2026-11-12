@@ -21,6 +21,8 @@ Everything they write goes to `local/harness-out/` (git-ignored).
   (`/stripe/upgrades`), `quark-bonus.json` (`/api/v1/quark-bonus`) and `users-me.json` (`/api/v1/users/me`), copied
   from the browser's network tab while logged in. With them the game has your PseudoCoin levels and quark bonus;
   without them, ambrosia speeds come out several times lower. They are personal data: they stay in `local/`.
+  **On another player's backup**, your answers give the game your levels (and your ambrosia loadout slot count, which
+  a strategy's slot setting may exceed): build theirs with `account-from-backup.cjs` and run with `HS_ACCOUNT_DIR`.
 
 ## No traffic to synergism.cc
 
@@ -36,6 +38,7 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | `game-smoke.cjs [save]` | Real game, patched, + save + mod. Reports patches that failed, page exceptions, requests that tried to leave localhost, a screenshot. `PATCH=0` unpatched (a bookmarklet player), `MOD=0` game only. **Copy it into `local/` to start a one-off test.** |
 | `autosing-run.cjs <backup> [sings] [minutes]` | Autosing on a backup: restores its mod data, imports the save, starts autosing, samples every second. Output in `local/harness-out/autosing/<TAG>/`: `console.log`, `samples.jsonl`, `modal.txt` (the run panel's figures), `timings.json` (the recorder's: the run turns on "Record step timings" unless `STEP_TIMINGS=0`), `end.png`. Env in the file's header (`TAG`, `DEBUG=0`, `SETTINGS`, `STRATEGIES`, `HEAT=1`…). |
 | `autosing-sweep.cjs <backup> <target>...` | One `autosing-run` per singularity target (heat at the target, then 10 timed singularities); prints each target's figures. |
+| `account-from-backup.cjs <backup> [name]` | The 3 account answers from a backup's heater data (PseudoCoin levels, quark bonus), in `local/harness-out/account/<name>`. Prints the `HS_ACCOUNT_DIR=` to put before a run. |
 | `autosing-watch.cjs <tag>` | Prints a running autosing run's key lines; exits when it ends. Use it rather than `tail -f`, which locks the log on Windows. |
 | `loader-https.cjs` | The browser loader on the real game page (pseudo-corp.github.io), run at document-start as Tampermonkey does. `PATCHER=local` (the repo's `patcher.js`) or `live` (jsDelivr). |
 | `node-run.mjs <entry.ts> [args]` | Bundles a TypeScript entry that imports the mod's code (`@repo/...` = `src/mod`) for node, with browser-only modules stubbed, and runs it. The entry names its stubs in a comment: `// harness-stubs: gds`, `heater` or a regex. |
