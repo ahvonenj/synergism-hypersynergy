@@ -3,7 +3,7 @@
 .hs-backup-parts {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 16px;
+    gap: 6px 8px;
 }
 
 .hs-backup-parts label,
@@ -12,6 +12,11 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
+}
+
+.hs-backup-parts label {
+    gap: 3px;
+    white-space: nowrap;
 }
 
 .hs-backup-parts input[type="checkbox"],
