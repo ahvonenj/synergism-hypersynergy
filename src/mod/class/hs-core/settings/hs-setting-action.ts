@@ -52,14 +52,16 @@ export class HSSettingActions {
         // NOTE THE EXPLICIT HANDLING OF WHEN PARAMS.DISABLE = TRUE
         // Care should be taken to handle this case so the setting will know what to do when it is enabled/disabled
         syncNotificationOpacity: async (params: HSSettingActionParams) => {
-            const notifElement = document.querySelector('#notification') as HTMLDivElement;
+            // The game's notifications all go into this stack, so its opacity covers every one
+            const notifElement = document.querySelector('#notificationStack') as HTMLDivElement | null;
+            if (!notifElement) return;
 
             if (params.disable && params.disable === true) {
                 notifElement.style.removeProperty('opacity');
             } else {
                 const value = params.value;
 
-                if (notifElement && value && value >= 0 && value <= 1) {
+                if (value !== undefined && value >= 0 && value <= 1) {
                     notifElement.style.opacity = value.toString();
                 }
             }
