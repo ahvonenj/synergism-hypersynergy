@@ -1,4 +1,4 @@
-import { CUBE_VIEW, MAIN_VIEW } from "../../../types/module-types/hs-gamestate-types";
+import { CUBE_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 
 import { HSGlobal } from "../../hs-core/hs-global";
@@ -322,26 +322,11 @@ export class HSHepteracts extends HSModule {
 
         HSLogger.log("Initialising HSHepteracts module", this.context);
 
-        const gameStateMod = HSModuleRegistry.getModule('HSGameState');
-
-        if (gameStateMod) {
-            const syncForgeDataVisit = () => {
-                const isForgeActive = gameStateMod.getCurrentUIView('MAIN_VIEW').getId() === MAIN_VIEW.CUBES
-                    && gameStateMod.getCurrentUIView('CUBE_VIEW').getId() === CUBE_VIEW.HEPTERACT_FORGE;
-
-                if (isForgeActive) {
-                    self.#beginForgeDataVisit();
-                } else {
-                    self.#endForgeDataVisit();
-                }
-            };
-
-            // Owned hepteracts and quarks are read when needed (#refreshOwnedHepteracts, #readOwnedQuarks): no watch to keep
-            gameStateMod.subscribeGameStateChange("MAIN_VIEW", syncForgeDataVisit);
-            gameStateMod.subscribeGameStateChange("CUBE_VIEW", syncForgeDataVisit);
-
-            syncForgeDataVisit();
-        }
+        // Owned hepteracts and quarks are read when needed (#refreshOwnedHepteracts, #readOwnedQuarks): no watch to keep
+        HSModuleRegistry.getModule('HSGameState')?.subscribeSubtab('CUBE_VIEW', CUBE_VIEW.HEPTERACT_FORGE, (isActive) => {
+            if (isActive) self.#beginForgeDataVisit();
+            else self.#endForgeDataVisit();
+        });
 
         this.#heptGrid = await HSElementHooker.HookElement('#heptGrid') ?? undefined;
         this.#hepteractCraftTexts = await HSElementHooker.HookElement<HTMLDivElement>('#hepteractCraftTexts') ?? undefined;

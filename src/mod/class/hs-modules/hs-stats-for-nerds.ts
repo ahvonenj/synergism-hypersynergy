@@ -1,5 +1,5 @@
 import { HSModuleOptions } from "../../types/hs-types";
-import { MAIN_VIEW, SETTINGS_VIEW } from "../../types/module-types/hs-gamestate-types";
+import { SETTINGS_VIEW } from "../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import type { HSGameState } from "../hs-core/hs-gamestate";
 import { HSLogger } from "../hs-core/hs-logger";
@@ -61,17 +61,9 @@ export class HSStatsForNerds extends HSModule {
         HSLogger.log('Initialising HSStatsForNerds module', this.context);
 
         // Unlocks and the game's language change while the subtab is closed: read again each time it opens
-        const gameState = HSModuleRegistry.getModule('HSGameState');
-        if (gameState) {
-            const onViewChange = () => {
-                if (gameState.getCurrentUIView('MAIN_VIEW').getId() === MAIN_VIEW.SETTINGS
-                    && gameState.getCurrentUIView('SETTINGS_VIEW').getId() === SETTINGS_VIEW.STATS_FOR_NERDS) {
-                    this.#refresh();
-                }
-            };
-            gameState.subscribeGameStateChange('MAIN_VIEW', onViewChange);
-            gameState.subscribeGameStateChange('SETTINGS_VIEW', onViewChange);
-        }
+        HSModuleRegistry.getModule('HSGameState')?.subscribeSubtab('SETTINGS_VIEW', SETTINGS_VIEW.STATS_FOR_NERDS, (isActive) => {
+            if (isActive) this.#refresh();
+        });
 
         // Shown by the statsForNerdsGroups setting's action (HSSettings.syncSettings)
         this.isInitialized = true;

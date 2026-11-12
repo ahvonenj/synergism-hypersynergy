@@ -16,6 +16,10 @@ header layout check in Chromium.
 - Modules reach each other through `HSModuleRegistry.getModule('ClassName')`; the name determines the return type. Unknown names and independently supplied instance types are rejected by TypeScript. Log contexts use `getModuleColor(string)` for a colour only. Many core classes (`HSSettings`,
   `HSUI.Notify`, `HSLogger`, `HSGlobal`) are used statically. `HSGlobal` (`hs-core/hs-global.ts`) holds global
   constants and config. `HSUIC` builds UI component HTML. `HSElementHooker` waits for game DOM elements to appear.
+- The tab and subtab on screen: `HSGameState`. `subscribeSubtab(viewKey, subView, cb)` calls back when a subtab comes on
+  screen (its tab shown, on that subtab) and when it leaves; `subscribeGameStateChange(viewKey, cb)` on any change of
+  one tab's subtab, or of the main tab; `getCurrentMainViewFromDOM()` where the observed state may lag (tab changes in
+  bursts, as around a singularity). Tab and subtab ids: `types/module-types/hs-gamestate-types.ts`.
 - Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML, JSON and base64
   `.txt` files from `src/mod/resource/`).
 

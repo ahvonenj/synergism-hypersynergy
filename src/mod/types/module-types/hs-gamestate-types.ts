@@ -287,7 +287,7 @@ export interface HSViewProperties {
 export interface HSViewState<V> {
     currentView: V;
     previousView: V;
-    viewChangeSubscribers: Map<string, (previousView: V, currentView: V) => void>;
+    viewChangeSubscribers: Set<(previousView: V, currentView: V) => void>;
 }
 
 export type HSViewStateRecord = { [K in VIEW_KEY]: HSViewState<ViewOf<K>> };

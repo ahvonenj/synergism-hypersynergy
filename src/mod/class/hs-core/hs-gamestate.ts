@@ -1,11 +1,10 @@
 import {
-    MAIN_VIEW, MAIN_VIEW_BUTTON_IDS, MAIN_VIEW_TAB_IDS, SINGULARITY_VIEW,
+    MAIN_VIEW, MAIN_VIEW_BUTTON_IDS, MAIN_VIEW_TAB_IDS,
     SUBTAB_BUTTON_IDS, SUBTAB_KEY, SubtabEnums,
     orderedIds, viewFromId,
     VIEW_KEY, VIEW_TYPE, ViewOf, HSViewState, HSViewStateRecord,
 } from "../../types/module-types/hs-gamestate-types";
 import { HSModuleOptions } from "../../types/hs-types";
-import { HSUtils } from "../hs-utils/hs-utils";
 import { HSElementHooker } from "./hs-elementhooker";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
@@ -25,22 +24,13 @@ export class HSGameState extends HSModule {
     // MAIN_VIEW starts on Buildings (where the mod leaves the player after loading), every subtab on its first one
     // (avoids a warning)
     #viewStates: HSViewStateRecord = {
-        MAIN_VIEW: { currentView: new MainView('buildings'), previousView: new MainView('buildings'), viewChangeSubscribers: new Map() },
+        MAIN_VIEW: { currentView: new MainView('buildings'), previousView: new MainView('buildings'), viewChangeSubscribers: new Set() },
         ...Object.fromEntries((Object.keys(SUBTAB_BUTTON_IDS) as SUBTAB_KEY[]).map((viewKey) => [viewKey, {
             currentView: new SubtabView(viewKey, orderedIds(SUBTAB_BUTTON_IDS[viewKey])[0]),
             previousView: new SubtabView(viewKey, 'unknown'),
-            viewChangeSubscribers: new Map(),
+            viewChangeSubscribers: new Set(),
         }])),
     } as HSViewStateRecord;
-
-    #combinedViewSubscriptions: Map<string, {
-        mainView: MAIN_VIEW;
-        subView: SINGULARITY_VIEW;
-        mainSubscriptionId?: string;
-        subSubscriptionId?: string;
-        lastActive: boolean;
-        callback: (isActive: boolean, previousMain: MainView, previousSub: SubtabView<'SINGULARITY_VIEW'>, currentMain: MainView, currentSub: SubtabView<'SINGULARITY_VIEW'>) => void;
-    }> = new Map();
 
     #mainUIViews: string[] = orderedIds(MAIN_VIEW_TAB_IDS);
 
@@ -133,6 +123,9 @@ export class HSGameState extends HSModule {
                     attributes: true,
                     attributeOldValue: false,
                     attributeFilter: ['class'],
+                    // A dropped change would leave the watcher's last value wrong, and the button's next real
+                    // change would then be seen as no change (the subtab state stays stale)
+                    overrideThrottle: true,
                     valueParser: (element) => (element as HTMLElement).className
                 });
             }
@@ -145,113 +138,51 @@ export class HSGameState extends HSModule {
         // navigates away and back. That leaves any module which subscribes during its
         // own init() (like HSAmbrosia's #subscribeGameStateViewChanges) with a stale
         // "not active" view pair, so it never receives the initial tab-enter callback.
-        await this.refreshCurrentViewsFromDOM();
+        this.#refreshCurrentViewsFromDOM();
 
         this.isInitialized = true;
     }
 
-    subscribeGameStateChange<K extends VIEW_KEY>(viewKey: K, callback: (previousView: ViewOf<K>, currentView: ViewOf<K>) => void): string {
-        const id = HSUtils.uuidv4();
-        this.#viewStates[viewKey].viewChangeSubscribers.set(id, callback);
-        return id;
+    subscribeGameStateChange<K extends VIEW_KEY>(viewKey: K, callback: (previousView: ViewOf<K>, currentView: ViewOf<K>) => void): void {
+        this.#viewStates[viewKey].viewChangeSubscribers.add(callback);
     }
 
-    unsubscribeGameStateChange(viewKey: VIEW_KEY, subscriptionId: string) {
-        if (this.#viewStates[viewKey].viewChangeSubscribers.has(subscriptionId)) {
-            this.#viewStates[viewKey].viewChangeSubscribers.delete(subscriptionId);
-        } else {
-            HSLogger.warn(`Subscription ID ${subscriptionId} not found for view key ${viewKey}`, this.context);
-        }
-    }
-
-    subscribeForView(
-        mainView: MAIN_VIEW,
-        subView: SINGULARITY_VIEW,
-        callback: (isActive: boolean) => void
-    ): string | undefined {
-        return this.subscribeViewPair(
-            mainView,
-            subView,
-            (isActive) => callback(isActive)
-        );
-    }
-
-    unsubscribeForView(subscriptionId: string) {
-        this.unsubscribeViewPair(subscriptionId);
-    }
-
-    subscribeViewPair(
-        mainView: MAIN_VIEW,
-        subView: SINGULARITY_VIEW,
-        callback: (isActive: boolean, previousMain: MainView, previousSub: SubtabView<'SINGULARITY_VIEW'>, currentMain: MainView, currentSub: SubtabView<'SINGULARITY_VIEW'>) => void
-    ): string | undefined {
-        const id = HSUtils.uuidv4();
-
-        const combined = {
-            mainView,
-            subView,
-            mainSubscriptionId: undefined as string | undefined,
-            subSubscriptionId: undefined as string | undefined,
-            lastActive: false,
-            callback,
-        };
+    /**
+     * Calls back with true when a subtab comes on screen (its tab shown, on that subtab) and false when it leaves the
+     * screen; with true straight away if it is on screen now
+     */
+    subscribeSubtab<K extends SUBTAB_KEY>(viewKey: K, subView: SubtabEnums[K], callback: (isActive: boolean) => void): void {
+        const mainView = [...HSGlobal.HSGameState.viewProperties].find(([, properties]) => properties.viewKey === viewKey)?.[0];
+        let lastActive = false;
 
         const evaluate = () => {
-            const previousMain = this.#viewStates.MAIN_VIEW.previousView;
-            const currentMain = this.#viewStates.MAIN_VIEW.currentView;
-            const previousSub = this.#viewStates.SINGULARITY_VIEW.previousView;
-            const currentSub = this.#viewStates.SINGULARITY_VIEW.currentView;
-            const isActive = currentMain.getId() === mainView && currentSub.getId() === subView;
+            const isActive = this.#viewStates.MAIN_VIEW.currentView.getId() === mainView
+                && this.getCurrentUIView(viewKey).getId() === subView;
+            if (isActive === lastActive) return;
 
-            if (isActive !== combined.lastActive) {
-                combined.lastActive = isActive;
-                try {
-                    callback(isActive, previousMain, previousSub, currentMain, currentSub);
-                } catch (e) {
-                    HSLogger.error(`Error when trying to call combined view subscription callback: ${e}`, this.context);
-                }
+            lastActive = isActive;
+            try {
+                callback(isActive);
+            } catch (e) {
+                HSLogger.error(`Error when trying to call subtab subscription callback: ${e}`, this.context);
             }
         };
 
-        const mainSubscriptionId = this.subscribeGameStateChange('MAIN_VIEW', () => evaluate());
-        const subSubscriptionId = this.subscribeGameStateChange('SINGULARITY_VIEW', () => evaluate());
-
-        combined.mainSubscriptionId = mainSubscriptionId;
-        combined.subSubscriptionId = subSubscriptionId;
-        this.#combinedViewSubscriptions.set(id, combined);
-
+        this.subscribeGameStateChange('MAIN_VIEW', evaluate);
+        this.subscribeGameStateChange(viewKey, evaluate);
         evaluate();
-        return id;
     }
 
-    unsubscribeViewPair(subscriptionId: string) {
-        const combined = this.#combinedViewSubscriptions.get(subscriptionId);
-        if (!combined) {
-            HSLogger.warn(`Combined subscription ID ${subscriptionId} not found`, this.context);
-            return;
-        }
-
-        if (combined.mainSubscriptionId) {
-            this.unsubscribeGameStateChange('MAIN_VIEW', combined.mainSubscriptionId);
-        }
-        if (combined.subSubscriptionId) {
-            this.unsubscribeGameStateChange('SINGULARITY_VIEW', combined.subSubscriptionId);
-        }
-
-        this.#combinedViewSubscriptions.delete(subscriptionId);
-    }
-
-    async #resolveSubViewChanges(mainViewId: MAIN_VIEW) {
+    /** The shown tab's subtab, read from its buttons (they keep their class while the tab is hidden) */
+    #resolveSubViewChanges(mainViewId: MAIN_VIEW): void {
         const viewProperties = HSGlobal.HSGameState.viewProperties.get(mainViewId);
 
         // Upgrades, Research, Shop and Event have no subtabs in the game
         if (!viewProperties) return;
 
-        const tabs = await HSElementHooker.HookElements(viewProperties.subViewIds.map(id => `#${id}`));
-
-        tabs.forEach((tab) => {
-            if (tab.classList.contains('active-subtab')) this.#setSubView(viewProperties.viewKey, tab.id);
-        });
+        for (const id of viewProperties.subViewIds) {
+            if (document.getElementById(id)?.classList.contains('active-subtab')) this.#setSubView(viewProperties.viewKey, id);
+        }
     }
 
     /** A subtab button shows as active: it becomes its tab's current view, subscribers are told if it changed */
@@ -263,11 +194,11 @@ export class HSGameState extends HSModule {
         }
 
         const state = this.#viewStates[viewKey] as HSViewState<SubtabView<SUBTAB_KEY>>;
-        state.previousView = state.currentView;
-        state.currentView = view;
-
-        const previousView = state.previousView;
+        const previousView = state.currentView;
         if (previousView.getName() === view.getName()) return;
+
+        state.previousView = previousView;
+        state.currentView = view;
 
         HSLogger.debug(() => `Subtab UI view changed ${previousView.getName()} -> ${view.getName()}`, this.context);
         state.viewChangeSubscribers.forEach((callback) => {
@@ -312,13 +243,13 @@ export class HSGameState extends HSModule {
      * Force-refresh current main/sub-view state from DOM.
      * Useful during early startup where mutation watchers may not have emitted yet.
      */
-    async refreshCurrentViewsFromDOM(): Promise<void> {
+    #refreshCurrentViewsFromDOM(): void {
         const refreshedMainView = this.getCurrentMainViewFromDOM();
 
         this.#viewStates.MAIN_VIEW.previousView = this.#viewStates.MAIN_VIEW.currentView;
         this.#viewStates.MAIN_VIEW.currentView = refreshedMainView;
 
-        await this.#resolveSubViewChanges(refreshedMainView.getId());
+        this.#resolveSubViewChanges(refreshedMainView.getId());
 
         HSLogger.debug(
             () => `refreshCurrentViewsFromDOM: MAIN_VIEW=${this.#viewStates.MAIN_VIEW.currentView.getName()}`,

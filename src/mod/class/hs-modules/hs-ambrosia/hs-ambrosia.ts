@@ -2,7 +2,7 @@ import { HSGameDataSubscriber, HSModuleOptions } from "../../../types/hs-types";
 import { AmbrosiaUpgradeCalculationCollection, AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import { AmbrosiaUpgradeData, AmbrosiaUpgrades, GameData } from "../../../types/data-types/hs-player-savedata";
 import { AMBROSIA_LOADOUT_SLOT } from "../../../types/module-types/hs-ambrosia-types";
-import { MAIN_VIEW, SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
+import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGameData } from "../../hs-core/gds/hs-gamedata";
 
@@ -58,7 +58,7 @@ export class HSAmbrosia extends HSModule
     static readonly #GUESSED_BORDER = 'hs-silver-border';
 
     gameDataSubscriptionId?: string;
-    #ambrosiaViewSubscriptionId?: string;
+    #ambrosiaViewSubscribed = false;
 
     #loadoutsSlots: HTMLElement[] = [];
 
@@ -209,19 +209,12 @@ export class HSAmbrosia extends HSModule
         const gameStateMod = HSModuleRegistry.getModule('HSGameState');
         if (!gameStateMod) { HSLogger.warn('subscribeGameStateViewChanges() - gameStateMod==undefined', this.context); return; }
 
-        if (!this.#ambrosiaViewSubscriptionId) {
-            this.#ambrosiaViewSubscriptionId = gameStateMod.subscribeForView(
-                MAIN_VIEW.SINGULARITY,
-                SINGULARITY_VIEW.AMBROSIA,
-                (isActive) => {
-                    if (isActive) { // Ambrosia Tab Enter
-                        this.#onAmbrosiaTabEnter();
-                    } else { // Ambrosia Tab Leave
-                        this.#onAmbrosiaTabLeave();
-                    }
-                }
-            );
-        }
+        if (this.#ambrosiaViewSubscribed) return;
+        this.#ambrosiaViewSubscribed = true;
+        gameStateMod.subscribeSubtab('SINGULARITY_VIEW', SINGULARITY_VIEW.AMBROSIA, (isActive) => {
+            if (isActive) this.#onAmbrosiaTabEnter();
+            else this.#onAmbrosiaTabLeave();
+        });
     }
 
     async #onAmbrosiaTabEnter() {
