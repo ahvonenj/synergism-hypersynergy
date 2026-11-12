@@ -1,15 +1,10 @@
 /**
- * Type definition collection: index.d.ts
- * Description: 
- *     Module declarations mainly for inline-import esbuild plugin
- *     https://www.npmjs.com/package/esbuild-plugin-inline-import
+ * Type definition collection: hs-inline-imports.d.ts
+ * Description:
+ *     Types of the imports esbuild turns into strings: `inline:` imports (esbuild-plugin-inline-import),
+ *     images (data URLs) and the heater worker's source
  * Author: Swiffy
 */
-
-declare module '*.txt' {
-    const content: string;
-    export default content;
-}
 
 declare module '*.html' {
     const html: string;
@@ -21,6 +16,7 @@ declare module '*.css' {
     export default css;
 }
 
+// Through `inline:` only: a plain import of a JSON file gives its parsed content
 declare module '*.json' {
     const json: string;
     export default json;
@@ -30,6 +26,11 @@ declare module '*.json' {
 declare module '*.user.js' {
     const script: string;
     export default script;
+}
+
+declare module '*.png' {
+    const dataUrl: string;
+    export default dataUrl;
 }
 
 /** Built and watched separately, then embedded into the mod bundle. */

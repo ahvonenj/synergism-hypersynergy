@@ -14,7 +14,7 @@ import { HSToolsTab } from "./hs-core/hs-tools-tab";
 import { HSHeaderEditSettings } from "./hs-core/header/hs-header-edit-settings";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
 import quickbarsCSS from "inline:../resource/css/module/hs-quickbars.css";
-import strategyEditionCSS from "inline:../resource/css/hs-strategy-edition.css";
+import strategyEditionCSS from "inline:../resource/css/module/hs-strategy-edition.css";
 
 import { HSUtils } from "./hs-utils/hs-utils";
 import { HSGithub } from "./hs-core/github/hs-github";

@@ -12,7 +12,7 @@ import autosingModalCSS from "inline:../../resource/css/module/hs-autosing-modal
 import animationsCSS from "inline:../../resource/css/hs-animations.css";
 import utilitiesCSS from "inline:../../resource/css/hs-utilities.css";
 import panelHTML from "inline:../../resource/html/hs-panel.html";
-import modPanelIconB64 from "inline:../../resource/txt/mod_panel_icon.txt";
+import modPanelIcon from "../../resource/img/hs-panel-icon.png";
 import { escapeLogText } from "../hs-utils/hs-escape";
 
 /**
@@ -408,7 +408,7 @@ export class HSUI extends HSModule {
         this.#uiPanelOpenBtn.style.display = 'none';
         const nativeIcon = document.getElementById('octeractCorruptionImage');
         const icon = nativeIcon ? HSIcons.fromElement(nativeIcon) : null;
-        HSIcons.applyBackground(this.#uiPanelOpenBtn, icon ?? { url: modPanelIconB64.trim() }, 35);
+        HSIcons.applyBackground(this.#uiPanelOpenBtn, icon ?? { url: modPanelIcon }, 35);
 
         this.#uiPanelOpenBtn.addEventListener('click', async () => {
             if (this.#uiQuickAccessMenu) {

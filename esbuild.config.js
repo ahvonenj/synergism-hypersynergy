@@ -11,6 +11,8 @@ const baseOptions = {
     outfile: 'out.js',
     legalComments: 'none',
     logLevel: 'info',
+    // Images imported by the mod become data URLs inside the bundle
+    loader: { '.png': 'dataurl' },
     // 'node esbuild.config.js dev' needs to be restarted in order to pick up changes to the version
     define: {
         HS_BUILD_VERSION: JSON.stringify(require('./package.json').version)

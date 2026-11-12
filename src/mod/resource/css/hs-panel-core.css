@@ -505,12 +505,6 @@ select::-webkit-scrollbar-corner {
     margin: 4px 0;
 }
 
-.hs-modal-img {
-    image-rendering: auto;
-    width: 100%;
-    max-width: 40vw;
-}
-
 /* ===== SETTINGS PANEL ===== */
 
 /* No top padding: the subtabs row holds it, so nothing shows above that row when it sticks */

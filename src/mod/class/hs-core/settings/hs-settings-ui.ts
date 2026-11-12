@@ -12,7 +12,7 @@ import { HSSettings } from "./hs-settings";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSIcons } from "../../hs-utils/hs-icons";
-import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
+import gameDataIconUrl from "../../../resource/img/hs-gamedata-icon.png";
 import { escapeLogText } from '../../hs-utils/hs-escape';
 import { initializeSettingActions } from './hs-settings-state';
 
@@ -602,7 +602,7 @@ export class HSSettingsUI {
         if (HSSettings.usesGameData(setting)) {
             gameDataIcon = HSUIC.Image({
                 class: 'hs-panel-setting-block-gamedata-icon',
-                src: sIconB64,
+                src: gameDataIconUrl,
                 width: 18,
                 height: 18,
                 props: { title: HSGlobal.HSSettings.gameDataRequiredTooltip },

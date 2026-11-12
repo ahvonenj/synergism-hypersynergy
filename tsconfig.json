@@ -10,6 +10,6 @@
         "outDir": "./build",
         "rootDir": "./src/mod"
     },
-    "include": ["src/mod/**/*.ts", "src/mod/resource/**/*.txt"],
+    "include": ["src/mod/**/*.ts"],
     "exclude": ["node_modules"]
 }

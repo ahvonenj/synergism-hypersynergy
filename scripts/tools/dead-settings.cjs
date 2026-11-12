@@ -1,6 +1,6 @@
 // Counts how often each setting key, settingAction and controlGroup appears in the mod source.
 const fs = require('fs'), path = require('path');
-const root = process.argv[2];
+const root = process.argv[2] ?? path.resolve(__dirname, '../..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 const s = JSON.parse(read('src/mod/resource/json/hs-settings.json'));
 const groups = JSON.parse(read('src/mod/resource/json/hs-settings-control-groups.json'));
