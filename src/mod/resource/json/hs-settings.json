@@ -1008,7 +1008,7 @@
     "enabled": false,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "auto-sing",
+      "controlGroup": "auto-sing-diagnostics",
       "controlPage": "auto-sing",
       "controlEnabledId": "hs-setting-auto-sing-step-timings-btn"
     }
@@ -1021,7 +1021,7 @@
     "enabled": false,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "auto-sing",
+      "controlGroup": "auto-sing-diagnostics",
       "controlPage": "auto-sing",
       "controlEnabledId": "hs-setting-auto-sing-full-log-btn"
     }

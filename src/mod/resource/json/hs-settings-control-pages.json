@@ -22,11 +22,5 @@
     "pageColor": "#4fbf85",
     "pageSelectedColor": "#0e7444",
     "order": 9
-  },
-  "debug": {
-    "pageName": "Debugging",
-    "pageColor": "#b0605f",
-    "pageSelectedColor": "#6e2f2e",
-    "order": 12
   }
 }
