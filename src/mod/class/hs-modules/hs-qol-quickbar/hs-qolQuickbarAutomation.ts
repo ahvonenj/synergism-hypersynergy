@@ -311,13 +311,10 @@ export class HSQOLAutomationQuickbar extends HSQOLQuickbarBase {
             const ariaChecked = el.getAttribute('aria-checked');
             if (ariaChecked === 'true') return true;
 
-            // The game colours most toggles' border by state (green/gold: on, red: off), whatever the language.
+            // The game colours most toggles' border by state, whatever the language.
             // Other colours (e.g. white/orange for auto-buy fragments) mean something else: fall through.
-            // It writes `border: 2px solid var(--green-color)` (or borderColor alone): with a var(), only the property
-            // written reads back (borderColor reads '' after the shorthand), so both are read. \b matches in `--red-color`.
-            const border = `${el.style.border} ${el.style.borderColor}`.toLowerCase();
-            if (/\b(green|limegreen|gold)\b/.test(border)) return true;
-            if (/\bred\b/.test(border)) return false;
+            const borderState = HSUtils.gameToggleBorderState(el);
+            if (borderState !== undefined) return borderState;
 
             // Text-based heuristics: look for common status markers
             const text = (el.textContent || '').trim();

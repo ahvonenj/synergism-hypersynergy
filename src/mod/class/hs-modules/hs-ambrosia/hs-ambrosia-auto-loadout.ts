@@ -6,6 +6,7 @@ import { HSSetting } from "../../hs-core/settings/hs-setting";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
+import { HSUtils } from "../../hs-utils/hs-utils";
 
 import { HSAmbrosiaHelper } from "./hs-ambrosia-helper";
 import type { HSAmbrosiaSlots } from "./hs-ambrosia-parts";
@@ -72,10 +73,11 @@ export class HSAmbrosiaAutoLoadout {
                 || !ascend.src || clickRoot.querySelector<HTMLImageElement>('.resetModalTitle img')?.src !== ascend.src)) return;
             if (!HSGameDialogs.isQueueIdle()) return;
 
-            // The game uses the toggle's border colour for its state in every language.
-            const confirmation = document.getElementById('toggle31')?.style.borderColor;
-            if (confirmation === 'red') this.#switchLoadoutForAscension();
-            if (confirmation === 'green') awaitingConfirmation.add(event);
+            // Ascension confirmation toggle (player.toggles[31]); this path runs without the patch, so from its border
+            const toggle = document.getElementById('toggle31');
+            const confirmation = toggle ? HSUtils.gameToggleBorderState(toggle) : undefined;
+            if (confirmation === false) this.#switchLoadoutForAscension();
+            if (confirmation === true) awaitingConfirmation.add(event);
         }, true);
         document.addEventListener('click', (event) => {
             // The game's listener has run. An idle queue opens this click's confirmation synchronously.

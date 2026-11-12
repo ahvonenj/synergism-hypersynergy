@@ -262,6 +262,19 @@ export class HSUtils {
         return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="orchid"]');
     }
 
+    /**
+     * A game toggle's state from its border colour, the same in every language: green or gold = on, red = off,
+     * undefined for any other colour. For when the live player isn't there (bookmarklet).
+     * The game writes `border: 2px solid var(--green-color)` (or borderColor alone): with a var(), only the property
+     * written reads back (borderColor reads '' after the shorthand), so both are read. \b matches in `--red-color`.
+     */
+    static gameToggleBorderState(el: HTMLElement): boolean | undefined {
+        const border = `${el.style.border} ${el.style.borderColor}`.toLowerCase();
+        if (/\b(green|limegreen|gold)\b/.test(border)) return true;
+        if (/\bred\b/.test(border)) return false;
+        return undefined;
+    }
+
     static #translationFiles = new Map<string, Promise<Record<string, unknown> | undefined>>();
 
     /**

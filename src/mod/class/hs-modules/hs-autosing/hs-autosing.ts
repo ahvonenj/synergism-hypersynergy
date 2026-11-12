@@ -1482,7 +1482,7 @@ export class HSAutosing extends HSModule {
             return false;
         }
 
-        const exaltBtn = this.#dom.getActiveExaltElement();
+        const exaltBtn = HSUtils.getActiveExaltElement();
         if (!exaltBtn) {
             HSLogger.warn("Could not find the active Exalt to leave it.", this.context);
             HSUI.Notify("Auto-Sing could not leave the Exalt. Leave it yourself, then start Auto-Sing again.", { notificationType: 'warning' });
