@@ -479,7 +479,7 @@ export class Hypersynergism {
         const isLatest = await HSGithub.isLatestTag();
         // Dev channel players only
         const liveTag = HSGithub.liveReleaseTag;
-        const liveRelease = liveTag ? ` Latest Live release: ${liveTag}.` : '';
+        const liveRelease = liveTag ? `\nLatest Live release: ${liveTag}.` : '';
 
         HSUI.Notify((isLatest
             ? 'You are using the latest version of Hypersynergism!'
