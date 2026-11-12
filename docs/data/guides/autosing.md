@@ -66,7 +66,7 @@ In the window:
 
 ### The actions window (✎)
 
-Steps run from top to bottom. Pick a **Special Action**, fill in the fields shown, then click **Add** (or press Enter). New steps go where **Add Here** is; drag it to add elsewhere.
+Steps run from top to bottom. Pick a **Special Action**, fill in the fields shown, then click **Add** (or press Enter). New steps go where **Add Here** is; drag it, or double-click a step, to add elsewhere.
 
 **None** = a challenge step:
 - **Challenge #**: the challenge (1–15).
