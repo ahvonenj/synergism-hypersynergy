@@ -83,6 +83,9 @@ heat on a S260 save in node, about 100 s.
   from `highestSingularityCompleted`. A test save that changes them must change what the game recomputes them from.
 - **Console lines from before the last navigation** are replayed by `Runtime.enable`; `cdp.logs` keeps only those after
   `cdp.navigate()`.
+- **Debug lines reach the console only once "Show debug logs" is applied**, during the settings sync at startup, in
+  `hs-settings.json`'s order: a debug line logged earlier (the minibars' first "Minibar sizes") is missing from
+  `cdp.logs`, though the Log tab has it. Don't count such a line from the console.
 - **The harness's Chrome never throttles timers** (`lib/chrome.cjs`), so a run can't show what a hidden tab does. To time one: a headed Chrome without those flags, no focus emulation, the game tab behind a second tab opened with `/json/new`. `/json/activate` and `Page.bringToFront` raise the window and take the keyboard from whoever is typing.
 - **The heater's Import All uses the clipboard**: `autosing-run.cjs` grants the permission and emulates focus.
 - **A `:hover` state can't be screenshotted**: force it with an extra style.

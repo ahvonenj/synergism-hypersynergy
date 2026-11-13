@@ -151,6 +151,10 @@ export abstract class HSGameDataAPIPartial extends HSModule {
         }
     }
 
+    /**
+     * The current data, even with the GDS engine stopped. Patched game: the live player read again (clears the
+     * calculation cache, notifies the subscribers), almost free. Otherwise (bookmarklet, failed patch): forces a save.
+     */
     async getForcedGameData(): Promise<GameData | undefined> {
         if (this.gameDataModule) {
             await this.gameDataModule.forceRefreshGameData();
