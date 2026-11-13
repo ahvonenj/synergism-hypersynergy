@@ -73,7 +73,7 @@ const HIGHEST_SINGULARITY_PATH = 'highestSingularityCount';
 const SNAPSHOT_RULES = [
     `Automatic: taken before the first edit and before each restore. Only the last ${AUTO_SNAPSHOTS_KEPT} are kept.`,
     'Named: kept until you delete it. Saving under the same name replaces it.',
-    'Import file: a game export or a mod backup, added as a named snapshot under its file name (the list date is when it was saved).',
+    'Import (⬆): a game export or a mod backup, added as a named snapshot under its file name (the list date is when it was saved).',
     'Restore keeps the current state as an automatic snapshot, then reloads the page.',
     'Skip offline progress (ticked): the state loads as it was saved, with the same Add and Time code timers and no daily reset. Unticked: loads as the game loads any save.',
     'Restore is refused while Auto-Sing is active.',
@@ -164,8 +164,10 @@ export class HSDevTools {
 
         root.append(this.#el('div', 'hs-panel-grid-section-header', 'Dev tools (dev build only)'));
         root.append(this.#buildSnapshotStatus());
-        const snapshotsTitle = this.#el('div', 'hs-dev-tools-group', 'Snapshots (Restore reloads the page)');
-        snapshotsTitle.append(this.#help(SNAPSHOT_RULES));
+        const snapshotsTitle = this.#el('div', 'hs-dev-tools-group hs-dev-tools-snapshots-title');
+        const snapshotsTitleText = this.#el('span', '', 'Snapshots');
+        snapshotsTitleText.append(this.#help(SNAPSHOT_RULES));
+        snapshotsTitle.append(snapshotsTitleText, this.#buildSkipOfflineCheckbox());
         root.append(snapshotsTitle);
         root.append(this.#buildSnapshotNameRow());
         this.#snapshotList = this.#el('div', 'hs-dev-tools-snapshots');
@@ -616,7 +618,17 @@ export class HSDevTools {
         };
         name.addEventListener('keydown', (e) => { if (e.key === 'Enter') void save(); });
 
-        const skipOfflineProgress = this.#el('label', 'hs-dev-tools-radio');
+        element.append(
+            name,
+            this.#button('Save', () => { void save(); }),
+            this.#iconButton('⬆', 'Import a save file (game export or mod backup) as a snapshot', () => this.#chooseSnapshotFile()),
+        );
+        return element;
+    }
+
+    /** On the Snapshots title line: it changes what the Restore buttons below do. */
+    #buildSkipOfflineCheckbox(): HTMLElement {
+        const skipOfflineProgress = this.#el('label', 'hs-dev-tools-radio hs-dev-tools-skip-offline');
         skipOfflineProgress.title = 'Restore: no offline progress, same code timers, no daily reset';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -626,9 +638,7 @@ export class HSDevTools {
             this.#saveData();
         });
         skipOfflineProgress.append(checkbox, 'Skip offline progress');
-
-        element.append(name, this.#button('Save snapshot', () => { void save(); }), this.#button('Import file', () => this.#chooseSnapshotFile()), skipOfflineProgress);
-        return element;
+        return skipOfflineProgress;
     }
 
     /** Adds a save file from the disk (a game export or a mod backup) to the list, as a named snapshot under its file name. */

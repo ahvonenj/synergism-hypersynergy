@@ -16,9 +16,21 @@
 
 .hs-dev-tools-snapshot-new {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
     column-gap: 6px;
+}
+
+.hs-dev-tools-snapshots-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.hs-dev-tools-radio.hs-dev-tools-skip-offline {
+    margin-right: 0;
+    color: #ccc;
 }
 
 .hs-dev-tools-snapshots {
