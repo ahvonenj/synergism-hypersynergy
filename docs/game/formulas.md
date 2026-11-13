@@ -43,11 +43,11 @@ doesn't reach them, and the player's copy can lag.
 ## Formulas the mod doesn't compute
 
 The full cube multiplier chain (the Tools tab shows the cube bank and the corruption lines only,
-`docs/features/tools-tab.md`), and the cost curves of every building but the coin ones. Since 4.4.1 a building's count
-isn't saved: the save keeps what was paid (`firstPaidCoin`...), and the count is what that buys on a curve whose
-threshold follows construction. GDS computes construction and the coin buildings' counts (`hs-gamedata-api-building.ts`,
-for the Speed and Duplication rune bonus levels); a calculation that needs another building's count has to port its
-curve first.
+`docs/features/tools-tab.md`), and the cost curves of every building but the coin ones. Building counts are saved
+(`coinBuildings`, `diamondBuildings`... since the rune rework, `docs/game/updating.md`). Between 4.4.1 and that
+rework, as on Steam until it updates, the save kept only what was paid (`firstPaidCoin`...), and the count is what
+that buys on a curve whose threshold follows construction: GDS reads `coinBuildings` and falls back to the coin curve
+(`hs-gamedata-api-building.ts`, for the Speed and Duplication rune bonus levels). It also computes construction.
 
 ## Since 4.4.0
 

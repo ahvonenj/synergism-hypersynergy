@@ -32,9 +32,9 @@ check, in order, and how the 4.4.0 update went as a worked example.
 6. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
    then check the numbers on real saves (below). Achievement ids and point values are copied from the game's
    `Achievements.ts` (`hs-gamedata-api-achievement.ts`): `node scripts/tools/achievements-vs-vanilla.cjs` compares
-   them (`--print` writes the game's tables to paste). When `Buy.ts` changes,
-   `node scripts/tools/coin-curve-vs-vanilla.cjs` checks the coin buildings' cost curve, which the saves below can't
-   (their paid amounts are Infinity).
+   them (`--print` writes the game's tables to paste). While GDS keeps its fallback for a game from before the rune
+   rework (below), `node scripts/tools/coin-curve-vs-vanilla.cjs` checks its coin cost curve when `Buy.ts` changes,
+   which the saves below can't (their paid amounts are Infinity).
 7. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
 8. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
 
@@ -107,3 +107,16 @@ The player became plain data: `worlds` and the wow cubes are numbers (their hand
 `fragmentsInvested` in the talismans object any more). No formula change. For the mod: three patcher anchors (talismans
 by `baseMult`, saveSynergy by `offlinetick`), the talisman fragments read from the player. Readers of the counters
 already went through `Number()`.
+
+## Rune rework (2026-11-12, game commits `f7816c9d` to `0a0b943d`)
+Save format again, no formula change (the replay matched with no GDS formula edit). Runes, blessings and spirits became
+arrays indexed by the game's `RuneType` (Speed 0 … Top Hat 9): `runeEXP` / `runeLevels`, `blessingEXP` /
+`blessingLevels`, `spiritEXP` / `spiritLevels`, instead of objects keyed by name (`runes`, `runeBlessings`,
+`runeSpirits`). Building counts are saved again (`coinBuildings`, `diamondBuildings`, `mythosBuildings`,
+`particleBuildings`, `accelerators`, `multipliers`, `acceleratorBoosts`, `ascendBuildingN.owned`) instead of what was
+paid; `autoSacrifice` became `autoSacrificeRune`. Offerings now buy whole rune levels only (no partial EXP).
+
+Steam stayed on the previous game for a while (its bundle had no `runeLevels`): GDS reads both shapes, the EXP through
+`getRuneEXP` / `getBlessingEXP` / `getSpiritEXP` (`hs-gamedata-utils.ts`) and the coin buildings from `coinBuildings`
+or the 4.4.1 cost curve. Once the Steam bundle has `runeLevels`, the old shape goes: the optional fields in
+`GameDataFields`, the cost curve in `hs-gamedata-api-building.ts` and `scripts/tools/coin-curve-vs-vanilla.cjs`.

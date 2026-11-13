@@ -1,5 +1,6 @@
 import Decimal from "break_infinity.js";
-import { AutoAscensionModes, type GameCount } from "../../../types/data-types/hs-player-savedata";
+import type { RuneKeys } from "../../../types/data-types/hs-gamedata-api-types";
+import { AutoAscensionModes, type GameCount, type GameData } from "../../../types/data-types/hs-player-savedata";
 
 export const parseNumericStringIfSafe = (value: unknown): number | undefined => {
     if (typeof value !== 'string') return undefined;
@@ -84,6 +85,32 @@ export const parseGameDataNumber = (value: unknown, fallback = 0): number => {
 
     return parsed === Number.POSITIVE_INFINITY || parsed === Number.NEGATIVE_INFINITY ? parsed : fallback;
 };
+
+// The game's RuneType enum (SynergismOfficial/src/Runes.ts): each rune's index in player.runeEXP, blessingEXP and
+// spiritEXP. Blessings and spirits exist for the first five runes only.
+const RUNE_INDEX: Record<RuneKeys, number> = {
+    speed: 0, duplication: 1, prism: 2, thrift: 3, superiorIntellect: 4,
+    infiniteAscent: 5, antiquities: 6, horseShoe: 7, finiteDescent: 8, topHat: 9,
+};
+
+type BlessingRuneKeys = 'speed' | 'duplication' | 'prism' | 'thrift' | 'superiorIntellect';
+
+// The EXP arrays came with the game's rune rework (2026-11-12); a game from before it (Steam until it updates) keeps
+// objects keyed by rune name
+const readRuneArrayOrRecord = (
+    array: ReadonlyArray<unknown> | undefined,
+    record: Readonly<Record<string, unknown>> | undefined,
+    rune: RuneKeys
+): Decimal => parseGameDataDecimal(array ? array[RUNE_INDEX[rune]] : record?.[rune]);
+
+export const getRuneEXP = (data: GameData, rune: RuneKeys): Decimal =>
+    readRuneArrayOrRecord(data.runeEXP, data.runes, rune);
+
+export const getBlessingEXP = (data: GameData, rune: BlessingRuneKeys): Decimal =>
+    readRuneArrayOrRecord(data.blessingEXP, data.runeBlessings, rune);
+
+export const getSpiritEXP = (data: GameData, rune: BlessingRuneKeys): Decimal =>
+    readRuneArrayOrRecord(data.spiritEXP, data.runeSpirits, rune);
 
 // floor(log10(value + 1)): 0 for 0
 export const floorLog10OfOnePlus = (value: number | Decimal | GameCount): number =>

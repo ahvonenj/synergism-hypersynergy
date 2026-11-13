@@ -27,7 +27,7 @@ import { checkCalculationCache, updateCalculationCache, clearCalculationCache, d
 import { CorruptionHelper, type CorruptionCubeType } from "./hs-gamedata-api-corruption";
 import { BuildingHelper } from "./hs-gamedata-api-building";
 import { octeractUpgradeMaxLevels, goldenQuarkUpgradeMaxLevels, c15Functions, challenge15Rewards, hepteractEffectiveValues, synergismLevelMilestones, SINGULARITY_CHALLENGE_DATA, FAVORITE_UPGRADE_GQ_DEPENDENCIES, FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES, FAVORITE_UPGRADE_RED_AMBROSIA_DEPENDENCIES, offeringPotionThresholds, obtainiumPotionThresholds } from "./hs-gamedata-tables";
-import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus } from "./hs-gamedata-utils";
+import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus, getRuneEXP } from "./hs-gamedata-utils";
 import { buildHeaterExport } from "./hs-heater-export";
 import Decimal from "break_infinity.js";
 
@@ -812,7 +812,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         const shopPenalty = talismanUpgradeLevel === undefined
             ? this.quarkShop.getShopUpgradeEffects('shopHorseShoe', 'singularityPenaltyMult') as number
             : this.#horseShoePenaltyWithTalismanUpgrade(talismanUpgradeLevel);
-        const antiquitiesLevel = this.rune.getRuneLevelFromEXP('antiquities', parseGameDataDecimal(data.runes.antiquities));
+        const antiquitiesLevel = this.rune.getRuneLevelFromEXP('antiquities', getRuneEXP(data, 'antiquities'));
         const cacheName = 'SingularityDebuff' as keyof CalculationCache;
         const calculationVars = [
             debuffIndex,

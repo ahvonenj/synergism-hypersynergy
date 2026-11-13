@@ -1,5 +1,5 @@
 import { ShopUpgradeGroups } from "../../../types/data-types/hs-gamedata-api-types"
-import { parseGameDataNumber } from "./hs-gamedata-utils";
+import { getRuneEXP, parseGameDataNumber } from "./hs-gamedata-utils";
 import { SHOP_UPGRADE_GROUPS_BY_KEY, SINGULARITY_CHALLENGE_DATA } from "./hs-gamedata-tables"
 import type { AmbrosiaUpgradeNames, AmbrosiaUpgradeRewards, CalculationCache, CalculationMode, SingularityChallengeDataKeys } from "../../../types/data-types/hs-gamedata-api-types"
 import type { HSGameDataAPI } from "./hs-gamedata-api";
@@ -564,7 +564,7 @@ const getRawTopHatDependencies = (env: ShopUpgradeEnv): number[] => {
     if (!data) return [0, 0, 0];
 
     return [
-        parseGameDataNumber(data.runes.topHat),
+        getRuneEXP(data, 'topHat').toNumber(),
         data.currentChallenge.reincarnation,
         data.singularityChallenges.noQuarkUpgrades.completions,
     ]

@@ -11,7 +11,7 @@ import type { GameData } from "../../../types/data-types/hs-player-savedata";
 import type { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import type { MeData } from "../../../types/data-types/hs-me-data";
 import type { HSGameDataAPI } from "./hs-gamedata-api";
-import { floorLog10OfOnePlus, parseGameDataDecimal } from "./hs-gamedata-utils";
+import { floorLog10OfOnePlus, getRuneEXP, parseGameDataDecimal } from "./hs-gamedata-utils";
 import { buildHeaterCoinsC15Input } from './hs-heater-coins-export';
 
 /** The API's protected data the export reads, taken after the refresh. */
@@ -182,7 +182,7 @@ export function buildHeaterExport(api: HSGameDataAPI, { gameData, meData, eventD
             exalt:                  api.getActiveExalt(),
             exalt5Unlocked:         gameData.singularityChallenges.noAmbrosiaUpgrades.completions > 0,
             exalt9Unlocked:         gameData.singularityChallenges.taxmanLastStand.completions > 0,
-            postAoag:               api.rune.getRuneLevelFromEXP('antiquities', parseGameDataDecimal(gameData.runes.antiquities)) > 0,
+            postAoag:               api.rune.getRuneLevelFromEXP('antiquities', getRuneEXP(gameData, 'antiquities')) > 0,
             oneMindUnlocked:        Boolean(api.goldenQuark.getGQUpgradeEffect('oneMind', 'unlocked')),
             aquariusUnlocked:       Boolean(api.purple.getPurpleAmbrosiaUpgradeLevel('aquarius')),
             transcription:          api.octeract.getOcteractUpgradeLevel('octeractOneMindImprover'),
@@ -199,12 +199,12 @@ export function buildHeaterExport(api: HSGameDataAPI, { gameData, meData, eventD
             bonusRow3:              api.ambrosia.getRedAmbrosiaUpgradeEffects('freeLevelsRow3').freeLevels,
             bonusRow4:              api.ambrosia.getRedAmbrosiaUpgradeEffects('freeLevelsRow4').freeLevels,
             bonusRow5:              api.ambrosia.getRedAmbrosiaUpgradeEffects('freeLevelsRow5').freeLevels,
-            runeSiExp:                  parseGameDataDecimal(gameData.runes.superiorIntellect),
+            runeSiExp:                  getRuneEXP(gameData, 'superiorIntellect'),
             runeSiRCNoAmb:              api.rune.getLevelsPerOOM('superiorIntellect', 'true_base'),
             runeSiBonusLevelsTotalNoAmb: api.firstFiveFreeLevels() + noAmbTalismanRuneBonusSI,
             runeSiBonusLevelsTalismanNoAmbrosia: noAmbTalismanRuneBonusSI,
             totalSIRunePowerMultiplier: api.firstFiveEffectiveRuneLevelMult() * api.rune.SIEffectiveRuneLevelMult(),
-            runeIaExp:                  parseGameDataDecimal(gameData.runes.infiniteAscent),
+            runeIaExp:                  getRuneEXP(gameData, 'infiniteAscent'),
             runeIaBonusLevelsTotalNoAmb: new Decimal(runeIaBonusLevelsTotal),
             runeIaBonusLevelsTalismanNoAmb: new Decimal(noAmbTalismanRuneBonusIA),
             totalTalismanPowerMultiplierNoAmb: new Decimal(noAmbTalismanPower),

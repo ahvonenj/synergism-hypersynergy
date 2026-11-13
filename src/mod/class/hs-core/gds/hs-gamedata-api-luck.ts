@@ -1,5 +1,5 @@
 import { EventBuffType } from "../../../types/data-types/hs-event-data";
-import { parseGameDataDecimal, parseGameDataNumber } from "./hs-gamedata-utils";
+import { getRuneEXP, parseGameDataDecimal, parseGameDataNumber } from "./hs-gamedata-utils";
 import { getTalismanFragments } from "./hs-gamedata-api-talisman";
 import type { CalculationCache, CalculationMode, HSCalculationComponents } from "../../../types/data-types/hs-gamedata-api-types";
 import type { HSGameDataAPI } from "./hs-gamedata-api";
@@ -467,7 +467,7 @@ export class LuckHelper {
         if (!data) return [0];
 
         return [
-            parseGameDataDecimal(data.runes.horseShoe).log10(),
+            getRuneEXP(data, 'horseShoe').log10(),
             data.singularityChallenges.taxmanLastStand.completions,
             data.purpleAmbrosiaUpgrades?.sagittarius ?? 0,
             data.purpleAmbrosiaUpgrades?.capricorn ?? 0,
