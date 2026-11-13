@@ -40,7 +40,8 @@
     let target;
     try { target = document.getElementById(decodeURIComponent(location.hash.slice(1))); }
     catch { return; }
-    if (!target?.classList.contains('changelog-entry')) return;
+    target = target?.closest('.changelog-entry');
+    if (!target) return;
     if (target.hidden) {
       search.value = '';
       channel.value = '';

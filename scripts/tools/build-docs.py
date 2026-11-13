@@ -290,6 +290,17 @@ def validate_changelog(data: object) -> list[dict]:
             raise ValueError(f"{where}: only HTTPS github.com links are allowed")
         return value
 
+    def validate_changes(changes: object, where: str) -> None:
+        if not isinstance(changes, list):
+            raise ValueError(f"{where}: changes must be an array")
+        for change in changes:
+            if not isinstance(change, dict) or change.get("type") not in change_types:
+                raise ValueError(f"{where}: each change needs a valid type")
+            nonempty(change, "text", where)
+            evidence = change.get("evidence", [])
+            if not isinstance(evidence, list) or any(not isinstance(item, str) or not item.strip() for item in evidence):
+                raise ValueError(f"{where}: evidence must be an array of nonempty strings")
+
     for identifier, profile in profiles.items():
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", identifier) or not isinstance(profile, dict):
             raise ValueError("Invalid contributor profile")
@@ -304,7 +315,7 @@ def validate_changelog(data: object) -> list[dict]:
         ):
             raise ValueError("Contributor identity_commits must contain verified commit hashes")
     entry_by_id = {entry["id"]: entry for entry in entries if isinstance(entry, dict) and isinstance(entry.get("id"), str)}
-    entry_ids = set(entry_by_id)
+    aliases: set[str] = set()
     for i, entry in enumerate(entries):
         where = f"changelog entry {i + 1}"
         if not isinstance(entry, dict):
@@ -313,6 +324,13 @@ def validate_changelog(data: object) -> list[dict]:
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", identifier) or identifier in ids:
             raise ValueError(f"{where}: invalid or duplicate id {identifier!r}")
         ids.add(identifier)
+        old_ids = entry.get("aliases", [])
+        if not isinstance(old_ids, list):
+            raise ValueError(f"{where}: aliases must be an array")
+        for old_id in old_ids:
+            if not isinstance(old_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", old_id) or old_id in entry_by_id or old_id in aliases:
+                raise ValueError(f"{where}: invalid or duplicate alias")
+            aliases.add(old_id)
         version = nonempty(entry, "version", where)
         if len(version) > 64 or not re.fullmatch(r"[0-9][0-9A-Za-z. -]*", version):
             raise ValueError(f"{where}: invalid version {version!r}")
@@ -354,7 +372,7 @@ def validate_changelog(data: object) -> list[dict]:
                 raise ValueError(f"{where}: unknown or duplicate contributor")
             credited.add(credit["id"])
             roles = credit.get("roles")
-            if not isinstance(roles, list) or not roles or any(role not in {"changes", "release"} for role in roles) or len(roles) != len(set(roles)):
+            if not isinstance(roles, list) or not roles or any(role not in {"changes", "release", "merge"} for role in roles) or len(roles) != len(set(roles)):
                 raise ValueError(f"{where}: invalid contributor roles")
             commits = credit.get("commits")
             if not isinstance(commits, list) or not commits or any(not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha) for sha in commits):
@@ -362,14 +380,31 @@ def validate_changelog(data: object) -> list[dict]:
         merges = entry.get("merges", [])
         if not isinstance(merges, list):
             raise ValueError(f"{where}: merges must be an array")
+        if merges and (entry["status"] != "version-record" or data.get("display_policy") == "all-records"):
+            if not any("merge" in credit["roles"] for credit in contributors):
+                raise ValueError(f"{where}: catch-up needs credit for the merger")
+            if any("release" in credit["roles"] for credit in contributors):
+                raise ValueError(f"{where}: catch-up credits must cover changes or merging")
         for merge in merges:
             if not isinstance(merge, dict) or merge.get("direction") not in {"dev-to-live", "live-to-dev"}:
                 raise ValueError(f"{where}: invalid merge direction")
             expected_channel = "live" if merge["direction"] == "dev-to-live" else "dev"
             if entry["channel"] != expected_channel:
                 raise ValueError(f"{where}: merge direction does not match the version channel")
-            if merge.get("from_entry_id") is not None and merge["from_entry_id"] not in entry_ids:
-                raise ValueError(f"{where}: merge links to an unknown version")
+            source_ids = merge.get("from_entry_ids")
+            if not isinstance(source_ids, list) or not source_ids or any(not isinstance(identifier, str) for identifier in source_ids) or len(source_ids) != len(set(source_ids)):
+                raise ValueError(f"{where}: merge source versions must be a nonempty list of unique IDs")
+            source_channel = "dev" if expected_channel == "live" else "live"
+            for source_id in source_ids:
+                source = entry_by_id.get(source_id)
+                if source is None:
+                    raise ValueError(f"{where}: merge links to an unknown version")
+                if source.get("channel") != source_channel:
+                    raise ValueError(f"{where}: merge links to a version outside the source channel")
+            partial = merge.get("partial_entry_ids", [])
+            if not isinstance(partial, list) or any(not isinstance(identifier, str) or identifier not in source_ids for identifier in partial) or len(partial) != len(set(partial)):
+                raise ValueError(f"{where}: partial merge versions must be unique IDs from the source versions")
+            validate_changes(merge.get("changes", []), f"{where} merge")
             nonempty(merge, "summary", where)
             if not re.fullmatch(r"[0-9a-f]{40}", nonempty(merge, "commit", where)):
                 raise ValueError(f"{where}: invalid merge commit")
@@ -387,16 +422,8 @@ def validate_changelog(data: object) -> list[dict]:
                 raise ValueError(f"{where}: each source must be an object")
             nonempty(source, "label", where)
             github_url(source.get("url"), where)
-        changes = entry.get("changes")
-        if not isinstance(changes, list):
-            raise ValueError(f"{where}: changes must be an array")
-        for change in changes:
-            if not isinstance(change, dict) or change.get("type") not in change_types:
-                raise ValueError(f"{where}: each change needs a valid type")
-            nonempty(change, "text", where)
-            evidence = change.get("evidence", [])
-            if not isinstance(evidence, list) or any(not isinstance(item, str) or not item.strip() for item in evidence):
-                raise ValueError(f"{where}: evidence must be an array of nonempty strings")
+        validate_changes(entry.get("changes"), where)
+        validate_changes(entry.get("earlier_changes", []), where)
         notes = entry.get("notes")
         if not isinstance(notes, list) or any(not isinstance(note, str) or not note.strip() for note in notes):
             raise ValueError(f"{where}: notes must be an array of nonempty strings")
@@ -414,7 +441,10 @@ def changelog_outputs() -> None:
     raw = json.loads((DOCS / "data/changelog.json").read_text(encoding="utf-8"))
     released_only = raw.get("display_policy") == "released-only"
     entries = displayed_changelog_entries(raw)
-    by_id = {entry["id"]: entry for entry in entries}
+    by_id = {entry["id"]: entry for entry in raw["entries"]}
+    displayed_ids = {entry["id"] for entry in entries}
+    linked_ids = {source_id for entry in entries for merge in entry.get("merges", [])
+                  for source_id in merge["from_entry_ids"]}
     profiles = raw["contributor_profiles"]
     labels = {"original": "Original", "live": "Live", "dev": "Dev version", "loader": "Loader"}
     change_labels = {"added": "Added", "changed": "Changed", "removed": "Removed", "fixed": "Fixed"}
@@ -423,7 +453,10 @@ def changelog_outputs() -> None:
         version = esc(entry["version"])
         release = entry["release_url"]
         version_title = f'<a href="{esc(release)}">v{version}</a>' if release else f'v{version}'
-        status_label = " · Publication unconfirmed" if entry["status"] == "version-record" else ""
+        status_label = ""
+        if entry["status"] == "version-record":
+            built = any(source["label"].startswith("Build containing ") for source in entry["sources"])
+            status_label = " · Historical build" if built else " · Source version"
         date_label = esc(entry["date"])
         credits = []
         contributor_names = []
@@ -434,49 +467,78 @@ def changelog_outputs() -> None:
             label = f'<a href="{esc(profile["url"])}">{name}</a>' if profile["url"] else name
             if credit["roles"] == ["release"]:
                 label += ' <span class="muted">(version record)</span>' if entry["status"] == "version-record" else ' <span class="muted">(release)</span>'
+            if "merge" in credit["roles"]:
+                label += ' <span class="muted">(merged)</span>'
             credits.append(label)
         contributor_html = '<p class="changelog-contributors">Contributors: ' + ", ".join(credits) + '</p>'
         merge_html = []
-        for merge in entry.get("merges", []):
-            direction = "Dev → Live" if merge["direction"] == "dev-to-live" else "Live → Dev"
-            source = by_id.get(merge.get("from_entry_id"))
-            if source:
-                text = "Includes changes through"
-                version_link = f' <a href="#{esc(source["id"])}">v{esc(source["version"])}</a>'
-            else:
-                text = "Includes changes merged from Dev." if merge["direction"] == "dev-to-live" else "Includes changes merged from Live."
-                version_link = f' <a href="{esc(merge["evidence"][0])}">View merge</a>'
-            merge_html.append(f'<div class="changelog-merge merge-{esc(merge["direction"])}"><span class="merge-direction">{direction}</span> <span>{esc(text)}{version_link}</span></div>')
+        incoming_search = []
+        merges = entry.get("merges", [])
+        for merge in merges:
+            from_dev = merge["direction"] == "dev-to-live"
+            direction = "Dev → Live" if from_dev else "Live → Dev"
+            source_ids = merge["from_entry_ids"]
+            partial_ids = set(merge.get("partial_entry_ids", []))
+            versions = []
+            for source_id in source_ids:
+                source = by_id[source_id]
+                label = f'v{esc(source["version"])}'
+                suffix = " (partial)" if source_id in partial_ids else ""
+                versions.append(f'<a href="#{esc(source_id)}">{label}</a>{suffix}')
+                incoming_search.append(source["version"])
+                if source_id not in partial_ids and source_id in displayed_ids:
+                    incoming_search.extend(change["text"] for change in source["changes"])
+            links = ", ".join(versions)
+            merge_html.append(f'<div class="changelog-merge merge-{esc(merge["direction"])}"><span class="merge-direction">{direction}</span> <span>Includes changes from {links}</span></div>')
         grouped = []
+        change_heading = "h4" if merges else "h3"
         for kind in ("added", "changed", "removed", "fixed"):
             changes = [c for c in entry["changes"] if c["type"] == kind]
             if changes:
-                grouped.append(f'<h3>{change_labels[kind]}</h3><ul>' + "".join(f'<li>{esc(c["text"])}</li>' for c in changes) + '</ul>')
-        change_body = "".join(grouped) if grouped else '<p class="changelog-empty">No user-facing changes are recorded for this version.</p>'
+                grouped.append(f'<{change_heading}>{change_labels[kind]}</{change_heading}>' + ul([c["text"] for c in changes]))
+        change_body = "".join(grouped)
+        if merges and grouped:
+            channel = "Live" if entry["channel"] == "live" else "Dev"
+            change_body = f'<h3>Changes from {channel}</h3>' + change_body
+        elif not merges and not grouped:
+            change_body = '<p class="changelog-empty">No user-facing changes are recorded for this version.</p>'
+        earlier_changes = [change["text"] for change in entry.get("earlier_changes", [])]
+        if earlier_changes and not merges:
+            change_body += '<details class="changelog-sources"><summary>Earlier changes recorded with this release</summary>' + ul(earlier_changes) + '</details>'
         notes = "".join(f'<li>{esc(note)}</li>' for note in entry["notes"])
         if notes:
             change_body += '<h3>Notes</h3><ul>' + notes + '</ul>'
         source_links = " · ".join(f'<a href="{esc(s["url"])}">{esc(s["label"])}</a>' for s in entry["sources"])
         source_details = f'<details class="changelog-sources"><summary>Sources</summary><p>{source_links}</p></details>' if source_links else ""
-        search_text = " ".join([entry["version"], *contributor_names, *(c["text"] for c in entry["changes"]), *entry["notes"], *(m["summary"] for m in entry.get("merges", []))])
-        cards.append(f'''<article class="changelog-entry" id="{esc(entry["id"])}" data-channel="{esc(entry["channel"])}" data-search="{esc(search_text.casefold())}">
+        search_text = " ".join([entry["version"], *contributor_names, *(c["text"] for c in entry["changes"]), *entry["notes"], *incoming_search])
+        alias_html = "".join(f'<span id="{esc(alias)}"></span>' for alias in entry.get("aliases", []))
+        cards.append(f'''<article class="changelog-entry" id="{esc(entry["id"])}" data-channel="{esc(entry["channel"])}" data-search="{esc(search_text.casefold())}">{alias_html}
 <h2>{version_title} <span class="channel-badge channel-{esc(entry["channel"])}">{labels[entry["channel"]]}</span></h2>
 <p class="changelog-meta"><time datetime="{esc(entry["date"])}">{date_label}</time>{esc(status_label)}</p>
 {contributor_html}{''.join(merge_html)}{change_body}{source_details}</article>''')
-    scope_note = "Only published releases and tagged builds are shown. Unconfirmed source versions and planned builds are excluded. Dates use UTC." if released_only else "Dates use UTC. Version records without a confirmed release are labeled."
+    source_cards = []
+    for source_id in sorted(linked_ids - displayed_ids, key=lambda id: (by_id[id]["date"], id), reverse=True):
+        source = by_id[source_id]
+        version = esc(source["version"])
+        notes = [change["text"] for change in source["changes"]]
+        source_url = source["sources"][0]["url"] if source["sources"] else f'https://github.com/{source["repository"]}/commit/{source["commit"]}'
+        source_cards.append(f'<article class="changelog-source-version" id="{esc(source_id)}"><h3>v{version} · {labels[source["channel"]]}</h3>'
+                            f'{ul(notes) if notes else ""}<p><a href="{esc(source_url)}">Source history</a></p></article>')
+    source_section = '<section class="changelog-source-versions"><h2>Source versions linked from catch-ups</h2>' + "".join(source_cards) + "</section>" if source_cards else ""
+    scope_note = "The release list shows published releases and tagged builds. Links can also open historical source versions. Dates use UTC." if released_only else "Historical builds have a surviving bundle. Source versions are recorded in Git. Dates use UTC."
     body = f'''<h1>Changelog</h1>
 <p>{'Released builds' if released_only else 'Recorded versions'} across the original, Live, Dev and loader channels, newest first.</p>
-<p class="muted">Dev versions are from <a href="https://github.com/maenhiir/synergism-hypersynergy">Shew’s repository</a>, not Live releases. Merge notices show when changes reach Live or when Dev catches up with Live.</p>
+<p class="muted">Dev versions come from <a href="https://github.com/maenhiir/synergism-hypersynergy">Shew’s repository</a>. Merge notices link to the source versions brought into each release.</p>
 <p class="muted">{esc(scope_note)}</p>
-<details class="changelog-sources"><summary>About this history</summary><p>Dates use UTC. When a publication date is unavailable, the preserved tag or its build commit supplies the date instead. Source links accompany each entry.</p><p>Credits use human Git authors and recorded co-authors across each version’s changes, with aliases combined. Release-only contributions are marked. GitHub profiles are linked where verified; other author names are retained without guessing a profile.</p></details>
+<details class="changelog-sources"><summary>About this history</summary><p>Dates use UTC. When a publication date is unavailable, the preserved tag or its build commit supplies the date. Source links accompany each entry.</p><p>Catch-up releases credit the people who made new changes on the receiving branch and the people who merged them. Incoming work is credited on its source release.</p></details>
 <form class="changelog-controls" role="search" onsubmit="return false">
 <label for="changelog-channel">Channel <select id="changelog-channel"><option value="">All versions</option><option value="original">Original</option><option value="live">Live (Ferlieloi)</option><option value="dev">Dev versions (Shew)</option><option value="loader">Windows loader</option></select></label>
 <label for="changelog-search">Search versions and changes <input id="changelog-search" type="search" autocomplete="off" placeholder="Version or change"></label>
 <button type="button" id="changelog-clear">Clear</button></form>
 <p id="changelog-count" class="muted" role="status" aria-live="polite">{len(entries)} {'released builds' if released_only else 'versions'}</p>
 <p id="changelog-no-results" hidden>No matching versions. Clear the search or choose another channel.</p>
-<noscript><p>Filtering needs JavaScript; all version entries remain available below.</p></noscript>
-<div id="changelog-list" data-kind="{'released builds' if released_only else 'versions'}">{"".join(cards)}</div>'''
+<noscript><p>All version entries are available below. Enable JavaScript to filter them.</p></noscript>
+<div id="changelog-list" data-kind="{'released builds' if released_only else 'versions'}">{"".join(cards)}</div>{source_section}'''
     page("docs/changelog.html", "Changelog", "changelog", body, source="docs/data/changelog.json",
          scripts=("changelog.js",))
 

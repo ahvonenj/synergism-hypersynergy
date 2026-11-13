@@ -102,6 +102,9 @@ def update(data: dict) -> dict:
                 raise ValueError('Ambiguous contributor identity')
             aliases[author] = identity
     for entry in data['entries']:
+        if entry.get('merges'):
+            # Catch-up credits are reviewed against their branch-only changes and merge evidence.
+            continue
         base = baseline(entry, data['entries'], released_only=data.get('display_policy') == 'released-only'
                         and entry['status'] in {'published', 'tagged'})
         revision = f'{base}..{entry["commit"]}' if base else entry['commit']

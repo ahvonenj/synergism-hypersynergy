@@ -53,6 +53,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .changelog-controls label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; color: #c1bdcc; }
 .changelog-entry { border-bottom: 1px solid #35323d; padding: 4px 0 16px; scroll-margin-top: 18px; }
 .changelog-entry:target { border-left: 2px solid #f5d96b; background: #201e26; }
+.changelog-source-version { display: none; scroll-margin-top: 18px; }
+.changelog-source-version:target { display: block; }
+.changelog-source-versions:not(:has(:target)) { display: none; }
 .changelog-entry h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-left: 20px; }
 .changelog-entry h2 a, .changelog-entry h2 a:visited { color: ghostwhite; text-decoration: none; }
 .channel-badge { display: inline-block; border: 1px solid #777183; border-radius: 10px; padding: 1px 8px; color: #ddd9e8; font-size: .68rem; font-weight: normal; line-height: 1.6; vertical-align: middle; }
@@ -63,11 +66,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .changelog-entry .changelog-meta { color: var(--muted); font-size: .85rem; margin-top: -6px; }
 .changelog-entry .changelog-contributors { color: var(--muted); font-size: .85rem; margin-top: -5px; }
 .changelog-contributors a, .changelog-contributors a:visited { color: #b4c4de; }
-.changelog-merge { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; max-width: 85ch; margin: 12px 0 16px 30px; padding: 8px 12px; background: #1b202a; border-left: 2px solid #7291be; font-size: .875rem; color: #c5cbd6; }
+.changelog-merge { max-width: 85ch; margin: 12px 0 16px 30px; padding: 8px 12px; background: #1b202a; border-left: 2px solid #7291be; font-size: .875rem; color: #c5cbd6; }
+.changelog-merge a { white-space: nowrap; }
 .merge-dev-to-live { border-left-color: #6d9f79; }
-.merge-direction { font-size: .75rem; color: #b4d0ff; white-space: nowrap; }
+.merge-direction { margin-right: 6px; font-size: .75rem; color: #b4d0ff; white-space: nowrap; }
 .merge-dev-to-live .merge-direction { color: #a9e3b6; }
 .changelog-entry h3 { margin: 12px 0 4px 30px; color: #ccc7d7; font-size: .9rem; }
+.changelog-entry h4 { margin: 6px 0 4px 30px; color: #ccc7d7; font-size: .85rem; }
 .changelog-entry ul { margin-top: 4px; }
 .changelog-empty { color: var(--muted); font-style: italic; }
 .changelog-sources { margin: 10px 0 0 30px; color: var(--muted); font-size: .85rem; }

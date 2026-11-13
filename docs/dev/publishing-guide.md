@@ -37,9 +37,13 @@ node --check docs/js/changelog.js
 
 The changelog keeps player-facing additions, behavior changes, removals and fixes. Source-only records are not promoted to confirmed releases; historical audit notes and change evidence stay in the data even when the displayed wording is simplified.
 
-The public page uses `display_policy: released-only`: published releases and tagged builds are shown; source-only and planned version records stay in the research data. Dev versions are labeled separately, and channel-merge notices describe verified transfers between Live and Dev.
+The public changelog includes early version records alongside tagged and published releases. A historical build has a surviving bundle with the recorded version. A source version has a verified version declaration or source endpoint. Use the commit date for these records and link their evidence. Dev versions are labeled separately.
 
-When excluding an unconfirmed record, retain its delivered changes in the first verified release that contains them. Consolidate repeated notes and omit intermediate behavior that was superseded before release; `included_version_records` records the underlying research IDs. Check the released source before describing a change as available.
+For a cross-channel catch-up, add a `merges` record to the receiving release. Use `from_entry_ids` for each source version brought in since the previous catch-up, newest first. Check the Git history for intervening versions, prior ports, and changes already present on the receiving branch. Use `partial_entry_ids` when the catch-up brings in only part of a source release. Put each change in the changelog for the version that first released it. A catch-up's `changes` contains only new work on the receiving branch. For incoming work between tags, use its verified source version and keep the merge commit and source evidence with the record.
+
+Review each catch-up's `contributors` against those branch changes and the merge commit. Give the authors of the new work the `changes` role and the merger the `merge` role. The contributor refresh preserves those reviewed credits.
+
+Record historical changes at the earliest verified version that contains them. Consolidate repeated notes and keep `included_version_records` for earlier records reviewed as part of a release audit. Check the surviving bundle or release evidence before describing a change as released.
 
 Contributor profiles use verified public identities, with aliases combined. Credits cover human authors and recorded co-authors in each version's changes; release-only contributions are identified. To refresh credits with all required Original, Live and Dev historical commits available locally, run:
 
@@ -62,7 +66,7 @@ Check these flows at desktop and narrow/mobile widths:
 - Search nonsense: a clear no-results message appears. Clear the search or reset to restore the guide.
 - Open a feature permalink: its details open even if the shared search query would otherwise hide it.
 - Changelog → Dev versions: only labeled Dev builds appear, newest first, with dates and contributors. Search a version or contributor, then Clear to restore the list.
-- Changelog → Live → a Dev → Live notice: its version link reveals the source Dev release even when the Live filter was selected. Unconfirmed source versions have no public version cards.
+- Changelog → Live → a Dev → Live notice. Each version link reveals its source Dev release even when the Live filter was selected. The receiving branch's changes appear under the notice.
 - Wiki → a category → a related setting → its feature link: each destination exists.
 - Disable JavaScript: normal navigation and every feature/detail remain available; only search requires JavaScript.
 - Keyboard Tab reaches navigation, search, category choice and detail controls with visible focus. With reduced motion enabled, the version animation stops.

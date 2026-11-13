@@ -87,15 +87,42 @@ class ChangelogValidationTests(unittest.TestCase):
     def test_merge_direction_and_target_are_verified(self):
         data = self.data()
         event = {'direction': 'live-to-dev', 'summary': 'Caught up with Live', 'commit': 'b' * 40,
-                 'from_entry_id': 'missing', 'evidence': ['https://github.com/owner/repo/commit/' + 'b' * 40]}
+                 'from_entry_ids': ['missing'], 'evidence': ['https://github.com/owner/repo/commit/' + 'b' * 40]}
         data['entries'][0]['merges'] = [event]
+        data['entries'][0]['contributors'][0]['roles'].append('merge')
         with self.assertRaisesRegex(ValueError, 'does not match'):
             BUILD_DOCS.validate_changelog(data)
         event['direction'] = 'dev-to-live'
         with self.assertRaisesRegex(ValueError, 'unknown version'):
             BUILD_DOCS.validate_changelog(data)
-        event['from_entry_id'] = None
-        self.assertEqual(len(BUILD_DOCS.validate_changelog(data)), 1)
+        event['from_entry_ids'] = []
+        with self.assertRaisesRegex(ValueError, 'nonempty list'):
+            BUILD_DOCS.validate_changelog(data)
+
+    def test_merge_versions_are_unique_and_belong_to_source_channel(self):
+        data = self.data()
+        source = copy.deepcopy(data['entries'][0])
+        source.update(id='dev-build', channel='dev', version='2.10.5-dev1')
+        data['entries'].append(source)
+        event = {'direction': 'dev-to-live', 'summary': 'Caught up with Dev', 'commit': 'b' * 40,
+                 'from_entry_ids': [source['id']], 'evidence': ['https://github.com/owner/repo/commit/' + 'b' * 40]}
+        data['entries'][0]['merges'] = [event]
+        with self.assertRaisesRegex(ValueError, 'credit for the merger'):
+            BUILD_DOCS.validate_changelog(data)
+        data['entries'][0]['contributors'][0]['roles'].append('merge')
+        self.assertEqual(len(BUILD_DOCS.validate_changelog(data)), 2)
+        event['partial_entry_ids'] = [source['id']]
+        self.assertEqual(len(BUILD_DOCS.validate_changelog(data)), 2)
+        event['partial_entry_ids'] = ['missing']
+        with self.assertRaisesRegex(ValueError, 'partial merge versions'):
+            BUILD_DOCS.validate_changelog(data)
+        del event['partial_entry_ids']
+        event['from_entry_ids'] *= 2
+        with self.assertRaisesRegex(ValueError, 'unique IDs'):
+            BUILD_DOCS.validate_changelog(data)
+        event['from_entry_ids'] = [data['entries'][0]['id']]
+        with self.assertRaisesRegex(ValueError, 'outside the source channel'):
+            BUILD_DOCS.validate_changelog(data)
 
     def test_released_only_history_excludes_previews_and_sorts_by_date(self):
         data = self.data()
