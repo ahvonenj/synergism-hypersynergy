@@ -19,14 +19,13 @@ import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
 import type { HSModuleDefinition } from "./hs-module";
 
-/** Constructors and startup options for every enabled module. Initialization follows this list and loadOrder. */
+/** Constructors and startup options for every enabled module. Initialization follows this list's order. */
 export const HS_MODULE_DEFINITIONS = [
     {
         className: 'HSUI',
         moduleClass: HSUI,
         context: 'HSUI',
         moduleColor: 'royalblue',
-        loadOrder: 2,
         initImmediate: true
     },
     {
@@ -34,7 +33,6 @@ export const HS_MODULE_DEFINITIONS = [
         moduleClass: HSStorage,
         context: 'HSStorage',
         moduleColor: 'wheat',
-        loadOrder: 3,
         initImmediate: true
     },
     {
@@ -42,7 +40,6 @@ export const HS_MODULE_DEFINITIONS = [
         moduleClass: HSSettings,
         context: 'HSSettings',
         moduleColor: 'slategray',
-        loadOrder: 4,
     },
     {
         className: 'HSCodes',

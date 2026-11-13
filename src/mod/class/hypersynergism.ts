@@ -130,9 +130,9 @@ export class Hypersynergism {
     /** Resolves once the offline popup is closed (exitOffline removes body.loading). */
     #waitForPopupClosed(): Promise<void> {
         return new Promise<void>(resolve => {
-            if (!document.body.classList.contains('loading')) { resolve(); return; }
+            if (HSUtils.isGameRunning()) { resolve(); return; }
             const observer = new MutationObserver(() => {
-                if (document.body.classList.contains('loading')) return;
+                if (!HSUtils.isGameRunning()) return;
                 observer.disconnect();
                 resolve();
             });
@@ -187,7 +187,7 @@ export class Hypersynergism {
 
     /** Close the offline progress popup if it is open. */
     #dismissOfflinePopup() {
-        if (document.getElementById('offlineContainer')?.style.display !== 'flex') return;
+        if (!HSUtils.isOfflinePopupOpen()) return;
         document.getElementById('exitOffline')?.click();
     }
 
@@ -271,7 +271,7 @@ export class Hypersynergism {
         // updates while the offline popup is open. It happens on the first update after the popup closes,
         // with Misc still active behind it: close it (setting on) or wait for the player to (no limit).
         if (isStagePatched) {
-            if (document.body.classList.contains('loading')) {
+            if (!HSUtils.isGameRunning()) {
                 if (autoDismissPopup) this.#dismissOfflinePopup();
                 await this.#waitForPopupClosed();
             }

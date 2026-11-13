@@ -255,8 +255,21 @@ export class HSUtils {
      * again during later offline progress (an import, a time skip), which puts body.loading back.
      */
     static isGameLoaded(): boolean {
-        return document.getElementById('offlineContainer')?.style.display === 'flex'
-            || !document.body.classList.contains('loading');
+        return HSUtils.isOfflinePopupOpen() || HSUtils.isGameRunning();
+    }
+
+    /** Whether the offline progress popup is shown (at load, after an import or a time skip). */
+    static isOfflinePopupOpen(): boolean {
+        return document.getElementById('offlineContainer')?.style.display === 'flex';
+    }
+
+    /**
+     * Whether the game runs normally: the save is loaded, no offline progress is being computed and its popup is
+     * closed. The game sets body.loading for all three (before the save loads, during the catch-up, popup open) and
+     * removes it in exitOffline; it can't save while it is set.
+     */
+    static isGameRunning(): boolean {
+        return !document.body.classList.contains('loading');
     }
 
     /**

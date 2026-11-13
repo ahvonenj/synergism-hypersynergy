@@ -16,8 +16,8 @@ export class HSModuleManager {
 
     constructor(context: string, modulesToEnable: readonly HSRegisteredModuleDefinition[]) {
         this.#context = context;
-        const order = (definition: HSModuleDefinition) => definition.loadOrder ?? Number.MAX_SAFE_INTEGER;
-        this.#modules = [...modulesToEnable].sort((a, b) => order(a) - order(b));
+        // The list's order is the startup order
+        this.#modules = [...modulesToEnable];
         HSLogger.log("Enabling Hypersynergism modules", this.#context);
     }
 
@@ -26,7 +26,7 @@ export class HSModuleManager {
         for (const def of this.#modules) {
             if (seenModules.has(def.className)) {
                 HSLogger.warn('Module "' + def.className + '" is already enabled; check hs-module-definitions.ts', this.#context);
-                return;
+                continue;
             }
             const module = this.addModule(def);
             const metadata: HSModuleDefinition = def;

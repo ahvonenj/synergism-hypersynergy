@@ -317,6 +317,15 @@ export class HSAutosing extends HSModule {
             this.stopAutosing();
             return;
         }
+        // Steam starts the mod before the save loads, and that first load doesn't go through importSynergism:
+        // __HS_onSaveImport wouldn't stop a run started on the blank player
+        if (!HSUtils.isGameLoaded()) {
+            this.stopAutosing();
+            // After the stop: autosing mutes the log while it runs
+            HSLogger.log("Auto-Sing not started: the game is still loading the save", this.context);
+            HSUI.Notify("Auto-Sing: the game is still loading the save, try again in a moment", { notificationType: 'warning' });
+            return;
+        }
         if (this.#isInExalt()) {
             const hasLeft = await this.#leaveExaltAtStart();
             if (this.#isStartCancelled()) return;

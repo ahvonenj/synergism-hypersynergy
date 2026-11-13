@@ -11,7 +11,6 @@ export type HSModuleDefinition = {
     moduleClass: new (options: HSModuleOptions) => HSModule;
     context: string;
     moduleName?: string;
-    loadOrder?: number;
     initImmediate?: boolean;
     moduleColor?: string;
 }

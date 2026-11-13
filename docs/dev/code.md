@@ -8,7 +8,7 @@ header layout check in Chromium.
 
 ## Entry and modules
 
-- `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour, `loadOrder` and `initImmediate`. `src/mod/index.ts` passes that list to `Hypersynergism`
+- `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour and `initImmediate`, in startup order. `src/mod/index.ts` passes that list to `Hypersynergism`
   (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, assembles the mod panel tabs
   (Tools tab: `HSToolsTab`, `hs-core/hs-tools-tab.ts`; Settings tab: `HSSettingsUI.buildTab`) and syncs the settings
   UI.
