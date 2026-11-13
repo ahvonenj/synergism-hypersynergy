@@ -9,7 +9,7 @@ Small interface choices are remembered locally, including changes made through t
 - [Hide tabs and remember hidden tabs](#hide-tabs-and-remember-hidden-tabs)
 - [Remember each tab's last subtab](#remember-each-tabs-last-subtab)
 - [Grouped Stats for Nerds list](#grouped-stats-for-nerds-list)
-- [Search the singularity perks](#search-the-singularity-perks)
+- [Search the singularity perks and upgrades](#search-the-singularity-perks-and-upgrades)
 - [Optional offline-popup dismissal](#optional-offline-popup-dismissal)
 - [Recover when the browser loader starts late](#recover-when-the-browser-loader-starts-late)
 - [Remember dismissed game dialogs](#remember-dismissed-game-dialogs)
@@ -25,7 +25,7 @@ Groups settings, tools, logs and information in the game's visual style.
 - Drag the panel, resize it, or minimize it while keeping the game accessible.
 - Settings are grouped into pages; tooltips explain their individual controls.
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Quick access menu
 
@@ -36,7 +36,7 @@ Opens common tools without navigating the full panel.
 - Provides quick access to the integrated Ambrosia Heater and Heater data export.
 - Uses the same underlying actions as the Tools tab.
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Hide tabs and remember hidden tabs
 
@@ -50,7 +50,7 @@ Keeps unwanted main tabs hidden across reloads.
 
 **Related settings:** [`hiddenVanillaTabs`](Settings-Reference#hiddenvanillatabs)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Remember each tab's last subtab
 
@@ -68,7 +68,7 @@ Returns a tab to the subtab you last used after resets and reloads.
 
 **Related settings:** [`rememberSubtabs`](Settings-Reference#remembersubtabs)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Grouped Stats for Nerds list
 
@@ -86,26 +86,27 @@ Replaces the game's grid of category buttons with a compact list sorted into gro
 
 **Related settings:** [`statsForNerdsGroups`](Settings-Reference#statsfornerdsgroups)
 
-**Source:** [hs-stats-for-nerds.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-stats-for-nerds.ts) · [stats-for-nerds.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/stats-for-nerds.md) · [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-stats-for-nerds.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-modules/hs-stats-for-nerds.ts) · [stats-for-nerds.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/stats-for-nerds.md) · [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
-### Search the singularity perks
+### Search the singularity perks and upgrades
 
-Lists the tooltips of the perks matching what you type.
+Finds the perks, Golden Quark upgrades and octeract upgrades matching what you type.
 
-**Where:** Singularity → Perks / Penalties, above the penalties
+**Where:** Singularity → Perks / Penalties, above the penalties; Golden Quarks and Octeracts, at the top of the upgrades
 
 - Results take the place of the penalties text while you search, and the other perks are dimmed in the tree. Clear the field or press Escape to bring the penalties back.
 - Searches perk names and descriptions in your game language, by the start of words. Several words must all match.
 - A row of clickable words (quark, cube, octeract, ant, luck, salvage, token, auto, challenge, purple) runs the common searches. The words are English; one that finds nothing is not shown.
 - Perks the game hasn't shown you yet stay out of the results.
+- Golden Quarks and Octeracts: the upgrades that don't match are dimmed; hover one that stays lit for the game's tooltip. Searches upgrade names and descriptions the same way. Matching maxed upgrades the game's Maxed Upgrades button hides are counted apart: 2 results (+10 hidden).
 
 **Availability and limits**
 
-- Perks only, not Golden Quark or octeract upgrades. Values in the results update at your next key press or when you come back to the subtab. Not available on touch devices.
+- Perk values in the results update at your next key press or when you come back to the subtab. Not available on touch devices.
 
-**Related settings:** [`perksFind`](Settings-Reference#perksfind)
+**Related settings:** [`singularitySearch`](Settings-Reference#singularitysearch)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Optional offline-popup dismissal
 
@@ -117,7 +118,7 @@ Closes the offline progress summary automatically when the game loads.
 
 **Related settings:** [`autoDismissOfflinePopup`](Settings-Reference#autodismissofflinepopup)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Recover when the browser loader starts late
 
@@ -134,7 +135,7 @@ Retries loading when Tampermonkey starts after the game.
 
 **Related settings:** [`reloadOnLateLoaderStart`](Settings-Reference#reloadonlateloaderstart)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Remember dismissed game dialogs
 
@@ -152,7 +153,7 @@ Adds Don't show again / Always confirm choices to supported game dialogs.
 
 **Related settings:** [`hideGameDialogs`](Settings-Reference#hidegamedialogs)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Show suppressed alerts as notifications
 
@@ -165,7 +166,7 @@ Preserves useful alert results without reopening a modal.
 
 **Related settings:** [`hideGameDialogsNotify`](Settings-Reference#hidegamedialogsnotify)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)
 
 ### Notification opacity
 
@@ -177,4 +178,4 @@ Makes the game's notifications less intrusive.
 
 **Related settings:** [`syncNotificationOpacity`](Settings-Reference#syncnotificationopacity)
 
-**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [perks-find.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/perks-find.md)
+**Source:** [hs-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/hs-ui.ts) · [hs-settings-ui.ts](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/src/mod/class/hs-core/settings/hs-settings-ui.ts) · [dialogs.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/dialogs.md) · [subtab-memory.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/subtab-memory.md) · [singularity-search.md](https://github.com/Ferlieloi/synergism-hypersynergy/blob/master/docs/features/singularity-search.md)

@@ -102,6 +102,7 @@ Validates the file, lets you choose supported restore parts, then reloads.
 - The current-state backup and the actual import are separate clicks, allowing the backup download to finish first.
 - Restoring mod data is exact: missing mod keys are removed. Only permitted game-preference keys are restored; logs and diagnostics are never imported.
 - An ordinary current-format game export can also be loaded.
+- "Skip offline progress" loads the save with no offline progress since it was made; code timers and the daily reset work as usual.
 
 **Availability and limits**
 

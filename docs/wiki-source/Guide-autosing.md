@@ -5,7 +5,7 @@ Auto-Sing plays singularities for you, following a strategy. It's for the end ga
 ## Getting started
 
 1. Open the mod panel (the mod's icon, top left), then Settings → **Auto-Sing**.
-2. **Strategy:** pick one. The default strategies are a place to start; some of them are meant for the very end of the game. To make your own, see [Making your own strategy](#making-your-own-strategy).
+2. **Strategy:** pick one. The default strategies are a place to start; some of them are meant for the very end of the game. To adapt one or make your own, see [Making or editing a strategy](#making-or-editing-a-strategy).
 3. **Ambrosia loadouts:** for each role (pre-AOAG cubes, post-AOAG cubes, quarks, obtainium, offerings, luck), pick the game slot that holds that loadout. The Ambrosia Heater (Tools tab) finds the best ones for your save. Each loadout switch resets the ambrosia bars' progress. If you don't want that, tick **Don't switch ambrosia loadouts**: Auto-Sing then never switches.
 4. Turn on **Start/Stop Auto-Sing**, or click ▶ in the menu by the mod's icon.
 
@@ -25,7 +25,19 @@ Auto-Sing keeps its speed when the game is in another tab. Two things can still 
 
 ---
 
-## Making your own strategy
+## Making or editing a strategy
+
+### Start from a default strategy
+
+Editing a default strategy is easier than starting from a blank one:
+1. Select the default strategy closest to your account, then click **✏️ Edit**: it opens a copy that you save under a new name.
+2. Change one thing at a time, then compare the two versions (see [Testing a strategy](#testing-a-strategy)).
+
+The edits players make most often:
+- **Corruption levels:** the default strategies set 20 before leaving the first C15, then 50 at the start of the last phase. Corruptions were reworked in the game's 4.4.0, so these levels are only a starting point: try your own.
+- **The last C15 loop:** its IF step jumps back while C15 is below 1exxx. Lower the value if your account never reaches it, raise it if it gets there easily.
+- **Waits:** shorten a step's Wait before or Wait inside when your account doesn't need it, lengthen it when the next step starts too early.
+- **Max Time:** lower it on a challenge step that keeps running without getting its completions.
 
 ### How Auto-Sing follows a strategy
 
@@ -34,26 +46,27 @@ A strategy is a list of **phases**. Each phase covers a part of the singularity,
 - Phases follow each other: the first starts at "start", each one starts where the previous one ends, and the last one ends at "end".
 - Auto-Sing reads the current stage, runs the steps of the phase that covers it from top to bottom, then reads the stage again. A phase runs again as long as the stage stays in its range.
 - A phase doesn't reset by itself. Only Ascend, Exit Ascension challenge, entering an ascension challenge and "Set corruption level" (with Ascend immediately) do.
-- **AOAG phase:** once the AOAG rune is unlocked (P4x5), Auto-Sing stops the current phase and runs the AOAG phase, then the phase that ends at "end".
+- **AOAG phase:** once the AOAG rune is unlocked (P4x5), Auto-Sing stops the current phase and runs the AOAG phase, then the phase that ends at "end". It starts with "Set corruption level" 0: no offering penalty to buy the AoAG rune.
 - At the end, Auto-Sing switches to your Quark loadout, ascends and exports the save for the bonus quarks, then starts a new singularity.
 
 ### The strategy window
 
 In Settings → Auto-Sing:
-- **➕ Create** opens a blank strategy.
+- **➕ Create** opens a blank strategy (starting from a default is usually easier).
 - **✏️ Edit** opens the selected one. Default strategies can't be changed: Edit opens a copy that you save under a new name.
 - **📤 Export** copies the strategy to share it; **📥 Import** adds one from a copy.
 
 In the window:
 - **Strategy Name** at the top.
 - Each row is a phase: **Phase N: start → [end ▾] [✎ k steps] [×]**. Change a phase's end with its dropdown, open its steps with ✎, delete it with ×.
+- The dashed **AOAG Unlocked Phase** row sits right before the phase that ends at "end", which is where it runs. Hover its **?** to see when it starts.
 - **Add phase until… ▾** adds the next phase. The round **+** on a phase's left border inserts a phase inside it.
 - "0 steps" in red: a phase needs at least one step.
 - **Create Strategy** / **Update Strategy** saves. A strategy must go all the way to "end".
 
 ### The actions window (✎)
 
-Steps run from top to bottom. Pick a **Special Action**, fill in the fields shown, then click **Add** (or press Enter). New steps go where **Add Here** is; drag it to add elsewhere.
+Steps run from top to bottom. Pick a **Special Action**, fill in the fields shown, then click **Add** (or press Enter). New steps go where **Add Here** is; drag it, or double-click a step, to add elsewhere.
 
 **None** = a challenge step:
 - **Challenge #**: the challenge (1–15).

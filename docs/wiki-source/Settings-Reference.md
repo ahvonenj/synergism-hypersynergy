@@ -388,6 +388,14 @@ Record step timings
 - Location: Panel control / auto-sing.
 - Guide: [Step timings](Features-autosing#step-timings).
 
+## autosingFullLog
+
+Full log during Auto-Sing
+
+- Source default: `false`; enabled flag: `false`.
+- Location: Panel control / auto-sing.
+- Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
+
 ## autosingStrategy
 
 Auto-Sing Strategy
@@ -604,13 +612,13 @@ GQ Distributor
 - Location: Panel control / qol.
 - Guide: [GQ Distributor with saved upgrade ratios](Features-golden-quarks#gq-distributor-with-saved-upgrade-ratios).
 
-## perksFind
+## singularitySearch
 
-Perks search field
+Search fields (Perks, GQ, Oct)
 
 - Source default: `true`; enabled flag: `true`.
 - Location: Panel control / qol.
-- Guide: [Search the singularity perks](Features-interface#search-the-singularity-perks).
+- Guide: [Search the singularity perks and upgrades](Features-interface#search-the-singularity-perks-and-upgrades).
 
 ## hideMaxedGQUpgrades
 
@@ -665,15 +673,15 @@ GQ Distributor saved ratios
 Show debug logs
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Panel control / debug.
+- Location: Hidden / inline or internal.
 - Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
 
 ## logTimestamp
 
-Display timestamps in log
+Show timestamps in log
 
 - Source default: `false`; enabled flag: `false`.
-- Location: Panel control / debug.
+- Location: Hidden / inline or internal.
 - Guide: [Color-coded mod log and diagnostics](Features-tools#color-coded-mod-log-and-diagnostics).
 
 ## autosing3to6DCubeOpeningPercent

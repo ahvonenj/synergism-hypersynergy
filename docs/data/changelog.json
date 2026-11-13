@@ -26,6 +26,255 @@
   ],
   "entries": [
     {
+      "id": "live-2.14.8a",
+      "version": "2.14.8a",
+      "channel": "live",
+      "repository": "Ferlieloi/synergism-hypersynergy",
+      "commit": "a27bb118416471440fc762b060d6944615fda292",
+      "previous_commit": "61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e",
+      "date": "2026-11-13",
+      "date_kind": "tag",
+      "status": "tagged",
+      "release_url": null,
+      "sources": [
+        {
+          "label": "Git tag",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/tree/v2.14.8a"
+        },
+        {
+          "label": "Release build",
+          "url": "https://github.com/Ferlieloi/synergism-hypersynergy/commit/a27bb118416471440fc762b060d6944615fda292"
+        },
+        {
+          "label": "Dev release",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+        }
+      ],
+      "notes": [],
+      "changes": [
+        {
+          "type": "fixed",
+          "text": "The Heater and the header's Ambrosia rates work again after the November 12 rune update. The older Steam game remains supported.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "The rainbow and silver borders rotate again. This includes the loaded Ambrosia slot and the Heater's copy of it. The mod's update marker also rotates.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/3e71ae39596564a657abc397fc021ff37aaffe65"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Singularity has search fields for Golden Quark and Octeract upgrades. Nonmatches dim, and hidden maxed matches are counted separately. The existing Perks search setting now controls all three fields and keeps its saved state.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Auto-Sing moves the level-0 corruption reset before AoAG into an editable strategy step. Existing saved and imported strategies receive the step once so their runs keep the same behaviour.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The strategy editor shows AoAG before the final phase, links to the guide, and lets you double-click a step to move Add Here below it.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The Log tab lets you toggle timestamps and debug lines. Copy Log includes hidden lines, startup messages are retained, and long runs do less work with the tab open. Enable Full log during Auto-Sing under Diagnostics to see routine run messages.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Automation quickbar group clicks read the toggles' actual state in every language. Ctrl auto-click respects Skip risky buttons over the Auto Sacrifice label.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Notification opacity works again, including 0. Fix Exalt Bug clears a stuck exalt and reports the outcome.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Steam keeps header modules in place at startup and restores the silver border for the inferred Ambrosia slot. Auto-Sing waits for the save to load, and scheduled exports wait until offline progress ends.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Quick buttons keep maxed GQ and Octeract upgrades hidden when returning to their tabs. Bookmarklets recognise the game's new colours for ascension confirmation and active exalts.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Backup imports can skip offline progress. The Tools tab keeps its default width, settings that need GDS show a notification, and Dev's version check shows the Live release on a separate line.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "Ferlieloi",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "3e71ae39596564a657abc397fc021ff37aaffe65",
+            "a27bb118416471440fc762b060d6944615fda292"
+          ]
+        },
+        {
+          "id": "maenhiir",
+          "roles": [
+            "changes"
+          ],
+          "commits": [
+            "b84f401e5438cfb4d7af71bd6529b66e87b04730"
+          ]
+        }
+      ],
+      "contributor_range": {
+        "base": "61f1a2fc5ea2bfa2839d4525a094315bc8d63e8e",
+        "head": "a27bb118416471440fc762b060d6944615fda292",
+        "scope": "repository"
+      },
+      "merges": [
+        {
+          "direction": "dev-to-live",
+          "from_entry_id": "dev-2.14.8-dev1",
+          "commit": "3e71ae39596564a657abc397fc021ff37aaffe65",
+          "summary": "Live includes Dev v2.14.8-dev1 and restores the rotating borders.",
+          "evidence": [
+            "https://github.com/Ferlieloi/synergism-hypersynergy/commit/3e71ae39596564a657abc397fc021ff37aaffe65",
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dev-2.14.8-dev1",
+      "version": "2.14.8-dev1",
+      "channel": "dev",
+      "repository": "maenhiir/synergism-hypersynergy",
+      "commit": "b84f401e5438cfb4d7af71bd6529b66e87b04730",
+      "previous_commit": null,
+      "date": "2026-11-13",
+      "date_kind": "published",
+      "status": "published",
+      "release_url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1",
+      "sources": [
+        {
+          "label": "Published release",
+          "url": "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+        }
+      ],
+      "notes": [],
+      "changes": [
+        {
+          "type": "fixed",
+          "text": "The Heater and the header's Ambrosia rates work again after the November 12 rune update. The older Steam game remains supported.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Singularity has search fields for Golden Quark and Octeract upgrades. Nonmatches dim, and hidden maxed matches are counted separately. The existing Perks search setting now controls all three fields and keeps its saved state.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Auto-Sing moves the level-0 corruption reset before AoAG into an editable strategy step. Existing saved and imported strategies receive the step once so their runs keep the same behaviour.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The strategy editor shows AoAG before the final phase, links to the guide, and lets you double-click a step to move Add Here below it.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "The Log tab lets you toggle timestamps and debug lines. Copy Log includes hidden lines, startup messages are retained, and long runs do less work with the tab open. Enable Full log during Auto-Sing under Diagnostics to see routine run messages.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Automation quickbar group clicks read the toggles' actual state in every language. Ctrl auto-click respects Skip risky buttons over the Auto Sacrifice label.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Notification opacity works again, including 0. Fix Exalt Bug clears a stuck exalt and reports the outcome.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Steam keeps header modules in place at startup and restores the silver border for the inferred Ambrosia slot. Auto-Sing waits for the save to load, and scheduled exports wait until offline progress ends.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "Quick buttons keep maxed GQ and Octeract upgrades hidden when returning to their tabs. Bookmarklets recognise the game's new colours for ascension confirmation and active exalts.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        },
+        {
+          "type": "changed",
+          "text": "Backup imports can skip offline progress. The Tools tab keeps its default width, settings that need GDS show a notification, and Dev's version check shows the Live release on a separate line.",
+          "evidence": [
+            "https://github.com/maenhiir/synergism-hypersynergy/releases/tag/v2.14.8-dev1"
+          ]
+        }
+      ],
+      "contributors": [
+        {
+          "id": "maenhiir",
+          "roles": [
+            "changes",
+            "release"
+          ],
+          "commits": [
+            "b84f401e5438cfb4d7af71bd6529b66e87b04730"
+          ]
+        }
+      ],
+      "merges": []
+    },
+    {
       "id": "live-2.14.8",
       "version": "2.14.8",
       "channel": "live",

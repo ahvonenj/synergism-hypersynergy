@@ -21,7 +21,7 @@ Small interface choices are remembered locally, including changes made through t
 - [Hide tabs and remember hidden tabs](Features-interface#hide-tabs-and-remember-hidden-tabs): Keeps unwanted main tabs hidden across reloads.
 - [Remember each tab's last subtab](Features-interface#remember-each-tabs-last-subtab): Returns a tab to the subtab you last used after resets and reloads.
 - [Grouped Stats for Nerds list](Features-interface#grouped-stats-for-nerds-list): Replaces the game's grid of category buttons with a compact list sorted into groups.
-- [Search the singularity perks](Features-interface#search-the-singularity-perks): Lists the tooltips of the perks matching what you type.
+- [Search the singularity perks and upgrades](Features-interface#search-the-singularity-perks-and-upgrades): Finds the perks, Golden Quark upgrades and octeract upgrades matching what you type.
 - [Optional offline-popup dismissal](Features-interface#optional-offline-popup-dismissal): Closes the offline progress summary automatically when the game loads.
 - [Recover when the browser loader starts late](Features-interface#recover-when-the-browser-loader-starts-late): Retries loading when Tampermonkey starts after the game.
 - [Remember dismissed game dialogs](Features-interface#remember-dismissed-game-dialogs): Adds Don't show again / Always confirm choices to supported game dialogs.
