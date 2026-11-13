@@ -91,7 +91,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 
 ### Steps, tests and commits
 - **Before editing, in multi-step work: recap and ask the open decisions**, each with a recommendation. Small behaviour-free follow-ups in the topic at hand can be done first and recapped after.
-- **After implementing:** type check and build (plus the loader tests if `patcher.js` changed), then give an in-game test list the developer can follow cold: the setup, then for each check where to click, the exact value expected and what counts as a bug. The dev tools can set up the save.
+- **After implementing:** type check, build and `npm test` (plus the loader tests if `patcher.js` changed), then give an in-game test list the developer can follow cold: the setup, then for each check where to click, the exact value expected and what counts as a bug. The dev tools can set up the save.
 - **Commit only when explicitly asked**: "tests passed" or an earlier "ok" is not a request. After any change since the developer's tests, ask for a retest first.
 - **A commit holds only your own work**: `git add` explicit paths (never `-A` or `commit -a`), check `git diff --cached --stat`, say which files were left out. Only your hunks of a shared file: `docs/dev/tricks.md`.
 - **When a design grows**, point out which decisions drive the complexity and offer the simpler variant.
