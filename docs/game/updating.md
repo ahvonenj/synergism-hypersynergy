@@ -115,6 +115,9 @@ arrays indexed by the game's `RuneType` (Speed 0 … Top Hat 9): `runeEXP` / `ru
 `runeSpirits`). Building counts are saved again (`coinBuildings`, `diamondBuildings`, `mythosBuildings`,
 `particleBuildings`, `accelerators`, `multipliers`, `acceleratorBoosts`, `ascendBuildingN.owned`) instead of what was
 paid; `autoSacrifice` became `autoSacrificeRune`. Offerings now buy whole rune levels only (no partial EXP).
+Bar fills (blue and red Ambrosia, the E10 reactor's, the Red Ambrosia Accelerator's) are counted in one step per tick
+with one stochastic rounding (`calculateAmbrosiaBarFills`, `Helper.ts`) instead of a loop of rolls: same averages, so
+the mod's expected-value bar income (`hs-ambrosia-bar-income.ts`) still matches.
 
 Steam stayed on the previous game for a while (its bundle had no `runeLevels`): GDS reads both shapes, the EXP through
 `getRuneEXP` / `getBlessingEXP` / `getSpiritEXP` (`hs-gamedata-utils.ts`) and the coin buildings from `coinBuildings`
