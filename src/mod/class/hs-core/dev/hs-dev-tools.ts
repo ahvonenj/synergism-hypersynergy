@@ -667,9 +667,8 @@ export class HSDevTools {
 
     /** The current state as a snapshot, or null when the game could not save (it refuses during a time warp). */
     #captureSnapshot(kind: HSDevSnapshot['kind'], label: string): HSDevSnapshot | null {
-        // Synchronous: clicks the game's save button and takes the save it serializes
-        const save = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
-        if (!save) return null;
+        const save = HSBackup.captureSave();
+        if (save === null) return null;
 
         let singularity: number | undefined;
         try {

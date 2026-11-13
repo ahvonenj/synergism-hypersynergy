@@ -194,7 +194,8 @@ export class HSBackup {
 
             let save: string | null = null;
             if (parts.save) {
-                save = HSBackup.#captureSave() ?? (beforeImport ? localStorage.getItem(SAVE_KEY) : null);
+                // Saved: the game's stored string is the save just made. Not saved: before an import, the last one
+                save = HSBackup.captureSave() !== null || beforeImport ? localStorage.getItem(SAVE_KEY) : null;
                 if (!save) {
                     HSUI.Notify('Backup: the game could not save right now (offline progress running?)', { position: 'top', notificationType: 'error' });
                     return null;
@@ -241,17 +242,25 @@ export class HSBackup {
         }
     }
 
-    /** Makes the game save now and returns its stored save, or null when the game refused (it does during a time warp). */
-    static #captureSave(): string | null {
+    /**
+     * Makes the game save now and returns the save's JSON, or null when the game did not save (it refuses during a
+     * time warp). Synchronous: the game serializes the save through btoa and writes `btoa(json)` to localStorage
+     * before its save button's handler returns, so after a capture the stored save is the same content.
+     */
+    static captureSave(): string | null {
         const before = localStorage.getItem(SAVE_KEY);
-        // Synchronous: the game writes its save to localStorage before this returns
         const captured = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
-        const stored = localStorage.getItem(SAVE_KEY);
+        if (captured !== undefined) return captured;
 
-        if (!stored) return null;
-        // Nothing captured and nothing written: the game did not save
-        if (captured === undefined && stored === before) return null;
-        return stored;
+        // Missed by the btoa hook but written all the same: the stored save is the same content.
+        // Nothing written: the game did not save.
+        const stored = localStorage.getItem(SAVE_KEY);
+        if (!stored || stored === before) return null;
+        try {
+            return atob(stored);
+        } catch {
+            return null;
+        }
     }
 
     static #isModKey(key: string): boolean {
