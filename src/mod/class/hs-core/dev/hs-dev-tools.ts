@@ -36,6 +36,8 @@ interface HSDevLeaf {
 interface HSDevStoredData {
     pinned: string[];
     freePath: string;
+    // Restore moves the save's clock fields to now: no offline progress, same code timers, no daily reset
+    skipOfflineProgress: boolean;
 }
 
 // What the snapshot list shows: a stored snapshot without its save
@@ -73,7 +75,7 @@ const SNAPSHOT_RULES = [
     'Named: kept until you delete it. Saving under the same name replaces it.',
     'Import file: a game export or a mod backup, added as a named snapshot under its file name (the list date is when it was saved).',
     'Restore keeps the current state as an automatic snapshot, then reloads the page.',
-    'A restored state loads as it was saved: no offline progress, same Add and Time code timers.',
+    'Skip offline progress (ticked): the state loads as it was saved, with the same Add and Time code timers and no daily reset. Unticked: loads as the game loads any save.',
     'Restore is refused while Auto-Sing is active.',
     'Stored in this browser only: the browser and Steam each have their own list.',
 ];
@@ -144,7 +146,7 @@ export class HSDevTools {
     #freePath?: HTMLInputElement;
     #freeCurrent?: HTMLElement;
 
-    #data: HSDevStoredData = { pinned: [], freePath: '' };
+    #data: HSDevStoredData = { pinned: [], freePath: '', skipOfflineProgress: true };
 
     // Taken before the first edit of the session (a page load)
     #sessionSnapshot?: HSDevSnapshot;
@@ -586,6 +588,7 @@ export class HSDevTools {
         this.#data = {
             pinned: Array.isArray(stored?.pinned) ? stored.pinned : [],
             freePath: typeof stored?.freePath === 'string' ? stored.freePath : '',
+            skipOfflineProgress: typeof stored?.skipOfflineProgress === 'boolean' ? stored.skipOfflineProgress : true,
         };
     }
 
@@ -613,7 +616,18 @@ export class HSDevTools {
         };
         name.addEventListener('keydown', (e) => { if (e.key === 'Enter') void save(); });
 
-        element.append(name, this.#button('Save snapshot', () => { void save(); }), this.#button('Import file', () => this.#chooseSnapshotFile()));
+        const skipOfflineProgress = this.#el('label', 'hs-dev-tools-radio');
+        skipOfflineProgress.title = 'Restore: no offline progress, same code timers, no daily reset';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = this.#data.skipOfflineProgress;
+        checkbox.addEventListener('change', () => {
+            this.#data.skipOfflineProgress = checkbox.checked;
+            this.#saveData();
+        });
+        skipOfflineProgress.append(checkbox, 'Skip offline progress');
+
+        element.append(name, this.#button('Save snapshot', () => { void save(); }), this.#button('Import file', () => this.#chooseSnapshotFile()), skipOfflineProgress);
         return element;
     }
 
@@ -896,18 +910,11 @@ export class HSDevTools {
             const kept = current !== null && await this.#storeSnapshot(current);
             if (!kept && !window.confirm('Dev tools: the current state could not be kept as a snapshot.\n\nRestore anyway?')) return;
 
-            // The game counts from the clock what a save gains while away: offline progress (offlinetick), Add code
-            // uses (rngCode) and the Time code's size (promoCodeTiming.time). All three are moved forward by the
-            // time since the save, so the state loads as it was saved.
-            const data = JSON.parse(snapshot.save);
-            const now = Date.now();
-            const elapsed = typeof data.offlinetick === 'number' ? Math.max(0, now - data.offlinetick) : 0;
-            data.offlinetick = now;
-            if (typeof data.rngCode === 'number') data.rngCode += elapsed;
-            if (typeof data.promoCodeTiming?.time === 'number') data.promoCodeTiming.time += elapsed;
+            const skipOfflineProgress = this.#data.skipOfflineProgress;
+            const save = skipOfflineProgress ? this.#withClockAtNow(snapshot.save) : snapshot.save;
 
-            HSLogger.log(`Restoring the snapshot "${snapshot.label}" (${new Date(snapshot.date).toLocaleString()})`, this.#context);
-            const refusal = await HSBackup.importSaveAndReload(await this.#toBase64(JSON.stringify(data)));
+            HSLogger.log(`Restoring the snapshot "${snapshot.label}" (${new Date(snapshot.date).toLocaleString()}), ${skipOfflineProgress ? 'skipping offline progress' : 'as the game loads a save'}`, this.#context);
+            const refusal = await HSBackup.importSaveAndReload(await this.#toBase64(save));
             if (refusal) this.#fail(`Snapshot not restored. ${refusal}`);
             // No refusal: the page is reloading, and a second restore must not start meanwhile
             else reloading = true;
@@ -916,6 +923,30 @@ export class HSDevTools {
         } finally {
             this.#restoring = reloading;
         }
+    }
+
+    /**
+     * The save (JSON) with its clock fields moved to now, so it loads as it was saved. Without this, the game
+     * loads it as any save: offline progress, code timers counting the time away, daily reset on a new day.
+     */
+    #withClockAtNow(save: string): string {
+        // The game counts from the clock what a save gains while away: offline progress (offlinetick), Add code
+        // uses (rngCode) and the Time code's size (promoCodeTiming.time). All three are moved forward by the
+        // time since the save.
+        const data = JSON.parse(save);
+        const now = Date.now();
+        const elapsed = typeof data.offlinetick === 'number' ? Math.max(0, now - data.offlinetick) : 0;
+        data.offlinetick = now;
+        if (typeof data.rngCode === 'number') data.rngCode += elapsed;
+        if (typeof data.promoCodeTiming?.time === 'number') data.promoCodeTiming.time += elapsed;
+        // The daily reset goes by the calendar: the game runs it when dayCheck is a day older than today's
+        // local midnight. Set to today, a snapshot from an earlier day keeps its daily counters, orbs and warps.
+        // Left at null: the game sets it to today at load.
+        if (typeof data.dayCheck === 'string') {
+            const today = new Date(now);
+            data.dayCheck = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        }
+        return JSON.stringify(data);
     }
 
     /**
