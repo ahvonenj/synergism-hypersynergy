@@ -399,6 +399,52 @@ async function main() {
         assert.ok(logErrors.some(line => line.includes('Import failed')));
     });
 
+    // ---------- shiftSaveClock: no time away at load ----------
+
+    const NOW = new Date(2026, 10, 13, 15, 30).getTime();
+    const HOUR = 3600000;
+    const clockSave = () => ({
+        offlinetick: NOW - 5 * HOUR,
+        rngCode: NOW - 30 * HOUR,
+        promoCodeTiming: { time: NOW - 2 * HOUR },
+        dayCheck: new Date(2026, 10, 11).toISOString(),
+        other: 7,
+    });
+    const shifted = options => {
+        const data = clockSave();
+        HSBackup.shiftSaveClock(data, NOW, options);
+        return data;
+    };
+
+    scenario('offline progress only: offlinetick moves, the rest loads as the game would', () => {
+        assert.deepEqual(shifted({ codeTimers: false, dailyReset: false }), { ...clockSave(), offlinetick: NOW });
+    });
+
+    scenario('code timers move forward by the time since the save', () => {
+        const data = shifted({ codeTimers: true, dailyReset: false });
+        assert.equal(data.rngCode, NOW - 25 * HOUR);
+        assert.equal(data.promoCodeTiming.time, NOW + 3 * HOUR);
+        assert.equal(data.dayCheck, clockSave().dayCheck);
+    });
+
+    scenario('daily reset: dayCheck is today at local midnight, as the game writes it', () => {
+        const data = shifted({ codeTimers: false, dailyReset: true });
+        assert.equal(data.dayCheck, new Date(2026, 10, 13).toISOString());
+        assert.equal(data.rngCode, clockSave().rngCode);
+    });
+
+    scenario('a save from the future moves nothing forward', () => {
+        const data = { offlinetick: NOW + HOUR, rngCode: 100, promoCodeTiming: { time: 200 } };
+        HSBackup.shiftSaveClock(data, NOW, { codeTimers: true, dailyReset: true });
+        assert.deepEqual(data, { offlinetick: NOW, rngCode: 100, promoCodeTiming: { time: 200 } });
+    });
+
+    scenario('missing or odd fields are left alone', () => {
+        const data = { offlinetick: 'x', rngCode: '5', dayCheck: null };
+        HSBackup.shiftSaveClock(data, NOW, { codeTimers: true, dailyReset: true });
+        assert.deepEqual(data, { offlinetick: NOW, rngCode: '5', dayCheck: null });
+    });
+
     console.log(`Passed ${scenarios} backup file scenarios.`);
 }
 

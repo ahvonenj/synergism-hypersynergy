@@ -910,11 +910,18 @@ export class HSDevTools {
             const kept = current !== null && await this.#storeSnapshot(current);
             if (!kept && !window.confirm('Dev tools: the current state could not be kept as a snapshot.\n\nRestore anyway?')) return;
 
+            // Ticked, the state loads as it was saved: no offline progress, same code timers, no daily reset.
+            // Unticked, the game loads it as any save.
             const skipOfflineProgress = this.#data.skipOfflineProgress;
-            const save = skipOfflineProgress ? this.#withClockAtNow(snapshot.save) : snapshot.save;
+            let save = snapshot.save;
+            if (skipOfflineProgress) {
+                const data = JSON.parse(save);
+                HSBackup.shiftSaveClock(data, Date.now(), { codeTimers: true, dailyReset: true });
+                save = JSON.stringify(data);
+            }
 
             HSLogger.log(`Restoring the snapshot "${snapshot.label}" (${new Date(snapshot.date).toLocaleString()}), ${skipOfflineProgress ? 'skipping offline progress' : 'as the game loads a save'}`, this.#context);
-            const refusal = await HSBackup.importSaveAndReload(await this.#toBase64(save));
+            const refusal = await HSBackup.importSaveAndReload(await HSBackup.encodeSave(save));
             if (refusal) this.#fail(`Snapshot not restored. ${refusal}`);
             // No refusal: the page is reloading, and a second restore must not start meanwhile
             else reloading = true;
@@ -923,47 +930,6 @@ export class HSDevTools {
         } finally {
             this.#restoring = reloading;
         }
-    }
-
-    /**
-     * The save (JSON) with its clock fields moved to now, so it loads as it was saved. Without this, the game
-     * loads it as any save: offline progress, code timers counting the time away, daily reset on a new day.
-     */
-    #withClockAtNow(save: string): string {
-        // The game counts from the clock what a save gains while away: offline progress (offlinetick), Add code
-        // uses (rngCode) and the Time code's size (promoCodeTiming.time). All three are moved forward by the
-        // time since the save.
-        const data = JSON.parse(save);
-        const now = Date.now();
-        const elapsed = typeof data.offlinetick === 'number' ? Math.max(0, now - data.offlinetick) : 0;
-        data.offlinetick = now;
-        if (typeof data.rngCode === 'number') data.rngCode += elapsed;
-        if (typeof data.promoCodeTiming?.time === 'number') data.promoCodeTiming.time += elapsed;
-        // The daily reset goes by the calendar: the game runs it when dayCheck is a day older than today's
-        // local midnight. Set to today, a snapshot from an earlier day keeps its daily counters, orbs and warps.
-        // Left at null: the game sets it to today at load.
-        if (typeof data.dayCheck === 'string') {
-            const today = new Date(now);
-            data.dayCheck = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-        }
-        return JSON.stringify(data);
-    }
-
-    /**
-     * The save JSON in base64, as the game stores and exports it: one byte per character, like btoa.
-     * Not window.btoa itself: GDS hooks it, and would take this old save for the current one.
-     */
-    async #toBase64(save: string): Promise<string> {
-        const bytes = new Uint8Array(save.length);
-        for (let i = 0; i < bytes.length; i++) bytes[i] = save.charCodeAt(i);
-
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(new Blob([bytes]));
-        });
-        return dataUrl.slice(dataUrl.indexOf(',') + 1);
     }
 
     /** Downloads the session's snapshot, or the last stored one. */
@@ -993,7 +959,7 @@ export class HSDevTools {
 
     /** Downloads a snapshot as a file the game's "Load from file" reads. */
     async #download(snapshot: HSDevSnapshot): Promise<void> {
-        const base64 = await this.#toBase64(snapshot.save);
+        const base64 = await HSBackup.encodeSave(snapshot.save);
 
         const date = new Date(snapshot.date);
         const pad = (value: number) => String(value).padStart(2, '0');

@@ -478,6 +478,52 @@ export class HSBackup {
         return content.saveRefused ? 'the save in this file is not one the game would load' : 'this file holds no save';
     }
 
+    /**
+     * Moves a parsed save's clock fields to `now`, in place, so the game counts no time away at load.
+     * Always `offlinetick` (offline progress). `codeTimers`: `rngCode` (Add code uses) and `promoCodeTiming.time`
+     * (the Time code's size), moved forward by the time since the save. `dailyReset`: `dayCheck` (the date of the
+     * last daily reset) set to today's local midnight, as the game writes it, so a save from an earlier day gets no
+     * daily reset; left at null, the game sets it to today at load. A field missing or of another type is left alone.
+     */
+    static shiftSaveClock(data: Record<string, any>, now: number, { codeTimers, dailyReset }: { codeTimers: boolean, dailyReset: boolean }): void {
+        const elapsed = typeof data.offlinetick === 'number' ? Math.max(0, now - data.offlinetick) : 0;
+        data.offlinetick = now;
+
+        if (codeTimers) {
+            if (typeof data.rngCode === 'number') data.rngCode += elapsed;
+            if (typeof data.promoCodeTiming?.time === 'number') data.promoCodeTiming.time += elapsed;
+        }
+
+        if (dailyReset && typeof data.dayCheck === 'string') {
+            const today = new Date(now);
+            data.dayCheck = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        }
+    }
+
+    /**
+     * A save's JSON in base64, as the game stores and exports it: one byte per character, like btoa.
+     * Not window.btoa itself: GDS hooks it, and would take this save for the current one.
+     */
+    static async encodeSave(json: string): Promise<string> {
+        const bytes = new Uint8Array(json.length);
+        for (let i = 0; i < bytes.length; i++) bytes[i] = json.charCodeAt(i);
+
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(new Blob([bytes]));
+        });
+        return dataUrl.slice(dataUrl.indexOf(',') + 1);
+    }
+
+    /** The save (base64) with no offline progress at load: only `offlinetick` moves, the rest loads as the game would. */
+    static async #withoutOfflineProgress(save: string): Promise<string> {
+        const data = JSON.parse(atob(save));
+        HSBackup.shiftSaveClock(data, Date.now(), { codeTimers: false, dailyReset: false });
+        return HSBackup.encodeSave(JSON.stringify(data));
+    }
+
     static async #openImportModal(fileName: string, content: HSBackupImport): Promise<void> {
         const hsui = HSModuleRegistry.getModule('HSUI');
         if (!hsui) return;
@@ -492,6 +538,7 @@ export class HSBackup {
                     <div class="hs-backup-file"></div>
                     <div class="hs-backup-details"></div>
                     ${row('save', 'Save', true)}
+                    <label class="hs-backup-suboption" title="The save loads as it was made: no offline progress since then"><input type="checkbox" data-part="skipOffline">Skip offline progress</label>
                     ${row('modData', 'Mod data', true)}
                     ${row('gamePrefs', 'Game preferences', true)}
                     ${row('backup', 'Download a backup of my current save, mod data and preferences first', true)}
@@ -543,6 +590,15 @@ export class HSBackup {
             unavailable('save', content.saveRefused ? '(not a save the game would load)' : '(not in this file)');
         }
 
+        // Only with the save: greyed out, in place, when it is unticked or missing
+        const skipOffline = box('skipOffline');
+        const syncSkipOffline = () => {
+            skipOffline.disabled = !box('save').checked;
+            (skipOffline.parentElement as HTMLElement).classList.toggle('hs-backup-suboption-off', skipOffline.disabled);
+        };
+        box('save').addEventListener('change', syncSkipOffline);
+        syncSkipOffline();
+
         if (content.modData) {
             (box('modData').parentElement as HTMLElement).title = HSBackup.#modDataHint;
             note('modData').textContent = `(${Object.keys(content.modData).length} stored entries)`;
@@ -581,6 +637,19 @@ export class HSBackup {
                 backupDownloaded = true;
                 status.textContent = `Backup downloaded as "${name}". Once it is saved, click "Import and reload" again.`;
                 return;
+            }
+
+            if (write.save && skipOffline.checked) {
+                try {
+                    write.save = await HSBackup.#withoutOfflineProgress(write.save);
+                } catch (error) {
+                    HSLogger.error(`Import refused: the save's offline time could not be skipped: ${error}`, HSBackup.#context);
+                    status.textContent = 'Offline progress could not be skipped (see the Log tab): nothing was imported.';
+                    return;
+                }
+                // Checked again: the encoding is awaited, and autosing could have started meanwhile
+                if (HSBackup.#refusedDuringAutosing('Import')) return;
+                HSLogger.log('Import: the save loads with no offline progress', HSBackup.#context);
             }
 
             const failure = HSBackup.#applyImport(write);

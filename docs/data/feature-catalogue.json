@@ -1392,7 +1392,8 @@
           "details": [
             "The current-state backup and the actual import are separate clicks, allowing the backup download to finish first.",
             "Restoring mod data is exact: missing mod keys are removed. Only permitted game-preference keys are restored; logs and diagnostics are never imported.",
-            "An ordinary current-format game export can also be loaded."
+            "An ordinary current-format game export can also be loaded.",
+            "\"Skip offline progress\" loads the save with no offline progress since it was made; code timers and the daily reset work as usual."
           ],
           "limits": [
             "Import replaces the selected local state and reloads the page. Legacy compressed saves rejected by current validation are not restored; folder permissions and pending paid time skips are not copied."

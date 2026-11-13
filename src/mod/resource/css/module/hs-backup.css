@@ -45,6 +45,15 @@
     opacity: 0.85;
 }
 
+.hs-backup-modal .hs-backup-suboption {
+    margin-left: 22px;
+}
+
+.hs-backup-modal .hs-backup-suboption-off {
+    opacity: 0.5;
+    cursor: default;
+}
+
 .hs-backup-part-note {
     opacity: 0.7;
 }
