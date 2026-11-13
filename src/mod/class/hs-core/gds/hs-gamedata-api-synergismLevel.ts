@@ -307,12 +307,10 @@ export class SynergismLevelHelper {
         const data = this.#gameData;
         const points = {} as Record<ProgressiveAchievements, number>;
         if (!data) return points;
+        // The saved values, as the game (useCachedValue). Not the talismans' rarities when the saved one is 0: the
+        // Achievement talisman's unlock reads the Synergism level, which loops back here
         for (const k of Object.keys(this.#progressiveAchievementPoints) as ProgressiveAchievements[]) {
-            const savedValue = data.progressiveAchievements[k] ?? 0;
-            const effectiveValue = k === 'talismanRarities' && savedValue === 0
-                ? this.#api.talisman.calculateTalismanRarityTotal()
-                : savedValue;
-            points[k] = this.#progressiveAchievementPoints[k](effectiveValue);
+            points[k] = this.#progressiveAchievementPoints[k](data.progressiveAchievements[k] ?? 0);
         }
         return points;
     }
