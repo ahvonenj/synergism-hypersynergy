@@ -1,4 +1,4 @@
-import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, SPECIAL_ACTION_BY_ID, isCorruptionLevelStep, isIfJumpMaxJumps } from "../../../types/module-types/hs-autosing-types";
+import { HSAutosingStrategy, AutosingStrategyPhase, Challenge, phases, AOAG_PHASE_ID, AOAG_PHASE_NAME, createDefaultAoagPhase, SET_CORRUPTION_LEVEL_VALUE, EXIT_ASCENSION_CHALLENGE_VALUE, STRATEGY_FORMAT_VERSION, AOAG_LEVEL_STEP_COMMENT, IF_JUMP_VALUE, SPECIAL_ACTION_BY_ID, isCorruptionLevelStep, isIfJumpMaxJumps } from "./hs-autosing-types";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 
 import { HSGlobal } from "../../hs-core/hs-global";
@@ -80,6 +80,7 @@ export class HSStrategyManager {
         }
     }
 
+    /** Gives the strategy its AOAG phase (the default one when it has none), and that phase its level step (#addAoagLevelStep). */
     static ensureAoagPhase(strategy: HSAutosingStrategy): HSAutosingStrategy {
         if (!strategy) return strategy;
 
@@ -87,6 +88,7 @@ export class HSStrategyManager {
 
         if (!Array.isArray(cloned.strategy)) cloned.strategy = [];
 
+        let ownPhase = true;
         if (!cloned.aoagPhase) {
             const aoagIndex = cloned.strategy.findIndex(p => p.phaseId === AOAG_PHASE_ID);
             if (aoagIndex !== -1) {
@@ -94,6 +96,7 @@ export class HSStrategyManager {
                 cloned.aoagPhase = aoagFromList;
             } else {
                 cloned.aoagPhase = createDefaultAoagPhase();
+                ownPhase = false;
             }
         }
 
@@ -101,7 +104,40 @@ export class HSStrategyManager {
             cloned.aoagPhase.phaseId = AOAG_PHASE_ID;
         }
 
+        const isCurrent = typeof cloned.formatVersion === 'number' && cloned.formatVersion >= STRATEGY_FORMAT_VERSION;
+        if (!isCurrent && ownPhase && Array.isArray(cloned.aoagPhase?.strat)) HSStrategyManager.#addAoagLevelStep(cloned.aoagPhase);
+        cloned.formatVersion = STRATEGY_FORMAT_VERSION;
+
         return cloned;
+    }
+
+    /**
+     * Before format 2, autosing set level 0 and reset (exit the ascension challenge, else Ascend) before the AOAG phase:
+     * that becomes the phase's first step, a "Set corruption level" 0 that ascends at once. It replaces a leading
+     * "Exit Ascension challenge", which did nothing after that reset, unless an IF jumps to it (that exit could then
+     * apply a level). Added once (the format version records it): the player can then change or remove it.
+     */
+    static #addAoagLevelStep(phase: AutosingStrategyPhase): void {
+        const levelStep: Challenge = {
+            challengeNumber: SET_CORRUPTION_LEVEL_VALUE,
+            corruptionLevel: 0,
+            ascendAfterCorruption: true,
+            challengeCompletions: 0,
+            challengeWaitTime: 0,
+            challengeMaxTime: 0,
+            comment: AOAG_LEVEL_STEP_COMMENT,
+        };
+        const first = phase.strat[0];
+        if (first?.challengeNumber === EXIT_ASCENSION_CHALLENGE_VALUE && !phase.strat.some(step => step.ifJump?.ifJumpIndex === 0)) {
+            if (first.challengeWaitBefore !== undefined) levelStep.challengeWaitBefore = first.challengeWaitBefore;
+            if (first.comment) levelStep.comment = first.comment;
+            phase.strat[0] = levelStep;
+            return;
+        }
+        phase.strat.unshift(levelStep);
+        for (const step of phase.strat) {
+            if (step.ifJump) step.ifJump.ifJumpIndex++;
+        }
     }
 
     static #getPhases(strategy: HSAutosingStrategy): AutosingStrategyPhase[] {
@@ -138,7 +174,7 @@ export class HSStrategyManager {
      * - A phase's own level is gone: it becomes a "Set corruption level" step at the phase's start, and its
      *   "Corruption level from phase (reapply)" steps "Set corruption level" steps (removed when the phase had no
      *   level: they did nothing). Not in the first phase (autosing starts each singularity with one, which sets the
-     *   level to 0) nor the AOAG phase (autosing sets 0 before it).
+     *   level to 0) nor the AOAG phase (it ran at 0 whatever its level: ensureAoagPhase gives it a level 0 step).
      */
     static #migrateCorruptions(strategy: HSAutosingStrategy): void {
         const legacy = strategy as LegacyStrategy;

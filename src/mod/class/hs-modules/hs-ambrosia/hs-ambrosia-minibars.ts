@@ -41,8 +41,10 @@ export class HSAmbrosiaMinibars {
     // Bar sizes from the mod's formulas on one save, computed again when one of their inputs changes on the live player
     #minibarSizes?: { blue: number; red: number; purple: number };
     #minibarSizesSignature?: string;
+    // Two Minds on at the last computation: the three sizes are constants then, the lifetimes leave the signature
+    #minibarSizesTwoMind = false;
     #minibarSizesRefreshing = false;
-    // After a failed computation, not before (each try forces a save)
+    // After a failed computation (no save data yet), not before
     static readonly #MINIBAR_SIZES_RETRY_MS = 5_000;
     #minibarSizesRetryAt = 0;
     // What the bars show, written to the page only on a change
@@ -210,25 +212,26 @@ export class HSAmbrosiaMinibars {
 
     /**
      * The bar sizes change at every fill (lifetime ambrosia), but by about a millionth: the lifetimes count only to
-     * 3 significant digits (0.1%). They also change with the loadout (Two Minds, Brick of Lead), the Exalts, the shop's
-     * accelerator and the purple reactor's requirement upgrades. On a change, one forced save (a few ms) and the
-     * sizes are computed again.
+     * 3 significant digits (0.1%), and not at all under Two Minds (constant sizes). The sizes also change with the
+     * loadout (Two Minds, Brick of Lead), the Exalts, the shop's accelerator and the purple reactor's requirement
+     * upgrades. On a change, GDS reads the live player again (getForcedGameData: no save on this path) and the sizes
+     * are computed again.
      */
     #refreshMinibarSizesOnChange(player: GameData): void {
         if (this.#minibarSizesRefreshing || performance.now() < this.#minibarSizesRetryAt) return;
-        const signature = HSAmbrosiaMinibars.#minibarSizeInputs(player);
+        const signature = HSAmbrosiaMinibars.#minibarSizeInputs(player, this.#minibarSizesTwoMind);
         if (signature === this.#minibarSizesSignature) return;
 
         this.#minibarSizesRefreshing = true;
-        void this.#refreshMinibarSizes(signature)
+        void this.#refreshMinibarSizes(player)
             .catch(error => {
                 this.#minibarSizesRetryAt = performance.now() + HSAmbrosiaMinibars.#MINIBAR_SIZES_RETRY_MS;
-                HSLogger.warnOnce(`Could not calculate the minibars' sizes: ${error}`, 'hs-minibar-sizes');
+                HSLogger.warnOnce(`Could not calculate the minibars' sizes: ${error}`, this.#context, 'hs-minibar-sizes');
             })
             .finally(() => { this.#minibarSizesRefreshing = false; });
     }
 
-    async #refreshMinibarSizes(signature: string): Promise<void> {
+    async #refreshMinibarSizes(player: GameData): Promise<void> {
         const gameDataAPI = HSModuleRegistry.getModule('HSGameDataAPI');
         if (!gameDataAPI || !await gameDataAPI.getForcedGameData()) throw new Error('no save data');
 
@@ -237,21 +240,27 @@ export class HSAmbrosiaMinibars {
             red: gameDataAPI.ambrosia.calculateRequiredRedAmbrosiaTime(),
             purple: gameDataAPI.ambrosia.calculatePurpleHoneyConversionFactor(),
         };
-        this.#minibarSizesSignature = signature;
+        // Taken after the computation, with its Two Minds state: the live player can't change in between (no game
+        // tick runs during these microtasks)
+        this.#minibarSizesTwoMind = Boolean(gameDataAPI.ambrosia.getAmbrosiaUpgradeEffects('twoMind').twoMindEnabled);
+        this.#minibarSizesSignature = HSAmbrosiaMinibars.#minibarSizeInputs(player, this.#minibarSizesTwoMind);
         const sizes = this.#minibarSizes;
         HSLogger.debug(() => `Minibar sizes: ${sizes.blue} / ${sizes.red} / ${sizes.purple}`, this.#context);
     }
 
-    /** The live player's inputs of the three bar-size formulas (calculateRequiredBlueberryTime and the others). */
-    static #minibarSizeInputs(player: GameData): string {
+    /**
+     * The live player's inputs of the three bar-size formulas (calculateRequiredBlueberryTime and the others). Under
+     * Two Minds the sizes are constants: the lifetimes are left out. Every input of Two Minds' own state (its
+     * blueberries, the Exalts) stays in, so turning it on or off still changes the signature.
+     */
+    static #minibarSizeInputs(player: GameData, twoMind: boolean): string {
         const rounded = (value: unknown) => Number(value ?? 0).toPrecision(3);
-        const parts: unknown[] = [
+        const parts: unknown[] = twoMind ? [] : [
             rounded(player.lifetimeAmbrosia),
             rounded(player.lifetimeRedAmbrosia),
             rounded(player.purpleReactor?.lifetimePurpleHoney),
-            player.highestSingularityCount,
-            player.shopUpgrades?.shopAmbrosiaAccelerator,
         ];
+        parts.push(player.highestSingularityCount, player.shopUpgrades?.shopAmbrosiaAccelerator);
         for (const name of ['twoMind', 'ambrosiaBrickOfLead'] as const) {
             const upgrade = player.ambrosiaUpgrades?.[name] as
                 { ambrosiaInvested?: number; blueberriesInvested?: number; purpleAmbrosiaInvested?: number } | undefined;

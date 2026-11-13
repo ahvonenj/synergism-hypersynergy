@@ -282,7 +282,7 @@ const allTalismanRuneBonusStatsSum = (api: HSGameDataAPI, mode: CalculationMode 
         + taxmanTalismanEffect
     );
 
-    if (!Number.isFinite(total) || Number.isNaN(total)) { HSLogger.errorOnce(`<red>Invalid talisman power sum</red>`, "GameDataAPI-Talisman"); return 0; }
+    if (!Number.isFinite(total) || Number.isNaN(total)) { HSLogger.errorOnce(`<red>Invalid talisman power sum</red>`, "HSGameDataAPI", "gds-talisman-power-sum"); return 0; }
 
 
     return total;

@@ -2,6 +2,7 @@ import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSStorage } from "../hs-storage";
 import { HSUI } from "../hs-ui";
+import { setAnimatedBorder } from "../hs-animated-border";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 import { compareVersionTags, isCurrentVersionLatest, latestVersionTag } from "./hs-version-tags";
 
@@ -96,9 +97,7 @@ export class HSGithub {
     static #wasLiveTagAnnounced(liveTag: string): boolean {
         if (HSGithub.#announcedLiveTag === liveTag) return true;
 
-        // HSStorage warns when a key is missing: nothing stored is the normal case until a first announcement
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY);
         return stored?.announcedLiveTag === liveTag;
     }
 
@@ -159,7 +158,7 @@ export class HSGithub {
         const modPanelHead = document.querySelector('#hs-panel-version') as HTMLDivElement | null;
 
         if (modIcon && modPanelHead) {
-            modIcon.classList.add('hs-rainbow-border');
+            setAnimatedBorder(modIcon, 'rainbow');
             if (!modPanelHead.querySelector('#hs-panel-new-ver')) {
                 modPanelHead.innerHTML += `: <span id="hs-panel-new-ver">New version available!</span>`;
             }

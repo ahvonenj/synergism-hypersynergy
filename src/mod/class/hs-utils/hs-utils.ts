@@ -14,7 +14,6 @@ import { escapeLogText } from "./hs-escape";
  *         - wait() method to wait for an arbitrary amount of time
  *         - uuidv4() for generating UUIDs
  *         - domid() method for generating DOM-compliant unique ids
- *         - hashCode() for calculating a unique hash for arbitrary string
  *         - N() for pretty printing numbers
  * Author: Swiffy, Shewchou
  */
@@ -143,10 +142,10 @@ export class HSUtils {
         const remaining = delayMs - elapsed;
 
         if (remaining > 0) {
-            if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> Sleeping for ${remaining.toFixed(2)} ms to enforce delay of ${delayMs} ms`, context ?? HSUtils.#context);
+            if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> Sleeping for ${remaining.toFixed(2)} ms to enforce delay of ${delayMs} ms`, context ?? HSUtils.#context);
             await HSUtils.sleep(remaining);
         } else {
-            if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> No need to sleep, elapsed time ${elapsed.toFixed(2)} ms already exceeds delay of ${delayMs} ms`, context ?? HSUtils.#context);
+            if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> No need to sleep, elapsed time ${elapsed.toFixed(2)} ms already exceeds delay of ${delayMs} ms`, context ?? HSUtils.#context);
         }
     }
 
@@ -160,22 +159,6 @@ export class HSUtils {
         return "hs-rnd-00000000000".replace(/[018]/g, c =>
             (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
         );
-    }
-
-    static hashCode(str: string): number {
-        let hash = 0;
-        let i;
-        let chr;
-
-        if (str.length === 0) return hash;
-
-        for (i = 0; i < str.length; i++) {
-            chr = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + chr;
-            hash |= 0;
-        }
-
-        return hash;
     }
 
     static N(num: string | number, precision: number = 2, expDecimals: number = 2) {
@@ -201,8 +184,9 @@ export class HSUtils {
         return numString;
     }
 
-    static getTime(): string {
-        const now = new Date();
+    // HH:MM:SS.mmm, local time
+    static getTime(time: number = Date.now()): string {
+        const now = new Date(time);
         const hours = now.getHours();
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
@@ -266,6 +250,29 @@ export class HSUtils {
     }
 
     /**
+     * Whether the game has loaded the save: the offline progress popup is shown, or was closed (exitOffline removes
+     * body.loading). False before the save loads (Steam starts the mod then: the player is still the blank one) and
+     * again during later offline progress (an import, a time skip), which puts body.loading back.
+     */
+    static isGameLoaded(): boolean {
+        return HSUtils.isOfflinePopupOpen() || HSUtils.isGameRunning();
+    }
+
+    /** Whether the offline progress popup is shown (at load, after an import or a time skip). */
+    static isOfflinePopupOpen(): boolean {
+        return document.getElementById('offlineContainer')?.style.display === 'flex';
+    }
+
+    /**
+     * Whether the game runs normally: the save is loaded, no offline progress is being computed and its popup is
+     * closed. The game sets body.loading for all three (before the save loads, during the catch-up, popup open) and
+     * removes it in exitOffline; it can't save while it is set.
+     */
+    static isGameRunning(): boolean {
+        return !document.body.classList.contains('loading');
+    }
+
+    /**
      * The active Exalt's icon (its id is the challenge's key). Without the live player (bookmarklet), the one the game
      * colours: var(--orchid-background-color), plain orchid in older builds.
      */
@@ -276,6 +283,19 @@ export class HSUtils {
             return key ? document.getElementById(key) : null;
         }
         return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="orchid"]');
+    }
+
+    /**
+     * A game toggle's state from its border colour, the same in every language: green or gold = on, red = off,
+     * undefined for any other colour. For when the live player isn't there (bookmarklet).
+     * The game writes `border: 2px solid var(--green-color)` (or borderColor alone): with a var(), only the property
+     * written reads back (borderColor reads '' after the shorthand), so both are read. \b matches in `--red-color`.
+     */
+    static gameToggleBorderState(el: HTMLElement): boolean | undefined {
+        const border = `${el.style.border} ${el.style.borderColor}`.toLowerCase();
+        if (/\b(green|limegreen|gold)\b/.test(border)) return true;
+        if (/\bred\b/.test(border)) return false;
+        return undefined;
     }
 
     static #translationFiles = new Map<string, Promise<Record<string, unknown> | undefined>>();
@@ -334,28 +354,17 @@ export class HSUtils {
         return resolve(await this.#loadTranslationFile('en'));
     }
 
+    // A colour tag: <red>text</red> or <#ff8800>text</#ff8800>
+    static #colorTagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,8})>(.*?)<\/\1>/g;
+
     // Replace color tags for panel logging
     static parseColorTags(msg: string): string {
-        const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,8})>(.*?)<\/\1>/g;
-
-        // Replace all matched patterns with span elements
-        return msg.replace(tagPattern, (match, colorName, content) => {
-            return `<span style="color: ${colorName}">${content}</span>`;
-        });
+        return msg.replace(HSUtils.#colorTagPattern, '<span style="color: $1">$2</span>');
     }
 
     // Remove color tags for console logging
     static removeColorTags(msg: string): string {
-        try {
-            const tagPattern = /<([a-zA-Z]+|#[0-9A-Fa-f]{3,6})>(.*?)<\/\1>/g;
-
-            return msg.replace(tagPattern, (match, colorName, content) => {
-                return `${content}`;
-            });
-        } catch (e) {
-            console.warn("Error removing color tags from log message", e);
-            return `${msg}`;
-        }
+        return msg.replace(HSUtils.#colorTagPattern, '$2');
     }
 
     static eventBuffNumToName(buff: EventBuffType) {

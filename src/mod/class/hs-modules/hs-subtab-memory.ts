@@ -1,10 +1,9 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSBookmarkletNotice } from "../hs-core/hs-bookmarklet-notice";
 import { HSGameState, MainView } from "../hs-core/hs-gamestate";
 import { HSGlobal } from "../hs-core/hs-global";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSStorage } from "../hs-core/hs-storage";
-import { HSModule } from "../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
 import { HSSettings } from "../hs-core/settings/hs-settings";
 
@@ -79,7 +78,7 @@ export class HSSubtabMemory extends HSModule {
             };
         }
 
-        this.#gameState.subscribeGameStateChange<MainView>('MAIN_VIEW', (previous, current) => {
+        this.#gameState.subscribeGameStateChange('MAIN_VIEW', (previous, current) => {
             if (!HSSettings.getSetting('rememberSubtabs')?.isEnabled()) {
                 this.#forget();
                 return;
@@ -222,9 +221,7 @@ export class HSSubtabMemory extends HSModule {
     }
 
     #load(): void {
-        // HSStorage warns when a key is missing: nothing stored is the normal case until a tab is left
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY);
         if (!stored || stored.version !== 1 || typeof stored.notes !== 'object' || stored.notes === null) return;
 
         // The stored data is untrusted (backup files are shared): only a known subtab button of its own tab is kept,

@@ -1,14 +1,14 @@
-import { HSModuleOptions } from "../../../types/hs-types";
 import { HSSetting } from "../../hs-core/settings/hs-setting";
 import { HSPlatform } from "../../hs-core/hs-platform";
 import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import type { HSAmbrosia } from "../hs-ambrosia/hs-ambrosia";
 import type { HSAutosing } from "../hs-autosing/hs-autosing";
 import { HSAutoExportFolder } from "./hs-auto-export-folder";
+import { HSUtils } from "../../hs-utils/hs-utils";
 
 const TICK_MS = 10_000;
 const MINUTE_MS = 60_000;
@@ -23,8 +23,8 @@ const MINUTE_MS = 60_000;
  *     The clock is the game's lastExportedSave: an export by hand restarts it, a reload doesn't.
  *     An ambrosia loadout can be loaded for the export, the player's tree is put back right after
  *     (the rewards are computed inside the click).
- *     Skipped while Auto-Sing is active (it exports for its quarks, with its own loadout), and while the
- *     offline popup is open.
+ *     Skipped while Auto-Sing is active (it exports for its quarks, with its own loadout), and until the game
+ *     runs normally (save loaded, offline catch-up over, popup closed).
  *     Export folder (File System Access API, not in Firefox): the player picks a folder once, and the mod
  *     writes the file there itself, in place of the game's download. It is the only way on Steam, where
  *     every download opens a "Save as" dialog. The folder is kept in IndexedDB with the names of the files
@@ -96,7 +96,8 @@ export class HSAutoExport extends HSModule {
         if (Date.now() - this.#lastExport() < minutes * MINUTE_MS) return;
 
         if (HSModuleRegistry.getModule('HSAutosing')?.isAutosingActive()) return;
-        if (document.getElementById('offlineContainer')?.style.display === 'flex') return;
+        // Also before the save loads (Steam: the blank player's lastExportedSave is 0) and during an offline catch-up
+        if (!HSUtils.isGameRunning()) return;
 
         if (!this.#exportFolder.canExport()) return;
 

@@ -19,17 +19,13 @@
     "groupName": "Game data",
     "order": 11
   },
-  "save-export": {
-    "groupName": "Timed save export",
-    "order": 23
-  },
-  "debug": {
-    "groupName": "Debugging",
-    "order": 10
-  },
   "auto-sing": {
     "groupName": "Auto-Sing",
     "order": 14
+  },
+  "auto-sing-diagnostics": {
+    "groupName": "Diagnostics",
+    "order": 14.5
   },
   "auto-sing-strategy-controls": {
     "groupName": "Strategy",
@@ -58,5 +54,9 @@
   "ambrosia": {
     "groupName": "Ambrosia",
     "order": 22
+  },
+  "save-export": {
+    "groupName": "Timed save export",
+    "order": 23
   }
 }

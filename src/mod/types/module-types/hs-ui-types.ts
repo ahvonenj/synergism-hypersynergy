@@ -4,8 +4,8 @@
     Author: Swiffy
 */
 
-import { TransitionableCSSProperty, HSUICCSSProperties } from "../dom-types/hs-css-types";
-import { HSOptional } from "../hs-typescript-functions";
+// A type with some keys made optional: HSOptional<SomeBaseType, 'id'>
+type HSOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export enum EPredefinedPosition {
     CENTER = 1,
@@ -29,12 +29,12 @@ export enum HSInputType {
     COLOR = 2,
     NUMBER = 3,
     TEXT = 4,
-    SELECT = 5,
-    STATE = 6
+    SELECT = 5
 }
 
-export type TransitionProperties = {
-    [K in TransitionableCSSProperty]?: string | number;
+/** Inline style properties by their name on `element.style` (camelCase). A number without a unit is written as is. */
+export type HSCSSProperties = {
+    [K in keyof CSSStyleDeclaration as K extends string ? (CSSStyleDeclaration[K] extends string ? K : never) : never]?: string | number;
 }
 
 export type CSSValue = string | number | undefined | null;
@@ -45,7 +45,7 @@ interface HSUICOptions {
     id: string;
     class?: string;
     data?: Map<string, string>;
-    styles?: HSUICCSSProperties;
+    styles?: HSCSSProperties;
     props?: HTMLProps;
 }
 

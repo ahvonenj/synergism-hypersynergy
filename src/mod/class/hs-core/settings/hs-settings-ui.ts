@@ -7,12 +7,12 @@ import { HSUIC } from "../hs-ui-components";
 import { HSInputType, HSUICSelectOption } from "../../../types/module-types/hs-ui-types";
 import { HSLogger } from "../hs-logger";
 import { HSPlatform } from "../hs-platform";
-import { HSSetting } from "./hs-setting";
+import { HSSetting, paintSettingSwitch } from "./hs-setting";
 import { HSSettings } from "./hs-settings";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSIcons } from "../../hs-utils/hs-icons";
-import sIconB64 from "inline:../../../resource/txt/s_icon.txt";
+import gameDataIconUrl from "../../../resource/img/hs-gamedata-icon.png";
 import { escapeLogText } from '../../hs-utils/hs-escape';
 import { initializeSettingActions } from './hs-settings-state';
 
@@ -36,10 +36,7 @@ export interface HSSettingsUIDependencies {
     settings: HSSettingRecord;
     settingsControlGroups: Record<string, HSSettingControlGroup>;
     settingsControlPages: Record<string, HSSettingControlPage>;
-    settingEnabledString: string;
-    settingDisabledString: string;
     settingChangeDelegate: (e: Event, settingObj: HSSetting<HSSettingType>) => Promise<void>;
-    settingToggleDelegate: (e: MouseEvent, settingObj: HSSetting<HSSettingType>) => Promise<void>;
 }
 
 export class HSSettingsUI {
@@ -69,94 +66,33 @@ export class HSSettingsUI {
             const setting = settingObj.getDefinition();
             const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
 
-            if (controlSettings) {
-                const controlType = controlSettings.controlType;
-                const controlOptions = controlSettings.controlOptions;
+            if (!controlSettings) return;
 
-                if (controlType === "text" || controlType === "number") {
-                    const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement;
+            this.#fillControl(settingObj, controlSettings);
 
-                    if (valueElement) {
-                        if (controlType === "number" && controlOptions) {
-                            if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
-                            if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
-                            if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
-                        } else if (controlType === "text" && controlOptions) {
-                            if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
-                        }
+            const controlType = controlSettings.controlType;
+            const controlElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLElement | null;
 
-                        valueElement.value = HSUtils.asString(setting.settingValue);
-                        valueElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                    }
-                } else if (controlType === "select") {
-                    const settingValue = HSUtils.asString(setting.settingValue);
-                    const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement;
-
-                    if (selectElement) {
-                        if (selectElement.multiple) {
-                            const values = setting.settingValue;
-                            if (Array.isArray(values)) {
-                                for (const option of Array.from(selectElement.options)) {
-                                    option.selected = values.includes(option.value);
-                                }
-                            } else {
-                                for (const option of Array.from(selectElement.options)) {
-                                    option.selected = false;
-                                }
-                            }
-                        } else {
-                            const optionExists = Array.from(selectElement.options).some(option => option.value === settingValue);
-
-                            if (optionExists) {
-                                selectElement.value = settingValue;
-                            } else {
-                                selectElement.value = "";
-                                HSLogger.warn(escapeLogText(`Setting value ${settingValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
-                            }
-                        }
-
-                        selectElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                        if (controlSettings.controlId === 'hs-setting-hidden-vanilla-tabs') {
-                            this.#enableClickToggleSelection(selectElement);
-                        }
-                    }
-                } else if (controlType === "state") {
-                    const settingValue = HSUtils.parseColorTags(HSUtils.asString(setting.settingValue));
-                    const stateElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement;
-
-                    if (stateElement) {
-                        stateElement.innerHTML = settingValue;
+            if (controlElement) {
+                if (controlType === "text" || controlType === "number" || controlType === "select") {
+                    controlElement.onchange = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
+                    if (controlSettings.controlId === 'hs-setting-hidden-vanilla-tabs') {
+                        this.#enableClickToggleSelection(controlElement as HTMLSelectElement);
                     }
                 } else if (controlType === "button") {
-                    const buttonElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLButtonElement;
-
-                    if (buttonElement) {
-                        buttonElement.onclick = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
-                    }
+                    controlElement.onclick = async (e) => { await deps.settingChangeDelegate(e, settingObj); };
                 }
+            }
 
-                if (controlSettings.controlEnabledId) {
-                    const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement;
-
-                    if (toggleElement) {
-                        if (setting.enabled) {
-                            toggleElement.innerText = deps.settingEnabledString;
-                            toggleElement.classList.remove('hs-disabled');
-                        } else {
-                            toggleElement.innerText = deps.settingDisabledString;
-                            toggleElement.classList.add('hs-disabled');
-                        }
-
-                        toggleElement.onclick = async (e) => {
-                            const mouseEvent = e as MouseEvent;
-                            mouseEvent.preventDefault();
-                            mouseEvent.stopImmediatePropagation();
-                            mouseEvent.stopPropagation();
-                            await deps.settingToggleDelegate(mouseEvent, settingObj);
-                        };
-                    }
+            if (controlSettings.controlEnabledId) {
+                const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
+                if (toggleElement) {
+                    toggleElement.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        settingObj.handleToggle();
+                    };
                 }
-
             }
         });
 
@@ -203,68 +139,58 @@ export class HSSettingsUI {
             const settingObj = deps.settings[settingName as keyof HSSettingsDefinition] as HSSetting<HSSettingType> | undefined;
             if (!settingObj) continue;
 
-            const setting = settingObj.getDefinition();
-            const controlSettings = settingObj.hasControls() ? setting.settingControl : undefined;
-            if (!controlSettings) continue;
+            const controlSettings = settingObj.hasControls() ? settingObj.getDefinition().settingControl : undefined;
+            if (controlSettings) this.#fillControl(settingObj, controlSettings);
+        }
+    }
 
-            const controlType = controlSettings.controlType;
-            const controlOptions = controlSettings.controlOptions;
-            const targetValue = settingObj.getValue();
-            const stringValue = HSUtils.asString(targetValue);
+    /** Writes a setting's value, input attributes and ✓/✗ into its panel controls; binds no handler. */
+    static #fillControl(settingObj: HSSetting<HSSettingType>, controlSettings: HSSettingControl): void {
+        const setting = settingObj.getDefinition();
+        const controlType = controlSettings.controlType;
+        const controlOptions = controlSettings.controlOptions;
+        const targetValue = settingObj.getValue();
+        const stringValue = HSUtils.asString(targetValue);
 
-            if (controlType === 'text' || controlType === 'number') {
-                const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement | null;
-                if (valueElement) {
-                    if (controlType === 'number' && controlOptions) {
-                        if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
-                        if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
-                        if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
-                    } else if (controlType === 'text' && controlOptions) {
-                        if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
-                    }
-                    valueElement.value = stringValue;
+        if (controlType === 'text' || controlType === 'number') {
+            const valueElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLInputElement | null;
+            if (valueElement) {
+                if (controlType === 'number' && controlOptions) {
+                    if ('min' in controlOptions) valueElement.setAttribute('min', controlOptions.min!.toString());
+                    if ('max' in controlOptions) valueElement.setAttribute('max', controlOptions.max!.toString());
+                    if ('step' in controlOptions) valueElement.setAttribute('step', controlOptions.step!.toString());
+                } else if (controlType === 'text' && controlOptions) {
+                    if ('placeholder' in controlOptions) valueElement.setAttribute('placeholder', controlOptions.placeholder!);
                 }
-            } else if (controlType === 'select') {
-                const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement | null;
-                if (selectElement) {
-                    if (selectElement.multiple) {
-                        const previousScrollTop = selectElement.scrollTop;
-                        const values = Array.isArray(targetValue) ? targetValue.map((v) => HSUtils.asString(v)) : [];
-                        for (const option of Array.from(selectElement.options)) {
-                            option.selected = values.includes(option.value);
-                        }
-                        selectElement.scrollTop = previousScrollTop;
-                        queueMicrotask(() => { selectElement.scrollTop = previousScrollTop; });
-                        window.requestAnimationFrame(() => { selectElement.scrollTop = previousScrollTop; });
-                    } else {
-                        const optionExists = Array.from(selectElement.options).some((option) => option.value === stringValue);
-                        if (optionExists) {
-                            selectElement.value = stringValue;
-                        } else {
-                            selectElement.value = '';
-                            HSLogger.warn(escapeLogText(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
-                        }
-                    }
-                }
-            } else if (controlType === 'state') {
-                const stateElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLElement | null;
-                if (stateElement) {
-                    stateElement.innerHTML = HSUtils.parseColorTags(stringValue);
-                }
+                valueElement.value = stringValue;
             }
-
-            if (controlSettings.controlEnabledId) {
-                const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
-                if (toggleElement) {
-                    if (setting.enabled) {
-                        toggleElement.innerText = deps.settingEnabledString;
-                        toggleElement.classList.remove('hs-disabled');
+        } else if (controlType === 'select') {
+            const selectElement = document.querySelector(`#${controlSettings.controlId}`) as HTMLSelectElement | null;
+            if (selectElement) {
+                if (selectElement.multiple) {
+                    const previousScrollTop = selectElement.scrollTop;
+                    const values = Array.isArray(targetValue) ? targetValue.map((v) => HSUtils.asString(v)) : [];
+                    for (const option of Array.from(selectElement.options)) {
+                        option.selected = values.includes(option.value);
+                    }
+                    selectElement.scrollTop = previousScrollTop;
+                    queueMicrotask(() => { selectElement.scrollTop = previousScrollTop; });
+                    window.requestAnimationFrame(() => { selectElement.scrollTop = previousScrollTop; });
+                } else {
+                    const optionExists = Array.from(selectElement.options).some((option) => option.value === stringValue);
+                    if (optionExists) {
+                        selectElement.value = stringValue;
                     } else {
-                        toggleElement.innerText = deps.settingDisabledString;
-                        toggleElement.classList.add('hs-disabled');
+                        selectElement.value = '';
+                        HSLogger.warn(escapeLogText(`Setting value ${stringValue} does not exist in select options for setting ${setting.settingName}`), this.#context);
                     }
                 }
             }
+        }
+
+        if (controlSettings.controlEnabledId) {
+            const toggleElement = document.querySelector(`#${controlSettings.controlEnabledId}`) as HTMLDivElement | null;
+            if (toggleElement) paintSettingSwitch(toggleElement, setting.enabled);
         }
     }
 
@@ -394,8 +320,7 @@ export class HSSettingsUI {
         const count = ambrosiaMod.getAmbrosiaLoadoutsAmount();
         const maxLoadouts = count > 0 ? count : 16;
 
-        const settingsEntries = Object.typedEntries(getSettings());
-        for (const [, setting] of settingsEntries) {
+        for (const setting of Object.values(getSettings())) {
             const control = setting.getDefinition().settingControl;
             if (!control || !control.selectOptions) continue;
             if (!control.selectOptions.some((option) => /loadout\s*\d+/i.test(option.text))) continue;
@@ -421,6 +346,68 @@ export class HSSettingsUI {
                     htmlSelect.appendChild(opt);
                 }
             }
+        }
+    }
+
+    /** Fills the mod panel's Settings tab (tab 3) and binds its subtabs. */
+    static buildTab(hsui: HSUI, deps: HSSettingsUIDependencies): void {
+        const settingsTabContents = this.autoBuildSettingsUI(deps);
+
+        if (!settingsTabContents.didBuild) return;
+
+        hsui.replaceTabContents(3,
+            [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
+        );
+
+        this.#bindTabEvents();
+    }
+
+    static #bindTabEvents() {
+        document.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
+            if (e.target.closest('.hs-panel-setting-block-gamedata-icon')) this.#handleGameDataIconClick();
+            if (e.target.closest('.hs-panel-subtab')) this.#handleSubtabClick(e);
+        });
+    }
+
+    static #handleGameDataIconClick() {
+        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
+        const color = subtab?.dataset.color;
+
+        this.#activateSubtab('qol', subtab, color);
+
+        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
+        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    static #handleSubtabClick(e: Event) {
+        const target = (e.target as HTMLElement).closest('.hs-panel-subtab') as HTMLDivElement | null;
+        const subtab = target?.dataset.subtab;
+        const color = target?.dataset.color;
+
+        if (!subtab) return;
+        this.#activateSubtab(subtab, target, color);
+    }
+
+    static #activateSubtab(subtab: string, activeTab: HTMLDivElement | null, color?: string) {
+        const subSettingsContainer = document.querySelector(`#settings-grid-${subtab}`) as HTMLDivElement | null;
+        const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
+        const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
+
+        if (!subSettingsContainer) return;
+
+        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
+        if (!subSettingsContainer.classList.contains('open')) {
+            const settingsPanel = document.querySelector('#hs-settings-panel');
+            if (settingsPanel) settingsPanel.scrollTop = 0;
+        }
+
+        allSubSettingContainers.forEach(container => container.classList.remove('open'));
+        allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
+
+        subSettingsContainer.classList.add('open');
+        if (activeTab && color) {
+            activeTab.style.backgroundColor = color;
         }
     }
 
@@ -615,7 +602,7 @@ export class HSSettingsUI {
         if (HSSettings.usesGameData(setting)) {
             gameDataIcon = HSUIC.Image({
                 class: 'hs-panel-setting-block-gamedata-icon',
-                src: sIconB64,
+                src: gameDataIconUrl,
                 width: 18,
                 height: 18,
                 props: { title: HSGlobal.HSSettings.gameDataRequiredTooltip },
@@ -701,8 +688,6 @@ export class HSSettingsUI {
                 return HSInputType.NUMBER;
             case 'select':
                 return HSInputType.SELECT;
-            case 'state':
-                return HSInputType.STATE;
             default:
                 return null;
         }
@@ -784,12 +769,6 @@ export class HSSettingsUI {
                 type: convertedType,
                 props: controls.props
             }, controls.selectOptions));
-        } else if (convertedType === HSInputType.STATE) {
-            valueRowChildren.push(HSUIC.P({
-                class: 'hs-panel-setting-block-state',
-                id: controls.controlId,
-                text: ''
-            }));
         }
 
         return valueRowChildren;
@@ -814,11 +793,8 @@ export class HSSettingsUI {
                 HSLogger.warn(`No default value for ${name}, left as it is`, this.#context);
                 continue;
             }
-            const definition = HSSettings.getSetting(name).getDefinition() as HSSettingBase<number>;
-            definition.settingValue = value;
-            definition.calculatedSettingValue = value * (definition.settingValueMultiplier ?? 1);
+            HSSettings.getSetting(name).setValue(value);
         }
-        HSSettings.saveSettingsToStorage();
         HSSettingsUI.refreshSettingControls([...names]);
         HSLogger.log('Auto-Sing Advanced settings reset to default', this.#context);
     }

@@ -1,3 +1,5 @@
+import type Decimal from "break_infinity.js";
+import type { DecimalSource } from "break_infinity.js";
 import { goldenQuarkUpgrades, octUpgrades, RedAmbrosiaUpgrades, GameData } from "./hs-player-savedata";
 
 export type CalculationMode = 'normal' | 'true_base' | 'non_ambrosia';

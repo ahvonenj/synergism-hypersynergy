@@ -1,7 +1,8 @@
 // After a game update that changes Buy.ts: the coin buildings owned by GDS (hs-gamedata-api-building.ts) against the
 // game's own QuadraticCostCurve / maxAffordable (Buy.ts, cut out and run as is) on finite paid amounts, which
-// test-gds-formulas.cjs can't check (late saves have paid amounts of Infinity). Needs the game source
-// (node scripts/tools/update-game.cjs).
+// test-gds-formulas.cjs can't check (late saves have paid amounts of Infinity). Only GDS's fallback for a game from
+// before the rune rework (2026-11-12) derives counts from paid amounts: delete this tool with that fallback. Needs the
+// game source (node scripts/tools/update-game.cjs).
 // Usage: node scripts/tools/coin-curve-vs-vanilla.cjs
 const fs = require('node:fs')
 const path = require('node:path')

@@ -18,8 +18,7 @@
    text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black;
 }
 
-/* Above the game's slot borders and the loaded slot's rainbow/silver border (hs-animations.css, !important, a
-   border-image) */
+/* Keep the pick marker visible over the game's header slot styles. */
 #mainHeader .headerLoadoutSlots .headerLoadoutSlot.hs-quickbar-slot-pickmode {
    border: 2px dashed #ffff00 !important;
    border-image: none !important;

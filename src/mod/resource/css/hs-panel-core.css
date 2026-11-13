@@ -278,7 +278,9 @@ select::-webkit-scrollbar-corner {
     color: #8a8a99;
 }
 
-.hs-log-ts-hidden {
+/* The time and the debug lines are always recorded: the settings only hide them */
+#hs-ui-log.hs-log-hide-ts .hs-log-ts,
+#hs-ui-log.hs-log-hide-debug .hs-ui-log-line-debug {
     display: none;
 }
 
@@ -377,8 +379,38 @@ select::-webkit-scrollbar-corner {
     background-color: #005;
 }
 
+#hs-ui-log-controls .hs-panel-btn {
+    width: 100px;
+}
+
 #hs-ui-log-controls .hs-panel-btn + .hs-panel-btn {
     margin-left: 10px;
+}
+
+/* One above the other, right after the buttons */
+.hs-ui-log-toggles {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    margin-left: 12px;
+}
+
+.hs-ui-log-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ddd;
+    font-size: 0.85em;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.hs-ui-log-toggle input {
+    margin: 0;
+    cursor: pointer;
 }
 
 /* ===== MODAL BASE STYLES ===== */
@@ -473,12 +505,6 @@ select::-webkit-scrollbar-corner {
     margin: 4px 0;
 }
 
-.hs-modal-img {
-    image-rendering: auto;
-    width: 100%;
-    max-width: 40vw;
-}
-
 /* ===== SETTINGS PANEL ===== */
 
 /* No top padding: the subtabs row holds it, so nothing shows above that row when it sticks */
@@ -519,6 +545,11 @@ select::-webkit-scrollbar-corner {
     grid-template-rows: 1fr;
     column-gap: 5px;
     row-gap: 10px;
+}
+
+/* The Tools tab keeps the width it has in a panel of the default size; it still shrinks with a narrower panel */
+.hs-panel-tools-grid {
+    max-width: 400px;
 }
 
 .hs-panel-grid-full-span {
@@ -672,10 +703,6 @@ select::-webkit-scrollbar-corner {
 
 .hs-panel-setting-block-select-input:hover {
     cursor: pointer;
-}
-
-.hs-panel-setting-block-state {
-    margin: 0;
 }
 
 /* Also an .hs-panel-btn: its min-height and line-height would keep it 30px high */

@@ -8,17 +8,22 @@ header layout check in Chromium.
 
 ## Entry and modules
 
-- `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour, `loadOrder` and `initImmediate`. `src/mod/index.ts` passes that list to `Hypersynergism`
-  (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, builds the mod panel tabs
-  and syncs the settings UI.
+- `hs-core/module/hs-module-definitions.ts` lists each enabled module's constructor, name, context, colour and `initImmediate`, in startup order. `src/mod/index.ts` passes that list to `Hypersynergism`
+  (`class/hypersynergism.ts`). That class waits for the game DOM, initializes the modules, assembles the mod panel tabs
+  (Tools tab: `HSToolsTab`, `hs-core/hs-tools-tab.ts`; Settings tab: `HSSettingsUI.buildTab`) and syncs the settings
+  UI.
 - Every feature is an `HSModule` subclass (`hs-core/module/hs-module.ts`) with an `async init()`. Register a new module once in `HS_MODULE_DEFINITIONS`; the module-name and instance types derive from that list. `HSModuleManager` constructs modules and preserves startup order. `HSModuleRegistry` stores instances with no runtime imports of feature classes.
 - Modules reach each other through `HSModuleRegistry.getModule('ClassName')`; the name determines the return type. Unknown names and independently supplied instance types are rejected by TypeScript. Log contexts use `getModuleColor(string)` for a colour only. Many core classes (`HSSettings`,
   `HSUI.Notify`, `HSLogger`, `HSGlobal`) are used statically. `HSGlobal` (`hs-core/hs-global.ts`) holds global
   constants and config. `HSUIC` builds UI component HTML. `HSElementHooker` waits for game DOM elements to appear.
-- Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML, JSON and base64
-  `.txt` files from `src/mod/resource/`).
+- The tab and subtab on screen: `HSGameState`. `subscribeSubtab(viewKey, subView, cb)` calls back when a subtab comes on
+  screen (its tab shown, on that subtab) and when it leaves; `subscribeGameStateChange(viewKey, cb)` on any change of
+  one tab's subtab, or of the main tab; `getCurrentMainViewFromDOM()` where the observed state may lag (tab changes in
+  bursts, as around a singularity). Tab and subtab ids: `types/module-types/hs-gamestate-types.ts`.
+- Imports prefixed with `inline:` are inlined as strings by `esbuild-plugin-inline-import` (CSS, HTML and JSON files
+  from `src/mod/resource/`); `.png` imports become data URLs. Their types: `types/hs-inline-imports.d.ts`.
 
-`HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element.
+`HSElementHooker.HookElement<T>` returns `T | null` on timeout; `HookElements` returns an actual array (empty on timeout, without partial results). Both log the missing selectors. Optional features check for absence before installing handlers; required mod-panel elements use `RequireElement<T>`, which throws with the selector. No proxy stands in for a missing element. `HSElementHooker.watchElement` calls back on each change of the element's parsed value, with no throttle (a dropped change leaves a stale value), and returns a stop function.
 
 ## Build
 
@@ -32,10 +37,13 @@ header layout check in Chromium.
 
 - `HSLogger` writes to the mod panel's Log tab, and takes a context string. A line is rendered as HTML and also printed
   to the console: escape it with `escapeLogText` (`&` and `<` only), not `escapeHtml`. Both helpers live in `hs-utils/hs-escape.ts`.
-- `HSLogger.debug` prints nothing, console included, until the settings load has read the debug setting.
+- `HSLogger.debug` takes a function, called only when debug lines are recorded; around costly text, also check
+  `HSLogger.isDebugRecorded`. `warnOnce` / `errorOnce(msg, context, id)`: once per id, again if it comes back 15 minutes
+  later.
 - A context's colour in the Log tab: a module's `moduleColor`, else its entry in `HSGlobal.HSLogger.contextColors` (a
   module's name, to share that module's colour, or a CSS colour), else white. A new class that logs under its own
   context needs an entry there.
+- How the Log tab records, caps, draws and copies lines: `docs/features/log.md`.
 
 ## Injected CSS lands late
 
@@ -59,6 +67,8 @@ the mod's own small elements (a settings block, a table cell) is fine.
   added to `HSSettingsDefinition` in `src/mod/types/module-types/hs-settings-types.ts`.
 - A setting with a `settingAction` needs a handler in `hs-core/settings/hs-setting-action.ts`. The handler can't tell
   the player's toggle from the page load or an `enable()`/`disable()` by autosing or GDS.
+- `setValue` stores a value without running the action: a numeric value is clamped to its control's min/max and the
+  value passed to actions (`calculatedSettingValue`, with the multiplier) follows. `enable()`/`disable()` run it.
 - `settingControl` is only needed for a control. `initializeSettingActions` runs each setting's initial action after its optional control preparation, preserving definition order; `skipInit` still prevents actions such as opening an editor at load.
 - Settings persist through `HSStorage` in the existing JSON-string envelope, with only `enabled` and `settingValue` per key. Older full definitions and object-valued storage are read too, but only those player-owned fields are restored. Configuration and derived values come from the current definition and constructors; invalid values keep the current default. The pure helpers are in `hs-core/settings/hs-settings-state.ts`.
 - `"platforms": ["steam" | "userscript" | "bookmarklet"]` shows a setting in the panel only for players who loaded the

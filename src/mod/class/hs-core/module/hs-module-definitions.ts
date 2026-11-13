@@ -1,11 +1,10 @@
 import { HSCodes } from "../../hs-modules/hs-codes";
 import { HSHepteracts } from "../../hs-modules/hs-hepteracts/hs-hepteracts";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSSingularitySearch } from "../../hs-modules/hs-singularity-search/hs-singularity-search";
 import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
-import { HSPrototypes } from "../hs-prototypes";
 import { HSMouse } from "../hs-mouse";
 import { HSStorage } from "../hs-storage";
 import { HSAmbrosia } from "../../hs-modules/hs-ambrosia/hs-ambrosia";
@@ -18,24 +17,15 @@ import { HSQOLButtons } from "../../hs-modules/hs-qol-buttons/hs-qol-buttons";
 import { HSSubtabMemory } from "../../hs-modules/hs-subtab-memory";
 import { HSAutoExport } from "../../hs-modules/hs-auto-export/hs-auto-export";
 import { HSHeaderLoadoutIcons } from "../../hs-modules/hs-loadout-icons/hs-header-loadout-icons";
-import type { HSModuleDefinition } from "../../../types/hs-types";
+import type { HSModuleDefinition } from "./hs-module";
 
-/** Constructors and startup options for every enabled module. Initialization follows this list and loadOrder. */
+/** Constructors and startup options for every enabled module. Initialization follows this list's order. */
 export const HS_MODULE_DEFINITIONS = [
-    {
-        className: 'HSPrototypes',
-        moduleClass: HSPrototypes,
-        context: 'HSPrototypes',
-        moduleColor: 'crimson',
-        loadOrder: 1,
-        initImmediate: true
-    },
     {
         className: 'HSUI',
         moduleClass: HSUI,
         context: 'HSUI',
         moduleColor: 'royalblue',
-        loadOrder: 2,
         initImmediate: true
     },
     {
@@ -43,7 +33,6 @@ export const HS_MODULE_DEFINITIONS = [
         moduleClass: HSStorage,
         context: 'HSStorage',
         moduleColor: 'wheat',
-        loadOrder: 3,
         initImmediate: true
     },
     {
@@ -51,7 +40,6 @@ export const HS_MODULE_DEFINITIONS = [
         moduleClass: HSSettings,
         context: 'HSSettings',
         moduleColor: 'slategray',
-        loadOrder: 4,
     },
     {
         className: 'HSCodes',
@@ -72,9 +60,9 @@ export const HS_MODULE_DEFINITIONS = [
         moduleColor: 'lightskyblue',
     },
     {
-        className: 'HSPerksFind',
-        moduleClass: HSPerksFind,
-        context: 'HSPerksFind',
+        className: 'HSSingularitySearch',
+        moduleClass: HSSingularitySearch,
+        context: 'HSSingularitySearch',
         moduleColor: 'goldenrod',
     },
     {

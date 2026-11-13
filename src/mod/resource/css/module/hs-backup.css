@@ -3,7 +3,7 @@
 .hs-backup-parts {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 16px;
+    gap: 6px 8px;
 }
 
 .hs-backup-parts label,
@@ -12,6 +12,11 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
+}
+
+.hs-backup-parts label {
+    gap: 3px;
+    white-space: nowrap;
 }
 
 .hs-backup-parts input[type="checkbox"],
@@ -38,6 +43,15 @@
 .hs-backup-details {
     white-space: pre-line;
     opacity: 0.85;
+}
+
+.hs-backup-modal .hs-backup-suboption {
+    margin-left: 22px;
+}
+
+.hs-backup-modal .hs-backup-suboption-off {
+    opacity: 0.5;
+    cursor: default;
 }
 
 .hs-backup-part-note {

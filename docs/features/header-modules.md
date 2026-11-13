@@ -28,6 +28,9 @@ Code: `hs-core/header/hs-header-modules.ts`; patcher "header modules" patch (`__
   size, hidden. Noted before each header render (`__HS_beforeHeaderRender`), put back when missing (a load, a
   singularity). A grid cell taken meanwhile → the tray. A stack is rebuilt with the same partner (both `S`, as the
   game does); the saved copy unstacks the partner (its `S` dropped, as the game does).
+- **Nothing is noted before the game's first load is over** (the offline popup shown or closed): Steam starts the mod
+  before the save loads, so its first renders are the blank player's layout, where a module's cell may be taken;
+  noting the tray there sent the module to the tray in the real save. They are still put back from the notes.
 - **Two mod modules stacked survive being turned off and on**, in any order (GDS off turns several settings off one
   after the other, autosing too): a module left alone because its partner is unregistered keeps that partner in its
   note, and each render puts every missing module back before noting any place (noting first noted a module alone
@@ -73,8 +76,9 @@ Code: `hs-core/header/hs-header-modules.ts`; patcher "header modules" patch (`__
   three bars every 0.125 s of real time; a timer, not `requestAnimationFrame`); nothing while the page is hidden, the
   style written only on a change. Predicting the fill between reads was dropped: the live read
   is exact and cheaper.
-  The bar sizes come from the mod's GDS formulas on one forced save, done again only when one of their inputs changes
-  on the live player (lifetimes to 3 significant digits, Two Minds / Brick of Lead, every Exalt, the shop's
+  The bar sizes come from the mod's GDS formulas on one live read (`getForcedGameData`, no save), done again only when
+  one of their inputs changes on the live player (lifetimes to 3 significant digits, left out under Two Minds whose
+  sizes are constants, else the offline catch-up recomputes them every tick; Two Minds / Brick of Lead, every Exalt, the shop's
   accelerator, the purple requirement upgrades, highest singularity), never while GDS is paused. Patching the game's
   three functions instead was rejected: same accuracy as before, no patcher change, no Steam re-patch.
 - Setting `ambrosiaMinibars`: `usesGameData: ["bookmarklet"]` (`HSSettings.usesGameData()`). Only there do they

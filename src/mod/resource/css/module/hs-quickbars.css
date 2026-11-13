@@ -96,8 +96,7 @@
 #hsAutomationHeader[data-size="L"] .hs-quickbar-slots-wrapper { zoom: 1.25; }
 
 
-/* Icon picking (game's header loadout slots, heater results). Above the loaded slot's rainbow/silver border
-   (hs-animations.css, !important, a border-image), as specific as its rules and injected after them */
+/* The animated border layer is hidden while picking an icon. */
 .hs-quickbar-slot-pickmode,
 .hs-quickbar-slot-pickmode:is(.hs-rainbow-border, .hs-silver-border) {
    border: 2px dashed #ffff00 !important;

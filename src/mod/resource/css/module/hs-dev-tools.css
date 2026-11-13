@@ -21,6 +21,18 @@
     column-gap: 6px;
 }
 
+.hs-dev-tools-snapshots-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.hs-dev-tools-radio.hs-dev-tools-skip-offline {
+    margin-right: 0;
+    color: #ccc;
+}
+
 .hs-dev-tools-snapshots {
     display: flex;
     flex-direction: column;
@@ -35,7 +47,16 @@
 }
 
 .hs-dev-tools-snapshot-date {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75em;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
+}
+
+.hs-dev-tools-snapshot .hs-dev-tools-label {
+    font-size: 0.85em;
 }
 
 .hs-dev-tools-snapshot-auto {
@@ -109,6 +130,12 @@
     /* The text stays on one line and the button keeps its width: what is next to it wraps or shrinks instead */
     white-space: nowrap;
     flex-shrink: 0;
+}
+
+/* Square, as high as the text buttons */
+.hs-panel-btn.hs-dev-tools-btn.hs-dev-tools-btn-icon {
+    width: 24px;
+    padding: 0;
 }
 
 .hs-dev-tools-buttons {

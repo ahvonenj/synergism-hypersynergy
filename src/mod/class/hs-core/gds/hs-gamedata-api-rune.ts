@@ -1,5 +1,5 @@
 import Decimal from "break_infinity.js";
-import { parseGameDataDecimal } from "./hs-gamedata-utils";
+import { getRuneEXP, parseGameDataDecimal } from "./hs-gamedata-utils";
 import { AntUpgrades } from "../../../types/data-types/hs-gamedata-api-types";
 import { RUNE_KEYS } from "./hs-gamedata-tables";
 import type { GameData } from "../../../types/data-types/hs-player-savedata";
@@ -399,7 +399,7 @@ export class RuneHelper {
         const data = this.#api.getGameData()
         if (!data) return 0
 
-        const runeEXP = parseGameDataDecimal(data.runes[rune])
+        const runeEXP = getRuneEXP(data, rune)
         const cacheName = 'GetRuneEffectiveLevel' as keyof CalculationCache;
         const runeDef = this.runes[rune]
         const runeIndex = RUNE_KEY_INDEX.get(rune) ?? 0
@@ -441,10 +441,7 @@ export class RuneHelper {
         const data = this.#api.getGameData()
         if (!data) return 0
 
-        const total = RUNE_KEYS.reduce((sum, rune) => {
-            const runeEXP = parseGameDataDecimal(data.runes[rune])
-            return sum + this.getRuneLevelFromEXP(rune, runeEXP)
-        }, 0)
+        const total = RUNE_KEYS.reduce((sum, rune) => sum + this.getRuneLevelFromEXP(rune, getRuneEXP(data, rune)), 0)
 
         this.#totalRuneLevelsCache = total
         return total

@@ -8,17 +8,14 @@ import { HSSettings } from "./hs-core/settings/hs-settings";
 import { HSSettingsUI } from "./hs-core/settings/hs-settings-ui";
 import { HSAutosingStrategyControls } from "./hs-modules/hs-autosing/ui/hs-autosing-strategy-controls";
 import { HSGlobal } from "./hs-core/hs-global";
-import { HSBackup } from "./hs-core/hs-backup";
-import { HSCalculationTools } from "./hs-core/hs-calculation-tools";
 import { HSBookmarkletNotice } from "./hs-core/hs-bookmarklet-notice";
 import { HSPlatform } from "./hs-core/hs-platform";
+import { HSToolsTab } from "./hs-core/hs-tools-tab";
 import { HSHeaderEditSettings } from "./hs-core/header/hs-header-edit-settings";
 import overrideCSS from "inline:../resource/css/hs-overrides.css";
 import quickbarsCSS from "inline:../resource/css/module/hs-quickbars.css";
-import strategyEditionCSS from "inline:../resource/css/hs-strategy-edition.css";
-import { HSNotifyPosition, HSNotifyType } from "../types/module-types/hs-ui-types";
+import strategyEditionCSS from "inline:../resource/css/module/hs-strategy-edition.css";
 
-import { HSHeaterInputModalController } from "./hs-modules/hs-heater/ui/hs-heater-input-modal-controller";
 import { HSUtils } from "./hs-utils/hs-utils";
 import { HSGithub } from "./hs-core/github/hs-github";
 import { HSGameDialogs } from "./hs-core/dialogs/hs-game-dialogs";
@@ -31,7 +28,8 @@ declare const HS_DEV_BUILD: boolean;
  * Class: Hypersynergism
  * Description: 
  *     Hypersynergism main class.
- *     Instantiates the module manager and handles calls to building the mod's panel and working with mod's settings
+ *     Instantiates the module manager, boots the mod once the game is ready, and assembles the mod's panel
+ *     (Tools tab: HSToolsTab, Settings tab: HSSettingsUI)
  * Author: Swiffy, Shewchou
 */
 export class Hypersynergism {
@@ -88,11 +86,6 @@ export class Hypersynergism {
         // After the sync: its checkboxes show the settings' states
         HSHeaderEditSettings.install();
 
-        const ambrosiaMod = HSModuleRegistry.getModule('HSAmbrosia');
-        if (ambrosiaMod) {
-            await ambrosiaMod.initializeActiveLoadoutFromGameData();
-        }
-
         // Mod fully loaded, so we show HS icon, and update the flag
         const hsui = HSModuleRegistry.getModule('HSUI');
         hsui?.setPanelControlVisible(true);
@@ -109,14 +102,21 @@ export class Hypersynergism {
     }
 
     /**
-     * Once the game has finished loading: expose the patched game internals (hidden behind the offline
-     * popup when it is open), then close the popup if the autoDismissOfflinePopup setting is on.
+     * Once the game has finished loading: guess the ambrosia loadout shown as loaded from the save, expose the
+     * patched game internals (hidden behind the offline popup when it is open), then close the popup if the
+     * autoDismissOfflinePopup setting is on.
      * The browser loader usually did both already, in which case this does nothing.
      */
     async #onGameLoaded(): Promise<void> {
         const autoDismissPopup = !!HSSettings.getSetting('autoDismissOfflinePopup')?.isEnabled();
 
         await this.#waitForGameLoaded();
+        // Only now on Steam, which starts the mod before the save loads: the blank player has no loadout to match
+        try {
+            await HSModuleRegistry.getModule('HSAmbrosia')?.initializeActiveLoadoutFromGameData();
+        } catch (e) {
+            HSLogger.warn(`Could not guess the ambrosia loadout shown as loaded: ${e}`, this.#context);
+        }
         this.#reportPatchProblems();
         await this.#ensurePatcherExposure(autoDismissPopup);
 
@@ -130,9 +130,9 @@ export class Hypersynergism {
     /** Resolves once the offline popup is closed (exitOffline removes body.loading). */
     #waitForPopupClosed(): Promise<void> {
         return new Promise<void>(resolve => {
-            if (!document.body.classList.contains('loading')) { resolve(); return; }
+            if (HSUtils.isGameRunning()) { resolve(); return; }
             const observer = new MutationObserver(() => {
-                if (document.body.classList.contains('loading')) return;
+                if (!HSUtils.isGameRunning()) return;
                 observer.disconnect();
                 resolve();
             });
@@ -187,7 +187,7 @@ export class Hypersynergism {
 
     /** Close the offline progress popup if it is open. */
     #dismissOfflinePopup() {
-        if (document.getElementById('offlineContainer')?.style.display !== 'flex') return;
+        if (!HSUtils.isOfflinePopupOpen()) return;
         document.getElementById('exitOffline')?.click();
     }
 
@@ -196,14 +196,11 @@ export class Hypersynergism {
      * popup is shown. Also resolves when the popup was already dismissed (body.loading removed by exitOffline).
      */
     #waitForGameLoaded(): Promise<void> {
-        const isLoaded = () => document.getElementById('offlineContainer')?.style.display === 'flex'
-            || !document.body.classList.contains('loading');
-
         return new Promise(resolve => {
-            if (isLoaded()) { resolve(); return; }
+            if (HSUtils.isGameLoaded()) { resolve(); return; }
 
             const observer = new MutationObserver(() => {
-                if (!isLoaded()) return;
+                if (!HSUtils.isGameLoaded()) return;
                 observer.disconnect();
                 resolve();
             });
@@ -274,7 +271,7 @@ export class Hypersynergism {
         // updates while the offline popup is open. It happens on the first update after the popup closes,
         // with Misc still active behind it: close it (setting on) or wait for the player to (no limit).
         if (isStagePatched) {
-            if (document.body.classList.contains('loading')) {
+            if (!HSUtils.isGameRunning()) {
                 if (autoDismissPopup) this.#dismissOfflinePopup();
                 await this.#waitForPopupClosed();
             }
@@ -323,8 +320,8 @@ export class Hypersynergism {
         if (hsui) {
             hsui.updateTitle(`Hypersynergism v${HSGlobal.General.currentModVersion}`);
 
-            this.#buildToolsTab(hsui);
-            this.#buildSettingsTab(hsui);
+            HSToolsTab.build(hsui);
+            HSSettingsUI.buildTab(hsui, HSSettings.getUIDependencies());
 
             hsui.renameTab(2, 'Tools');
             hsui.renameTab(3, 'Settings');
@@ -343,259 +340,6 @@ export class Hypersynergism {
         HSUI.injectStyle(overrideCSS, 'hs-override-css');
         HSUI.injectStyle(strategyEditionCSS, 'hs-panel-strategy-edition-css');
         HSUI.injectStyle(quickbarsCSS, 'hs-quickbars-css');
-    }
-
-    #buildGridSectionHeader(text: string) {
-        return HSUIC.Div({
-            class: 'hs-panel-grid-section-header',
-            html: text
-        });
-    }
-
-
-    // ================================
-    // --- Tools tab implementation ---
-    // ================================
-
-    #buildToolsTab(hsui: HSUI) {
-        // Only for players who loaded the mod with the bookmark, hence at the very top
-        const bookmarkletSection = HSBookmarkletNotice.buildToolsSection();
-
-        hsui.replaceTabContents(2,
-            HSUIC.Grid({
-                class: 'hs-panel-grid-2col',
-                html: [
-                    ...(bookmarkletSection.length > 0 ? [this.#buildGridSectionHeader('Recommended: Tampermonkey loader'), ...bookmarkletSection] : []),
-                    this.#buildGridSectionHeader('Backup & Restore'),
-                    ...HSBackup.buildToolsSection(),
-                    this.#buildGridSectionHeader('Ambrosia Heater'),
-                    HSUIC.Button({ id: 'hs-panel-amb-heater-compute-btn', text: 'Ambrosia Heater' }),
-                    HSUIC.Button({ id: 'hs-panel-amb-heater-btn', text: 'Copy Heater Data' }),
-                    this.#buildGridSectionHeader('Mod links'),
-                    HSUIC.Button({ id: 'hs-panel-mod-website-btn', text: 'Mod Website' }),
-                    HSUIC.Button({ id: 'hs-panel-mod-github-btn', text: 'Mod Github' }),
-                    HSUIC.Button({ id: 'hs-panel-discord-thread-btn', text: 'Discord Thread' }),
-                    HSUIC.Button({ id: 'hs-panel-check-version-btn', text: 'CHECK VERSION' }),
-                    this.#buildGridSectionHeader('Other tools'),
-                    HSUIC.Button({ id: 'hs-panel-dump-settings-btn', text: 'Dump Settings' }),
-                    HSUIC.Button({ id: 'hs-panel-dump-gamedata-btn', text: 'Dump Game vars' }),
-                    HSUIC.Button({ id: 'hs-panel-exit-exalt-bug-btn', text: 'Fix Exalt Bug' }),
-                    HSUIC.Button({ id: 'hs-panel-clear-settings-btn', text: 'CLEAR SETTINGS', styles: { borderColor: 'red' } }),
-                    this.#buildGridSectionHeader('Testing tools'),
-                    HSUIC.Button({ id: 'hs-panel-test-notify-btn', text: 'Notify test' }),
-                    HSUIC.Button({ id: 'hs-panel-test-notify-long-btn', text: 'Notify test 2' }),
-                    this.#buildGridSectionHeader('Calculation tools'),
-                    ...HSCalculationTools.buildToolsSection(),
-                ],
-                styles: {
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gridTemplateRows: '1fr',
-                    columnGap: '5px',
-                    rowGap: '10px',
-                    padding: '5px'
-                }
-            })
-        );
-
-        this.#bindToolsTabEvents(hsui);
-    }
-
-    #bindToolsTabEvents(hsui: HSUI) {
-        const positions: HSNotifyPosition[] = ["topLeft", "top", "topRight", "right", "bottomRight", "bottom", "bottomLeft", "left"];
-        const colors: HSNotifyType[] = ["default", "warning", "error", "success"];
-        let p_idx = -1;
-        let c_idx = -1;
-
-        HSBookmarkletNotice.bindToolsSection();
-        HSBackup.bindToolsSection();
-        HSCalculationTools.bindToolsSection();
-
-        this.#bindToolsButton('#hs-panel-amb-heater-btn', async () => {
-            const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
-            if (!dataModule) return;
-
-            const heaterData = await dataModule.dumpDataForHeater();
-            if (!heaterData) return;
-
-            const json = JSON.stringify(heaterData);
-            const base64 = btoa(json);
-            const tsv = HSUtils.base64WithCRLF(base64);
-            await navigator.clipboard.writeText(tsv);
-
-            HSUI.Notify('Ambrosia heater data copied to clipboard', {
-                position: 'top',
-                notificationType: 'success'
-            });
-        });
-
-        this.#bindToolsButton('#hs-panel-amb-heater-compute-btn', async () => {
-            await HSHeaterInputModalController.openHeaterComputationModal();
-        });
-
-        this.#bindToolsButton('#hs-panel-mod-website-btn', () => this.#openUrl(HSGlobal.General.modWebsiteUrl));
-        this.#bindToolsButton('#hs-panel-mod-github-btn', () => this.#openUrl(HSGlobal.General.modGithubUrl));
-        this.#bindToolsButton('#hs-panel-discord-thread-btn', () => this.#openUrl(HSGlobal.General.modDiscordThreadUrl));
-
-        this.#bindToolsButton('#hs-panel-dump-settings-btn', () => HSSettings.dumpToConsole());
-        this.#bindToolsButton('#hs-panel-dump-gamedata-btn', () => this.#dumpGameData());
-        this.#bindToolsButton('#hs-panel-clear-settings-btn', () => HSBackup.clearSettingsAndReload());
-        this.#bindToolsButton('#hs-panel-check-version-btn', () => this.#checkVersion());
-        this.#bindToolsButton('#hs-panel-exit-exalt-bug-btn', () => this.#fixExaltBug());
-
-        this.#bindToolsButton('#hs-panel-test-notify-btn', async () => {
-            p_idx = (p_idx + 1) % positions.length;
-            c_idx = (c_idx + 1) % colors.length;
-            await HSUI.Notify('Test notification', {
-                position: positions[p_idx],
-                notificationType: colors[c_idx]
-            });
-        });
-
-        this.#bindToolsButton('#hs-panel-test-notify-long-btn', async () => {
-            p_idx = (p_idx + 1) % positions.length;
-            c_idx = (c_idx + 1) % colors.length;
-            await HSUI.Notify('This is a really very extremely long test notification which tests if the notification works with a long notification test notification ', {
-                position: positions[p_idx],
-                notificationType: colors[c_idx]
-            });
-        });
-    }
-
-    #bindToolsButton(selector: string, callback: () => void | Promise<void>) {
-        document.querySelector(selector)?.addEventListener('click', async () => {
-            await callback();
-        });
-    }
-
-    // ===================================
-    // ----- Tools helpers / actions -----
-    // ===================================
-
-    #openUrl(url: string) {
-        window.open(url, '_blank');
-    }
-
-    async #checkVersion() {
-        const isLatest = await HSGithub.isLatestTag();
-        // Dev channel players only
-        const liveTag = HSGithub.liveReleaseTag;
-        const liveRelease = liveTag ? ` Latest Live release: ${liveTag}.` : '';
-
-        HSUI.Notify((isLatest
-            ? 'You are using the latest version of Hypersynergism!'
-            : 'You are NOT using the latest version of Hypersynergism!') + liveRelease, {
-            position: 'top',
-            notificationType: isLatest ? 'success' : 'warning'
-        });
-    }
-
-    #fixExaltBug() {
-        HSLogger.log('Attempting to exit an exalt by clicking the active challenge (if any).');
-
-        const img = HSUtils.getActiveExaltElement();
-        if (img) {
-            console.log('Found active challenge img, clicking:', img);
-            img.click();
-            return;
-        }
-
-        const exposedPlayer = HSGlobal.exposedPlayer;
-        if (!exposedPlayer) {
-            HSLogger.log('If you are using the bookmark loader, please try again with the TAMPERMONKEY loader instead.', this.#context);
-            return;
-        }
-
-        if (exposedPlayer.insideSingularityChallenge === false) {
-            HSLogger.info('No active Exalt found in DOM or exposed stuff... Are you sure you have a bug?', this.#context);
-            return;
-        }
-
-        exposedPlayer.insideSingularityChallenge = true;
-        HSLogger.info('Exalt bug fixed.', this.#context);
-    }
-
-    #dumpGameData() {
-        const dataModule = HSModuleRegistry.getModule('HSGameDataAPI');
-        if (!dataModule) return;
-
-        console.log('----- GAME DATA -----');
-        console.log(dataModule.getGameData());
-        console.log('----- PSEUDO DATA -----');
-        // Patched game: the game's own levels, which the mod reads instead
-        console.log(window.__HS_pcoinLevelsLoaded ? window.__HS_pcoinLevels : dataModule.getPseudoData());
-        console.log('----- CAMPAIGN DATA -----');
-        console.log(dataModule.getCampaignData());
-        console.log('----- ME DATA -----');
-        console.log(dataModule.getMeData());
-        console.log('----- EVENT DATA -----');
-        console.log(dataModule.getEventData());
-    }
-
-    // ===================================
-    // --- Settings tab implementation ---
-    // ===================================
-
-    #buildSettingsTab(hsui: HSUI) {
-        const settingsTabContents = HSSettingsUI.autoBuildSettingsUI(HSSettings.getUIDependencies());
-
-        if (!settingsTabContents.didBuild) return;
-
-        hsui.replaceTabContents(3,
-            [settingsTabContents.navHTML, settingsTabContents.pagesHTML].join('')
-        );
-
-        this.#bindSettingsTabEvents();
-    }
-
-    #bindSettingsTabEvents() {
-        document.delegateEventListener('click', '.hs-panel-setting-block-gamedata-icon', (e) => {
-            this.#handleGameDataIconClick(e);
-        });
-
-        document.delegateEventListener('click', '.hs-panel-subtab', (e) => {
-            this.#handleSettingsSubtabClick(e);
-        });
-    }
-
-    #handleGameDataIconClick(_e: Event) {
-        const subtab = document.querySelector('#hs-panel-settings-subtab-qol') as HTMLDivElement | null;
-        const color = subtab?.dataset.color;
-
-        this.#activateSettingsSubtab('qol', subtab, color);
-
-        // The GDS setting opens the page: scrolling to the block itself would leave it under the sticky subtabs
-        document.querySelector('#hs-settings-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    #handleSettingsSubtabClick(e: Event) {
-        const target = (e.target as HTMLElement).closest('.hs-panel-subtab') as HTMLDivElement | null;
-        const subtab = target?.dataset.subtab;
-        const color = target?.dataset.color;
-
-        if (!subtab) return;
-        this.#activateSettingsSubtab(subtab, target, color);
-    }
-
-    #activateSettingsSubtab(subtab: string, activeTab: HTMLDivElement | null, color?: string) {
-        const subSettingsContainer = document.querySelector(`#settings-grid-${subtab}`) as HTMLDivElement | null;
-        const allSubSettingContainers = document.querySelectorAll('.hs-panel-settings-grid') as NodeListOf<HTMLDivElement>;
-        const allSubTabs = document.querySelectorAll('.hs-panel-subtab') as NodeListOf<HTMLDivElement>;
-
-        if (!subSettingsContainer) return;
-
-        // The subtabs stay visible while scrolled: another page opens at its top, not at the old position
-        if (!subSettingsContainer.classList.contains('open')) {
-            const settingsPanel = document.querySelector('#hs-settings-panel');
-            if (settingsPanel) settingsPanel.scrollTop = 0;
-        }
-
-        allSubSettingContainers.forEach(container => container.classList.remove('open'));
-        allSubTabs.forEach(subTab => subTab.style.backgroundColor = '');
-
-        subSettingsContainer.classList.add('open');
-        if (activeTab && color) {
-            activeTab.style.backgroundColor = color;
-        }
     }
 
     // ================================

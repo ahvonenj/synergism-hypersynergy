@@ -1,7 +1,25 @@
-import { GameView } from "../../class/hs-core/hs-gamestate";
+import type { MainView, SubtabView } from "../../class/hs-core/hs-gamestate";
 
 export type VIEW_TYPE = MAIN_VIEW | BUILDING_VIEW | ACHIEVEMENT_VIEW | RUNE_VIEW | CHALLENGE_VIEW | ANT_VIEW | CUBE_VIEW | TRAITS_VIEW | SINGULARITY_VIEW | SETTINGS_VIEW | PSEUDOCOIN_VIEW;
-export type VIEW_KEY = 'MAIN_VIEW' | 'BUILDING_VIEW' | 'ACHIEVEMENT_VIEW' | 'RUNE_VIEW' | 'CHALLENGE_VIEW' | 'ANT_VIEW' | 'CUBE_VIEW' | 'TRAITS_VIEW' | 'SINGULARITY_VIEW' | 'SETTINGS_VIEW' | 'PSEUDOCOIN_VIEW';
+export type VIEW_KEY = 'MAIN_VIEW' | SUBTAB_KEY;
+export type SUBTAB_KEY = keyof SubtabEnums;
+
+/** Each subtab view key's enum */
+export interface SubtabEnums {
+    BUILDING_VIEW: BUILDING_VIEW;
+    ACHIEVEMENT_VIEW: ACHIEVEMENT_VIEW;
+    RUNE_VIEW: RUNE_VIEW;
+    CHALLENGE_VIEW: CHALLENGE_VIEW;
+    ANT_VIEW: ANT_VIEW;
+    CUBE_VIEW: CUBE_VIEW;
+    TRAITS_VIEW: TRAITS_VIEW;
+    SINGULARITY_VIEW: SINGULARITY_VIEW;
+    SETTINGS_VIEW: SETTINGS_VIEW;
+    PSEUDOCOIN_VIEW: PSEUDOCOIN_VIEW;
+}
+
+/** The view object a view key tracks */
+export type ViewOf<K extends VIEW_KEY> = K extends SUBTAB_KEY ? SubtabView<K> : MainView;
 
 export enum MAIN_VIEW {
     UNKNOWN = -1,
@@ -106,6 +124,25 @@ export enum PSEUDOCOIN_VIEW {
     CART_4 = 4,
     CART_5 = 5,
 }
+
+/** Main tabs' content element ids (the element the game shows), the name a MainView is built from */
+export const MAIN_VIEW_TAB_IDS: Record<MAIN_VIEW, string> = {
+    [MAIN_VIEW.BUILDINGS]: 'buildings',
+    [MAIN_VIEW.UPGRADES]: 'upgrades',
+    [MAIN_VIEW.ACHIEVEMENTS]: 'statistics',
+    [MAIN_VIEW.RUNES]: 'runes',
+    [MAIN_VIEW.CHALLENGES]: 'challenges',
+    [MAIN_VIEW.RESEARCH]: 'research',
+    [MAIN_VIEW.ANTS]: 'ants',
+    [MAIN_VIEW.CUBES]: 'cubes',
+    [MAIN_VIEW.TRAITS]: 'traits',
+    [MAIN_VIEW.SETTINGS]: 'settings',
+    [MAIN_VIEW.SHOP]: 'shop',
+    [MAIN_VIEW.SINGULARITY]: 'singularity',
+    [MAIN_VIEW.EVENT]: 'event',
+    [MAIN_VIEW.PSEUDOCOINS]: 'pseudoCoins',
+    [MAIN_VIEW.UNKNOWN]: '',
+};
 
 /**
  * Mapping of view enum values to their clickable button element IDs
@@ -215,30 +252,42 @@ export const PSEUDOCOIN_VIEW_BUTTON_IDS: Record<PSEUDOCOIN_VIEW, string> = {
     [PSEUDOCOIN_VIEW.UNKNOWN]: '',
 };
 
-/**
- * A tab's subtab button ids, in the game's order: its enum's order (integer keys iterate in ascending order, and
- * UNKNOWN's empty id is left out)
- */
-export const subtabButtonIds = (buttonIds: Record<number, string>): string[] =>
-    Object.values(buttonIds).filter(id => id !== '');
+/** Each subtab view key's button ids: a subtab view's name is its button's id */
+export const SUBTAB_BUTTON_IDS: { [K in SUBTAB_KEY]: Record<SubtabEnums[K], string> } = {
+    BUILDING_VIEW: BUILDING_VIEW_BUTTON_IDS,
+    ACHIEVEMENT_VIEW: ACHIEVEMENT_VIEW_BUTTON_IDS,
+    RUNE_VIEW: RUNE_VIEW_BUTTON_IDS,
+    CHALLENGE_VIEW: CHALLENGE_VIEW_BUTTON_IDS,
+    ANT_VIEW: ANT_VIEW_BUTTON_IDS,
+    CUBE_VIEW: CUBE_VIEW_BUTTON_IDS,
+    TRAITS_VIEW: TRAITS_VIEW_BUTTON_IDS,
+    SINGULARITY_VIEW: SINGULARITY_VIEW_BUTTON_IDS,
+    SETTINGS_VIEW: SETTINGS_VIEW_BUTTON_IDS,
+    PSEUDOCOIN_VIEW: PSEUDOCOIN_VIEW_BUTTON_IDS,
+};
 
-/** The subtab a button id belongs to, from its tab's *_VIEW_BUTTON_IDS record; UNKNOWN (-1) for any other id. */
-export const viewFromButtonId = <T extends number>(buttonIds: Record<T, string>, id: string): T => {
-    const key = Object.keys(buttonIds).find(k => id !== '' && buttonIds[Number(k) as T] === id);
+/**
+ * A record's ids in the game's order: its enum's order (integer keys iterate in ascending order, and UNKNOWN's empty
+ * id is left out)
+ */
+export const orderedIds = (ids: Record<number, string>): string[] =>
+    Object.values(ids).filter(id => id !== '');
+
+/** The view an id belongs to, from its *_IDS record; UNKNOWN (-1) for any other id. */
+export const viewFromId = <T extends number>(ids: Record<T, string>, id: string): T => {
+    const key = Object.keys(ids).find(k => id !== '' && ids[Number(k) as T] === id);
     return (key === undefined ? -1 : Number(key)) as T;
 };
 
 export interface HSViewProperties {
     subViewIds: string[];
-    viewClassName: string;
+    viewKey: SUBTAB_KEY;
 }
 
-export interface HSViewState<V extends GameView<VIEW_TYPE>> {
+export interface HSViewState<V> {
     currentView: V;
     previousView: V;
-    viewChangeSubscribers: Map<string, (previousView: V, currentView: V) => void>;
+    viewChangeSubscribers: Set<(previousView: V, currentView: V) => void>;
 }
 
-export interface HSViewStateRecord {
-    [key: string]: HSViewState<GameView<VIEW_TYPE>>;
-}
+export type HSViewStateRecord = { [K in VIEW_KEY]: HSViewState<ViewOf<K>> };

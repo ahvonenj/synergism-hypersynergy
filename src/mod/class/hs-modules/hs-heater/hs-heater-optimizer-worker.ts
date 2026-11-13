@@ -1,7 +1,7 @@
 import type { HeaterOptimizerInput } from '../../../types/data-types/hs-heater-types'
 import Decimal from 'break_infinity.js'
 import { HSHeaterOptimizer, takeHeaterOptimizerLogs } from './hs-heater-optimizer'
-import type { HeaterWorkerRequest, HeaterWorkerResponse } from '../../../types/data-types/hs-heater-worker-types'
+import type { HeaterWorkerRequest, HeaterWorkerResponse } from './hs-heater-worker-types'
 
 const workerScope = self as unknown as {
   onmessage: ((event: MessageEvent<HeaterWorkerRequest>) => void) | null

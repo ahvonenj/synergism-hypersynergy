@@ -1,12 +1,10 @@
-import { HSModuleOptions } from "../../types/hs-types";
-import { MAIN_VIEW, SETTINGS_VIEW } from "../../types/module-types/hs-gamestate-types";
+import { SETTINGS_VIEW } from "../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../hs-core/hs-elementhooker";
 import type { HSGameState } from "../hs-core/hs-gamestate";
 import { HSLogger } from "../hs-core/hs-logger";
 import { HSUI } from "../hs-core/hs-ui";
-import { HSModule } from "../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../hs-core/module/hs-module-registry";
-import { escapeLogText } from "../hs-utils/hs-escape";
 import statsForNerdsCSS from "inline:../../resource/css/module/hs-stats-for-nerds.css";
 
 const STYLE_ID = 'hs-stats-for-nerds-css';
@@ -61,17 +59,9 @@ export class HSStatsForNerds extends HSModule {
         HSLogger.log('Initialising HSStatsForNerds module', this.context);
 
         // Unlocks and the game's language change while the subtab is closed: read again each time it opens
-        const gameState = HSModuleRegistry.getModule('HSGameState');
-        if (gameState) {
-            const onViewChange = () => {
-                if (gameState.getCurrentUIView('MAIN_VIEW').getId() === MAIN_VIEW.SETTINGS
-                    && gameState.getCurrentUIView('SETTINGS_VIEW').getId() === SETTINGS_VIEW.STATS_FOR_NERDS) {
-                    this.#refresh();
-                }
-            };
-            gameState.subscribeGameStateChange('MAIN_VIEW', onViewChange);
-            gameState.subscribeGameStateChange('SETTINGS_VIEW', onViewChange);
-        }
+        HSModuleRegistry.getModule('HSGameState')?.subscribeSubtab('SETTINGS_VIEW', SETTINGS_VIEW.STATS_FOR_NERDS, (isActive) => {
+            if (isActive) this.#refresh();
+        });
 
         // Shown by the statsForNerdsGroups setting's action (HSSettings.syncSettings)
         this.isInitialized = true;
@@ -86,10 +76,9 @@ export class HSStatsForNerds extends HSModule {
             return;
         }
 
-        try {
-            this.#gameList ??= await HSElementHooker.HookElement('#statsForNerds') as HTMLElement;
-        } catch (error) {
-            HSLogger.warn(`Stats for Nerds groups not added, game list not found: ${escapeLogText(String(error))}`, this.context);
+        this.#gameList ??= await HSElementHooker.HookElement('#statsForNerds') ?? undefined;
+        if (!this.#gameList) {
+            HSLogger.warn('Stats for Nerds groups not added: game list not found', this.context);
             return;
         }
         // Turned off again while waiting for the game

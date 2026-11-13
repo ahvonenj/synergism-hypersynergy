@@ -24,6 +24,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 ## Starting and stopping
 - **The settings fixer uses a fresh game save on every loader**, including patched players (`HSGameData.forceCaptureRawSaveSync`). It compares saved scalar values with AutoSing's requirements and uses native controls only for differences, then verifies with another fresh save. It never infers state from labels, colours, borders, or hidden inputs, and never visits tabs. Selecting a challenge to change its auto-run toggle does not enter it.
 - **The original values of all 92 managed game settings are kept in memory before the first change**, including toggles, modes, buy amounts, opening percentages, challenge timers, rune purchase amounts, corruption auto-increase and ambrosia load/save mode. Stop, Finish & Stop, and failed/cancelled starts restore those values from a fresh comparison after startup and the stopped strategy chains finish. Already-correct startup settings are captured too, since a strategy may change them later. Only these settings are restored; progress and settings outside the fixer are left alone.
+- **No start before the save has loaded** (`HSUtils.isGameLoaded()`, in `#startAutosing`: a log line and a notification). On Steam the mod is loaded before the save, whose first load goes through `reloadShit`, not `importSynergism`, so `__HS_onSaveImport` wouldn't stop a run started on the blank player. Separate from `isModFullyLoaded`, which refuses the switch's stored state replayed by the settings sync at load.
 - **A reload or a closed game during a run restores what a Stop restores**, nothing excluded. The snapshot and the three performance settings' values are also kept in localStorage (`autosingSettingsSnapshot`, written before the first change, cleared when restored or discarded), with the save's `firstPlayed` as its identity. At the next load, once the offline popup is closed (the game can't save before), they are restored automatically with a notification: game settings only if `firstPlayed` matches, the mod's settings in any case. An Exalt the run was in is left as it is (the mod can't tell who entered it, and leaving forfeits it); the notification says so. A run started before that takes the stored snapshot over. A setting missing from the snapshot or with a value it no longer accepts keeps its current value. Not restoring at `pagehide`: the desktop game saves only on its timer, so the restored values would never reach the save.
 - **Restart keeps the first snapshot** and rechecks requirements from a fresh save; the eventual stop restores the pre-AutoSing values. Loading another save discards the snapshot immediately (including on the unpatched file-import path), so deferred cleanup never changes the imported save. Cancelling the import still leaves the snapshot discarded.
 - **Unreadable or unrecognized saved settings cancel startup before any setting changes.** A missing/refused control fails verification, stops startup and attempts restoration; a restoration failure warns in the mod log and a notification. Game changes are synchronous; deferred cleanup is tracked with the previous run's chains so a new start waits for it.
@@ -39,7 +40,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - The game sets `data-inside-singularity-challenge` on `<html>` inside the reset (`revealStuff()`, run by the reset's first tab change), so a `MutationObserver` on it fires right after the reset.
 - With the dialogs answered at once (patcher hook), the entry, the exit and the tab restore happen in the task of the first click: no game tick runs inside the Exalt and Buildings is never painted.
 - Patched players still read `player.insideSingularityChallenge` and still poll it at each game tick: the attribute only wakes them earlier, and without it (a game update) the tick ends the wait. Bookmarklet players read the attribute.
-- With debug logs on, a line gives the time taken and how many waits a tick ended (0 when the attribute did).
+- With the full log on, a debug line gives the time taken and how many waits a tick ended (0 when the attribute did).
 
 ## A hidden browser tab
 `HSUtils.sleep`.
@@ -57,7 +58,7 @@ A stopped chain sleeping past a restart would otherwise wake up, see the shared 
 - On Steam the lock stays while the window is minimized or fully covered and while the PC is locked (measured for 1 minute locked), likely because the game's window sets `backgroundThrottling: false`.
 - To check it on Windows: `powercfg /requests` in an administrator shell lists the browser or `Synergism.exe` with "Blink Wake Lock" under `DISPLAY` and `SYSTEM`.
 - The web has no "PC awake, screen off" lock: the screen stays on, and the idle auto-lock can be blocked.
-- A refusal gives one notification per start, and a log line: logs are off during a run unless debug logs are on. A tab hidden during the request isn't a refusal.
+- A refusal gives one notification per start, and a warning in the log: a log line alone would go unseen. A tab hidden during the request isn't a refusal.
 
 ## The player's tab comes back
 `#notePlayerTab` / `#showPlayerTab`.
@@ -76,9 +77,8 @@ Since the game's 4.4.0: one level (`player.corruptions.next`, used from the next
 - **Setting it**: `HSAutosingCorruption` goes through the game's `#corruptionLevelInput` + a `change` event (the game's `setNextCorruptionLevel`: synchronous, no dialog, no patch, the same for bookmarklet players). It reads the level back from the live player, or from that input (the game writes the level it kept there).
 - **The game lowers a level** above what the player can reach now, silently: 0 before C11 in the singularity, then `highestCleared` + 2 (+1 before singularity 2; `highestCleared` survives a singularity). No other cap since the game's commit `4823674d` (the 4/8/14/20 caps at C11–C14 and the Platonic / GQ / Octeract raises are gone). So a call is skipped only when the game's level already equals the target (not the last level asked): a lowered level is asked again by the next 403 step.
 - **The game adds the free reward levels** on top of the actual level: a strategy sets actual levels, not effective ones (an "effective level" action was tried and removed: `autosing-strategies.md`).
-- **Only 403 steps set a level** (no phase level), plus two fixed zeros:
-  - each singularity starts at 0 (the game rebuilds `player.corruptions` at a singularity, `next` = 0: nothing to set for the first phase);
-  - `#performFinalStage` calls `#setCorruptionLevelAndAscend(0)` before the AOAG phase (AOAG always needs 0).
+- **Only 403 steps set a level** (no phase level). Each singularity starts at 0 (the game rebuilds `player.corruptions` at a singularity, `next` = 0: nothing to set for the first phase).
+- **The AOAG phase's level is its own first step**, a 403 at 0 that ascends at once (no offering penalty: the rune can be bought straight away). A strategy choice, not hardcoded: an author can change or remove it. Strategies from before (no `formatVersion`) get it once at load (`autosing-strategies.md`).
 - **The end-of-singularity push** uses the game's Max button (`#corruptionLevelMax`).
 - **The settings fixer unticks the game's "auto increase"** (`#corruptionAutoIncreaseToggle`): each newly cleared level would raise the next level over the strategy's.
 
@@ -106,6 +106,7 @@ Test: `npm run test:autosing`.
 - The logs use the step list's numbers (`Step N`, from 1; IF rows counted, "Jump here" rows not; `autosing-editor.md`), no phase name (noisy).
 - A `===== Executing phase: X =====` debug line at every phase run, kept at debug level (even though timeout warnings show without debug and then have no phase).
 - Debug lines for every step, 403 and IF jumps included, with their outcome (a capped IF's jump with its count, "(2/5)"); the step is named on C1–C10 timeout warnings. An IF that reached its max jumps writes a normal log line instead (`autosing-strategies.md`, "IF steps").
+- **The log during a run** ("Full log during Auto-Sing", `autosingFullLog`, off by default, read at the start): only warnings and errors, no debug line (`HSLogger.setQuietMode`), lifted at every stop; a log line at the start says so and how to get the full log. On: every line, debug lines included; the Log tab's box decides whether debug lines show. Measured on S260 with debug lines: about +5% per singularity with the Log tab closed; with it open, +35% and growing with the log while each line was drawn on its own (now drawn in batches every 250 ms: about +17%).
 - The first phase runs with "Anti buy coin bug" (999) inserted first and a leading 304 removed (`#insertAntiBuyCoinBugStep`), so `#stepNumber` corrects that phase's indices; the inserted step logs as Step 0.
 - The current step in the run panel was refused (changes too often; the logs cover it).
 

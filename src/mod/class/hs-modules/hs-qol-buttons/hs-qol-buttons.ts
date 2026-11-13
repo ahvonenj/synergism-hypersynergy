@@ -1,8 +1,6 @@
-import { HSModuleOptions } from "../../../types/hs-types";
 import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
-import { SingularityView } from "../../hs-core/hs-gamestate";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
@@ -34,9 +32,6 @@ type PotionKind = keyof typeof POTIONS;
  *  Author: Swiffy, XxmolkxX, Shewchou, the creator of original autosing script (httpsnet?) (hide gq/oct buttons) and Core (syn UI bar)
 */
 export class HSQOLButtons extends HSModule {
-    // Tracks active tab visit unsubscribers per SINGULARITY_VIEW.
-    #tabVisitUnsubscribers: Map<SINGULARITY_VIEW, () => void> = new Map();
-
     #gqDistributor: HSGQDistributor;
     #automationQuickbar: HSAutomationQuickbarPlacement;
 
@@ -52,19 +47,12 @@ export class HSQOLButtons extends HSModule {
         HSLogger.log('Initialising HSQOLButtons module', this.context);
         this.isInitialized = true;
 
-        // Register tab visit handlers
-        // (with the current code, we need them to stay always ON)
-        this.#subscribeToTabVisit(
-            SINGULARITY_VIEW.SHOP,
-            async () => {
-                await this.setMaxedGQUpgradesVisibility();
-                if (HSSettings.getSetting('enableGQDistributor').isEnabled()) await this.showGQDistributor();
-            }
-        );
-        this.#subscribeToTabVisit(
-            SINGULARITY_VIEW.OCTERACTS,
-            async () => { this.setMaxedOctUpgradesVisibility(); }
-        );
+        // Each time the subtab comes on screen (upgrades maxed since the last visit get hidden), always on
+        this.#onSubtabShown(SINGULARITY_VIEW.SHOP, async () => {
+            await this.setMaxedGQUpgradesVisibility();
+            if (HSSettings.getSetting('enableGQDistributor').isEnabled()) await this.showGQDistributor();
+        });
+        this.#onSubtabShown(SINGULARITY_VIEW.OCTERACTS, async () => { this.setMaxedOctUpgradesVisibility(); });
 
         this.#initializeMaxedUpgradeToggleSync();
 
@@ -282,46 +270,10 @@ export class HSQOLButtons extends HSModule {
         this.#automationQuickbar.disable();
     }
 
-    /**
-     * Subscribe to a SINGULARITY_VIEW tab visit and run a callback.
-     * Deduplicates subscriptions per tab.
-     * Returns an unsubscribe function
-     */
-    #subscribeToTabVisit( tabId: SINGULARITY_VIEW, onTabVisit: () => void ): (() => void) | null {
-        const gameState = HSModuleRegistry.getModule('HSGameState');
-        if (!gameState) return null;
-
-        // If a subscription for this tab already exists, unsubscribe it first
-        const oldUnsub = this.#tabVisitUnsubscribers.get(tabId);
-        if (oldUnsub) {
-            try {
-                oldUnsub();
-                HSLogger.debug(() => `subscribeToTabVisit: Unsubscribed previous handler for tab ${tabId}`, this.context);
-            } catch (e) {
-                HSLogger.warn(`subscribeToTabVisit: Error unsubscribing previous handler for tab ${tabId}: ${e}`, this.context);
-            }
-        }
-
-        const subId = gameState.subscribeGameStateChange<SingularityView>(
-            'SINGULARITY_VIEW',
-            (prev, curr) => {
-                if (curr.getId() === tabId) {
-                    // small timeout to allow DOM updates
-                    setTimeout(onTabVisit, 20);
-                }
-            }
-        );
-
-        if (subId) {
-            const unsubscribe = () => gameState.unsubscribeGameStateChange('SINGULARITY_VIEW', subId);
-            this.#tabVisitUnsubscribers.set(tabId, unsubscribe);
-            HSLogger.debug(() => `subscribeToTabVisit: Subscribed to SINGULARITY_VIEW changes for tab ${tabId}`, this.context);
-            // return value not used currently since we don't need it for the ones using it
-            return unsubscribe;
-        } else {
-            HSLogger.warn(`subscribeToTabVisit: Failed to subscribe to SINGULARITY_VIEW changes for tab ${tabId}`, this.context);
-            this.#tabVisitUnsubscribers.delete(tabId);
-            return null;
-        }
+    /** Runs onShown each time a Singularity subtab comes on screen, a moment later (the game updates it first) */
+    #onSubtabShown(subView: SINGULARITY_VIEW, onShown: () => void): void {
+        HSModuleRegistry.getModule('HSGameState')?.subscribeSubtab('SINGULARITY_VIEW', subView, (isActive) => {
+            if (isActive) setTimeout(onShown, 20);
+        });
     }
 }

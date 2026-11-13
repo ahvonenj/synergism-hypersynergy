@@ -9,7 +9,7 @@ import { HSSettings } from "../../hs-core/settings/hs-settings";
 import { HSStrategyManager } from "./hs-strategy-manager";
 import { HSNumericSetting } from "../../hs-core/settings/hs-setting";
 import { HSUtils } from "../../hs-utils/hs-utils";
-import { HSAutosingStrategy, PhaseOption, phases, AutosingStrategyPhase, Challenge, SPECIAL_ACTION_BY_ID, createDefaultAoagPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, ALLOWED, type HSAutosingPassRecord, type HSAutosingExposureParts } from "../../../types/module-types/hs-autosing-types";
+import { HSAutosingStrategy, PhaseOption, phases, AutosingStrategyPhase, Challenge, SPECIAL_ACTION_BY_ID, createDefaultAoagPhase, AOAG_PHASE_ID, AOAG_PHASE_NAME, SET_CORRUPTION_LEVEL_VALUE, IF_JUMP_VALUE, ALLOWED, type HSAutosingPassRecord, type HSAutosingExposureParts } from "./hs-autosing-types";
 import { HSAutosingModal } from "./hs-autosingModal";
 import { HSAutosingRecorder } from "./hs-autosingRecorder";
 import { HSAutosingStepTimingsWindow } from "./ui/hs-autosing-step-timings-window";
@@ -18,7 +18,6 @@ import { HSGameState, MainView } from "../../hs-core/hs-gamestate";
 import { HSAutosingSettingsFixer } from './hs-autosingSettingsFixer';
 import { HSAutosingCorruption } from './hs-autosingCorruption';
 import { HSAutosingWakeLock } from './hs-autosingWakeLock';
-import { ELogLevel } from "../../../types/module-types/hs-logger-types";
 import { HSGameDialogs } from "../../hs-core/dialogs/hs-game-dialogs";
 import { HSSubtabMemory } from "../hs-subtab-memory";
 import { escapeLogText } from "../../hs-utils/hs-escape";
@@ -318,6 +317,15 @@ export class HSAutosing extends HSModule {
             this.stopAutosing();
             return;
         }
+        // Steam starts the mod before the save loads, and that first load doesn't go through importSynergism:
+        // __HS_onSaveImport wouldn't stop a run started on the blank player
+        if (!HSUtils.isGameLoaded()) {
+            this.stopAutosing();
+            // After the stop: autosing mutes the log while it runs
+            HSLogger.log("Auto-Sing not started: the game is still loading the save", this.context);
+            HSUI.Notify("Auto-Sing: the game is still loading the save, try again in a moment", { notificationType: 'warning' });
+            return;
+        }
         if (this.#isInExalt()) {
             const hasLeft = await this.#leaveExaltAtStart();
             if (this.#isStartCancelled()) return;
@@ -352,9 +360,11 @@ export class HSAutosing extends HSModule {
         // Stopped during validation: the normal stop already ran
         if (!this.#autosingEnabled) return;
 
-        if (!(HSSettings.getSetting("showDebugLogs")?.isEnabled() ?? false)) {
-            HSGlobal.HSLogger.logLevel = ELogLevel.NONE;
-        }
+        // Speed mode unless "Full log during Auto-Sing": warnings and errors only, no debug line
+        const fullLog = HSSettings.getSetting("autosingFullLog")?.isEnabled() ?? false;
+        // Written before speed mode, which would drop it
+        if (!fullLog) HSLogger.log('"Full log during Auto-Sing" is off: only warnings and errors are logged during this run, for speed. To report or analyze a problem, turn it on (Auto-Sing settings) and restart.', this.context);
+        HSLogger.setQuietMode(!fullLog);
 
         this.#trackChain(this.#performAutosingLogic());
     }
@@ -400,7 +410,7 @@ export class HSAutosing extends HSModule {
      * as the answer to a click would come once the new save is in place.
      */
     public stopAutosing(options?: { showReviewModal?: boolean, restarting?: boolean, saveReplaced?: boolean }): void {
-        HSGlobal.HSLogger.logLevel = ELogLevel.ALL;
+        HSLogger.setQuietMode(false);
 
         window.clearTimeout(this.#restartTimer);
         this.#restartTimer = undefined;
@@ -1222,7 +1232,7 @@ export class HSAutosing extends HSModule {
                 }
 
                 if (now >= deadline || currentCompletions >= maxPossible) {
-                    if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
+                    if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
                     return;
                 }
 
@@ -1251,7 +1261,7 @@ export class HSAutosing extends HSModule {
                 }
 
                 if (now >= timeSinceNoMoreCompletion + maxTime || c1to10CurrentCompletions.gte(maxPossible)) {
-                    if (HSLogger.isDebugEnabled) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
+                    if (HSLogger.isDebugRecorded) HSLogger.debug(() => `-------> C${challengeIndex}: maxed or no more completions after ${maxTime}ms`, this.context);
                     return;
                 }
 
@@ -1481,7 +1491,7 @@ export class HSAutosing extends HSModule {
             return false;
         }
 
-        const exaltBtn = this.#dom.getActiveExaltElement();
+        const exaltBtn = HSUtils.getActiveExaltElement();
         if (!exaltBtn) {
             HSLogger.warn("Could not find the active Exalt to leave it.", this.context);
             HSUI.Notify("Auto-Sing could not leave the Exalt. Leave it yourself, then start Auto-Sing again.", { notificationType: 'warning' });
@@ -1515,10 +1525,7 @@ export class HSAutosing extends HSModule {
         const aoagPhase = this.#strategy?.aoagPhase ?? createDefaultAoagPhase();
         aoagPhase.phaseId = AOAG_PHASE_ID;
 
-        // AOAG needs level 0 applied before its steps; ordinary phase entry performs no reset.
-        await this.#setCorruptionLevelAndAscend(0);
-        if (!this.#autosingEnabled) return;
-
+        // Its level and reset are its own steps: the strategies' AOAG phase starts with level 0 (HSStrategyManager.ensureAoagPhase)
         await this.#executePhase(aoagPhase, {
             phaseLabelOverride: AOAG_PHASE_NAME,
             ignoreObserverActivated: true

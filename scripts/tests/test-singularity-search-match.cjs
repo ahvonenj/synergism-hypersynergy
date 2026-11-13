@@ -3,15 +3,15 @@ const path = require('node:path');
 const Module = require('node:module');
 const esbuild = require('esbuild');
 
-// The perk search's text matching (docs/features/perks-find.md).
+// The Singularity search fields' text matching (docs/features/singularity-search.md).
 async function main() {
     const root = path.resolve(__dirname, '../..');
     const bundled = await esbuild.build({
-        entryPoints: [path.join(root, 'src/mod/class/hs-modules/hs-perks-find/hs-perks-find-match.ts')],
+        entryPoints: [path.join(root, 'src/mod/class/hs-modules/hs-singularity-search/hs-singularity-search-match.ts')],
         bundle: true, write: false, platform: 'node', format: 'cjs',
     });
-    const runtime = new Module(path.join(root, 'perks-find-match-test-runtime.cjs'), module);
-    runtime._compile(bundled.outputFiles[0].text, runtime.filename = path.join(root, 'perks-find-match-test-runtime.cjs'));
+    const runtime = new Module(path.join(root, 'singularity-search-match-test-runtime.cjs'), module);
+    runtime._compile(bundled.outputFiles[0].text, runtime.filename = path.join(root, 'singularity-search-match-test-runtime.cjs'));
     const { matchesSearch, normalizeSearchText, searchTerms } = runtime.exports;
     const found = (text, query) => matchesSearch(normalizeSearchText(text), searchTerms(query));
 
@@ -56,7 +56,7 @@ async function main() {
     assert.equal(found('获得 GQ', 'gq'), true);
     assert.equal(found('获得AGQ', 'gq'), false);
 
-    console.log('perks find matching: OK');
+    console.log('singularity search matching: OK');
 }
 
 main().catch(error => {

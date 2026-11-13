@@ -13,6 +13,8 @@ async function main() {
         'hs-global': 'export const HSGlobal = { get exposedPlayer() { return globalThis.__exportTest.player; } };',
         'hs-module-registry': 'export const HSModuleRegistry = { getModule(key) { return globalThis.__exportTest.modules[key]; } };',
         'hs-module': 'export class HSModule { constructor(options) { this.context = options.context; } }',
+        // The real HSUtils opens a MessageChannel when it loads, which keeps node running
+        'hs-utils': 'export const HSUtils = { isGameRunning: () => globalThis.__exportTest.gameRunning };',
         'hs-auto-export-store': `export class HSAutoExportStore {
             async read(key) { return globalThis.__exportTest.stored.get(key); }
             async write(key, value) {
@@ -27,7 +29,7 @@ async function main() {
             resolveDir: root, loader: 'ts' },
         bundle: true, write: false, platform: 'node', format: 'cjs',
         plugins: [{ name: 'export-browser-boundaries', setup(build) {
-            build.onResolve({ filter: /hs-(?:logger|ui|settings|global|module-registry|module|auto-export-store)$/ }, args => {
+            build.onResolve({ filter: /hs-(?:logger|ui|settings|global|module-registry|module|utils|auto-export-store)$/ }, args => {
                 const name = args.path.split('/').pop();
                 if (stubs[name]) return { path: name, namespace: 'test' };
             });
@@ -51,7 +53,7 @@ async function main() {
     const originalGlobals = Object.fromEntries(['window', 'document', 'HTMLAnchorElement', 'setInterval'].map(key => [key, globalThis[key]]));
     const reset = () => {
         state = globalThis.__exportTest = {
-            logs: [], notices: [], downloads: [], stored: new Map(), handlers: {}, elements: {},
+            logs: [], notices: [], downloads: [], stored: new Map(), handlers: {}, elements: {}, gameRunning: true,
             player: { lastExportedSave: Date.now() },
             settings: { autoExportSave: setting(1), autoExportSaveKeep: setting(2), autoExportSaveLoadout: setting('') },
             modules: { HSGameData: { isSteam: false }, HSAutosing: { isAutosingActive: () => false } },
@@ -161,7 +163,6 @@ async function main() {
         reset();
         const output = directory();
         state.stored.set('folder', output);
-        state.elements.offlineContainer = { style: { display: 'none' } };
         state.elements.saveType = { checked: true };
         let exports = 0;
         let captured = false;
@@ -181,10 +182,10 @@ async function main() {
         state.interval();
         assert.equal(exports, 0, 'a recent manual export restarts the clock');
         state.player.lastExportedSave = 0;
-        state.elements.offlineContainer.style.display = 'flex';
+        state.gameRunning = false;
         state.interval();
-        assert.equal(exports, 0, 'offline progress blocks timed exports');
-        state.elements.offlineContainer.style.display = 'none';
+        assert.equal(exports, 0, 'no timed export before the save loads or during offline progress');
+        state.gameRunning = true;
         state.modules.HSAutosing.isAutosingActive = () => true;
         state.interval();
         assert.equal(exports, 0, 'Auto-Sing blocks timed exports');

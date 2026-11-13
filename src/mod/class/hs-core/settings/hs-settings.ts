@@ -1,18 +1,18 @@
 import { HSSettingBase, HSSettingControlGroup, HSSettingControlPage, HSSettingRecord, HSSettingsDefinition, HSSettingType } from "../../../types/module-types/hs-settings-types";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
+import { HSModule, type HSModuleOptions } from "../module/hs-module";
 import settings from "inline:../../../resource/json/hs-settings.json";
 import settings_control_groups from "inline:../../../resource/json/hs-settings-control-groups.json";
 import settings_control_pages from "inline:../../../resource/json/hs-settings-control-pages.json";
 import { HSSettingActions } from "./hs-setting-action";
-import { HSBooleanSetting, HSNumericSetting, HSSelectNumericSetting, HSSelectStringSetting, HSSelectStringsSetting, HSSetting, HSStateSetting, HSStringSetting, HSButtonSetting } from "./hs-setting";
+import { HSBooleanSetting, HSNumericSetting, HSMultiSelectSetting, HSSetting, HSTextSetting, HSButtonSetting } from "./hs-setting";
+import { HSUI } from "../hs-ui";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 
 import { HSGlobal } from "../hs-global";
 import { HSStrategyManager } from "../../hs-modules/hs-autosing/hs-strategy-manager";
 import { HSSettingsUIDependencies } from "./hs-settings-ui";
-import { HSModuleOptions } from "../../../types/hs-types";
 import { HSPlatform } from "../hs-platform";
 import { parseStoredSettingStates, restoreSettingState, serializeSettingStates } from "./hs-settings-state";
 
@@ -39,8 +39,6 @@ export class HSSettings extends HSModule {
     static #settingsControlPages: Record<string, HSSettingControlPage>;
     static #settingsParsed = false;
     static #saveTimeout: ReturnType<typeof setTimeout> | undefined;
-    static #settingEnabledString = "✓";
-    static #settingDisabledString = "✗";
     // Told when a setting is turned on or off, whoever does it (HSHeaderEditSettings' checkboxes)
     static #stateListeners = new Set<(settingName: string) => void>();
 
@@ -79,17 +77,16 @@ export class HSSettings extends HSModule {
                 gameDataSettingState = gameDataSetting.enabled;
             }
             // Set default values for each setting
-            for (const [key, setting] of Object.typedEntries<HSSettingsDefinition>(resolvedSettings)) {
+            type SettingEntry = [keyof HSSettingsDefinition, HSSettingsDefinition[keyof HSSettingsDefinition]];
+            for (const [key, setting] of Object.entries(resolvedSettings) as SettingEntry[]) {
                 const settingDef = setting as HSSettingBaseWithHidden<HSSettingType>;
                 if (settingDef.settingType === 'boolean' || HSUtils.isBoolean(settingDef.settingValue)) {
                     settingDef.settingValue = false;
                 }
                 // Disable settings that use game data if game data is off
-                if (HSSettings.usesGameData(setting) && setting.enabled && !gameDataSettingState) {
-                    if (!HSGlobal.HSSettings.gameDataCheckBlacklist.includes(key)) {
-                        HSLogger.info(`Disabled ${setting.settingDescription} on load because GDS is not on`, this.context);
-                        setting.enabled = false;
-                    }
+                if (setting.enabled && !gameDataSettingState && HSSettings.needsGameDataFirst(setting)) {
+                    HSLogger.info(`Disabled ${setting.settingDescription} on load because GDS is not on`, this.context);
+                    setting.enabled = false;
                 }
                 this.#validateSetting(setting, HSSettings.#settingsControlGroups);
                 const settingActionName = ('settingAction' in setting) ? setting.settingAction : undefined;
@@ -101,72 +98,20 @@ export class HSSettings extends HSModule {
                             const numericSetting = settingDef as HSSettingBase<number>;
                             numericSetting.settingValueMultiplier = 1;
                         }
-                        HSSettings.#settings[key] = new HSNumericSetting(
-                            settingDef as HSSettingBase<number>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
+                        HSSettings.#settings[key] = new HSNumericSetting(settingDef as HSSettingBase<number>, settingAction);
                         break;
                     case 'string':
-                        HSSettings.#settings[key] = new HSStringSetting(
-                            settingDef as HSSettingBase<string>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
+                    case 'selectstring':
+                        HSSettings.#settings[key] = new HSTextSetting(settingDef as HSSettingBase<string>, settingAction);
                         break;
                     case 'boolean':
-                        HSSettings.#settings[key] = new HSBooleanSetting(
-                            settingDef as HSSettingBase<boolean>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
-                        break;
-                    case 'selectnumeric':
-                        if (!('settingValueMultiplier' in settingDef)) {
-                            const numericSetting = settingDef as HSSettingBase<number>;
-                            numericSetting.settingValueMultiplier = 1;
-                        }
-                        HSSettings.#settings[key] = new HSSelectNumericSetting(
-                            settingDef as HSSettingBase<number>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
-                        break;
-                    case 'selectstring':
-                        HSSettings.#settings[key] = new HSSelectStringSetting(
-                            settingDef as HSSettingBase<string>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
+                        HSSettings.#settings[key] = new HSBooleanSetting(settingDef as HSSettingBase<boolean>, settingAction);
                         break;
                     case 'selectstrings':
-                        HSSettings.#settings[key] = new HSSelectStringsSetting(
-                            settingDef as HSSettingBase<string[]>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
-                        break;
-                    case 'state':
-                        HSSettings.#settings[key] = new HSStateSetting(
-                            settingDef as HSSettingBase<string>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
+                        HSSettings.#settings[key] = new HSMultiSelectSetting(settingDef as HSSettingBase<string[]>, settingAction);
                         break;
                     case 'button':
-                        HSSettings.#settings[key] = new HSButtonSetting(
-                            settingDef as HSSettingBase<null>,
-                            settingAction,
-                            HSSettings.#settingEnabledString,
-                            HSSettings.#settingDisabledString
-                        );
+                        HSSettings.#settings[key] = new HSButtonSetting(settingDef as HSSettingBase<null>, settingAction);
                         break;
                     default:
                         throw new Error(`Could not parse setting ${key.toString()} (settingType: ${setting.settingType}, settingValue: ${setting.settingValue})`);
@@ -174,7 +119,6 @@ export class HSSettings extends HSModule {
             }
             HSSettings.saveSettingsToStorage();
             HSSettings.#settingsParsed = true;
-            HSLogger.updateDebugEnabled();
         } catch (e) {
             HSLogger.error(`Error parsing mod settings ${e}`, this.context);
             HSSettings.#settingsParsed = false;
@@ -199,10 +143,7 @@ export class HSSettings extends HSModule {
             settings: HSSettings.#settings,
             settingsControlGroups: HSSettings.#settingsControlGroups,
             settingsControlPages: HSSettings.#settingsControlPages,
-            settingEnabledString: HSSettings.#settingEnabledString,
-            settingDisabledString: HSSettings.#settingDisabledString,
             settingChangeDelegate: HSSettings.#settingChangeDelegate,
-            settingToggleDelegate: HSSettings.#settingToggleDelegate,
         };
     }
 
@@ -248,6 +189,21 @@ export class HSSettings extends HSModule {
         const usesGameData = definition.usesGameData;
         if (!Array.isArray(usesGameData)) return usesGameData === true;
         return usesGameData.includes(HSPlatform.get());
+    }
+
+    /** Whether a setting can be turned on only while GDS is on: it needs GDS and doesn't turn GDS on itself. */
+    static needsGameDataFirst(definition: Pick<HSSettingBase<HSSettingType>, 'usesGameData' | 'settingName'>): boolean {
+        return HSSettings.usesGameData(definition)
+            && !HSGlobal.HSSettings.gameDataCheckBlacklist.includes(definition.settingName);
+    }
+
+    /** Refuses turning on a setting that needs GDS while GDS is off, and tells the player. True when refused. */
+    static refuseWithoutGameData(definition: HSSettingBase<HSSettingType>): boolean {
+        if (!HSSettings.needsGameDataFirst(definition) || HSSettings.getSetting('useGameData')?.isEnabled()) return false;
+
+        HSLogger.warn(`Enable GDS before enabling ${definition.settingDescription}!`, HSSettings.#staticContext);
+        void HSUI.Notify(`Turn on Game Data Sniffing (mod panel) before "${definition.settingDescription}".`, { notificationType: 'warning' });
+        return true;
     }
 
     // ===============================
@@ -301,7 +257,7 @@ export class HSSettings extends HSModule {
             }
 
             // Try fixing select type settings if they're missing some things
-            if (setting.settingType === 'selectnumeric' || setting.settingType === 'selectstring') {
+            if (setting.settingType === 'selectstring') {
                 // If there is no (default) value defined, define it as empty string
                 if (!("settingValue" in setting)) {
                     const selectSetting = settingDef as HSSettingBase<string>;
@@ -327,17 +283,10 @@ export class HSSettings extends HSModule {
                 }
             }
 
-            if (settingDef.settingType === 'numeric' || settingDef.settingType === 'selectnumeric' || HSUtils.isNumeric(settingDef.settingValue)) {
+            if (settingDef.settingType === 'numeric' || HSUtils.isNumeric(settingDef.settingValue)) {
                 if (!('settingValueMultiplier' in settingDef)) {
                     const numericSetting = settingDef as HSSettingBase<number>;
                     numericSetting.settingValueMultiplier = 1;
-                }
-            }
-
-            if (settingDef.settingType === 'state') {
-                if (!("settingValue" in settingDef)) {
-                    const stateSetting = settingDef as HSSettingBase<string>;
-                    stateSetting.settingValue = "<red>null</red>";
                 }
             }
 
@@ -391,10 +340,10 @@ export class HSSettings extends HSModule {
         if (!setting) throw new Error(`Setting is undefined (wtf)`);
 
         // These should be the same as HSSettingsControlType in hs-settings-types.ts
-        const validControlTypes = ['text', 'number', 'switch', 'select', 'state', 'button'];
+        const validControlTypes = ['text', 'number', 'switch', 'select', 'button'];
 
         // These should be the same as HSSettingJSONType in hs-settings-types.ts
-        const validSettingTypes = ['numeric', 'string', 'boolean', 'selectnumeric', 'selectstring', 'selectstrings', 'state', 'button'];
+        const validSettingTypes = ['numeric', 'string', 'boolean', 'selectstring', 'selectstrings', 'button'];
 
         // Check the name first so we can use it in the error messages
         if (!('settingName' in setting)) throw new Error(`Setting is missing settingName property`);
@@ -424,10 +373,6 @@ export class HSSettings extends HSModule {
         }
         else if (settingType === 'boolean') {
             if (!HSUtils.isBoolean(setting.settingValue))
-                throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
-        }
-        else if (settingType === 'selectnumeric') {
-            if (!HSUtils.isString(setting.settingValue) && !HSUtils.isNumeric(setting.settingValue))
                 throw new Error(`Setting '${settingName}' has invalid settingValue property for settingType ${settingType}`);
         }
         else if (settingType === 'selectstring') {
@@ -464,10 +409,6 @@ export class HSSettings extends HSModule {
 
     static async #settingChangeDelegate(e: Event, settingObj: HSSetting<HSSettingType>) {
         await settingObj.handleChange(e);
-    }
-
-    static async #settingToggleDelegate(e: MouseEvent, settingObj: HSSetting<HSSettingType>) {
-        await settingObj.handleToggle(e);
     }
 
     // ===============================

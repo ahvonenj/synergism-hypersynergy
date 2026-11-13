@@ -2,7 +2,7 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const { patchBundle } = require('../lib/patcher.js')
 
-// The 5 game dialogs, in the shape of the minified bundle (see docs: dialog-queue-design.md, 4.1).
+// The 5 game dialogs, in the shape of the minified bundle (see docs/features/loaders.md, "Finders").
 // Each body shows #confirmationBox and waits for the test to answer it.
 const dialog = (header, wrapper, firstLocal = 't') =>
     `${header}Jf.enqueue(()=>{let ${firstLocal}=c("confirmationBox"),w=c("${wrapper}");${firstLocal}.style.display="block";` +

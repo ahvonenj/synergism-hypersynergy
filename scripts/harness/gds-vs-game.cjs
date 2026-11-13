@@ -29,9 +29,9 @@ const LINES = ['sMiscRuneSum', 'statSalvPosRuneBonus', 'statSalvPosInfiniteAscen
 
 // The player fields the checked calculations read, the only ones the reference keeps: the file stays small and holds
 // nothing else of the save. A check that needs another one fails on a missing value: add it here and run this again.
-const KEPT = ['worlds', 'coinsThisPrestige', 'firstPaidCoin', 'secondPaidCoin', 'thirdPaidCoin', 'fourthPaidCoin', 'fifthPaidCoin',
+const KEPT = ['worlds', 'coinsThisPrestige', 'coinBuildings',
     'ants', 'upgrades', 'transcendCount', 'challengecompletions', 'challenge15Exponent', 'currentChallenge', 'researches', 'unlocks',
-    'achievements', 'progressiveAchievements', 'runes', 'shopUpgrades', 'talismans', 'ascensionCount', 'cubeUpgrades', 'platonicUpgrades',
+    'achievements', 'progressiveAchievements', 'runeEXP', 'shopUpgrades', 'talismans', 'ascensionCount', 'cubeUpgrades', 'platonicUpgrades',
     'wowCubes', 'wowTesseracts', 'wowHypercubes', 'wowPlatonicCubes', 'wowAbyssals', 'wowOcteracts', 'totalWowOcteracts', 'cubeBlessings', 'tesseractBlessings',
     'hypercubeBlessings', 'platonicBlessings', 'hepteracts', 'ascendShards', 'corruptions', 'constantUpgrades', 'singularityCount',
     'highestSingularityCount', 'goldenQuarkUpgrades', 'octUpgrades', 'ambrosiaUpgrades', 'insideSingularityChallenge', 'singularityChallenges',

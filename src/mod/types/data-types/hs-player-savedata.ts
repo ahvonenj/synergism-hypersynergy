@@ -99,7 +99,8 @@ export interface Unlocks {
     hepteracts: boolean
 }
 /**
- * The raw rune experience of each rune, from which the game derives rune levels (and the mod the heater export's).
+ * The raw rune experience of each rune, keyed by name: the save shape before the game's rune rework (2026-11-12),
+ * still on Steam until it updates. Read through getRuneEXP (hs-gamedata-utils.ts).
  */
 export interface Runes {
     speed: GameDecimal;
@@ -844,11 +845,12 @@ export type DeepReadonly<T> =
     : T
 
 /**
- * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-11 with vanilla's master
- * (commit 075dfeaa, 2026-11-10): no field here is missing from vanilla, and these vanilla fields aren't
+ * The fields of vanilla's Player (src/types/Synergism.ts) the mod reads. Compared on 2026-11-13 with vanilla's master
+ * (commit 0a0b943d, 2026-11-12): the only fields here missing from vanilla are the optional ones of the shape before
+ * the rune rework (runes, runeBlessings, runeSpirits, firstPaidCoin...), and these vanilla fields aren't
  * declared, as no feature reads them through this type (add one when a feature needs it):
- * - firstPaidDiamonds … fifthPaidDiamonds, and the same for Mythos and Particles (Decimals)
- * - multiplierPaid, acceleratorPaid, acceleratorBoostPaid (Decimals)
+ * - diamondBuildings, mythosBuildings, particleBuildings, accelerators, multipliers, acceleratorBoosts
+ * - runeLevels, blessingLevels, spiritLevels (GDS derives the levels from the EXP), autoSacrificeRune
  * - coinsThisAscension, coinsThisSingularity, ascensionAttemptCounter
  * - autoAscendRules
  * - headerLayouts (the header files read it through their own casts)
@@ -866,15 +868,19 @@ interface GameDataFields {
     coinsTotal: GameDecimal;
 
     firstGeneratedCoin: GameDecimal;
-    firstPaidCoin: GameDecimal;
     secondGeneratedCoin: GameDecimal;
-    secondPaidCoin: GameDecimal;
     thirdGeneratedCoin: GameDecimal;
-    thirdPaidCoin: GameDecimal;
     fourthGeneratedCoin: GameDecimal;
-    fourthPaidCoin: GameDecimal;
     fifthGeneratedCoin: GameDecimal;
-    fifthPaidCoin: GameDecimal;
+
+    // The coin buildings owned, Workers to Alchemies, since the game's rune rework (2026-11-12). Before it (Steam until
+    // it updates), only what each one was paid (firstPaidCoin...), from which BuildingHelper derives the counts.
+    coinBuildings?: number[];
+    firstPaidCoin?: GameDecimal;
+    secondPaidCoin?: GameDecimal;
+    thirdPaidCoin?: GameDecimal;
+    fourthPaidCoin?: GameDecimal;
+    fifthPaidCoin?: GameDecimal;
 
     firstGeneratedDiamonds: GameDecimal;
     secondGeneratedDiamonds: GameDecimal;
@@ -951,10 +957,15 @@ interface GameDataFields {
     crystalUpgrades: number[];
     crystalUpgradesCost: number[]; // Costs corresponding to crystalUpgrades
 
-    // Runes & Talismans
-    runes: Runes;
-    runeBlessings: Record<RuneBlessingKeys, GameDecimal>;
-    runeSpirits: Record<RuneSpiritKeys, GameDecimal>;
+    // Runes & Talismans. The EXP of each rune, blessing and spirit, in arrays indexed by the game's RuneType since its
+    // rune rework (2026-11-12), in objects keyed by name before it (Steam until it updates): read them through
+    // getRuneEXP / getBlessingEXP / getSpiritEXP (hs-gamedata-utils.ts)
+    runeEXP?: GameDecimal[];
+    blessingEXP?: GameDecimal[];
+    spiritEXP?: GameDecimal[];
+    runes?: Runes;
+    runeBlessings?: Record<RuneBlessingKeys, GameDecimal>;
+    runeSpirits?: Record<RuneSpiritKeys, GameDecimal>;
     offerings: GameDecimal;
     maxOfferings: GameDecimal;
 
@@ -1006,7 +1017,6 @@ interface GameDataFields {
     researchBuyMaxToggle: boolean;
     autoResearchMode: 'cheapest' | 'manual';
     autoResearch: number;
-    autoSacrifice: number;
     sacrificeTimer: number;
     quarkstimer: number;
     goldenQuarksTimer: number;

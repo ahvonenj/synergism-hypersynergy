@@ -1008,9 +1008,22 @@
     "enabled": false,
     "settingControl": {
       "controlType": "switch",
-      "controlGroup": "auto-sing",
+      "controlGroup": "auto-sing-diagnostics",
       "controlPage": "auto-sing",
       "controlEnabledId": "hs-setting-auto-sing-step-timings-btn"
+    }
+  },
+  "autosingFullLog": {
+    "settingName": "autosingFullLog",
+    "settingDescription": "Full log during Auto-Sing",
+    "settingHelpText": "Logs every line during a run, debug lines included. Off: only warnings and errors, for speed. Applies at the next start.",
+    "settingType": "boolean",
+    "enabled": false,
+    "settingControl": {
+      "controlType": "switch",
+      "controlGroup": "auto-sing-diagnostics",
+      "controlPage": "auto-sing",
+      "controlEnabledId": "hs-setting-auto-sing-full-log-btn"
     }
   },
   "autosingStrategy": {
@@ -1838,18 +1851,18 @@
       "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
     }
   },
-  "perksFind": {
-    "settingName": "perksFind",
-    "settingDescription": "Perks search field",
-    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
+  "singularitySearch": {
+    "settingName": "singularitySearch",
+    "settingDescription": "Search fields (Perks, GQ, Oct)",
+    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties, Golden Quarks and Octeracts subtabs. Perks: lists the tooltips of the perks matching what you type and dims the others in the tree. Upgrades: dims the upgrades that don't match.",
     "settingType": "boolean",
     "enabled": true,
-    "settingAction": "perksFindAction",
+    "settingAction": "singularitySearchAction",
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "singularity",
       "controlPage": "qol",
-      "controlEnabledId": "hs-setting-perks-find-btn"
+      "controlEnabledId": "hs-setting-singularity-search-btn"
     }
   },
   "hideMaxedGQUpgrades": {
@@ -1912,30 +1925,20 @@
   "showDebugLogs": {
     "settingName": "showDebugLogs",
     "settingDescription": "Show debug logs",
-    "settingHelpText": "Controls whether \u0027debug\u0027 type logs are visible or not in the mod\u0027s log view.",
+    "settingHelpText": "Shows the debug lines in the Log tab. They are always recorded.",
     "settingType": "boolean",
     "enabled": false,
-    "settingAction": "showDebugLogs",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "debug",
-      "controlPage": "debug",
-      "controlEnabledId": "hs-setting-display-debug-logs-btn"
-    }
+    "hidden": true,
+    "settingAction": "showDebugLogs"
   },
   "logTimestamp": {
     "settingName": "logTimestamp",
-    "settingDescription": "Display timestamps in log",
-    "settingHelpText": "Controls whether timestamps are visible or not in the mod\u0027s log view",
+    "settingDescription": "Show timestamps in log",
+    "settingHelpText": "Shows each line's time in the Log tab. It is always recorded.",
     "settingType": "boolean",
     "enabled": false,
-    "settingAction": "logTimestamp",
-    "settingControl": {
-      "controlType": "switch",
-      "controlGroup": "debug",
-      "controlPage": "debug",
-      "controlEnabledId": "hs-setting-display-timestamp-btn"
-    }
+    "hidden": true,
+    "settingAction": "logTimestamp"
   },
   "autosing3to6DCubeOpeningPercent": {
     "settingName": "autosing3to6DCubeOpeningPercent",

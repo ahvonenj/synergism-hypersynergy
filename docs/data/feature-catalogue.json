@@ -91,7 +91,7 @@
         "src/mod/class/hs-core/settings/hs-settings-ui.ts",
         "docs/features/dialogs.md",
         "docs/features/subtab-memory.md",
-        "docs/features/perks-find.md"
+        "docs/features/singularity-search.md"
       ],
       "features": [
         {
@@ -167,21 +167,22 @@
           ]
         },
         {
-          "id": "perks-find",
-          "title": "Search the singularity perks",
-          "where": "Singularity → Perks / Penalties, above the penalties",
-          "summary": "Lists the tooltips of the perks matching what you type.",
+          "id": "singularity-search",
+          "title": "Search the singularity perks and upgrades",
+          "where": "Singularity → Perks / Penalties, above the penalties; Golden Quarks and Octeracts, at the top of the upgrades",
+          "summary": "Finds the perks, Golden Quark upgrades and octeract upgrades matching what you type.",
           "details": [
             "Results take the place of the penalties text while you search, and the other perks are dimmed in the tree. Clear the field or press Escape to bring the penalties back.",
             "Searches perk names and descriptions in your game language, by the start of words. Several words must all match.",
             "A row of clickable words (quark, cube, octeract, ant, luck, salvage, token, auto, challenge, purple) runs the common searches. The words are English; one that finds nothing is not shown.",
-            "Perks the game hasn't shown you yet stay out of the results."
+            "Perks the game hasn't shown you yet stay out of the results.",
+            "Golden Quarks and Octeracts: the upgrades that don't match are dimmed; hover one that stays lit for the game's tooltip. Searches upgrade names and descriptions the same way. Matching maxed upgrades the game's Maxed Upgrades button hides are counted apart: 2 results (+10 hidden)."
           ],
           "limits": [
-            "Perks only, not Golden Quark or octeract upgrades. Values in the results update at your next key press or when you come back to the subtab. Not available on touch devices."
+            "Perk values in the results update at your next key press or when you come back to the subtab. Not available on touch devices."
           ],
           "settings": [
-            "perksFind"
+            "singularitySearch"
           ]
         },
         {
@@ -1392,7 +1393,8 @@
           "details": [
             "The current-state backup and the actual import are separate clicks, allowing the backup download to finish first.",
             "Restoring mod data is exact: missing mod keys are removed. Only permitted game-preference keys are restored; logs and diagnostics are never imported.",
-            "An ordinary current-format game export can also be loaded."
+            "An ordinary current-format game export can also be loaded.",
+            "\"Skip offline progress\" loads the save with no offline progress since it was made; code timers and the daily reset work as usual."
           ],
           "limits": [
             "Import replaces the selected local state and reloads the page. Legacy compressed saves rejected by current validation are not restored; folder permissions and pending paid time skips are not copied."
@@ -1633,7 +1635,7 @@
         "docs/features/tools-tab.md",
         "docs/features/gds.md",
         "docs/features/dev-tools.md",
-        "src/mod/class/hypersynergism.ts",
+        "src/mod/class/hs-core/hs-tools-tab.ts",
         "src/mod/class/hs-core/hs-logger.ts"
       ],
       "features": [
@@ -1670,16 +1672,18 @@
         {
           "id": "mod-log",
           "title": "Color-coded mod log and diagnostics",
-          "where": "Log tab; Settings → Debug",
+          "where": "Log tab; Settings → Auto-Sing → Full log during Auto-Sing",
           "summary": "Records initialization, tool actions, run messages, warnings and errors.",
           "details": [
-            "Optional timestamps and debug-level lines can be shown independently.",
+            "Each line's time and the debug lines are always recorded; the Timestamps and Debug logs boxes below the log only show or hide them.",
+            "During an Auto-Sing run, only warnings and errors are recorded, for speed, unless Full log during Auto-Sing is on.",
             "Distributors, Heater runs and answered/refused actions write useful context. Backups include the accumulated logs for troubleshooting.",
-            "COPY LOG copies log text to the clipboard; CLEAR LOG clears the visible accumulated log."
+            "COPY LOG copies the whole log, hidden lines included; CLEAR LOG clears it."
           ],
           "settings": [
             "logTimestamp",
-            "showDebugLogs"
+            "showDebugLogs",
+            "autosingFullLog"
           ]
         },
         {
@@ -1701,7 +1705,7 @@
           "where": "Tools → Fix Exalt Bug",
           "summary": "Attempts the recovery path for an inconsistent active-Exalt display.",
           "details": [
-            "First looks for the active Exalt in the game and clicks it. If that is not possible, patched-player state is checked and the attempt is logged."
+            "With an Exalt active, clicks its icon as the Exalts tab does. When the game still thinks you are in an Exalt with none active, clears that state. Each outcome shows a notification; the fix needs the Tampermonkey loader."
           ],
           "limits": [
             "A targeted recovery tool, not a general-purpose save repair or guaranteed fix for every Exalt problem."

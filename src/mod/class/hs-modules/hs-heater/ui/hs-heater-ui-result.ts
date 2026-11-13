@@ -1,4 +1,5 @@
 import { HSUI } from "../../../hs-core/hs-ui";
+import { setAnimatedBorder } from "../../../hs-core/hs-animated-border";
 import { HSLogger } from "../../../hs-core/hs-logger";
 import { HSModuleRegistry } from "../../../hs-core/module/hs-module-registry";
 import { HSQuickbarIconPickerController } from "../../hs-loadout-icons/hs-loadout-icon-picker";
@@ -310,8 +311,9 @@ export class HSHeaterUIResult {
         // set by HSAmbrosia on icon changes such as "Sync All Icons" or a pick on the game's header)
         const syncCloneSlot = (orig: HTMLElement, cloneSlot: HTMLElement | undefined) => {
             if (!cloneSlot) return;
-            cloneSlot.classList.toggle('hs-rainbow-border', orig.classList.contains('hs-rainbow-border'));
-            cloneSlot.classList.toggle('hs-silver-border', orig.classList.contains('hs-silver-border'));
+            const border = orig.classList.contains('hs-rainbow-border') ? 'rainbow'
+                : orig.classList.contains('hs-silver-border') ? 'silver' : undefined;
+            setAnimatedBorder(cloneSlot, border);
             cloneSlot.classList.toggle('hs-ambrosia-slot', orig.classList.contains('hs-ambrosia-slot'));
             cloneSlot.style.backgroundImage = orig.style.backgroundImage;
         };
@@ -742,7 +744,7 @@ export class HSHeaterUIResult {
     static #clearOverlayButtonBorder(): void {
         const clearTarget = (target: HTMLElement | null) => {
             if (target instanceof HTMLElement && target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-                target.classList.remove('hs-rainbow-border');
+                setAnimatedBorder(target);
             }
         };
 
@@ -759,7 +761,7 @@ export class HSHeaterUIResult {
         this.#activeHoverOverlay = null;
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)
             && !this.#pinnedOverlays.has(target)) {
-            target.classList.remove('hs-rainbow-border');
+            setAnimatedBorder(target);
         }
     }
 
@@ -796,7 +798,7 @@ export class HSHeaterUIResult {
         entry.tooltip.remove();
         this.#pinnedOverlays.delete(target);
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-            target.classList.remove('hs-rainbow-border');
+            setAnimatedBorder(target);
         }
     }
 
@@ -841,7 +843,7 @@ export class HSHeaterUIResult {
             cleanup: () => tooltip.removeEventListener('mouseleave', onTooltipLeave),
         };
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-            target.classList.add('hs-rainbow-border');
+            setAnimatedBorder(target, 'rainbow');
         }
     }
 
@@ -875,7 +877,7 @@ export class HSHeaterUIResult {
             position: { left: rect.left, top: rect.top },
         });
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-            target.classList.add('hs-rainbow-border');
+            setAnimatedBorder(target, 'rainbow');
         }
     }
 
@@ -905,7 +907,7 @@ export class HSHeaterUIResult {
     static toggleResultInteractionOverlay(target: HTMLElement, show: boolean): void {
         const keepSelected = show || this.#pinnedOverlays.has(target);
         if (target.classList.contains(HEATER_RESULT_UI_SELECTORS.importLoadoutBtn)) {
-            target.classList.toggle('hs-rainbow-border', keepSelected);
+            setAnimatedBorder(target, keepSelected ? 'rainbow' : undefined);
         }
 
         if (show) {

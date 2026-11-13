@@ -1,25 +1,57 @@
 /* ===== LOADED-SLOT BORDERS, ANIMATED TEXT ===== */
 
-/* Still borders: a rotating gradient (an animated custom property) redrew the slot every frame, about 6% of the
-   main thread for as long as a slot was marked */
-.hs-rainbow-border.hs-silver-border,
-.hs-silver-border.hs-rainbow-border,
-.hs-rainbow-border {
-   border: 2px solid transparent !important;
-   border-image: conic-gradient(#ff5e00, #ff9a00, #ffcd00, #e5ff00, #a5ff00, #00ffc8, #00c8ff, #00a5ff, #9500ff, #00e1ff, #0095ff, #ff5e00) 1 !important;
-   /* A glow like the silver border's, each side in the gradient's colour there (top orange, right yellow-green,
-      bottom cyan, left violet) */
-   box-shadow: 0 -2px 5px rgba(255, 94, 0, 0.8), 2px 0 5px rgba(229, 255, 0, 0.7), 0 2px 5px rgba(0, 200, 255, 0.8),
-      -2px 0 5px rgba(149, 0, 255, 0.8);
+.hs-silver-border {
+   --hs-border-gradient: conic-gradient(#8c8c8c, #b0b0b0, #d0d0d0, #e8e8e8, #ffffff, #e8e8e8, #d0d0d0, #b0b0b0, #909090, #6f6f6f, #4a4a4a, #8c8c8c);
 }
 
-.hs-silver-border {
+.hs-rainbow-border {
+   --hs-border-gradient: conic-gradient(#ff5e00, #ff9a00, #ffcd00, #e5ff00, #a5ff00, #00ffc8, #00c8ff, #00a5ff, #9500ff, #00e1ff, #0095ff, #ff5e00);
+}
+
+:is(.hs-rainbow-border, .hs-silver-border):not(.hs-quickbar-slot-pickmode) {
    border: 2px solid transparent !important;
-   /* Light stops only: still, a dark stop leaves that side of the slot dim on the dark background */
-   border-image: conic-gradient(#c8c8c8, #d8d8d8, #e8e8e8, #f4f4f4, #ffffff, #f4f4f4, #e8e8e8, #d8d8d8, #c8c8c8, #bcbcbc, #b4b4b4, #c8c8c8) 1 !important;
-   /* The game's light blue slot borders (#7878ff) are too close in colour alone: a glow sets the slot apart. Still,
-      so drawn once */
-   box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.8);
+   border-image: var(--hs-border-gradient) 1 !important;
+}
+
+.hs-animated-border-layer {
+   display: none;
+}
+
+@supports (width: hypot(100cqw, 100cqh)) and (clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%)) {
+   /* Keep the icon's existing fixed position and position otherwise static buttons. */
+   :where(.hs-rainbow-border, .hs-silver-border) {
+      position: relative;
+   }
+
+   :is(.hs-rainbow-border, .hs-silver-border):not(.hs-quickbar-slot-pickmode):has(> .hs-animated-border-layer) {
+      border-image: none !important;
+   }
+
+   :is(.hs-rainbow-border, .hs-silver-border):not(.hs-quickbar-slot-pickmode) > .hs-animated-border-layer {
+      display: block;
+      position: absolute;
+      inset: -2px;
+      pointer-events: none;
+      container-type: size;
+      /* Trace the outer rectangle, then cut out the button's interior. */
+      clip-path: polygon(evenodd,
+         0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+         2px 2px, calc(100% - 2px) 2px, calc(100% - 2px) calc(100% - 2px),
+         2px calc(100% - 2px), 2px 2px);
+   }
+
+   .hs-animated-border-layer::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      /* A square with the button's diagonal as its side covers it at every angle. */
+      width: hypot(100cqw, 100cqh);
+      aspect-ratio: 1;
+      background: var(--hs-border-gradient);
+      animation: hs-border-spin 6s linear infinite;
+   }
 }
 
 #hs-panel-new-ver {
@@ -35,4 +67,8 @@
 @keyframes hs-animtext-1 {
     0% { background-position: 0% 50%; }
     100% { background-position: 100% 50%; }
+}
+
+@keyframes hs-border-spin {
+    to { transform: rotate(1turn); }
 }

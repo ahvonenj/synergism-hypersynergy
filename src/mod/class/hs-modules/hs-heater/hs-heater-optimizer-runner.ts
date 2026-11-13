@@ -8,7 +8,7 @@ import type {
   HeaterWorkerRequest,
   HeaterWorkerResponse,
   SerializedHeaterOptimizerInput,
-} from '../../../types/data-types/hs-heater-worker-types'
+} from './hs-heater-worker-types'
 import { HEATER_BRANCH_DEFINITIONS } from './hs-heater-result-config'
 import type { HeaterBranchId } from './hs-heater-result-config'
 import { HEATER_ROW_LIMIT, HEATER_ROW_LIMIT_TEXT, HSHeaterOptimizer, takeHeaterOptimizerLogs } from './hs-heater-optimizer'

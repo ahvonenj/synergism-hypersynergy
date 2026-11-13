@@ -8,16 +8,19 @@ check, in order, and how the 4.4.0 update went as a worked example.
 1. **Get the new game.** `node scripts/tools/update-game.cjs` pulls the source and fetches the live bundle (the
    replaced one is kept as `local/game/out.prev.js`). `git log` / `git diff <old-commit> HEAD -- src/` in
    `local/game/SynergismOfficial-master` says what changed; GitHub's `master` can be ahead of the deployed game, and a
-   live bundle can change with no source commit (compare `out.prev.js` and `out.js`). The game's changelog:
-   https://changelog.synergism.cc. The game's `package.json` version is not kept up to date (4.4.0 still said 4.1.1).
-2. **Patcher.** Run it on the browser bundle and the Steam one: the summary must say "N/N applied" with no "to check",
-   and each patch must log the function it was meant for (`docs/features/loaders.md`, the patcher anchor rule in
-   `AGENTS.md`). A patch the game made pointless is retired, not left failing: a failed patch shows every player the
-   "patch missing" warning and can turn a fast path off.
+   live bundle can change with no source commit (compare `out.prev.js` and `out.js`). When an update reworks the
+   colours, `node scripts/tools/game-diff-noncolour.cjs <old-commit> HEAD [paths]` leaves out the lines that only swap a
+   colour. The game's changelog: https://changelog.synergism.cc. The game's `package.json` version is not kept up to
+   date (4.4.0 still said 4.1.1).
+2. **Patcher.** Run it on the browser bundle and the Steam one (`docs/features/loaders.md`, "Checking the Steam
+   bundle"): `node scripts/tools/patcher-targets.cjs local/game/out.js`, then `<steam out.js> steam`. The summary must
+   say "N/N applied" with no "to check", and the start of each function a patch names must be the one it was meant for
+   (the patcher anchor rule in `AGENTS.md`). A patch the game made pointless is retired, not left failing: a failed
+   patch shows every player the "patch missing" warning and can turn a fast path off.
 3. **Player shape.** `node scripts/harness/gds-player-keys.cjs` compares vanilla `Player` keys with the mod's
    `GameDataFields`, then check the runtime shapes on the live game (`docs/features/gds.md`).
-4. **DOM ids and names.** Subtab button ids are written once, in the `*_VIEW_BUTTON_IDS` records
-   (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
+4. **DOM ids and names.** Tab and subtab ids are written once, in `MAIN_VIEW_TAB_IDS` and the `*_VIEW_BUTTON_IDS`
+   records (`types/module-types/hs-gamestate-types.ts`); grep the mod for any other id the diff renamed or removed. Autosing
    has no hardcoded stage name (it calls the game's `synergismStage`), so renamed stages don't affect it. If the diff
    touches inline colours, grep the mod for the colours it reads (`.style.color`, `.style.backgroundColor`, `[style*=`):
    one comparison fails with no error. Prefer a non-colour signal (player state, a class the game's code reads).
@@ -29,9 +32,9 @@ check, in order, and how the 4.4.0 update went as a worked example.
 6. **Formulas.** For each game file GDS re-implements, compare the diff with the GDS code (`docs/game/formulas.md`),
    then check the numbers on real saves (below). Achievement ids and point values are copied from the game's
    `Achievements.ts` (`hs-gamedata-api-achievement.ts`): `node scripts/tools/achievements-vs-vanilla.cjs` compares
-   them (`--print` writes the game's tables to paste). When `Buy.ts` changes,
-   `node scripts/tools/coin-curve-vs-vanilla.cjs` checks the coin buildings' cost curve, which the saves below can't
-   (their paid amounts are Infinity).
+   them (`--print` writes the game's tables to paste). While GDS keeps its fallback for a game from before the rune
+   rework (below), `node scripts/tools/coin-curve-vs-vanilla.cjs` checks its coin cost curve when `Buy.ts` changes,
+   which the saves below can't (their paid amounts are Infinity).
 7. **Smoke test.** `scripts/harness/game-smoke.cjs` on a real save: patches, page exceptions, a screenshot.
 8. **A layout break reported right after the update** may be the browser's cached CSS (`docs/game/behaviours.md`).
 
@@ -104,3 +107,19 @@ The player became plain data: `worlds` and the wow cubes are numbers (their hand
 `fragmentsInvested` in the talismans object any more). No formula change. For the mod: three patcher anchors (talismans
 by `baseMult`, saveSynergy by `offlinetick`), the talisman fragments read from the player. Readers of the counters
 already went through `Number()`.
+
+## Rune rework (2026-11-12, game commits `f7816c9d` to `0a0b943d`)
+Save format again, no formula change (the replay matched with no GDS formula edit). Runes, blessings and spirits became
+arrays indexed by the game's `RuneType` (Speed 0 … Top Hat 9): `runeEXP` / `runeLevels`, `blessingEXP` /
+`blessingLevels`, `spiritEXP` / `spiritLevels`, instead of objects keyed by name (`runes`, `runeBlessings`,
+`runeSpirits`). Building counts are saved again (`coinBuildings`, `diamondBuildings`, `mythosBuildings`,
+`particleBuildings`, `accelerators`, `multipliers`, `acceleratorBoosts`, `ascendBuildingN.owned`) instead of what was
+paid; `autoSacrifice` became `autoSacrificeRune`. Offerings now buy whole rune levels only (no partial EXP).
+Bar fills (blue and red Ambrosia, the E10 reactor's, the Red Ambrosia Accelerator's) are counted in one step per tick
+with one stochastic rounding (`calculateAmbrosiaBarFills`, `Helper.ts`) instead of a loop of rolls: same averages, so
+the mod's expected-value bar income (`hs-ambrosia-bar-income.ts`) still matches.
+
+Steam stayed on the previous game for a while (its bundle had no `runeLevels`): GDS reads both shapes, the EXP through
+`getRuneEXP` / `getBlessingEXP` / `getSpiritEXP` (`hs-gamedata-utils.ts`) and the coin buildings from `coinBuildings`
+or the 4.4.1 cost curve. Once the Steam bundle has `runeLevels`, the old shape goes: the optional fields in
+`GameDataFields`, the cost curve in `hs-gamedata-api-building.ts` and `scripts/tools/coin-curve-vs-vanilla.cjs`.

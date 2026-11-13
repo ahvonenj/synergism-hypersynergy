@@ -1,6 +1,5 @@
 import { HSLogger } from "../hs-logger";
-import type { HSModule } from "./hs-module";
-import type { HSModuleDefinition } from "../../../types/hs-types";
+import type { HSModule, HSModuleDefinition } from "./hs-module";
 import type { HSRegisteredModuleDefinition } from "./hs-module-definitions";
 import { HSModuleRegistry } from "./hs-module-registry";
 
@@ -17,8 +16,8 @@ export class HSModuleManager {
 
     constructor(context: string, modulesToEnable: readonly HSRegisteredModuleDefinition[]) {
         this.#context = context;
-        const order = (definition: HSModuleDefinition) => definition.loadOrder ?? Number.MAX_SAFE_INTEGER;
-        this.#modules = [...modulesToEnable].sort((a, b) => order(a) - order(b));
+        // The list's order is the startup order
+        this.#modules = [...modulesToEnable];
         HSLogger.log("Enabling Hypersynergism modules", this.#context);
     }
 
@@ -27,7 +26,7 @@ export class HSModuleManager {
         for (const def of this.#modules) {
             if (seenModules.has(def.className)) {
                 HSLogger.warn('Module "' + def.className + '" is already enabled; check hs-module-definitions.ts', this.#context);
-                return;
+                continue;
             }
             const module = this.addModule(def);
             const metadata: HSModuleDefinition = def;
@@ -53,8 +52,8 @@ export class HSModuleManager {
             });
             HSModuleRegistry.register(definition.className, module);
             this.#instances.push(module);
-            const label = metadata.moduleColor && typeof String.prototype.colorTag === 'function'
-                ? modName.colorTag(metadata.moduleColor) : modName;
+            const color = metadata.moduleColor;
+            const label = color ? `<${color}>${modName}</${color}>` : modName;
             HSLogger.log("Enabled module '" + label + "'", metadata.context);
             return module;
         } catch (error) {

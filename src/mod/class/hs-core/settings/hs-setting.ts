@@ -1,42 +1,38 @@
 import { HSSettingActionParams, HSSettingBase, HSSettingType } from "../../../types/module-types/hs-settings-types";
-import { HSUtils } from "../../hs-utils/hs-utils";
-import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "./hs-settings";
 import { escapeLogText } from '../../hs-utils/hs-escape';
 
+type HSSettingAction = ((params: HSSettingActionParams) => any) | null;
+
+/** Shows a setting's on/off state on its switch in the panel. */
+export function paintSettingSwitch(element: HTMLElement, enabled: boolean): void {
+    element.innerText = enabled ? '✓' : '✗';
+    element.classList.toggle('hs-disabled', !enabled);
+}
+
 /**
  * Class: HSSetting
  * IsExplicitHSModule: No
- * Description: 
+ * Description:
  *     Abstract class for all Hypersynergism settings
  *     Contains the setting's definition and the action to be performed when the setting is changed
- * Author: Swiffy
+ * Author: Swiffy, Shewchou
  */
 export abstract class HSSetting<T extends HSSettingType> {
     protected context = 'HSSetting';
 
-    #settingEnabledString;
-    #settingDisabledString;
-
     protected definition: HSSettingBase<T>;
-    protected settingAction?: ((params: HSSettingActionParams) => any) | null;
+    protected settingAction?: HSSettingAction;
 
     // On the GDS setting only: the settings it turned off when it was turned off,
     // turned back on with it. Not saved: forgotten at a page reload.
     #gameDataDependentsToRestore: HSSetting<HSSettingType>[] = [];
 
-    constructor(
-        settingDefinition: HSSettingBase<T>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-
+    constructor(settingDefinition: HSSettingBase<T>, settingAction: HSSettingAction) {
         this.definition = settingDefinition;
         this.settingAction = settingAction;
-        this.#settingEnabledString = enabledString;
-        this.#settingDisabledString = disabledString;
 
         this.definition.defaultValue = this.definition.settingValue;
         this.definition.calculatedSettingValue = this.definition.settingType === 'boolean'
@@ -48,11 +44,58 @@ export abstract class HSSetting<T extends HSSettingType> {
     }
 
     enable() {
-        this.#handleManualToggle(true);
+        this.#setEnabled(true);
     }
 
     disable() {
-        this.#handleManualToggle(false);
+        this.#setEnabled(false);
+    }
+
+    // The panel's switch: as enable()/disable(), except that a setting needing GDS can't be turned on while GDS is off
+    handleToggle(): void {
+        const newState = !this.definition.enabled;
+        if (newState && HSSettings.refuseWithoutGameData(this.definition)) return;
+        this.#setEnabled(newState);
+    }
+
+    // The action is started, not awaited: the save is pending as soon as this returns,
+    // for a caller that flushes it before a reload
+    #setEnabled(newState: boolean): void {
+        if (this.definition.enabled === newState) return;
+        const isGameData = this.definition.settingName === 'useGameData';
+
+        if (isGameData && !newState) this.#disableGameDataDependentsWithWarning();
+
+        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${newState}`, this.context);
+        this.definition.enabled = newState;
+
+        if (this.definition.settingType === 'boolean') {
+            (this.definition as HSSettingBase<boolean>).settingValue = newState;
+            (this.definition as HSSettingBase<boolean>).calculatedSettingValue = newState;
+        }
+
+        HSSettings.notifyStateChange(this.definition.settingName);
+        this.#paintSwitch();
+
+        void this.handleSettingAction('state', newState).catch(
+            (error) => HSLogger.error(`Setting action failed for ${this.definition.settingName}: ${error}`, this.context)
+        );
+
+        if (isGameData && newState) this.#restoreGameDataDependents();
+
+        HSSettings.saveSettingsToStorage();
+    }
+
+    #paintSwitch(): void {
+        const switchId = this.definition.settingControl?.controlEnabledId;
+        if (!switchId) return;
+
+        const switchElement = document.getElementById(switchId);
+        if (switchElement) {
+            paintSettingSwitch(switchElement, this.definition.enabled);
+        } else if (!this.definition.hidden) {
+            HSLogger.debug(() => `Could not find toggle element for setting ${this.definition.settingName} (ID: ${switchId})`, this.context);
+        }
     }
 
     #getEnabledGameDataDependents() {
@@ -95,119 +138,6 @@ export abstract class HSSetting<T extends HSSettingType> {
         }
     }
 
-    // Toggles the setting's state and updates the UI accordingly
-    // This is generic for all (toggleable) settings
-    async handleToggle(e: MouseEvent) {
-        const newState = !this.definition.enabled;
-        const hasStateChanged = this.definition.enabled !== newState;
-
-        const gameDataSetting = HSSettings.getSetting("useGameData") as HSSetting<boolean>;
-
-        // 1. Check if the setting is blacklisted from this check in general
-        // 2. Check if game data is enabled
-        // 3. Check if we are trying to ENABLE some setting
-        // 4. Check if the setting we are trying to enable uses game data
-        // 5. Allow or disallow enabling the setting
-        // We're trying to prevent enabling settings which use game data when game data is not enabled
-        if (!HSGlobal.HSSettings.gameDataCheckBlacklist.includes(this.definition.settingName)) {
-            if (gameDataSetting) {
-                if (HSSettings.usesGameData(this.definition) &&
-                    hasStateChanged &&
-                    newState &&
-                    !gameDataSetting.isEnabled()) {
-                    HSLogger.warn(`Enable GDS before enabling ${this.definition.settingDescription}!`, this.context);
-                    return;
-                }
-            }
-        }
-
-        // If we are disabling GDS, we will auto-disable all features that use it
-        if (this.definition.settingName === 'useGameData') {
-            if (hasStateChanged && !newState) {
-                this.#disableGameDataDependentsWithWarning();
-            }
-        }
-
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${!this.definition.enabled}`, this.context);
-
-        if (!hasStateChanged) return;
-
-        this.definition.enabled = newState;
-        HSSettings.notifyStateChange(this.definition.settingName);
-
-        if (this.definition.settingType === 'boolean') {
-            (this.definition as HSSettingBase<boolean>).settingValue = newState;
-            (this.definition as HSSettingBase<boolean>).calculatedSettingValue = newState;
-        }
-
-        const targetElement = (e.target as HTMLDivElement);
-
-        if (newState) {
-            targetElement.innerText = this.#settingEnabledString;
-            targetElement.classList.remove('hs-disabled');
-        } else {
-            targetElement.innerText = this.#settingDisabledString;
-            targetElement.classList.add('hs-disabled');
-        }
-
-        await this.handleSettingAction('state', newState);
-
-        if (this.definition.settingName === 'useGameData' && newState) {
-            this.#restoreGameDataDependents();
-        }
-
-        // Persist the changed enabled state to storage so UI toggles stick
-        HSSettings.saveSettingsToStorage();
-    }
-
-    #handleManualToggle(newState: boolean) {
-        const hasStateChanged = this.definition.enabled !== newState;
-        if (!hasStateChanged) return;
-
-        if (this.definition.settingName === 'useGameData') {
-            if (hasStateChanged && !newState) {
-                this.#disableGameDataDependentsWithWarning();
-            }
-        }
-
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.enabled} -> ${newState}`, this.context);
-        this.definition.enabled = newState;
-        HSSettings.notifyStateChange(this.definition.settingName);
-
-        if (this.definition.settingType === 'boolean') {
-            (this.definition as HSSettingBase<boolean>).settingValue = newState;
-            (this.definition as HSSettingBase<boolean>).calculatedSettingValue = newState;
-        }
-
-        // Use getElementById for safer and faster lookup
-        // Check if controlEnabledId is defined before trying to find it
-        if (this.definition.settingControl?.controlEnabledId) {
-            const toggleElement = document.getElementById(this.definition.settingControl.controlEnabledId) as HTMLDivElement;
-
-            if (toggleElement) {
-                if (newState) {
-                    toggleElement.innerText = this.#settingEnabledString;
-                    toggleElement.classList.remove('hs-disabled');
-                } else {
-                    toggleElement.innerText = this.#settingDisabledString;
-                    toggleElement.classList.add('hs-disabled');
-                }
-            } else if (!this.definition.hidden) {
-                HSLogger.debug(() => `Could not find toggle element for setting ${this.definition.settingName} (ID: ${this.definition.settingControl?.controlEnabledId})`, this.context);
-            }
-        }
-
-        void this.handleSettingAction('state', newState).catch(
-            (error) => HSLogger.error(`Setting action failed for ${this.definition.settingName}: ${error}`, this.context)
-        );
-
-        if (this.definition.settingName === 'useGameData' && newState) {
-            this.#restoreGameDataDependents();
-        }
-
-        HSSettings.saveSettingsToStorage();
-    }
-
     // For settings which have a settingAction defined but no skipInit,
     // this will be called when the setting is initialized
     async initialAction(changeType: 'value' | 'state', initialState?: boolean) {
@@ -215,37 +145,14 @@ export abstract class HSSetting<T extends HSSettingType> {
         await this.handleSettingAction(changeType, initialState);
     }
 
-    // Handles a setting's settingAction for all settings
+    // Runs the setting's action: on a state change with the new state, on a value change as turned on
     protected async handleSettingAction(changeType: 'value' | 'state', newState?: boolean): Promise<void> {
-        if (this.settingAction) {
-            const action = this.settingAction;
-
-            const actionConfig: HSSettingActionParams = {
-                contextName: this.context,
-                value: this.definition.calculatedSettingValue ?? null,
-            }
-
-            if (action && action instanceof Function) {
-                if (changeType === "state") {
-                    if (newState) {
-                        await action({
-                            ...actionConfig,
-                            disable: false
-                        });
-                    } else {
-                        await action({
-                            ...actionConfig,
-                            disable: true
-                        });
-                    }
-                } else {
-                    await action({
-                        ...actionConfig,
-                        disable: false
-                    });
-                }
-            }
-        }
+        if (!this.settingAction) return;
+        await this.settingAction({
+            contextName: this.context,
+            value: this.definition.calculatedSettingValue ?? null,
+            disable: changeType === 'state' && !newState,
+        });
     }
 
     hasControls(): boolean {
@@ -261,139 +168,101 @@ export abstract class HSSetting<T extends HSSettingType> {
     }
 
     abstract getValue(): T;
+    /** Stores a value without running the setting's action. */
     abstract setValue(value: T): void;
+    /** The panel's control for the value changed. */
     abstract handleChange(e: Event): Promise<void>;
 }
 
-export class HSButtonSetting extends HSSetting<null> {
-    constructor(
-        settingDefinition: HSSettingBase<null>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string
-    ) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-
-        this.definition.enabled = true;
-        this.definition.settingValue = null as any;
-        this.definition.calculatedSettingValue = null;
-    }
-    getValue(): null {
-        return null;
+/**
+ * Class: HSValueSetting
+ * IsExplicitHSModule: No
+ * Description: A setting with a value the player edits in the panel. Subclasses say how to read their control,
+ *     and optionally how to keep a value in range and how to compute the value given to the action.
+ * Author: Shewchou
+ */
+abstract class HSValueSetting<T extends number | string | string[]> extends HSSetting<T> {
+    constructor(settingDefinition: HSSettingBase<T>, settingAction: HSSettingAction) {
+        super(settingDefinition, settingAction);
+        // A saved value is brought within the current range (the challenge timers were allowed 0, which the game refuses)
+        this.#store(this.normalize(this.definition.settingValue));
     }
 
-    setValue(_: null): void {
+    // Called from this constructor: an override can't use its class's # members, not created yet
+    protected normalize(value: T): T {
+        return value;
+    }
+
+    protected calculate(value: T): T {
+        return value;
+    }
+
+    /** The control's value; may also correct what the control shows. */
+    protected abstract readInput(target: EventTarget | null): T;
+
+    getValue(): T {
+        return this.definition.settingValue;
+    }
+
+    setValue(value: T): void {
+        this.#store(this.normalize(value));
         HSSettings.saveSettingsToStorage();
     }
 
     async handleChange(e: Event): Promise<void> {
-        HSLogger.log(`Button pressed: ${this.definition.settingName}`, this.context);
-        await this.handleSettingAction("value");
+        const newValue = this.readInput(e.target);
+        const format = (value: T) => Array.isArray(value) ? JSON.stringify(value) : String(value);
+        HSLogger.log(escapeLogText(`${this.definition.settingName}: ${format(this.definition.settingValue)} -> ${format(newValue)}`), this.context);
+
+        this.#store(newValue);
+        await this.handleSettingAction('value');
+        HSSettings.saveSettingsToStorage();
     }
 
-    async initialAction(_: 'value' | 'state', __?: boolean) {
-        // 🚫 Buttons should not auto-fire on init
-        return;
+    #store(value: T): void {
+        this.definition.settingValue = value;
+        this.definition.calculatedSettingValue = this.calculate(value);
     }
-
-    enable(): void { }
-    disable(): void { }
 }
 
-export class HSNumericSetting extends HSSetting<number> {
-    constructor(
-        settingDefinition: HSSettingBase<number>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-
-        // A value saved before its min or max changed (the challenge timers were allowed 0, which the game refuses)
-        this.definition.settingValue = this.#clamp(this.definition.settingValue);
-
-        if (this.definition.settingValueMultiplier !== undefined)
-            this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
-    }
-
+export class HSNumericSetting extends HSValueSetting<number> {
     // Within the control's min and max: the input's own min/max don't stop a typed value
-    #clamp(value: number): number {
+    protected normalize(value: number): number {
         const options = this.definition.settingControl?.controlOptions;
         if (options?.min !== undefined) value = Math.max(value, options.min);
         if (options?.max !== undefined) value = Math.min(value, options.max);
         return value;
     }
 
-    getValue() {
-        return this.definition.settingValue;
+    protected calculate(value: number): number {
+        return value * (this.definition.settingValueMultiplier ?? 1);
     }
 
-    setValue(value: number) {
-        this.definition.settingValue = value;
-        HSSettings.saveSettingsToStorage();
-    }
-
-    // Number type settings need to handle the change event differently
-    // because they need to take settingValueMultiplier into account
-    async handleChange(e: Event) {
-        const input = e.target as HTMLInputElement;
+    // An empty or unreadable field keeps the current value; the field shows the value kept
+    protected readInput(target: EventTarget | null): number {
+        const input = target as HTMLInputElement;
         const typed = parseFloat(input.value);
-        // An empty or unreadable field keeps the current value
-        const newValue = Number.isFinite(typed) ? this.#clamp(typed) : this.definition.settingValue;
-        input.value = String(newValue);
-
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
-
-        this.definition.settingValue = newValue;
-        this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
-
-        await super.handleSettingAction("value");
-
-        // Persist the updated value to storage after handling any actions
-        HSSettings.saveSettingsToStorage();
+        const value = Number.isFinite(typed) ? this.normalize(typed) : this.definition.settingValue;
+        input.value = String(value);
+        return value;
     }
 }
 
-export class HSStringSetting extends HSSetting<string> {
-    constructor(
-        settingDefinition: HSSettingBase<string>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-    }
-
-    getValue() {
-        return this.definition.settingValue;
-    }
-
-    setValue(value: string) {
-        this.definition.settingValue = value;
-        HSSettings.saveSettingsToStorage();
-    }
-
-    async handleChange(e: Event) {
-        const newValue = (e.target as HTMLInputElement).value;
-
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
-
-        this.definition.settingValue = newValue;
-        this.definition.calculatedSettingValue = newValue;
-        await super.handleSettingAction("value");
-
-        // Persist the updated value to storage after handling any actions
-        HSSettings.saveSettingsToStorage();
+/** A text field or a single-choice dropdown. */
+export class HSTextSetting extends HSValueSetting<string> {
+    protected readInput(target: EventTarget | null): string {
+        return (target as HTMLInputElement | HTMLSelectElement).value;
     }
 }
 
+export class HSMultiSelectSetting extends HSValueSetting<string[]> {
+    protected readInput(target: EventTarget | null): string[] {
+        return Array.from((target as HTMLSelectElement).selectedOptions).map((option) => option.value);
+    }
+}
+
+// Its value is its on/off state
 export class HSBooleanSetting extends HSSetting<boolean> {
-    constructor(
-        settingDefinition: HSSettingBase<boolean>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-    }
-
     getValue() {
         return this.definition.enabled;
     }
@@ -407,142 +276,34 @@ export class HSBooleanSetting extends HSSetting<boolean> {
         HSSettings.saveSettingsToStorage();
     }
 
-    // Boolean type settings have no value, they are just toggled on/off
-    async handleChange(e: Event) { }
+    async handleChange(_: Event) { }
 }
 
-export class HSSelectNumericSetting extends HSSetting<number> {
-    constructor(
-        settingDefinition: HSSettingBase<number>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
+export class HSButtonSetting extends HSSetting<null> {
+    constructor(settingDefinition: HSSettingBase<null>, settingAction: HSSettingAction) {
+        super(settingDefinition, settingAction);
 
-        if (this.definition.settingValueMultiplier !== undefined)
-            this.definition.calculatedSettingValue = this.definition.settingValue * this.definition.settingValueMultiplier;
+        this.definition.enabled = true;
+        this.definition.settingValue = null as any;
+        this.definition.calculatedSettingValue = null;
     }
 
-    getValue() {
-        return this.definition.settingValue;
+    getValue(): null {
+        return null;
     }
 
-    setValue(value: number) {
-        this.definition.settingValue = value;
+    setValue(_: null): void {
         HSSettings.saveSettingsToStorage();
     }
 
-    // Number type settings need to handle the change event differently
-    // because they need to take settingValueMultiplier into account
-    async handleChange(e: Event) {
-        const newValue = parseFloat((e.target as HTMLSelectElement).value);
-
-        HSLogger.log(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`, this.context);
-
-        this.definition.settingValue = newValue;
-        this.definition.calculatedSettingValue = newValue * this.definition.settingValueMultiplier;
-
-        await super.handleSettingAction("value");
-
-        // Persist the updated value to storage after handling any actions
-        HSSettings.saveSettingsToStorage();
-    }
-}
-
-export class HSSelectStringSetting extends HSSetting<string> {
-    constructor(
-        settingDefinition: HSSettingBase<string>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
+    async handleChange(_: Event): Promise<void> {
+        HSLogger.log(`Button pressed: ${this.definition.settingName}`, this.context);
+        await this.handleSettingAction("value");
     }
 
-    getValue() {
-        return this.definition.settingValue;
-    }
+    // Buttons don't fire at load
+    async initialAction(_: 'value' | 'state', __?: boolean) { }
 
-    setValue(value: string) {
-        this.definition.settingValue = value;
-        HSSettings.saveSettingsToStorage();
-    }
-
-    async handleChange(e: Event) {
-        const newValue = (e.target as HTMLSelectElement).value;
-
-        HSLogger.log(escapeLogText(`${this.definition.settingName}: ${this.definition.settingValue} -> ${newValue}`), this.context);
-
-        this.definition.settingValue = newValue;
-        this.definition.calculatedSettingValue = newValue;
-        await super.handleSettingAction("value");
-
-        // Persist the updated value to storage after handling any actions
-        HSSettings.saveSettingsToStorage();
-    }
-}
-
-export class HSSelectStringsSetting extends HSSetting<string[]> {
-    constructor(
-        settingDefinition: HSSettingBase<string[]>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-    }
-
-    getValue() {
-        return this.definition.settingValue;
-    }
-
-    setValue(value: string[]) {
-        this.definition.settingValue = value;
-        HSSettings.saveSettingsToStorage();
-    }
-
-    async handleChange(e: Event) {
-        const selectElement = e.target as HTMLSelectElement;
-        const newValue = Array.from(selectElement.selectedOptions).map((option) => option.value);
-
-        HSLogger.log(`${this.definition.settingName}: ${JSON.stringify(this.definition.settingValue)} -> ${JSON.stringify(newValue)}`, this.context);
-
-        this.definition.settingValue = newValue;
-        this.definition.calculatedSettingValue = newValue;
-        await super.handleSettingAction("value");
-
-        // Persist the updated value to storage after handling any actions
-        HSSettings.saveSettingsToStorage();
-    }
-}
-
-export class HSStateSetting extends HSSetting<string> {
-    constructor(
-        settingDefinition: HSSettingBase<string>,
-        settingAction: ((params: HSSettingActionParams) => any) | null,
-        enabledString: string,
-        disabledString: string) {
-        super(settingDefinition, settingAction, enabledString, disabledString);
-    }
-
-    getValue() {
-        return HSUtils.removeColorTags(this.definition.settingValue);
-    }
-
-    getDisplayValue() {
-        return HSUtils.parseColorTags(this.definition.settingValue);
-    }
-
-    setValue(value: string) {
-        this.definition.settingValue = value;
-        this.definition.calculatedSettingValue = value;
-
-        const stateElement = document.querySelector(`#${this.definition.settingControl?.controlId}`) as HTMLParagraphElement;
-
-        if (stateElement) {
-            stateElement.innerHTML = this.getDisplayValue();
-        }
-
-        HSSettings.saveSettingsToStorage();
-    }
-
-    async handleChange(e: Event) { }
+    enable(): void { }
+    disable(): void { }
 }

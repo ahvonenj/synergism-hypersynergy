@@ -33,7 +33,7 @@ async function main() {
     const bundled = await esbuild.build({
         stdin: { contents: `export { HSAutosing } from './src/mod/class/hs-modules/hs-autosing/hs-autosing';
             export { HSStrategyManager } from './src/mod/class/hs-modules/hs-autosing/hs-strategy-manager';
-            export { SPECIAL_ACTION_BY_ID } from './src/mod/types/module-types/hs-autosing-types';`, resolveDir: root, loader: 'ts' },
+            export { SPECIAL_ACTION_BY_ID, AOAG_LEVEL_STEP_COMMENT } from './src/mod/class/hs-modules/hs-autosing/hs-autosing-types';`, resolveDir: root, loader: 'ts' },
         bundle: true, write: false, platform: 'node', format: 'cjs', define: { HS_DEV_BUILD: 'false' },
         plugins: [{ name: 'autosing-game-boundary', setup(build) {
             build.onResolve({ filter: /hs-[\w-]+$/ }, args => {
@@ -71,7 +71,7 @@ async function main() {
     runtime.filename = path.join(root, 'autosing-test-runtime.cjs');
     runtime.paths = module.paths;
     runtime._compile(bundled.outputFiles[0].text, runtime.filename);
-    const { HSAutosing, HSStrategyManager, SPECIAL_ACTION_BY_ID } = runtime.exports;
+    const { HSAutosing, HSStrategyManager, SPECIAL_ACTION_BY_ID, AOAG_LEVEL_STEP_COMMENT } = runtime.exports;
     const step = (challengeNumber, extra = {}) => ({
         challengeNumber, challengeCompletions: 0, challengeWaitTime: 0, challengeMaxTime: 0, ...extra,
     });
@@ -193,25 +193,76 @@ async function main() {
         assert.deepEqual(state.events, [['ascend', 5], ['action', 5]]);
         scenarios++;
 
-        // AOAG's hard-coded level 0 is applied before its actions, even outside a challenge.
-        for (const challenge of [0, 15]) {
-            ({ runner, state } = setup({ challenge }));
-            await runner.runFinalStageForTest(phase([step(152)]));
+        // An AOAG phase from before its level became a step (it started with a no-op 103) runs as the hardcoded
+        // level 0 + reset did, inside C15 or not, on both paths.
+        const oldAoag = { strategyName: 'old AOAG', strategy: [{ startPhase: 'start', endPhase: 'end', strat: [step(152)] }],
+            aoagPhase: phase([step(103), step(152)]) };
+        const migratedAoag = HSStrategyManager.validateStrategy(oldAoag).aoagPhase;
+        for (const live of [true, false]) for (const challenge of [0, 15]) {
+            ({ runner, state } = setup({ challenge, live }));
+            await runner.runFinalStageForTest(structuredClone(migratedAoag));
             assert.deepEqual(state.events, [
                 ['select', 0], ['ascend', 0], ['action', 0], ['ascend', 0],
-            ], 'only the corruption reset and the explicit end-of-singularity reset should run');
+            ], 'only the level step\'s reset and the explicit end-of-singularity reset should run');
             if (challenge) assert.equal(state.savedC15Score, 42);
             scenarios++;
         }
 
-        // A stop while the AOAG reset is confirming must not run the AOAG or final phase afterwards.
+        // Nothing is hardcoded any more: an AOAG phase without a level step keeps the current level and run.
+        ({ runner, state } = setup({ challenge: 15 }));
+        await runner.runFinalStageForTest(phase([step(152)]));
+        assert.deepEqual(state.events, [['action', 5], ['ascend', 5]]);
+        scenarios++;
+
+        // A stop while the AOAG level step's reset is confirming must not run the rest of AOAG or the final phase.
         ({ runner, state } = setup({ confirm: true }));
-        const stoppedFinal = runner.runFinalStageForTest(phase([step(152)]));
+        const stoppedFinal = runner.runFinalStageForTest(structuredClone(migratedAoag));
         runner.cancelForTest();
         state.confirm();
         await stoppedFinal;
         assert.deepEqual(state.events, [['select', 0], ['ascend', 0]]);
         scenarios++;
+
+        // The AOAG level step is added once, to strategies without a format version. Each step reads
+        // [action, level, ascend at once, IF target].
+        {
+            const aoagSteps = strategy => strategy.aoagPhase.strat.map(action =>
+                [action.challengeNumber, action.corruptionLevel, action.ascendAfterCorruption, action.ifJump?.ifJumpIndex]);
+            const withAoag = (strat, extra = {}) => HSStrategyManager.validateStrategy({ strategyName: 'aoag',
+                strategy: [{ startPhase: 'start', endPhase: 'end', strat: [step(152)] }], aoagPhase: phase(strat), ...extra });
+            const jumpTo = index => step(200, { ifJump: { id: `to${index}`, ifJumpChallenge: 15, ifJumpOperator: '<', ifJumpValue: 1, ifJumpIndex: index } });
+            const level0 = [403, 0, true, undefined];
+
+            // A leading 103 becomes it, keeping its wait and comment
+            const replaced = withAoag([step(103, { challengeWaitBefore: 30, comment: 'exit' }), step(152), jumpTo(1)]);
+            assert.deepEqual(aoagSteps(replaced), [level0, [152, undefined, undefined, undefined], [200, undefined, undefined, 1]]);
+            assert.equal(replaced.aoagPhase.strat[0].challengeWaitBefore, 30);
+            assert.equal(replaced.aoagPhase.strat[0].comment, 'exit');
+            assert.equal(replaced.formatVersion, 2);
+            // Run again (load after a save): unchanged
+            assert.deepEqual(HSStrategyManager.validateStrategy(replaced), replaced);
+            // An IF jumping to that 103 keeps it: inserted before, if-jumps +1
+            assert.deepEqual(aoagSteps(withAoag([step(103), step(152), jumpTo(0)])),
+                [level0, [103, undefined, undefined, undefined], [152, undefined, undefined, undefined], [200, undefined, undefined, 1]]);
+            // Another first step: inserted, with its comment (a replaced 103 without one gets it too)
+            const inserted = withAoag([step(152), jumpTo(0)]);
+            assert.deepEqual(aoagSteps(inserted), [level0, [152, undefined, undefined, undefined], [200, undefined, undefined, 1]]);
+            assert.equal(inserted.aoagPhase.strat[0].comment, AOAG_LEVEL_STEP_COMMENT);
+            assert.equal(withAoag([step(103), step(152)]).aoagPhase.strat[0].comment, AOAG_LEVEL_STEP_COMMENT);
+            // Format 2: the player removed or changed it, left as it is
+            assert.deepEqual(aoagSteps(withAoag([step(152)], { formatVersion: 2 })), [[152, undefined, undefined, undefined]]);
+            assert.deepEqual(aoagSteps(withAoag([step(403, { corruptionLevel: 7 })], { formatVersion: 2 })), [[403, 7, true, undefined]]);
+            // No AOAG phase: the default one, starting with it once
+            const noAoag = HSStrategyManager.validateStrategy({ strategyName: 'none', strategy: [{ startPhase: 'start', endPhase: 'end', strat: [step(152)] }] });
+            assert.deepEqual(aoagSteps(noAoag)[0], level0);
+            assert.notEqual(noAoag.aoagPhase.strat[1].challengeNumber, 403);
+            // An AOAG phase kept in the list (older format) gets it too
+            const inList = HSStrategyManager.validateStrategy({ strategyName: 'list', strategy: [
+                { startPhase: 'start', endPhase: 'end', strat: [step(152)] }, { ...phase([step(103), step(152)]), phaseId: 'aoag' },
+            ] });
+            assert.deepEqual(aoagSteps(inList)[0], level0);
+            scenarios++;
+        }
 
         // A corruption change inside C15 exits it before resetting, preserving the score; the old Exit step is a no-op.
         for (const live of [true, false]) {
@@ -374,7 +425,12 @@ async function main() {
         const directory = path.join(root, 'src/mod/resource/json/strategies');
         for (const filename of fs.readdirSync(directory).filter(name => name.endsWith('.json') && name !== 'manifest.json')) {
             const strategy = JSON.parse(fs.readFileSync(path.join(directory, filename), 'utf8'));
-            HSStrategyManager.validateStrategy(strategy);
+            const validated = HSStrategyManager.validateStrategy(strategy);
+            // In the current format: its AOAG phase starts with level 0, and no second one is added
+            assert.equal(strategy.formatVersion, 2, filename);
+            assert.deepEqual([strategy.aoagPhase.strat[0].challengeNumber, strategy.aoagPhase.strat[0].corruptionLevel,
+                strategy.aoagPhase.strat[0].comment], [403, 0, AOAG_LEVEL_STEP_COMMENT], filename);
+            assert.equal(validated.aoagPhase.strat.length, strategy.aoagPhase.strat.length, filename);
             for (const entry of [...strategy.strategy, strategy.aoagPhase].filter(Boolean)) {
                 assert.ok(entry.strat.every(action => action.challengeNumber !== 404), filename);
                 assert.ok(entry.strat.filter(action => action.challengeNumber === 403).every(action => action.ascendAfterCorruption === true), filename);

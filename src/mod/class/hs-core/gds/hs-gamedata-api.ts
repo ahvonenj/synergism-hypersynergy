@@ -4,7 +4,7 @@ import type { GameData, SingularityChallengeRewards, SingularityChallengeStatus 
 import type { CampaignData } from "../../../types/data-types/hs-campaign-data";
 import type { MeData } from "../../../types/data-types/hs-me-data";
 import type { PseudoGameData } from "../../../types/data-types/hs-pseudo-data";
-import { HSModuleOptions } from "../../../types/hs-types";
+import type { HSModuleOptions } from "../module/hs-module";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSLogger } from "../hs-logger";
 import { HSUI } from "../hs-ui";
@@ -27,7 +27,7 @@ import { checkCalculationCache, updateCalculationCache, clearCalculationCache, d
 import { CorruptionHelper, type CorruptionCubeType } from "./hs-gamedata-api-corruption";
 import { BuildingHelper } from "./hs-gamedata-api-building";
 import { octeractUpgradeMaxLevels, goldenQuarkUpgradeMaxLevels, c15Functions, challenge15Rewards, hepteractEffectiveValues, synergismLevelMilestones, SINGULARITY_CHALLENGE_DATA, FAVORITE_UPGRADE_GQ_DEPENDENCIES, FAVORITE_UPGRADE_OCTERACT_DEPENDENCIES, FAVORITE_UPGRADE_RED_AMBROSIA_DEPENDENCIES, offeringPotionThresholds, obtainiumPotionThresholds } from "./hs-gamedata-tables";
-import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus } from "./hs-gamedata-utils";
+import { parseGameDataDecimal, findInsertionIndex, floorLog10OfOnePlus, getRuneEXP } from "./hs-gamedata-utils";
 import { buildHeaterExport } from "./hs-heater-export";
 import Decimal from "break_infinity.js";
 
@@ -812,7 +812,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
         const shopPenalty = talismanUpgradeLevel === undefined
             ? this.quarkShop.getShopUpgradeEffects('shopHorseShoe', 'singularityPenaltyMult') as number
             : this.#horseShoePenaltyWithTalismanUpgrade(talismanUpgradeLevel);
-        const antiquitiesLevel = this.rune.getRuneLevelFromEXP('antiquities', parseGameDataDecimal(data.runes.antiquities));
+        const antiquitiesLevel = this.rune.getRuneLevelFromEXP('antiquities', getRuneEXP(data, 'antiquities'));
         const cacheName = 'SingularityDebuff' as keyof CalculationCache;
         const calculationVars = [
             debuffIndex,
@@ -1047,7 +1047,7 @@ export class HSGameDataAPI extends HSGameDataAPIPartial {
 
     calculateChallenge15Reward(rewardName: keyof typeof challenge15Rewards) {
         if (!this.gameData) {
-            HSLogger.errorOnce(`<red>calculateChallenge15Reward() GAMEDATA WAS NULL</red>`, this.context);
+            HSLogger.errorOnce(`<red>calculateChallenge15Reward() GAMEDATA WAS NULL</red>`, this.context, "gds-c15-reward-no-data");
             return 0;
         }
 

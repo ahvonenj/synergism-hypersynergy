@@ -1,10 +1,121 @@
-import {
-    HSViewProperties, MAIN_VIEW, subtabButtonIds,
-    BUILDING_VIEW_BUTTON_IDS, ACHIEVEMENT_VIEW_BUTTON_IDS, RUNE_VIEW_BUTTON_IDS, CHALLENGE_VIEW_BUTTON_IDS, ANT_VIEW_BUTTON_IDS,
-    CUBE_VIEW_BUTTON_IDS, TRAITS_VIEW_BUTTON_IDS, SINGULARITY_VIEW_BUTTON_IDS, SETTINGS_VIEW_BUTTON_IDS, PSEUDOCOIN_VIEW_BUTTON_IDS,
-} from "../../types/module-types/hs-gamestate-types";
-import { IHSGlobal } from "../../types/module-types/hs-global-types";
-import { ELogLevel } from "../../types/module-types/hs-logger-types";
+import { HSViewProperties, MAIN_VIEW, SUBTAB_KEY, SUBTAB_BUTTON_IDS, orderedIds } from "../../types/module-types/hs-gamestate-types";
+import type { HSWatcherOptions } from "./hs-elementhooker";
+import type { PlayerData } from "../../types/data-types/hs-player-savedata";
+
+interface IStoreable {
+    storageKey: string;
+}
+
+interface HSGlobalDebug {
+    debugMode: boolean;
+    performanceDebugMode: boolean;
+    gameDataDebugMode: boolean;
+    calculationCacheDebugMode: boolean;
+}
+
+interface HSGlobalRelease {
+    githubOwner: string;
+    checkIntervalMs: number;
+}
+
+interface HSGlobalGeneral {
+    currentModVersion: string;
+    isModFullyLoaded: boolean;
+    modGithubUrl: string;
+    modWebsiteUrl: string;
+    modDiscordThreadUrl: string;
+}
+
+interface HSGlobalCommon {
+    pseudoAPIurl: string;
+    meAPIurl: string;
+    readonly modRequestHeaders: Record<string, string>;
+}
+
+interface HSGlobalElementHooker {
+    elementHookUpdateMS: number;
+    elementHookTimeout: number;
+    defaultWatcherOptions: HSWatcherOptions;
+}
+
+interface HSGlobalLogger {
+    logSize: number;
+    debugLogSize: number;
+    contextColors: Record<string, string>;
+}
+
+interface HSGlobalStorage {
+    storagePrefix: string;
+}
+
+interface HSGlobalSettings extends IStoreable {
+    strategiesKey: string;
+    gameDataRequiredTooltip: string;
+    gameDataCheckBlacklist: string[];
+}
+
+interface HSGlobalMouse {
+    autoClickIgnoredElements: string[];
+}
+
+interface HSGlobalHiddenDialogs extends IStoreable { }
+
+interface HSGlobalAmbrosia {
+    TIME_PER_AMBROSIA: number;
+    TIME_PER_RED_AMBROSIA: number;
+    digitReduction: number;
+
+    blueBarId: string;
+    blueBarProgressId: string;
+    blueBarProgressTextId: string;
+    redBarId: string;
+    redBarProgressId: string;
+    redBarProgressTextId: string;
+    purpleBarId: string;
+    purpleBarProgressId: string;
+    barWrapperId: string;
+}
+
+interface HSGlobalGameState {
+    viewProperties: Map<MAIN_VIEW, HSViewProperties>;
+}
+
+interface HSGlobalGameData {
+    consumablesPollInterval: number;
+    gdsSpeedMs: number;
+    gdsCSSId: string;
+}
+
+interface HSGlobalHSUI {
+    injectedStylesDomId: string;
+    notifyColumnClassName: string;
+    notifyClassName: string;
+    notifyTextClassName: string;
+}
+
+interface HSGlobalHSUIC {
+    defaultImageWidth: number;
+    defaultImageHeight: number;
+}
+
+interface IHSGlobal {
+    exposedPlayer: PlayerData | null;
+    Debug: HSGlobalDebug;
+    Release: HSGlobalRelease;
+    General: HSGlobalGeneral;
+    Common: HSGlobalCommon;
+    HSElementHooker: HSGlobalElementHooker;
+    HSLogger: HSGlobalLogger;
+    HSStorage: HSGlobalStorage;
+    HSSettings: HSGlobalSettings;
+    HSMouse: HSGlobalMouse;
+    HSHiddenDialogs: HSGlobalHiddenDialogs;
+    HSAmbrosia: HSGlobalAmbrosia;
+    HSGameData: HSGlobalGameData;
+    HSUI: HSGlobalHSUI;
+    HSUIC: HSGlobalHSUIC;
+    HSGameState: HSGlobalGameState;
+}
 
 // Build-time injected by esbuild via `define`.
 declare const HS_BUILD_VERSION: string;
@@ -60,40 +171,26 @@ export const HSGlobal: IHSGlobal = class {
         get modRequestHeaders(): Record<string, string> { return { 'X-HyperSynergism-Version': HSGlobal.General.currentModVersion }; },
     }
 
-    // --- HSPrototypes ---
-    static HSPrototypes = {
-        // Default CSS transition timing 100ms
-        defaultTransitionTiming: 100
-    }
-
     // --- HSElementHooker ---
-    // watchElement's MutationObserver can fire max 20 times / second
     static HSElementHooker = {
         // HookElement / HookElements
         elementHookUpdateMS: 10,
-        elementsHookUpdateMS: 100,
-        enableHelementHookTimeout: true,
         elementHookTimeout: 500,
 
-        // Watchers
-        watcherThrottlingMS: 50,
-
+        // watchElement: the element's text, anywhere below it
         defaultWatcherOptions: {
-            greedy: false,
-            overrideThrottle: false,
             characterData: true,
             childList: true,
             subtree: true,
             attributes: false,
-            attributeOldValue: false,
-            attributeFilter: []
         }
     }
 
     // --- HSLogger ---
     static HSLogger = {
-        logLevel: ELogLevel.NONE,
         logSize: 5000,
+        // Debug lines have their own cap, so they never push the other lines out
+        debugLogSize: 5000,
 
         // Log tab colors of the contexts that aren't modules (modules have their moduleColor, in index.ts).
         // A module's name gives that module's color, anything else is a CSS color.
@@ -140,7 +237,6 @@ export const HSGlobal: IHSGlobal = class {
             HSModuleManager: 'plum',
             HSElementHooker: 'plum',
             HSUtils: 'plum',
-            Once: 'plum',
             HSBackup: 'plum',
             HSCalculationTools: 'plum',
             HSGithub: 'plum',
@@ -261,10 +357,6 @@ export const HSGlobal: IHSGlobal = class {
             // Research hover buy button
             '#toggle38',
 
-            // Ant buy amount button
-            '#toggleAntMax',
-
-
             // Auto challenge toggle button
             '#toggleAutoChallengeStart',
 
@@ -308,48 +400,21 @@ export const HSGlobal: IHSGlobal = class {
 
     // HSGameState
     static HSGameState = {
-        viewProperties: new Map<MAIN_VIEW, HSViewProperties>([
-            [MAIN_VIEW.BUILDINGS, {
-                subViewIds: subtabButtonIds(BUILDING_VIEW_BUTTON_IDS),
-                viewClassName: 'BuildingView'
-            }],
-            [MAIN_VIEW.ACHIEVEMENTS, {
-                subViewIds: subtabButtonIds(ACHIEVEMENT_VIEW_BUTTON_IDS),
-                viewClassName: 'AchievementView'
-            }],
-            [MAIN_VIEW.RUNES, {
-                subViewIds: subtabButtonIds(RUNE_VIEW_BUTTON_IDS),
-                viewClassName: 'RuneView'
-            }],
-            [MAIN_VIEW.CHALLENGES, {
-                subViewIds: subtabButtonIds(CHALLENGE_VIEW_BUTTON_IDS),
-                viewClassName: 'ChallengeView'
-            }],
-            [MAIN_VIEW.ANTS, {
-                subViewIds: subtabButtonIds(ANT_VIEW_BUTTON_IDS),
-                viewClassName: 'AntView'
-            }],
-            [MAIN_VIEW.CUBES, {
-                subViewIds: subtabButtonIds(CUBE_VIEW_BUTTON_IDS),
-                viewClassName: 'CubeView'
-            }],
-            [MAIN_VIEW.TRAITS, {
-                subViewIds: subtabButtonIds(TRAITS_VIEW_BUTTON_IDS),
-                viewClassName: 'TraitsView'
-            }],
-            [MAIN_VIEW.SINGULARITY, {
-                subViewIds: subtabButtonIds(SINGULARITY_VIEW_BUTTON_IDS),
-                viewClassName: 'SingularityView'
-            }],
-            [MAIN_VIEW.SETTINGS, {
-                subViewIds: subtabButtonIds(SETTINGS_VIEW_BUTTON_IDS),
-                viewClassName: 'SettingsView'
-            }],
-            [MAIN_VIEW.PSEUDOCOINS, {
-                subViewIds: subtabButtonIds(PSEUDOCOIN_VIEW_BUTTON_IDS),
-                viewClassName: 'PseudoCoinView'
-            }]
-        ])
+        // The main tabs with subtabs (Upgrades, Research, Shop and Event have none) and their subtab view key
+        viewProperties: new Map<MAIN_VIEW, HSViewProperties>(([
+            [MAIN_VIEW.BUILDINGS, 'BUILDING_VIEW'],
+            [MAIN_VIEW.ACHIEVEMENTS, 'ACHIEVEMENT_VIEW'],
+            [MAIN_VIEW.RUNES, 'RUNE_VIEW'],
+            [MAIN_VIEW.CHALLENGES, 'CHALLENGE_VIEW'],
+            [MAIN_VIEW.ANTS, 'ANT_VIEW'],
+            [MAIN_VIEW.CUBES, 'CUBE_VIEW'],
+            [MAIN_VIEW.TRAITS, 'TRAITS_VIEW'],
+            [MAIN_VIEW.SINGULARITY, 'SINGULARITY_VIEW'],
+            [MAIN_VIEW.SETTINGS, 'SETTINGS_VIEW'],
+            [MAIN_VIEW.PSEUDOCOINS, 'PSEUDOCOIN_VIEW'],
+        ] as [MAIN_VIEW, SUBTAB_KEY][]).map(([mainView, viewKey]): [MAIN_VIEW, HSViewProperties] =>
+            [mainView, { subViewIds: orderedIds(SUBTAB_BUTTON_IDS[viewKey]), viewKey }]
+        ))
     }
 
     // HSGameData

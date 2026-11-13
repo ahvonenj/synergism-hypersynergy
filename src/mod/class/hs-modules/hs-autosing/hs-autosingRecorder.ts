@@ -1,4 +1,4 @@
-import { SPECIAL_ACTION_BY_ID, type Challenge, type HSAutosingPassRecord, type HSAutosingTimings } from "../../../types/module-types/hs-autosing-types";
+import { SPECIAL_ACTION_BY_ID, type Challenge, type HSAutosingPassRecord, type HSAutosingTimings } from "./hs-autosing-types";
 
 /**
  * Class: HSAutosingRecorder

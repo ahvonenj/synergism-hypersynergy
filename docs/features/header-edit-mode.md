@@ -48,10 +48,9 @@ settings sync; no patcher feature.
 - **Nothing left in the panel**, no "moved" line either (noise). The block's settings are `hidden` but keep
   their `settingControl`: `syncSettings` runs a setting's load-time action only when it has one. The "Quickbar QOL"
   group stays in the groups JSON (the validation needs it) and shows nothing.
-- **Toggles go through `enable()`/`disable()`**, not the panel's `handleToggle` (which needs its button): no
-  `byPlayer` (since removed), plus the same GDS check (refused with a notification when GDS is off,
-  `gameDataCheckBlacklist` honoured). The "it's in the Hidden tray, hold a header module" notifications were removed
-  with `notifyIfInTray`, then `byPlayer` itself (the tray is in front of the player now).
+- **Toggles go through `enable()`/`disable()`** with the panel's GDS check (`HSSettings.refuseWithoutGameData`:
+  refused with a notification when GDS is off, `gameDataCheckBlacklist` honoured). No "it's in the Hidden tray"
+  notification: the tray is in front of the player.
 - **Short tooltips**: the settings' help texts say what the setting does, not how to open edit
   mode or use the tray (the player sees it happen). They only show in the block now. What differs without the
   header modules patch (bookmarklet: the mod's row, the minibars' GDS) is added by the block only for those players

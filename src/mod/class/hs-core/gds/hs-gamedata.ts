@@ -6,7 +6,7 @@ import { HSElementHooker } from "../hs-elementhooker";
 import { HSGameDataAPI } from "./hs-gamedata-api";
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
-import { HSModule } from "../module/hs-module";
+import { HSModule, type HSModuleOptions } from "../module/hs-module";
 import { HSModuleRegistry } from "../module/hs-module-registry";
 import { HSSettings } from "../settings/hs-settings";
 import { HSUI } from "../hs-ui";
@@ -14,7 +14,6 @@ import { HSUI } from "../hs-ui";
 import { HSHeaderKeepOnImport } from "../header/hs-header-keep-on-import";
 import { HSPlatform } from "../hs-platform";
 import { ConsumableGameEvents } from "../../../types/data-types/hs-event-data";
-import { HSModuleOptions } from "../../../types/hs-types";
 
 /**
  * Class: HSGameData
@@ -691,8 +690,9 @@ export class HSGameData extends HSModule {
      * @returns Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null>
      */
     async getLatestAutosingData(): Promise<{ quarks: number; goldenQuarks: number; quarksFromAnts: number; quarksThisSingularity: number } | null> {
-        const saveButton = await HSElementHooker.HookElement('#savegame') as HTMLButtonElement;
-        
+        const saveButton = await HSElementHooker.HookElement<HTMLButtonElement>('#savegame');
+        if (!saveButton) return null;
+
         saveButton.dispatchEvent(this.#saveTriggerEvent);
         
         if (this.#mitm_gamedata) {
@@ -800,8 +800,8 @@ export class HSGameData extends HSModule {
         // Set below, once the dialog listeners exist
         let stopWaitingForLoad = () => { };
 
-        const watcherId = HSElementHooker.watchElement(offlineContainer, async (viewState: { view: string, state: string }) => {
-            if (viewState.state !== 'none' && !watcherStopped) {
+        const stopWatcher = HSElementHooker.watchElement(offlineContainer, async (display: string) => {
+            if (display !== 'none' && !watcherStopped) {
                 // IMMEDIATELY mark as stopped and disconnect to prevent multiple fires during lag
                 watcherStopped = true;
                 stopWaitingForLoad();
@@ -833,21 +833,13 @@ export class HSGameData extends HSModule {
                 }
             }
         }, {
+            // The container's own style only: the game also restyles elements inside it (#exitOffline)
+            characterData: false,
+            childList: false,
+            subtree: false,
             attributes: true,
             attributeFilter: ['style'],
-            valueParser: (element, mutations) => {
-                for (const mutation of mutations) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                        const target = mutation.target as HTMLElement;
-                        const display = target.style.getPropertyValue('display');
-                        return {
-                            view: target.id,
-                            state: display
-                        }
-                    }
-                }
-                return { view: element.id, state: element.style.getPropertyValue('display') };
-            }
+            valueParser: (element) => element.style.getPropertyValue('display')
         });
 
         // --- No save loaded: dialog cancelled, or the game refused the file (it only shows an Alert) ---
@@ -861,7 +853,7 @@ export class HSGameData extends HSModule {
             fileInput?.removeEventListener('cancel', onCancel);
             fileInput?.removeEventListener('change', onChange);
             window.removeEventListener('focus', onFocus);
-            if (watcherId) HSElementHooker.stopWatching(watcherId);
+            stopWatcher?.();
             if (self.#abortPendingImport === abortThisImport) self.#abortPendingImport = undefined;
         };
         stopWaitingForLoad = stopWaiting;

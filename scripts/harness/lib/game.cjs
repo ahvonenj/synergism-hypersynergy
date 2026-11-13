@@ -113,6 +113,7 @@ async function importSave(cdp, base64, dir, { offline = false } = {}) {
 
 // Writes an HS backup's modData (settings, strategies, slots...) and gamePrefs into localStorage, before the mod loads.
 // settings: { key: value } overrides; strategies: a hs-strategies file's text
+// debugLogs: debug lines shown, and autosing's full log (else a run logs only warnings and errors)
 async function restoreModData(cdp, backup, { settings: overrides = {}, debugLogs, strategies } = {}) {
     const modData = { ...backup.modData }
     if (modData['hs-settings']) {
@@ -120,7 +121,10 @@ async function restoreModData(cdp, backup, { settings: overrides = {}, debugLogs
         let settings = JSON.parse(modData['hs-settings'])
         const twice = typeof settings === 'string'
         if (twice) settings = JSON.parse(settings)
-        if (debugLogs !== undefined && settings.showDebugLogs) Object.assign(settings.showDebugLogs, { settingValue: debugLogs, enabled: debugLogs })
+        if (debugLogs !== undefined) {
+            // A backup older than a setting doesn't hold it: the mod reads the state alone
+            for (const k of ['showDebugLogs', 'autosingFullLog']) settings[k] = { ...(settings[k] ?? {}), settingValue: debugLogs, enabled: debugLogs }
+        }
         for (const [k, v] of Object.entries(overrides)) {
             if (!settings[k]) continue
             settings[k].settingValue = v

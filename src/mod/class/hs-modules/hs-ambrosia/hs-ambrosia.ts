@@ -1,8 +1,7 @@
-import { HSGameDataSubscriber, HSModuleOptions } from "../../../types/hs-types";
 import { AmbrosiaUpgradeCalculationCollection, AmbrosiaUpgradeCalculationConfig } from "../../../types/data-types/hs-gamedata-api-types";
 import { AmbrosiaUpgradeData, AmbrosiaUpgrades, GameData } from "../../../types/data-types/hs-player-savedata";
-import { AMBROSIA_LOADOUT_SLOT } from "../../../types/module-types/hs-ambrosia-types";
-import { MAIN_VIEW, SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
+import { AMBROSIA_LOADOUT_SLOT } from "./hs-ambrosia-types";
+import { SINGULARITY_VIEW } from "../../../types/module-types/hs-gamestate-types";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";
 import { HSGameData } from "../../hs-core/gds/hs-gamedata";
 
@@ -10,7 +9,8 @@ import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLoadoutIconStore } from "../hs-loadout-icons/hs-loadout-icon-store";
 import { getEffectiveHeaterIconSrc } from "../hs-heater/hs-heater-icon-store";
 import { HSLogger } from "../../hs-core/hs-logger";
-import { HSModule } from "../../hs-core/module/hs-module";
+import { HSModule, type HSModuleOptions } from "../../hs-core/module/hs-module";
+import { setAnimatedBorder } from "../../hs-core/hs-animated-border";
 import { HSModuleRegistry } from "../../hs-core/module/hs-module-registry";
 import { HSSettingsUI } from "../../hs-core/settings/hs-settings-ui";
 import { HSUtils } from "../../hs-utils/hs-utils";
@@ -25,6 +25,14 @@ import { HSAmbrosiaLevelsDisplay } from "./hs-ambrosia-levels-display";
 import { HSAmbrosiaAutoLoadout } from "./hs-ambrosia-auto-loadout";
 import { HSAmbrosiaQuickImport } from "./hs-ambrosia-quick-import";
 import { HSAmbrosiaTemporaryTree, HSSingReducerPlan, HSSingReducerSwapOptions } from "./hs-ambrosia-temporary-tree";
+
+// The module's one GDS subscription
+interface HSGameDataSubscriber {
+    gameDataSubscriptionId?: string;
+    gameDataCallback: (data: GameData) => Promise<void>;
+    subscribeGameDataChanges: () => void;
+    unsubscribeGameDataChanges: () => void;
+}
 
 /** What the heater's "Sync icons" did (HSAmbrosia.applyHeaterSlotIconSemanticsBulk). */
 export interface HeaterSlotIconApplyResult {
@@ -54,11 +62,9 @@ export class HSAmbrosia extends HSModule
 
     // The slots of the game's Ambrosia loadouts header module, and of its loadout page module (8 slots a page)
     static readonly #HEADER_SLOTS_IDS = ['ambrosiaLoadoutsHeaderSlots', 'ambrosiaLoadoutPageHeaderSlots'];
-    static readonly #CONFIRMED_BORDER = 'hs-rainbow-border';
-    static readonly #GUESSED_BORDER = 'hs-silver-border';
 
     gameDataSubscriptionId?: string;
-    #ambrosiaViewSubscriptionId?: string;
+    #ambrosiaViewSubscribed = false;
 
     #loadoutsSlots: HTMLElement[] = [];
 
@@ -179,7 +185,8 @@ export class HSAmbrosia extends HSModule
 
         this.#loadoutContainerClickHandler ??= this.#onLoadoutClick.bind(this);
         const handler = this.#loadoutContainerClickHandler;
-        this.#loadoutContainer.delegateEventListener('click', '.blueberryLoadoutSlot', handler);
+        // The handler finds the slot itself (clicks outside a slot are ignored there)
+        this.#loadoutContainer.addEventListener('click', handler);
         this.#isLoadoutClickHandlerAttached = true;
     }
 
@@ -195,8 +202,8 @@ export class HSAmbrosia extends HSModule
         this.#levels.queueRefresh();
 
         // Only a successful load changes the active modules. The game's own
-        // slot handler has already run (this listener is delegated, bubble
-        // phase), so the active class reflects the result of this click.
+        // slot handler has already run (this listener is on the container,
+        // bubble phase), so the active class reflects the result of this click.
         if (this.#isAmbrosiaTabActive
             && HSAmbrosiaHelper.isLoadoutMode('loadTree')
             && slotElement.classList.contains('activeBlueberryLoadout')) {
@@ -208,19 +215,12 @@ export class HSAmbrosia extends HSModule
         const gameStateMod = HSModuleRegistry.getModule('HSGameState');
         if (!gameStateMod) { HSLogger.warn('subscribeGameStateViewChanges() - gameStateMod==undefined', this.context); return; }
 
-        if (!this.#ambrosiaViewSubscriptionId) {
-            this.#ambrosiaViewSubscriptionId = gameStateMod.subscribeForView(
-                MAIN_VIEW.SINGULARITY,
-                SINGULARITY_VIEW.AMBROSIA,
-                (isActive) => {
-                    if (isActive) { // Ambrosia Tab Enter
-                        this.#onAmbrosiaTabEnter();
-                    } else { // Ambrosia Tab Leave
-                        this.#onAmbrosiaTabLeave();
-                    }
-                }
-            );
-        }
+        if (this.#ambrosiaViewSubscribed) return;
+        this.#ambrosiaViewSubscribed = true;
+        gameStateMod.subscribeSubtab('SINGULARITY_VIEW', SINGULARITY_VIEW.AMBROSIA, (isActive) => {
+            if (isActive) this.#onAmbrosiaTabEnter();
+            else this.#onAmbrosiaTabLeave();
+        });
     }
 
     async #onAmbrosiaTabEnter() {
@@ -383,24 +383,16 @@ export class HSAmbrosia extends HSModule
      * loadout page): rainbow once the game marks it, silver while it's only our guess from the save.
      */
     #renderActiveLoadoutBorders(): void {
-        const border = this.#activeLoadoutConfirmed ? HSAmbrosia.#CONFIRMED_BORDER : HSAmbrosia.#GUESSED_BORDER;
+        const border = this.#activeLoadoutConfirmed ? 'rainbow' : 'silver';
         for (const slot of this.#loadoutsSlots) {
-            HSAmbrosia.#setBorder(slot, slot.id === this.activeLoadout ? border : undefined);
+            setAnimatedBorder(slot, slot.id === this.activeLoadout ? border : undefined);
         }
 
         for (const containerId of HSAmbrosia.#HEADER_SLOTS_IDS) {
             const headerSlots = document.getElementById(containerId)?.querySelectorAll<HTMLElement>(':scope > .headerLoadoutSlot');
             for (const slot of headerSlots ?? []) {
-                HSAmbrosia.#setBorder(slot, `blueberryLoadout${slot.dataset.slot}` === this.activeLoadout ? border : undefined);
+                setAnimatedBorder(slot, `blueberryLoadout${slot.dataset.slot}` === this.activeLoadout ? border : undefined);
             }
-        }
-    }
-
-    static #setBorder(slot: Element, border: string | undefined): void {
-        for (const className of [HSAmbrosia.#CONFIRMED_BORDER, HSAmbrosia.#GUESSED_BORDER]) {
-            const wanted = className === border;
-            // Only on a change: the tab's slot classes are observed (#observeGameActiveLoadout, the heater's slot row)
-            if (slot.classList.contains(className) !== wanted) slot.classList.toggle(className, wanted);
         }
     }
 

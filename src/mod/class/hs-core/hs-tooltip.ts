@@ -16,6 +16,8 @@ export interface HSTooltipOptions extends HSTooltipSettings {
     html?: string | (() => string);
     // false: as wide as its longest line, for content made of lines (a list)
     wrap?: boolean;
+    // In px, instead of the default 420 (still kept inside the viewport)
+    maxWidth?: number;
 }
 
 const TEXT_ATTR = 'data-hs-tip';
@@ -193,6 +195,7 @@ export class HSTooltip {
         }
         element.classList.toggle('hs-tooltip-html', !!html);
         element.classList.toggle('hs-tooltip-nowrap', options.wrap === false);
+        element.style.maxWidth = options.maxWidth ? `min(${options.maxWidth}px, calc(100vw - 16px))` : '';
         element.hidden = false;
         // Its width depends on the room it has: measured from the corner, not from where it was last
         element.style.left = '0';

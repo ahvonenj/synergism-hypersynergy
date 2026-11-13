@@ -1,4 +1,4 @@
-// Text matching of the perk search (docs/features/perks-find.md). Pure: no game or DOM access.
+// Text matching of the Singularity search fields (docs/features/singularity-search.md). Pure: no game or DOM access.
 
 // Languages written without spaces: a word's start can't be told in them, any position counts
 const NO_WORD_GAPS = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;

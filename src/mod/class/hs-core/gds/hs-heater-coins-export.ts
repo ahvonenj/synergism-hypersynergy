@@ -2,7 +2,7 @@ import type { HeaterCoinRuneInput, HeaterCoinsC15Input } from '../../../types/da
 import { AntUpgrades } from '../../../types/data-types/hs-gamedata-api-types';
 import type { GameData } from '../../../types/data-types/hs-player-savedata';
 import type { HSGameDataAPI } from './hs-gamedata-api';
-import { parseGameDataDecimal } from './hs-gamedata-utils';
+import { getBlessingEXP, getRuneEXP, getSpiritEXP, parseGameDataDecimal } from './hs-gamedata-utils';
 import { heaterCoinRunePurchasedLevel } from '../../hs-modules/hs-heater/hs-heater-coins';
 
 /** Statistics.ts allTaxExponentStats/allGlobalSpeedStats, evaluated in C15 for this build only. */
@@ -22,7 +22,7 @@ export function buildHeaterCoinsC15Input(api: HSGameDataAPI, data: GameData, tok
     for (const key of ['speed', 'duplication', 'thrift', 'horseShoe'] as const) {
         const definition = api.rune.runes[key];
         runes[key] = {
-            exp: parseGameDataDecimal(data.runes[key]).toString(),
+            exp: getRuneEXP(data, key).toString(),
             costCoefficient: definition.costCoefficient.toString(),
             levelsPerOOM: key === 'horseShoe' ? api.rune.getLevelsPerOOM(key) : api.rune.getLevelsPerOOM(key, 'true_base'),
             freeLevelsWithoutTalismans: api.rune.getRuneFreeLevels(key) - currentTalismans[key],
@@ -60,8 +60,8 @@ export function buildHeaterCoinsC15Input(api: HSGameDataAPI, data: GameData, tok
         1 / api.purple.getPurpleAmbrosiaUpgradeEffects('taurus', 'taxDivisor'),
         data.highestSingularityCount >= 281 ? 0.5 : 1,
     ];
-    const blessingLevel = heaterCoinRunePurchasedLevel(parseGameDataDecimal(data.runeBlessings.speed), 1e6, 4);
-    const spiritLevel = heaterCoinRunePurchasedLevel(parseGameDataDecimal(data.runeSpirits.speed), 1e45, 2);
+    const blessingLevel = heaterCoinRunePurchasedLevel(getBlessingEXP(data, 'speed'), 1e6, 4);
+    const spiritLevel = heaterCoinRunePurchasedLevel(getSpiritEXP(data, 'speed'), 1e45, 2);
     const blessingCoefficient = blessingLevel / 1e6 * (1 + 6.9 * research(134) / 100)
         * api.talisman.getTalismanEffects('midas').blessingBonus
         * (1 + 0.1 * log1p(data.epicFragments) * research(174))

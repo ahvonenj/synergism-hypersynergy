@@ -45,6 +45,7 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 - **Two repos.** `maenhiir/synergism-hypersynergy` (Shewchou) is the Dev channel; `Ferlieloi/synergism-hypersynergy` is the Live channel and the userscript's default. Remote names differ between clones: check `git remote -v`.
 - **A patcher global has two sides**: the injection in `patcher.js` and the mod code that reads it. Update both. `window.__HS_PATCH_REPORT` says which patches applied; a missing patch's steps are skipped and the player told once.
 - **Not every player is patched**: bookmarklet players have no `window.__HS_*` and no `HSGlobal.exposedPlayer`. Code that uses a patcher feature checks that it exists and falls back. Some globals are set late (`__HS_i18next`, `__HS_synergismStage`, `DOMCacheGetOrSet`).
+- **On Steam the mod starts before the save loads**: code run at init reads the game's blank player. Anything taken from the save (a guess, a note, a cache) waits for `HSUtils.isGameLoaded()` (`docs/features/loaders.md`).
 - **Patcher anchors**: find game code by what it does (string literals, property names minification keeps) through the existing finders, never a call-site shape or a minified name. How, and what to check: `docs/features/loaders.md`.
 
 ### Vanilla game behaviours (`docs/game/behaviours.md`)
@@ -81,7 +82,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 - **Hepteract Distributor**: many of its choices were reversed at least once; update the panel's `HELP_LINES` with it. `docs/features/hepteract-distributor.md`.
 - **Version check**: `compareVersionTags` and the release helper's `compareVersions` must sort the same way. `docs/features/version-check.md`.
 - **Backup**: a backup file is untrusted. `docs/features/backup.md`.
-- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip, perk search.
+- Others, one doc each in `docs/features/`: quickbars (`HSQuickbarManager`), GQ distributor, auto export, subtab memory, tools tab, platonic tooltip, Singularity search fields (perks, GQ, octeracts), log.
 
 ### Dev tools (`docs/features/dev-tools.md`)
 `HSDevTools` edits the live player and must never reach players: used only under `if (HS_DEV_BUILD)`, the string `hs-dev-tools` kept out of release code (`esbuild.config.js` refuses such a bundle), no static fields or side-effect imports, not an `HSModule`.
@@ -90,13 +91,14 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 
 ### Steps, tests and commits
 - **Before editing, in multi-step work: recap and ask the open decisions**, each with a recommendation. Small behaviour-free follow-ups in the topic at hand can be done first and recapped after.
-- **After implementing:** type check and build (plus the loader tests if `patcher.js` changed), then give an in-game test list the developer can follow cold: the setup, then for each check where to click, the exact value expected and what counts as a bug. The dev tools can set up the save.
+- **After implementing:** type check, build and `npm test` (plus the loader tests if `patcher.js` changed), then give an in-game test list the developer can follow cold: the setup, then for each check where to click, the exact value expected and what counts as a bug. The dev tools can set up the save.
 - **Commit only when explicitly asked**: "tests passed" or an earlier "ok" is not a request. After any change since the developer's tests, ask for a retest first.
 - **A commit holds only your own work**: `git add` explicit paths (never `-A` or `commit -a`), check `git diff --cached --stat`, say which files were left out. Only your hunks of a shared file: `docs/dev/tricks.md`.
 - **When a design grows**, point out which decisions drive the complexity and offer the simpler variant.
 
 ### Before claiming or estimating
 - **Search the repo before saying something is missing or sizing work**; game formulas: GDS first.
+- **A claim a conclusion rests on (what code does or costs) comes from reading that code**, not its comments, names or notes; otherwise say it's unchecked.
 - **Release status comes from git, never from notes** (`git tag --contains`, `git log <tag>..master`). Live is ported by hand: check it by content (`git grep -l <string> <live remote>/master`).
 - **Ask for real game data before testing on made-up inputs** (save, HS backup, heater export, as a file); carry on with synthetic cases while waiting.
 - **Estimate a run's size before an exhaustive check** (table sizes from a cheap first run); over a minute or two, narrow it first.

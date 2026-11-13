@@ -241,7 +241,6 @@
 
 /* ===== AVERAGE VALUES ===== */
 
-#hs-live-timer-val,
 #hs-avg-1,
 #hs-avg-10,
 #hs-avg-50,
@@ -263,10 +262,8 @@
     font-weight: bold;
 }
 
-#hs-quarks-prev,
 #hs-quarks-rate-val-hr,
 #hs-quarks-ants-share,
-#hs-gquarks-prev,
 #hs-gquarks-rate-val-hr {
     color: var(--timer-text-muted);
     font-size: 11px;
@@ -443,7 +440,6 @@
 
 /* ===== PHASE STATISTICS GRID ===== */
 
-/* ===== PHASE STATISTICS GRID ===== */
 #hs-phase-stats-container {
     display: grid;
     grid-template-columns: max-content max-content max-content max-content max-content;
@@ -483,14 +479,6 @@
 }
 
 /* ===== PHASE STATS CELLS ===== */
-
-.hs-phase-empty {
-    color: #666;
-    font-style: italic;
-    font-size: 12px;
-    grid-column: span 5;
-    justify-self: start;
-}
 
 .hs-phase-name {
     color: var(--timer-color-phase);
@@ -535,41 +523,6 @@
     border-bottom: 1px solid #222;
 }
 
-.hs-phase-row {
-    display: grid;
-    grid-template-columns: max-content max-content max-content max-content max-content;
-    color: #bcb9b9;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* ===== STATS COLOR VARIANTS ===== */
-
-.hs-stats-loops {
-    text-align: center;
-    color: #888 !important;
-}
-
-.hs-stats-avg {
-    text-align: center;
-    color: #eee !important;
-}
-
-.hs-stats-sd {
-    text-align: center;
-    color: #555 !important;
-    font-size: 10px;
-}
-
-.hs-stats-last {
-    text-align: center;
-    color: var(--timer-color-quarks) !important;
-}
-
-
-/* ===== GRID LAYOUTS ===== */
-
 /* ===== CELL ALIGNMENT UTILITIES ===== */
 
 /* General cell alignment classes for grid layouts */
@@ -593,14 +546,6 @@
 .hs-gquarks-rate-color {
     color: var(--timer-color-gquarks);
     font-weight: bold;
-}
-
-/* ===== DISPLAY UTILITIES ===== */
-
-/* Flex display for current value displays */
-.hs-current-display {
-    display: flex;
-    align-items: center;
 }
 
 /* ===== SECTION HEADER VARIANTS ===== */
@@ -633,11 +578,6 @@
 /* Full-width section header */
 .hs-section-header-title-full {
     grid-column: 1 / -1;
-}
-
-/* Single column section header */
-.hs-section-header-title-single {
-    grid-column: span 1;
 }
 
 /* ===== GRID DEFINITIONS ===== */

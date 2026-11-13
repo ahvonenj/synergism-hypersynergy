@@ -3,10 +3,11 @@ import { AntUpgrades } from "../../../types/data-types/hs-gamedata-api-types";
 import type { HSGameDataAPI } from "./hs-gamedata-api";
 import { parseGameDataDecimal } from "./hs-gamedata-utils";
 
-// Since the game's 4.4.1 update a building's owned count isn't saved: the player keeps what it paid
-// (firstPaidCoin...), and the count is what that amount buys on the building's cost curve, whose threshold moves with
-// construction. Mirrors SynergismOfficial/src/Buy.ts (coin buildings only) and the construction in Calculate.ts and
-// Statistics.ts.
+// The game saves the coin buildings owned (player.coinBuildings) since its rune rework (2026-11-12). Between its 4.4.1
+// update and that rework (Steam until it updates) it kept only what each was paid (firstPaidCoin...), and the count is
+// what that amount buys on the building's cost curve, whose threshold moves with construction: the cost curve code
+// below, which mirrors SynergismOfficial/src/Buy.ts of that time (coin buildings only), goes once Steam updates. The
+// construction mirrors Calculate.ts and Statistics.ts.
 
 // producerData.coin in Buy.ts
 const COIN_COSTS = [100, 1000, 2e4, 4e5, 8e6] as const;
@@ -116,8 +117,8 @@ const maxAffordable = (curve: QuadraticCostCurve, budget: Decimal): number => {
  * Class: BuildingHelper
  * IsExplicitHSModule: No
  * Description:
- *     Construction and the coin buildings owned, which the game derives from what the player paid since its 4.4.1
- *     update. Mirrors SynergismOfficial/src/Buy.ts (coin buildings only), Calculate.ts and Statistics.ts.
+ *     Construction and the coin buildings owned (saved by the game, or derived from what was paid on a game from
+ *     before its rune rework). Mirrors SynergismOfficial/src/Buy.ts (coin buildings only), Calculate.ts and Statistics.ts.
  * Author: Shewchou
  */
 export class BuildingHelper {
@@ -168,10 +169,11 @@ export class BuildingHelper {
             / corruption.getCorruptionEffectNumber(corruption.getActiveCorruptionLevel(), 'construction');
     }
 
-    /** getBuildingsOwned('coin'): the count each coin building's paid amount buys */
+    /** player.coinBuildings; before the game's rune rework, getBuildingsOwned('coin'): what each paid amount buys */
     getCoinBuildingsOwned(): number[] {
         const data = this.#api.getGameData();
         if (!data) return [0, 0, 0, 0, 0];
+        if (data.coinBuildings) return COIN_PAID_KEYS.map((_, index) => data.coinBuildings?.[index] ?? 0);
         const threshold = this.calculateCoinConstruction() * COIN_CONSTRUCTION_SOFTCAP;
         const constants = data.currentChallenge.reincarnation === 8 ? CHALLENGE8_COIN_CURVE_CONSTANTS : COIN_CURVE_CONSTANTS;
         return COIN_PAID_KEYS.map((key, index) =>

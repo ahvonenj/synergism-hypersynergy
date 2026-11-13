@@ -193,7 +193,7 @@ export class HSCorruptionHeader {
             if (HSCorruptionHeader.#popover?.shell.isOpen) HSCorruptionHeader.#refreshPopover(level, max);
             HSCorruptionHeader.#refreshInline(level, shown, max);
         } catch (error) {
-            HSLogger.warnOnce(`Could not draw the next corruption level: ${error}`, 'hs-corruption-header');
+            HSLogger.warnOnce(`Could not draw the next corruption level: ${error}`, HSCorruptionHeader.#context, 'hs-corruption-header');
         }
     }
 

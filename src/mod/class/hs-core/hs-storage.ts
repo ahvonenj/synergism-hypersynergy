@@ -1,7 +1,6 @@
-import { HSModuleOptions } from "../../types/hs-types";
 import { HSGlobal } from "./hs-global";
 import { HSLogger } from "./hs-logger";
-import { HSModule } from "./module/hs-module";
+import { HSModule, type HSModuleOptions } from "./module/hs-module";
 
 /**
  *   Class: HSStorage
@@ -38,14 +37,11 @@ export class HSStorage extends HSModule {
         }
     }
 
+    /** null for a key never written: the normal case before a first save, so not logged */
     getData<T>(key: string): T | null {
         try {
             const item = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${key}`);
-
-            if (item === null) {
-                HSLogger.warn(`localStorage[${key}] is null`, this.context);
-                return null;
-            }
+            if (item === null) return null;
 
             return JSON.parse(item) as T;
         } catch (error) {

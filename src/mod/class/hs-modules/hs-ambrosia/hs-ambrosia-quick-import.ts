@@ -184,7 +184,7 @@ export class HSAmbrosiaQuickImport {
                         ? err
                         : 'Unknown error';
 
-            HSLogger.error(`Quick Import failed: ${msg}`, this.#context, true);
+            HSLogger.error(`Quick Import failed: ${msg}`, this.#context);
             // Log detailed error context for debugging
             HSLogger.debug(() => `Quick Import exception message: ${msg}; clipboardLen=${text?.length ?? 'n/a'}`, this.#context);
 

@@ -1,22 +1,7 @@
-/* The search field of the Perks / Penalties subtab (HSPerksFind). Injected only while its setting is on. */
+/* The Singularity tab's search fields (HSSingularitySearch). Injected only while its setting is on. */
 
-#singularityInfo {
-    position: relative;
-}
-
-/* Fills the penalties' grid cell without taking part in its size: nothing moves */
-#hs-perks-find {
-    position: absolute;
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    pointer-events: none;
-}
-
-#hs-perks-find-field {
+/* The field, its Clear button and its count: the same on every subtab */
+.hs-sing-search-field {
     position: relative;
     flex: none;
     align-self: center;
@@ -25,7 +10,11 @@
     pointer-events: auto;
 }
 
-#hs-perks-find-input {
+.hs-sing-search-box {
+    position: relative;
+}
+
+.hs-sing-search-input {
     box-sizing: border-box;
     width: 100%;
     height: 26px;
@@ -38,17 +27,12 @@
     font-size: 0.9em;
 }
 
-/* Typed text stops before the count. Not with the placeholder, which needs the whole width. */
-#hs-perks-find-input:not(:placeholder-shown) {
-    padding-right: 72px;
-}
-
-#hs-perks-find-input:focus {
+.hs-sing-search-input:focus {
     border-color: var(--gold-color);
 }
 
 /* Beside the field, out of the flow: the field stays centred. The game's button, at the field's height. */
-#hs-perks-find-clear {
+.hs-sing-search-clear {
     position: absolute;
     top: 0;
     left: 100%;
@@ -63,7 +47,7 @@
 }
 
 /* Inside the field, at its right end */
-#hs-perks-find-count {
+.hs-sing-search-count {
     position: absolute;
     top: 50%;
     right: 8px;
@@ -74,8 +58,26 @@
     pointer-events: none;
 }
 
+/* Perks / Penalties */
+
+#singularityInfo:has(> #hs-sing-search-perks) {
+    position: relative;
+}
+
+/* Fills the penalties' grid cell without taking part in its size: nothing moves */
+#hs-sing-search-perks {
+    position: absolute;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+
 /* One row, in the room above the penalties text */
-#hs-perks-find-subjects {
+#hs-sing-search-perks-subjects {
     display: flex;
     flex: none;
     justify-content: center;
@@ -83,7 +85,7 @@
     height: 20px;
 }
 
-#hs-perks-find-subjects button {
+#hs-sing-search-perks-subjects button {
     min-height: 0;
     height: 20px;
     padding: 0 3px;
@@ -98,12 +100,12 @@
     pointer-events: auto;
 }
 
-#hs-perks-find-subjects button:hover {
+#hs-sing-search-perks-subjects button:hover {
     border-color: #999;
     color: var(--white-color);
 }
 
-#hs-perks-find-results {
+#hs-sing-search-perks-results {
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -114,21 +116,21 @@
     scrollbar-color: #666 transparent;
 }
 
-#hs-perks-find-results:not(:empty) {
+#hs-sing-search-perks-results:not(:empty) {
     pointer-events: auto;
 }
 
 /* Down to the window's bottom, out of the flow: nothing moves. Not when the game stacks the tree under the penalties
    (its own breakpoint): the results would cover it. */
 @media (width > 1024px) {
-    #hs-perks-find-results:not(:empty) {
-        min-height: calc(100vh - var(--hs-perks-find-results-top, 100vh) - 8px);
+    #hs-sing-search-perks-results:not(:empty) {
+        min-height: calc(100vh - var(--hs-sing-search-results-top, 100vh) - 8px);
     }
 }
 
 /* The game's tooltip, compact: several have to fit. The level sits on the title row, the next level is left to the
    game's own tooltip, on the perk in the tree. */
-#hs-perks-find-results .singularityPerkModal {
+#hs-sing-search-perks-results .singularityPerkModal {
     display: grid;
     flex: none;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -140,7 +142,7 @@
     background-color: var(--alert-color);
 }
 
-#hs-perks-find-results .singularityPerkModalTitle {
+#hs-sing-search-perks-results .singularityPerkModalTitle {
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: 6px;
@@ -149,29 +151,29 @@
     text-align: left;
 }
 
-#hs-perks-find-results .singularityPerkModalTitle img {
+#hs-sing-search-perks-results .singularityPerkModalTitle img {
     flex: none;
     width: 24px;
     height: 24px;
 }
 
-#hs-perks-find-results .singularityPerkModalLevel {
+#hs-sing-search-perks-results .singularityPerkModalLevel {
     color: #888;
     font-size: 0.75em;
     white-space: nowrap;
 }
 
-#hs-perks-find-results .singularityPerkModalNextLevel {
+#hs-sing-search-perks-results .singularityPerkModalNextLevel {
     display: none;
 }
 
-#hs-perks-find-results .singularityPerkModalDescription {
+#hs-sing-search-perks-results .singularityPerkModalDescription {
     grid-column: 1 / -1;
     font-size: 0.875em;
     line-height: 1.25;
 }
 
-.hs-perks-find-empty {
+.hs-sing-search-empty {
     margin-top: 16px;
     color: #888;
     text-align: center;
@@ -179,20 +181,62 @@
 
 /* The game's stacked layout (its own breakpoint) has no room above the penalties text: make the field's and the words' */
 @media (width <= 1024px) {
-    #singularityPenaltiesMultiline {
+    #singularityInfo:has(> #hs-sing-search-perks) #singularityPenaltiesMultiline {
         margin-top: 62px;
     }
 }
 
-#singularityInfo.hs-perks-find-active #singularityPenaltiesMultiline {
+#singularityInfo.hs-sing-search-perks-active #singularityPenaltiesMultiline {
     visibility: hidden;
 }
 
-#singularityInfo.hs-perks-find-active .singularityPerkNode:not(.hs-perks-find-hit) {
+#singularityInfo.hs-sing-search-perks-active .singularityPerkNode:not(.hs-sing-search-hit) {
     opacity: 0.2;
 }
 
 /* Its lit lines would otherwise stand out more than the perks found */
-#singularityInfo.hs-perks-find-active #singularityPerkTreeConnections {
+#singularityInfo.hs-sing-search-perks-active #singularityPerkTreeConnections {
+    opacity: 0.2;
+}
+
+/* Golden Quarks and Octeracts: the field's row under the upgrade AP line. width: 0 keeps it out of the box's width, as
+   the game does for that line; min-width fills the row. */
+.hs-sing-search-row {
+    display: flex;
+    justify-content: center;
+    width: 0;
+    min-width: 100%;
+    margin: 0 0 8px;
+}
+
+/* The Clear button in the flow beside the field, its room kept while hidden: the box can be narrow (octeracts with the
+   maxed upgrades hidden) */
+.hs-sing-search-row .hs-sing-search-field {
+    display: flex;
+    gap: 8px;
+    width: min(360px, 100%);
+    margin-top: 0;
+}
+
+.hs-sing-search-row .hs-sing-search-box {
+    flex: 1;
+    min-width: 0;
+}
+
+.hs-sing-search-row .hs-sing-search-clear {
+    position: static;
+    flex: none;
+    margin-left: 0;
+}
+
+#actualSingularityUpgradeContainer.hs-sing-search-active .singularityUpgrade:not(.hs-sing-search-hit),
+#octeractUpgradeContainer.hs-sing-search-active .octeractUpgrade:not(.hs-sing-search-hit) {
+    opacity: 0.2;
+}
+
+/* The octeract map's lines (spine and its nodes, the tracks' lines): they would otherwise stand out more than the
+   upgrades found */
+#octeractUpgradeContainer.hs-sing-search-active .octeractUpgradeSpine,
+#octeractUpgradeContainer.hs-sing-search-active .octeractUpgradeTrack::before {
     opacity: 0.2;
 }

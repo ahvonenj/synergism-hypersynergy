@@ -1,4 +1,4 @@
-import { AutosingStrategyPhase, Challenge, isCorruptionLevelStep, SPECIAL_ACTIONS, SPECIAL_ACTION_BY_ID, type SpecialAction, IF_JUMP_VALUE, IsJumpChallenge, ModalInput, IfJumpParams } from "../../../../types/module-types/hs-autosing-types";
+import { AutosingStrategyPhase, Challenge, isCorruptionLevelStep, SPECIAL_ACTIONS, SPECIAL_ACTION_BY_ID, type SpecialAction, IF_JUMP_VALUE, IsJumpChallenge, ModalInput, IfJumpParams } from "../hs-autosing-types";
 import { HSTooltip } from "../../../hs-core/hs-tooltip";
 import { HSUI } from "../../../hs-core/hs-ui";
 import { HSUtils } from "../../../hs-utils/hs-utils";
@@ -239,6 +239,7 @@ const HELP_LINES: readonly [string, string][] = [
     ["Ctrl+Y, Ctrl+Shift+Z", "Redo"],
     ["", "Shortcuts work after a click in this window, not while typing in a field"],
     ["⋮⋮", "Drag a step, a \"Jump here\" row, or \"Add Here\" (where new steps go)"],
+    ["Double-click", "On a step: \"Add Here\" goes below it"],
     ["IF targets", "Follow an added, duplicated or deleted step, not a moved one"],
     ["→ step N", "Click: shows the other row of the IF"],
     ["↺", "A loop: the IF jumps back"],
@@ -295,6 +296,7 @@ const AUTO_SCROLL_MAX_PX_PER_FRAME = 12;
  *       they hold. ✎ loads every value of a step, so an Update keeps the values its action doesn't show.
  *     - Steps, IF jump targets ("Jump here" rows) and the "Add Here" separator (where new steps go) are dragged
  *       with the mouse. The list is drawn again whenever the drop place changes, and the dragged row found again.
+ *       A double-click on a step moves the separator below it.
  *     - An IF jump's target is a step index (the step it jumps before): adding, duplicating or deleting a step
  *       shifts the targets after it, moving a step doesn't. An IF and its "Jump here" row link to each other.
  *     - The fields the action shows are checked as they are typed: a bad value turns red and Add/Update says why
@@ -376,7 +378,7 @@ export class HSAutosingChallengeModal {
         this.#redoButton = root.querySelector<HTMLElement>('[data-action="redo"]')!;
         this.#fixedTime = root.querySelector<HTMLElement>(".hs-challenges-fixed-time")!;
         this.#discardOverlay = root.querySelector<HTMLElement>(".hs-editor-overlay")!;
-        HSTooltip.set(root.querySelector<HTMLElement>(".hs-challenges-help-btn")!, { html: HSTooltip.list(HELP_LINES), delay: 0, placement: 'above' });
+        HSTooltip.set(root.querySelector<HTMLElement>(".hs-challenges-help-btn")!, { html: HSTooltip.list(HELP_LINES), delay: 0, placement: 'above', maxWidth: 560 });
         for (const element of root.querySelectorAll<HTMLElement>("[data-row]")) {
             this.#rows.push({ row: FIELD_ROWS[Number(element.dataset.row)], element });
         }
@@ -404,6 +406,7 @@ export class HSAutosingChallengeModal {
             this.#discardOverlay.hidden = false;
         });
         this.#list.addEventListener("mousedown", e => this.#onListMouseDown(e));
+        this.#list.addEventListener("dblclick", e => this.#onListDoubleClick(e));
         // An IF jump and its target are highlighted together
         this.#list.addEventListener("mouseover", e => this.#highlightJump((e.target as HTMLElement).closest<HTMLElement>("[data-if-id]")?.dataset.ifId));
         this.#list.addEventListener("mouseleave", () => this.#highlightJump(undefined));
@@ -908,6 +911,22 @@ export class HSAutosingChallengeModal {
                 this.close();
                 break;
         }
+    }
+
+    // A double-click on a step moves the separator below it (its buttons, link and handle keep their clicks)
+    #onListDoubleClick(e: MouseEvent): void {
+        const target = e.target as HTMLElement;
+        if (this.#drag || target.closest("[data-action], .hs-challenge-drag-handle")) return;
+        const row = target.closest<HTMLElement>(".hs-challenge-item[data-index]");
+        if (!row) return;
+        const index = Number(row.dataset.index);
+        if (this.#separatorIndex === index + 1) return;
+        // The step stays under the mouse when the separator leaves from above it
+        const top = row.getBoundingClientRect().top;
+        this.#separatorIndex = index + 1;
+        this.#redrawList();
+        const moved = this.#list.querySelector<HTMLElement>(`.hs-challenge-item[data-index="${index}"]`);
+        if (moved) this.#listContainer.scrollTop += moved.getBoundingClientRect().top - top;
     }
 
     // ----- For the strategy window -----

@@ -52,14 +52,16 @@ export class HSSettingActions {
         // NOTE THE EXPLICIT HANDLING OF WHEN PARAMS.DISABLE = TRUE
         // Care should be taken to handle this case so the setting will know what to do when it is enabled/disabled
         syncNotificationOpacity: async (params: HSSettingActionParams) => {
-            const notifElement = document.querySelector('#notification') as HTMLDivElement;
+            // The game's notifications all go into this stack, so its opacity covers every one
+            const notifElement = document.querySelector('#notificationStack') as HTMLDivElement | null;
+            if (!notifElement) return;
 
             if (params.disable && params.disable === true) {
                 notifElement.style.removeProperty('opacity');
             } else {
                 const value = params.value;
 
-                if (notifElement && value && value >= 0 && value <= 1) {
+                if (value !== undefined && value >= 0 && value <= 1) {
                     notifElement.style.opacity = value.toString();
                 }
             }
@@ -71,28 +73,21 @@ export class HSSettingActions {
             HSHiddenDialogs.setEnabled(!params.disable);
         },
 
+        // Both only show or hide what the log always records
         logTimestamp: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSLogger.setTimestampDisplay(false);
-            } else {
-                HSLogger.setTimestampDisplay(true);
-            }
+            HSLogger.setTimestampDisplay(!params.disable);
         },
 
         showDebugLogs: async (params: HSSettingActionParams) => {
-            HSLogger.updateDebugEnabled();
+            HSLogger.setDebugDisplay(!params.disable);
         },
 
         reactiveMouseHover: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSMouse.clearInterval('hover');
-            }
+            if (params.disable) HSMouse.clearInterval('hover');
         },
 
         autoClick: async (params: HSSettingActionParams) => {
-            if (params.disable && params.disable === true) {
-                HSMouse.clearInterval('click');
-            }
+            if (params.disable) HSMouse.clearInterval('click');
         },
 
         ambrosiaMinibarAction: moduleToggle('HSAmbrosia',
@@ -283,7 +278,7 @@ export class HSSettingActions {
             (mod) => mod.hideDistributor()
         ),
 
-        perksFindAction: moduleToggle('HSPerksFind',
+        singularitySearchAction: moduleToggle('HSSingularitySearch',
             (mod) => mod.show(),
             (mod) => mod.hide()
         ),

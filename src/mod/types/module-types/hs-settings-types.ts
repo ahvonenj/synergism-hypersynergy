@@ -52,7 +52,7 @@ export interface HSSettingsDefinition {
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;
     statsForNerdsGroups: HSSettingBase<boolean>;
-    perksFind: PerksFindSetting;
+    singularitySearch: SingularitySearchSetting;
 
     // Log Settings
     logTimestamp: LogTimestampSetting;
@@ -87,6 +87,7 @@ export interface HSSettingsDefinition {
     singularityNumber: SingularityNumber;
     autosingKeepAwake: HSSettingBase<boolean>;
     autosingStepTimings: HSSettingBase<boolean>;
+    autosingFullLog: HSSettingBase<boolean>;
     autosingNoAmbrosiaSwitch: HSSettingBase<boolean>;
     autosingEarlyCubeLoadout: AutosingEarlyCubeLoadout;
     autosingLateCubeLoadout: AutosingLateCubeLoadout;
@@ -142,8 +143,8 @@ export interface HSSettingControlOptions {
     placeholder?: string;
 }
 
-export type HSSettingsControlType = "text" | "number" | "switch" | "select" | "state" | "button";
-export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectnumeric" | "selectstring" | "selectstrings" | "state" | "button";
+export type HSSettingsControlType = "text" | "number" | "switch" | "select" | "button";
+export type HSSettingJSONType = "numeric" | "string" | "boolean" | "selectstring" | "selectstrings" | "button";
 
 export interface HSSettingActionParams {
     contextName?: string,
@@ -238,7 +239,7 @@ export interface HiddenVanillaTabsSetting extends HSSettingBase<string[]> { }
 export interface AutoDismissOfflinePopupSetting extends HSSettingBase<boolean> { }
 export interface ReloadOnLateLoaderStartSetting extends HSSettingBase<boolean> { }
 export interface RememberSubtabsSetting extends HSSettingBase<boolean> { }
-export interface PerksFindSetting extends HSSettingBase<boolean> { }
+export interface SingularitySearchSetting extends HSSettingBase<boolean> { }
 
 // Timed save export
 export interface AutoExportSaveSetting extends HSSettingBase<number> { }

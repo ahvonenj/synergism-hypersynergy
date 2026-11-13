@@ -1,4 +1,4 @@
-import { AMBROSIA_LOADOUT_SLOT, BlueberryLoadoutMode } from "../../../types/module-types/hs-ambrosia-types";
+import { AMBROSIA_LOADOUT_SLOT, BlueberryLoadoutMode } from "./hs-ambrosia-types";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUtils } from "../../hs-utils/hs-utils";
 import { HSElementHooker } from "../../hs-core/hs-elementhooker";

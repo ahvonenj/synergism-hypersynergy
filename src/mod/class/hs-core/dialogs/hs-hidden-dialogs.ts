@@ -191,10 +191,7 @@ export class HSHiddenDialogs {
     static #getData(): HSHiddenDialogsData {
         if (HSHiddenDialogs.#data) return HSHiddenDialogs.#data;
 
-        // HSStorage warns when a key is missing: nothing stored is the normal case until the feature is used
-        const key = HSGlobal.HSHiddenDialogs.storageKey;
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${key}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<HSHiddenDialogsData>(key) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<HSHiddenDialogsData>(HSGlobal.HSHiddenDialogs.storageKey);
         const valid = !!stored && stored.version === 1 && Array.isArray(stored.entries) && Array.isArray(stored.presetAdded);
         HSHiddenDialogs.#data = valid
             ? {

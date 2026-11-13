@@ -1,5 +1,4 @@
 import Decimal from "break_infinity.js";
-import { HSGlobal } from "../../hs-core/hs-global";
 import { HSLogger } from "../../hs-core/hs-logger";
 import { HSUI } from "../../hs-core/hs-ui";
 import { HSSettings } from "../../hs-core/settings/hs-settings";
@@ -303,16 +302,6 @@ export class HSAutosingDom {
             getCompletions,
             getGoal,
         };
-    }
-
-    /** The active Exalt's icon (its id is the challenge's key): the game colours it orchid. */
-    getActiveExaltElement(): HTMLElement | null {
-        const challenges = HSGlobal.exposedPlayer?.singularityChallenges;
-        if (challenges) {
-            const key = Object.keys(challenges).find(k => challenges[k as keyof typeof challenges]?.enabled);
-            return key ? document.getElementById(key) : null;
-        }
-        return document.querySelector<HTMLElement>('#singularityChallenges img.challenge[style*="background-color: orchid"]');
     }
 
     /** A locked tab's button is hidden by the game's stylesheet (html[data-chal10="false"] .chal10 and the like). */

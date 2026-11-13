@@ -21,6 +21,8 @@ Everything they write goes to `local/harness-out/` (git-ignored).
   (`/stripe/upgrades`), `quark-bonus.json` (`/api/v1/quark-bonus`) and `users-me.json` (`/api/v1/users/me`), copied
   from the browser's network tab while logged in. With them the game has your PseudoCoin levels and quark bonus;
   without them, ambrosia speeds come out several times lower. They are personal data: they stay in `local/`.
+  **On another player's backup**, your answers give the game your levels (and your ambrosia loadout slot count, which
+  a strategy's slot setting may exceed): build theirs with `account-from-backup.cjs` and run with `HS_ACCOUNT_DIR`.
 
 ## No traffic to synergism.cc
 
@@ -36,6 +38,7 @@ with your own browser. The game-server harnesses also stop every synergism.cc re
 | `game-smoke.cjs [save]` | Real game, patched, + save + mod. Reports patches that failed, page exceptions, requests that tried to leave localhost, a screenshot. `PATCH=0` unpatched (a bookmarklet player), `MOD=0` game only. **Copy it into `local/` to start a one-off test.** |
 | `autosing-run.cjs <backup> [sings] [minutes]` | Autosing on a backup: restores its mod data, imports the save, starts autosing, samples every second. Output in `local/harness-out/autosing/<TAG>/`: `console.log`, `samples.jsonl`, `modal.txt` (the run panel's figures), `timings.json` (the recorder's: the run turns on "Record step timings" unless `STEP_TIMINGS=0`), `end.png`. Env in the file's header (`TAG`, `DEBUG=0`, `SETTINGS`, `STRATEGIES`, `HEAT=1`…). |
 | `autosing-sweep.cjs <backup> <target>...` | One `autosing-run` per singularity target (heat at the target, then 10 timed singularities); prints each target's figures. |
+| `account-from-backup.cjs <backup> [name]` | The 3 account answers from a backup's heater data (PseudoCoin levels, quark bonus), in `local/harness-out/account/<name>`. Prints the `HS_ACCOUNT_DIR=` to put before a run. |
 | `autosing-watch.cjs <tag>` | Prints a running autosing run's key lines; exits when it ends. Use it rather than `tail -f`, which locks the log on Windows. |
 | `loader-https.cjs` | The browser loader on the real game page (pseudo-corp.github.io), run at document-start as Tampermonkey does. `PATCHER=local` (the repo's `patcher.js`) or `live` (jsDelivr). |
 | `node-run.mjs <entry.ts> [args]` | Bundles a TypeScript entry that imports the mod's code (`@repo/...` = `src/mod`) for node, with browser-only modules stubbed, and runs it. The entry names its stubs in a comment: `// harness-stubs: gds`, `heater` or a regex. |
@@ -67,6 +70,10 @@ heat on a S260 save in node, about 100 s.
   (`game-smoke`, `autosing-run`); a one-off script does the same unless it needs what the profile holds.
 - **To test a state, change the live player on one save** (`game.PLAYER`) rather than loading another save; another save
   only to reproduce a player's report, or for values the game recomputes at load (below).
+- **`injectMod` loads the mod after the game, as the userscript.** Steam starts it before the save loads: to
+  reproduce that, load a save once (it stays in the profile), then `Page.addScriptToEvaluateOnNewDocument` with a
+  `DOMContentLoaded` listener that adds the `/mod.js` script tag, and navigate again. Compare both starts through
+  `cdp.logs` (`Runtime.enable` first; the Log tab draws its lines only while it's shown).
 - **`injectMod` sets `HS_LOADER_INITIALIZED`**: the mod takes itself for a userscript, even on `PATCH=0`. For a
   bookmarklet player, add the `/mod.js` script tag without that flag (it changes `HSPlatform` and subtab memory).
 - **The "Hypersynergism loaded" notification covers the top of the header** for a few seconds: wait before clicking there.
@@ -76,6 +83,9 @@ heat on a S260 save in node, about 100 s.
   from `highestSingularityCompleted`. A test save that changes them must change what the game recomputes them from.
 - **Console lines from before the last navigation** are replayed by `Runtime.enable`; `cdp.logs` keeps only those after
   `cdp.navigate()`.
+- **Debug lines reach the console only once "Show debug logs" is applied**, during the settings sync at startup, in
+  `hs-settings.json`'s order: a debug line logged earlier (the minibars' first "Minibar sizes") is missing from
+  `cdp.logs`, though the Log tab has it. Don't count such a line from the console.
 - **The harness's Chrome never throttles timers** (`lib/chrome.cjs`), so a run can't show what a hidden tab does. To time one: a headed Chrome without those flags, no focus emulation, the game tab behind a second tab opened with `/json/new`. `/json/activate` and `Page.bringToFront` raise the window and take the keyboard from whoever is typing.
 - **The heater's Import All uses the clipboard**: `autosing-run.cjs` grants the permission and emulates focus.
 - **A `:hover` state can't be screenshotted**: force it with an extra style.

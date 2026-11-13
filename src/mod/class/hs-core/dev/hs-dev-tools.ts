@@ -36,6 +36,8 @@ interface HSDevLeaf {
 interface HSDevStoredData {
     pinned: string[];
     freePath: string;
+    // Restore moves the save's clock fields to now: no offline progress, same code timers, no daily reset
+    skipOfflineProgress: boolean;
 }
 
 // What the snapshot list shows: a stored snapshot without its save
@@ -71,9 +73,9 @@ const HIGHEST_SINGULARITY_PATH = 'highestSingularityCount';
 const SNAPSHOT_RULES = [
     `Automatic: taken before the first edit and before each restore. Only the last ${AUTO_SNAPSHOTS_KEPT} are kept.`,
     'Named: kept until you delete it. Saving under the same name replaces it.',
-    'Import file: a game export or a mod backup, added as a named snapshot under its file name (the list date is when it was saved).',
+    'Import (⬆): a game export or a mod backup, added as a named snapshot under its file name (the list date is when it was saved).',
     'Restore keeps the current state as an automatic snapshot, then reloads the page.',
-    'A restored state loads as it was saved: no offline progress, same Add and Time code timers.',
+    'Skip offline progress (ticked): the state loads as it was saved, with the same Add and Time code timers and no daily reset. Unticked: loads as the game loads any save.',
     'Restore is refused while Auto-Sing is active.',
     'Stored in this browser only: the browser and Steam each have their own list.',
 ];
@@ -144,7 +146,7 @@ export class HSDevTools {
     #freePath?: HTMLInputElement;
     #freeCurrent?: HTMLElement;
 
-    #data: HSDevStoredData = { pinned: [], freePath: '' };
+    #data: HSDevStoredData = { pinned: [], freePath: '', skipOfflineProgress: true };
 
     // Taken before the first edit of the session (a page load)
     #sessionSnapshot?: HSDevSnapshot;
@@ -162,8 +164,10 @@ export class HSDevTools {
 
         root.append(this.#el('div', 'hs-panel-grid-section-header', 'Dev tools (dev build only)'));
         root.append(this.#buildSnapshotStatus());
-        const snapshotsTitle = this.#el('div', 'hs-dev-tools-group', 'Snapshots (Restore reloads the page)');
-        snapshotsTitle.append(this.#help(SNAPSHOT_RULES));
+        const snapshotsTitle = this.#el('div', 'hs-dev-tools-group hs-dev-tools-snapshots-title');
+        const snapshotsTitleText = this.#el('span', '', 'Snapshots');
+        snapshotsTitleText.append(this.#help(SNAPSHOT_RULES));
+        snapshotsTitle.append(snapshotsTitleText, this.#buildSkipOfflineCheckbox());
         root.append(snapshotsTitle);
         root.append(this.#buildSnapshotNameRow());
         this.#snapshotList = this.#el('div', 'hs-dev-tools-snapshots');
@@ -420,6 +424,14 @@ export class HSDevTools {
         return button;
     }
 
+    /** A square button showing one symbol, its action in the tooltip. */
+    #iconButton(symbol: string, title: string, onClick: () => void): HTMLElement {
+        const button = this.#button(symbol, onClick);
+        button.classList.add('hs-dev-tools-btn-icon');
+        button.title = title;
+        return button;
+    }
+
     /** A circled "?" for a group title, showing a list of rules while the mouse is over it. */
     #help(rules: string[]): HTMLElement {
         const help = this.#el('span', 'hs-dev-tools-help', '?');
@@ -573,13 +585,12 @@ export class HSDevTools {
     // ====================================
 
     #loadData(): void {
-        // HSStorage.getData logs a warning for a key that was never written
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY);
 
         this.#data = {
             pinned: Array.isArray(stored?.pinned) ? stored.pinned : [],
             freePath: typeof stored?.freePath === 'string' ? stored.freePath : '',
+            skipOfflineProgress: typeof stored?.skipOfflineProgress === 'boolean' ? stored.skipOfflineProgress : true,
         };
     }
 
@@ -607,8 +618,27 @@ export class HSDevTools {
         };
         name.addEventListener('keydown', (e) => { if (e.key === 'Enter') void save(); });
 
-        element.append(name, this.#button('Save snapshot', () => { void save(); }), this.#button('Import file', () => this.#chooseSnapshotFile()));
+        element.append(
+            name,
+            this.#button('Save', () => { void save(); }),
+            this.#iconButton('⬆', 'Import a save file (game export or mod backup) as a snapshot', () => this.#chooseSnapshotFile()),
+        );
         return element;
+    }
+
+    /** On the Snapshots title line: it changes what the Restore buttons below do. */
+    #buildSkipOfflineCheckbox(): HTMLElement {
+        const skipOfflineProgress = this.#el('label', 'hs-dev-tools-radio hs-dev-tools-skip-offline');
+        skipOfflineProgress.title = 'Restore: no offline progress, same code timers, no daily reset';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = this.#data.skipOfflineProgress;
+        checkbox.addEventListener('change', () => {
+            this.#data.skipOfflineProgress = checkbox.checked;
+            this.#saveData();
+        });
+        skipOfflineProgress.append(checkbox, 'Skip offline progress');
+        return skipOfflineProgress;
     }
 
     /** Adds a save file from the disk (a game export or a mod backup) to the list, as a named snapshot under its file name. */
@@ -647,9 +677,8 @@ export class HSDevTools {
 
     /** The current state as a snapshot, or null when the game could not save (it refuses during a time warp). */
     #captureSnapshot(kind: HSDevSnapshot['kind'], label: string): HSDevSnapshot | null {
-        // Synchronous: clicks the game's save button and takes the save it serializes
-        const save = HSModuleRegistry.getModule('HSGameData')?.forceCaptureRawSaveSync();
-        if (!save) return null;
+        const save = HSBackup.captureSave();
+        if (save === null) return null;
 
         let singularity: number | undefined;
         try {
@@ -821,12 +850,19 @@ export class HSDevTools {
             const label = this.#el('span', `hs-dev-tools-label hs-dev-tools-snapshot-${snapshot.kind}`, `${snapshot.label}${singularity}`);
             label.title = label.textContent ?? '';
 
+            const taken = new Date(snapshot.date);
+            const date = this.#el('span', 'hs-dev-tools-snapshot-date');
+            date.append(
+                this.#el('span', '', taken.toLocaleDateString()),
+                this.#el('span', '', taken.toLocaleTimeString()),
+            );
+
             line.append(
-                this.#el('span', 'hs-dev-tools-snapshot-date', new Date(snapshot.date).toLocaleString()),
+                date,
                 label,
                 this.#button('Restore', () => { void this.#restore(id); }),
-                this.#button('Download', () => { void this.#downloadStored(id); }),
-                this.#button('Delete', () => { void this.#deleteSnapshot(snapshot); }),
+                this.#iconButton('⬇', 'Download', () => { void this.#downloadStored(id); }),
+                this.#iconButton('×', 'Delete', () => { void this.#deleteSnapshot(snapshot); }),
             );
             return line;
         }));
@@ -883,18 +919,18 @@ export class HSDevTools {
             const kept = current !== null && await this.#storeSnapshot(current);
             if (!kept && !window.confirm('Dev tools: the current state could not be kept as a snapshot.\n\nRestore anyway?')) return;
 
-            // The game counts from the clock what a save gains while away: offline progress (offlinetick), Add code
-            // uses (rngCode) and the Time code's size (promoCodeTiming.time). All three are moved forward by the
-            // time since the save, so the state loads as it was saved.
-            const data = JSON.parse(snapshot.save);
-            const now = Date.now();
-            const elapsed = typeof data.offlinetick === 'number' ? Math.max(0, now - data.offlinetick) : 0;
-            data.offlinetick = now;
-            if (typeof data.rngCode === 'number') data.rngCode += elapsed;
-            if (typeof data.promoCodeTiming?.time === 'number') data.promoCodeTiming.time += elapsed;
+            // Ticked, the state loads as it was saved: no offline progress, same code timers, no daily reset.
+            // Unticked, the game loads it as any save.
+            const skipOfflineProgress = this.#data.skipOfflineProgress;
+            let save = snapshot.save;
+            if (skipOfflineProgress) {
+                const data = JSON.parse(save);
+                HSBackup.shiftSaveClock(data, Date.now(), { codeTimers: true, dailyReset: true });
+                save = JSON.stringify(data);
+            }
 
-            HSLogger.log(`Restoring the snapshot "${snapshot.label}" (${new Date(snapshot.date).toLocaleString()})`, this.#context);
-            const refusal = await HSBackup.importSaveAndReload(await this.#toBase64(JSON.stringify(data)));
+            HSLogger.log(`Restoring the snapshot "${snapshot.label}" (${new Date(snapshot.date).toLocaleString()}), ${skipOfflineProgress ? 'skipping offline progress' : 'as the game loads a save'}`, this.#context);
+            const refusal = await HSBackup.importSaveAndReload(await HSBackup.encodeSave(save));
             if (refusal) this.#fail(`Snapshot not restored. ${refusal}`);
             // No refusal: the page is reloading, and a second restore must not start meanwhile
             else reloading = true;
@@ -903,23 +939,6 @@ export class HSDevTools {
         } finally {
             this.#restoring = reloading;
         }
-    }
-
-    /**
-     * The save JSON in base64, as the game stores and exports it: one byte per character, like btoa.
-     * Not window.btoa itself: GDS hooks it, and would take this old save for the current one.
-     */
-    async #toBase64(save: string): Promise<string> {
-        const bytes = new Uint8Array(save.length);
-        for (let i = 0; i < bytes.length; i++) bytes[i] = save.charCodeAt(i);
-
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(new Blob([bytes]));
-        });
-        return dataUrl.slice(dataUrl.indexOf(',') + 1);
     }
 
     /** Downloads the session's snapshot, or the last stored one. */
@@ -949,7 +968,7 @@ export class HSDevTools {
 
     /** Downloads a snapshot as a file the game's "Load from file" reads. */
     async #download(snapshot: HSDevSnapshot): Promise<void> {
-        const base64 = await this.#toBase64(snapshot.save);
+        const base64 = await HSBackup.encodeSave(snapshot.save);
 
         const date = new Date(snapshot.date);
         const pad = (value: number) => String(value).padStart(2, '0');
