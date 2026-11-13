@@ -45,6 +45,7 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 - **Two repos.** `maenhiir/synergism-hypersynergy` (Shewchou) is the Dev channel; `Ferlieloi/synergism-hypersynergy` is the Live channel and the userscript's default. Remote names differ between clones: check `git remote -v`.
 - **A patcher global has two sides**: the injection in `patcher.js` and the mod code that reads it. Update both. `window.__HS_PATCH_REPORT` says which patches applied; a missing patch's steps are skipped and the player told once.
 - **Not every player is patched**: bookmarklet players have no `window.__HS_*` and no `HSGlobal.exposedPlayer`. Code that uses a patcher feature checks that it exists and falls back. Some globals are set late (`__HS_i18next`, `__HS_synergismStage`, `DOMCacheGetOrSet`).
+- **On Steam the mod starts before the save loads**: code run at init reads the game's blank player. Anything taken from the save (a guess, a note, a cache) waits for `HSUtils.isGameLoaded()` (`docs/features/loaders.md`).
 - **Patcher anchors**: find game code by what it does (string literals, property names minification keeps) through the existing finders, never a call-site shape or a minified name. How, and what to check: `docs/features/loaders.md`.
 
 ### Vanilla game behaviours (`docs/game/behaviours.md`)

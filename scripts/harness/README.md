@@ -70,6 +70,10 @@ heat on a S260 save in node, about 100 s.
   (`game-smoke`, `autosing-run`); a one-off script does the same unless it needs what the profile holds.
 - **To test a state, change the live player on one save** (`game.PLAYER`) rather than loading another save; another save
   only to reproduce a player's report, or for values the game recomputes at load (below).
+- **`injectMod` loads the mod after the game, as the userscript.** Steam starts it before the save loads: to
+  reproduce that, load a save once (it stays in the profile), then `Page.addScriptToEvaluateOnNewDocument` with a
+  `DOMContentLoaded` listener that adds the `/mod.js` script tag, and navigate again. Compare both starts through
+  `cdp.logs` (`Runtime.enable` first; the Log tab draws its lines only while it's shown).
 - **`injectMod` sets `HS_LOADER_INITIALIZED`**: the mod takes itself for a userscript, even on `PATCH=0`. For a
   bookmarklet player, add the `/mod.js` script tag without that flag (it changes `HSPlatform` and subtab memory).
 - **The "Hypersynergism loaded" notification covers the top of the header** for a few seconds: wait before clicking there.
