@@ -1,6 +1,7 @@
 import { HSGlobal } from "../hs-global";
 import { HSLogger } from "../hs-logger";
 import { HSModuleRegistry } from "../module/hs-module-registry";
+import { HSUtils } from "../../hs-utils/hs-utils";
 
 const STORAGE_KEY = 'header-modules';
 // The game's grid region (its cells keep their index, empty ones included); its other region is a plain row
@@ -79,6 +80,17 @@ export class HSHeaderModules {
     // What the last render saw, to tell the header's Reset button (a new layout in the same headerLayouts) from a load
     static #seenLayouts?: object;
     static #seenLayout: Record<string, object> = {};
+    // Once the game's first load is over: Steam starts the mod before the save loads
+    static #gameLoaded = false;
+
+    /**
+     * Whether the game's first load is over (latched: later offline progress doesn't count). Before it, the layout is
+     * the blank player's, where a module's cell may be taken: noting that would send it to the tray for good.
+     */
+    static #isGameLoaded(): boolean {
+        HSHeaderModules.#gameLoaded ||= HSUtils.isGameLoaded();
+        return HSHeaderModules.#gameLoaded;
+    }
 
     static #layouts(): Record<string, unknown> | undefined {
         const layouts = (HSGlobal.exposedPlayer as { headerLayouts?: Record<string, unknown> } | null)?.headerLayouts;
@@ -192,29 +204,32 @@ export class HSHeaderModules {
     /**
      * Before each render of the header (window.__HS_beforeHeaderRender): for each registered module and each layout,
      * note where it is, or put it back where it was when it's missing (a load or a singularity strips it).
+     * Before the game's first load is over, only put back: the notes are kept for the save's layout.
      */
     static #beforeRender(): void {
         const layouts = HSHeaderModules.#layouts();
         if (!layouts) return;
         const notes = HSHeaderModules.#loadNotes();
         let changed = false;
+        const noting = HSHeaderModules.#isGameLoaded();
 
         for (const [key, layout] of Object.entries(layouts)) {
             if (!HSHeaderModules.#isLayout(layout)) continue;
             // The header's Reset button puts a new layout in the same headerLayouts (a load replaces headerLayouts):
             // the mod's modules go back to the tray, as the game's new modules
-            if (layouts === HSHeaderModules.#seenLayouts && HSHeaderModules.#seenLayout[key]
+            if (noting && layouts === HSHeaderModules.#seenLayouts && HSHeaderModules.#seenLayout[key]
                 && layout !== HSHeaderModules.#seenLayout[key] && notes.layouts[key]) {
                 delete notes.layouts[key];
                 changed = true;
             }
-            HSHeaderModules.#seenLayout[key] = layout;
+            if (noting) HSHeaderModules.#seenLayout[key] = layout;
 
             // Every missing module back first, then every place noted: a module noted before its partner is put back
             // into its slot would be noted alone
             for (const id of HSHeaderModules.#modules.keys()) {
                 if (!HSHeaderModules.#findPlace(layout, id)) HSHeaderModules.#putBack(layout, id, notes.layouts[key]);
             }
+            if (!noting) continue;
             for (const id of HSHeaderModules.#modules.keys()) {
                 const place = HSHeaderModules.#findPlace(layout, id);
                 if (!place) continue;
@@ -231,7 +246,7 @@ export class HSHeaderModules {
                 }
             }
         }
-        HSHeaderModules.#seenLayouts = layouts;
+        if (noting) HSHeaderModules.#seenLayouts = layouts;
         if (changed) HSHeaderModules.#saveNotes(notes);
     }
 

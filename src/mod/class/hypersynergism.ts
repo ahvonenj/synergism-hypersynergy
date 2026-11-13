@@ -194,14 +194,11 @@ export class Hypersynergism {
      * popup is shown. Also resolves when the popup was already dismissed (body.loading removed by exitOffline).
      */
     #waitForGameLoaded(): Promise<void> {
-        const isLoaded = () => document.getElementById('offlineContainer')?.style.display === 'flex'
-            || !document.body.classList.contains('loading');
-
         return new Promise(resolve => {
-            if (isLoaded()) { resolve(); return; }
+            if (HSUtils.isGameLoaded()) { resolve(); return; }
 
             const observer = new MutationObserver(() => {
-                if (!isLoaded()) return;
+                if (!HSUtils.isGameLoaded()) return;
                 observer.disconnect();
                 resolve();
             });

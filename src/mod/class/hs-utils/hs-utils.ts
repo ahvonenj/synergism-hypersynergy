@@ -250,6 +250,16 @@ export class HSUtils {
     }
 
     /**
+     * Whether the game has loaded the save: the offline progress popup is shown, or was closed (exitOffline removes
+     * body.loading). False before the save loads (Steam starts the mod then: the player is still the blank one) and
+     * again during later offline progress (an import, a time skip), which puts body.loading back.
+     */
+    static isGameLoaded(): boolean {
+        return document.getElementById('offlineContainer')?.style.display === 'flex'
+            || !document.body.classList.contains('loading');
+    }
+
+    /**
      * The active Exalt's icon (its id is the challenge's key). Without the live player (bookmarklet), the one the game
      * colours: var(--orchid-background-color), plain orchid in older builds.
      */

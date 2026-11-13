@@ -28,6 +28,9 @@ Code: `hs-core/header/hs-header-modules.ts`; patcher "header modules" patch (`__
   size, hidden. Noted before each header render (`__HS_beforeHeaderRender`), put back when missing (a load, a
   singularity). A grid cell taken meanwhile → the tray. A stack is rebuilt with the same partner (both `S`, as the
   game does); the saved copy unstacks the partner (its `S` dropped, as the game does).
+- **Nothing is noted before the game's first load is over** (the offline popup shown or closed): Steam starts the mod
+  before the save loads, so its first renders are the blank player's layout, where a module's cell may be taken;
+  noting the tray there sent the module to the tray in the real save. They are still put back from the notes.
 - **Two mod modules stacked survive being turned off and on**, in any order (GDS off turns several settings off one
   after the other, autosing too): a module left alone because its partner is unregistered keeps that partner in its
   note, and each render puts every missing module back before noting any place (noting first noted a module alone
