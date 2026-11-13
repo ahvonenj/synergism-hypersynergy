@@ -221,9 +221,7 @@ export class HSSubtabMemory extends HSModule {
     }
 
     #load(): void {
-        // HSStorage warns when a key is missing: nothing stored is the normal case until a tab is left
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSSubtabMemoryData>>(STORAGE_KEY);
         if (!stored || stored.version !== 1 || typeof stored.notes !== 'object' || stored.notes === null) return;
 
         // The stored data is untrusted (backup files are shared): only a known subtab button of its own tab is kept,

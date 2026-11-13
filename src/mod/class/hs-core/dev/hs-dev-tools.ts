@@ -581,9 +581,7 @@ export class HSDevTools {
     // ====================================
 
     #loadData(): void {
-        // HSStorage.getData logs a warning for a key that was never written
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<Partial<HSDevStoredData>>(STORAGE_KEY);
 
         this.#data = {
             pinned: Array.isArray(stored?.pinned) ? stored.pinned : [],

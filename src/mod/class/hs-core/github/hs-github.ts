@@ -96,9 +96,7 @@ export class HSGithub {
     static #wasLiveTagAnnounced(liveTag: string): boolean {
         if (HSGithub.#announcedLiveTag === liveTag) return true;
 
-        // HSStorage warns when a key is missing: nothing stored is the normal case until a first announcement
-        const exists = localStorage.getItem(`${HSGlobal.HSStorage.storagePrefix}${STORAGE_KEY}`) !== null;
-        const stored = exists ? HSModuleRegistry.getModule('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY) : null;
+        const stored = HSModuleRegistry.getModule('HSStorage')?.getData<{ announcedLiveTag?: unknown }>(STORAGE_KEY);
         return stored?.announcedLiveTag === liveTag;
     }
 
