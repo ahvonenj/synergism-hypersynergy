@@ -98,6 +98,7 @@ Prefer the game's state (`HSGlobal.exposedPlayer`, GDS data) or signals it keeps
 
 ### Before claiming or estimating
 - **Search the repo before saying something is missing or sizing work**; game formulas: GDS first.
+- **A claim a conclusion rests on (what code does or costs) comes from reading that code**, not its comments, names or notes; otherwise say it's unchecked.
 - **Release status comes from git, never from notes** (`git tag --contains`, `git log <tag>..master`). Live is ported by hand: check it by content (`git grep -l <string> <live remote>/master`).
 - **Ask for real game data before testing on made-up inputs** (save, HS backup, heater export, as a file); carry on with synthetic cases while waiting.
 - **Estimate a run's size before an exhaustive check** (table sizes from a cheap first run); over a minute or two, narrow it first.
