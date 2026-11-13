@@ -52,7 +52,7 @@ export interface HSSettingsDefinition {
     reloadOnLateLoaderStart: ReloadOnLateLoaderStartSetting;
     rememberSubtabs: RememberSubtabsSetting;
     statsForNerdsGroups: HSSettingBase<boolean>;
-    perksFind: PerksFindSetting;
+    singularitySearch: SingularitySearchSetting;
 
     // Log Settings
     logTimestamp: LogTimestampSetting;
@@ -239,7 +239,7 @@ export interface HiddenVanillaTabsSetting extends HSSettingBase<string[]> { }
 export interface AutoDismissOfflinePopupSetting extends HSSettingBase<boolean> { }
 export interface ReloadOnLateLoaderStartSetting extends HSSettingBase<boolean> { }
 export interface RememberSubtabsSetting extends HSSettingBase<boolean> { }
-export interface PerksFindSetting extends HSSettingBase<boolean> { }
+export interface SingularitySearchSetting extends HSSettingBase<boolean> { }
 
 // Timed save export
 export interface AutoExportSaveSetting extends HSSettingBase<number> { }

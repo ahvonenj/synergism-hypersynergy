@@ -3,10 +3,25 @@ import type { HSSettingBase, HSSettingType } from '../../../types/module-types/h
 
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 
+/**
+ * Renamed settings, old key → new key: a stored value under the old key is read as the new one's. The next save writes
+ * only current keys, so the old one goes away.
+ */
+const RENAMED_SETTINGS: Readonly<Record<string, string>> = {
+    perksFind: 'singularitySearch',
+};
+
 /** Reads the existing storage envelope; older backups may contain the object rather than its JSON string. */
 export function parseStoredSettingStates(value: unknown): Record<string, unknown> | null {
     const parsed: unknown = typeof value === 'string' ? JSON.parse(value) : value;
-    return isRecord(parsed) ? parsed : null;
+    if (!isRecord(parsed)) return null;
+
+    const states = { ...parsed };
+    for (const [oldKey, newKey] of Object.entries(RENAMED_SETTINGS)) {
+        if (Object.hasOwn(states, oldKey) && !Object.hasOwn(states, newKey)) states[newKey] = states[oldKey];
+        delete states[oldKey];
+    }
+    return states;
 }
 
 /** Only player-owned fields can override the current definition, including when reading older full definitions. */

@@ -1851,18 +1851,18 @@
       "controlEnabledId": "hs-setting-qol-enable-gq-distributor-btn"
     }
   },
-  "perksFind": {
-    "settingName": "perksFind",
-    "settingDescription": "Perks search field",
-    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties subtab: it lists the tooltips of the perks matching what you type and dims the others in the tree.",
+  "singularitySearch": {
+    "settingName": "singularitySearch",
+    "settingDescription": "Search fields (Perks, GQ, Oct)",
+    "settingHelpText": "Adds a search field on the Singularity tab's Perks / Penalties, Golden Quarks and Octeracts subtabs. Perks: lists the tooltips of the perks matching what you type and dims the others in the tree. Upgrades: dims the upgrades that don't match.",
     "settingType": "boolean",
     "enabled": true,
-    "settingAction": "perksFindAction",
+    "settingAction": "singularitySearchAction",
     "settingControl": {
       "controlType": "switch",
       "controlGroup": "singularity",
       "controlPage": "qol",
-      "controlEnabledId": "hs-setting-perks-find-btn"
+      "controlEnabledId": "hs-setting-singularity-search-btn"
     }
   },
   "hideMaxedGQUpgrades": {

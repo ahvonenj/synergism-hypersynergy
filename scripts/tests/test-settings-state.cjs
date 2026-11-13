@@ -68,6 +68,11 @@ async function main() {
     assert.deepEqual(legacy, before, 'restoring must not mutate the backup');
     assert.deepEqual(parse(legacy), legacy, 'object-valued older storage is also accepted');
     assert.equal(parse(null), null);
+    // Renamed settings: the old key's value goes to the new key, unless the new key is already stored
+    const renamed = parse(JSON.stringify({perksFind: {enabled: false, settingValue: false}}));
+    assert.deepEqual(renamed, {singularitySearch: {enabled: false, settingValue: false}});
+    assert.equal(restore(defaults.singularitySearch, renamed.singularitySearch).enabled, false);
+    assert.deepEqual(parse({perksFind: {enabled: false}, singularitySearch: {enabled: true}}), {singularitySearch: {enabled: true}});
     assert.equal(parse('[]'), null);
     assert.throws(() => parse('{invalid'), SyntaxError);
     for (const value of [null, 'bad', Infinity, {}]) {

@@ -278,7 +278,7 @@ export class HSSettingActions {
             (mod) => mod.hideDistributor()
         ),
 
-        perksFindAction: moduleToggle('HSPerksFind',
+        singularitySearchAction: moduleToggle('HSSingularitySearch',
             (mod) => mod.show(),
             (mod) => mod.hide()
         ),

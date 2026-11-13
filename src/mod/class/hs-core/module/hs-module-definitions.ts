@@ -1,7 +1,7 @@
 import { HSCodes } from "../../hs-modules/hs-codes";
 import { HSHepteracts } from "../../hs-modules/hs-hepteracts/hs-hepteracts";
 import { HSHepteractDistributor } from "../../hs-modules/hs-hepteracts/hs-hepteract-distributor";
-import { HSPerksFind } from "../../hs-modules/hs-perks-find/hs-perks-find";
+import { HSSingularitySearch } from "../../hs-modules/hs-singularity-search/hs-singularity-search";
 import { HSStatsForNerds } from "../../hs-modules/hs-stats-for-nerds";
 import { HSUI } from "../hs-ui";
 import { HSSettings } from "../settings/hs-settings";
@@ -60,9 +60,9 @@ export const HS_MODULE_DEFINITIONS = [
         moduleColor: 'lightskyblue',
     },
     {
-        className: 'HSPerksFind',
-        moduleClass: HSPerksFind,
-        context: 'HSPerksFind',
+        className: 'HSSingularitySearch',
+        moduleClass: HSSingularitySearch,
+        context: 'HSSingularitySearch',
         moduleColor: 'goldenrod',
     },
     {
