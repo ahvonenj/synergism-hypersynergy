@@ -34,6 +34,7 @@ Keep this file short. Never write release state (pushed, tagged, on Live) anywhe
 - `npm run release`: minified build to `release/mod/hypersynergism_release.js`, committed, served to players by jsDelivr, the only build without the dev tools. It is rebuilt only by a release, never by a commit. `npm run release-and-tag-helper` does a whole release. Releases, merging Live into Dev, porting to Live, loader releases: `docs/dev/releasing.md`.
 - Every build regenerates the strategy manifest (`scripts/generate-strategy-manifest.js`) and bundles the heater web worker separately (`scripts/heater-worker-plugin.cjs`).
 - **Every release requires a website changelog entry** in `docs/data/changelog.json`, matching its version, channel and player-facing changes. Live regenerates and validates the page before publishing; Dev only validates (`build-docs.py --validate`) and never commits `docs/changelog.html`. Required steps: `docs/dev/releasing.md`.
+- **Catch-up changelogs and credits:** link incoming versions and manually review the receiving release's notes and credits. Dev may list Live fixes made between releases when no patch notes describe them yet. Credit the authors of those fixes as well as the authors of the receiving branch's new work and the merger. See `docs/dev/publishing-guide.md`.
 - Desktop loader (`synergism_modloader/`, its own npm package and version): `npm start` (Electron app), `npm test` (`node --test test/*.test.js`), `npm run dist` (installer).
 
 ## Architecture
