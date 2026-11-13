@@ -66,6 +66,8 @@ The mod's ambrosia quickbar was removed for the game's module; its borders moved
 - **Rainbow** once the game marks the slot (`activeBlueberryLoadout` on the tab's slot), **silver** while it's the
   mod's guess from the save (the game marks none after a page load or any save load). Same state as before
   (`activeLoadout`, `#activeLoadoutConfirmed`); the rainbow stays after a singularity (fine).
+- **The guess at a page load waits for the game's load** (offline popup shown or closed), not the end of the mod's
+  init: Steam starts the mod before the save loads, and the blank player's empty slots gave no guess.
 - **On the game's header module and on the Ambrosia tab's 16 slots**: the tab is where Quick Import
   and Import All go, and the heater results' slot row copies the tab's slots, borders and icons included.
 - The header slots are found by `data-slot`; an observer on `#ambrosiaLoadoutsHeaderSlots` and

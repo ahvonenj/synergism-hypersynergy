@@ -86,11 +86,6 @@ export class Hypersynergism {
         // After the sync: its checkboxes show the settings' states
         HSHeaderEditSettings.install();
 
-        const ambrosiaMod = HSModuleRegistry.getModule('HSAmbrosia');
-        if (ambrosiaMod) {
-            await ambrosiaMod.initializeActiveLoadoutFromGameData();
-        }
-
         // Mod fully loaded, so we show HS icon, and update the flag
         const hsui = HSModuleRegistry.getModule('HSUI');
         hsui?.setPanelControlVisible(true);
@@ -107,14 +102,21 @@ export class Hypersynergism {
     }
 
     /**
-     * Once the game has finished loading: expose the patched game internals (hidden behind the offline
-     * popup when it is open), then close the popup if the autoDismissOfflinePopup setting is on.
+     * Once the game has finished loading: guess the ambrosia loadout shown as loaded from the save, expose the
+     * patched game internals (hidden behind the offline popup when it is open), then close the popup if the
+     * autoDismissOfflinePopup setting is on.
      * The browser loader usually did both already, in which case this does nothing.
      */
     async #onGameLoaded(): Promise<void> {
         const autoDismissPopup = !!HSSettings.getSetting('autoDismissOfflinePopup')?.isEnabled();
 
         await this.#waitForGameLoaded();
+        // Only now on Steam, which starts the mod before the save loads: the blank player has no loadout to match
+        try {
+            await HSModuleRegistry.getModule('HSAmbrosia')?.initializeActiveLoadoutFromGameData();
+        } catch (e) {
+            HSLogger.warn(`Could not guess the ambrosia loadout shown as loaded: ${e}`, this.#context);
+        }
         this.#reportPatchProblems();
         await this.#ensurePatcherExposure(autoDismissPopup);
 
