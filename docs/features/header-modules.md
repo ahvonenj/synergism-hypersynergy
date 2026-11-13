@@ -76,8 +76,9 @@ Code: `hs-core/header/hs-header-modules.ts`; patcher "header modules" patch (`__
   three bars every 0.125 s of real time; a timer, not `requestAnimationFrame`); nothing while the page is hidden, the
   style written only on a change. Predicting the fill between reads was dropped: the live read
   is exact and cheaper.
-  The bar sizes come from the mod's GDS formulas on one forced save, done again only when one of their inputs changes
-  on the live player (lifetimes to 3 significant digits, Two Minds / Brick of Lead, every Exalt, the shop's
+  The bar sizes come from the mod's GDS formulas on one live read (`getForcedGameData`, no save), done again only when
+  one of their inputs changes on the live player (lifetimes to 3 significant digits, left out under Two Minds whose
+  sizes are constants, else the offline catch-up recomputes them every tick; Two Minds / Brick of Lead, every Exalt, the shop's
   accelerator, the purple requirement upgrades, highest singularity), never while GDS is paused. Patching the game's
   three functions instead was rejected: same accuracy as before, no patcher change, no Steam re-patch.
 - Setting `ambrosiaMinibars`: `usesGameData: ["bookmarklet"]` (`HSSettings.usesGameData()`). Only there do they
