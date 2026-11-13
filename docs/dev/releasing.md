@@ -20,12 +20,12 @@ one clone to another: check `git remote -v`.
 
 ## Mod release: `npm run release-and-tag-helper`
 
-- **Website changelog is required for every mod or loader release.** Add the version, channel, UTC date, player-facing changes and verified source/contributor references to `docs/data/changelog.json`. Use the same changes in the tag and GitHub release notes. Follow `docs/dev/publishing-guide.md`; use tagged metadata until a GitHub publication date is available, and never invent a commit hash or publication date.
+- **Patch notes are required for every mod or loader release.** Follow [Writing patch notes](publishing-guide.md#writing-patch-notes) for the website, tag and GitHub release. Record verified version, date and source evidence in `docs/data/changelog.json`.
   - **On Live:** regenerate the whole site with `python scripts/tools/build-docs.py`, run `python scripts/tools/build-docs.py --check` and `python scripts/tests/test-changelog-validation.py`, and include the data and every regenerated page in the published changes. The whole site, not just the changelog page: it then describes the released build, and a PR of Dev's whole `master` carries no pages. A Live release is not finished until its changelog is visible on the website.
   - **On Dev:** check the entry with `python scripts/tools/build-docs.py --validate`, but never commit `docs/changelog.html`: like the site's other pages ("Porting a change to Live"), it is built from its checkout and the site is served from Live only. Dev entries appear on the website at Live's next regeneration.
 - `package.json` holds the name of the **next** release; the helper only bumps when that tag already exists. Set a name
   by hand in `package.json` and `package-lock.json` (two version lines).
-- `-- --notes-file <path>` puts a Markdown changelog into the tag message (the same changes as the website entry above).
+- `-- --notes-file <path>` puts the Markdown patch notes into the tag message.
 - **Purges:** the bundle, and `synergism_modloader/lib/patcher.js`, `src/loader/hypersynergism.user.js` and
   `src/loader/tampermonkey-bridge.user.js` when they changed since the previous release tag (`getPurgePaths`). An
   accepted purge can still leave the old file served (once, v2.14.6a-dev1: the new bundle with the old `patcher.js`,
@@ -83,6 +83,16 @@ commits past its tag are listed, and arrive with the next release or a hand merg
 - **`git checkout --ours <file>` takes the whole file**, dropping what merged cleanly from Live's side (it once dropped
   a script line in `package.json`): compare with Live's `master` after resolving.
 - Verify (`npx tsc --noEmit`, `npm test`, `npm run build`) before the merge commit.
+
+## Merging Dev into Live
+
+Use this procedure for a full Dev catch-up. For a single change, see [Porting a change to Live](#porting-a-change-to-live-pr-or-direct-release).
+
+1. Check `git remote -v`, identify the Live and Dev repositories, and fetch the intended refs. Start a separate worktree from current Live `master`. Record that Live commit and the Dev commit being merged. Review the incoming commits and changes already on Live, including earlier ports.
+2. Merge Dev into the worktree without committing. Resolve conflicts against the intended Live behavior. Restore `release/mod/hypersynergism_release.js` from the recorded Live commit even if Git merged it cleanly. Compare the staged bundle's Git blob ID with that commit's blob ID before committing. Any explicitly requested Live release builds the bundle in a separate release commit.
+3. Preserve both channels' changelog entries and reconcile shared entries using [Writing patch notes](publishing-guide.md#writing-patch-notes). When publishing a release, regenerate the site on Live. Keep the website data as the source for the generated pages.
+4. Review the patcher and published userscripts against the recorded Live commit. Changes to those files reach players from `master` even while the compiled mod bundle stays at its current release. Check compatibility with the bundle players will receive. Run `npx tsc --noEmit`, `npm test` and `npm run build`, plus the loader tests if the patcher changed.
+5. Review the staged merge against Live, including the bundle check. After an authorized push, verify any changed branch-served files using the purge and verification procedure above. If this catch-up is part of an explicitly requested release, follow the release steps for the new bundle, tag, GitHub notes and website.
 
 ## Porting a change to Live (PR or direct release)
 
